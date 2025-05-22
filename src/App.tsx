@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Menu, X, ChevronUp } from 'lucide-react';
+// src/App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -14,74 +14,27 @@ import Products from './pages/Products';
 import WhatsAppButton from './components/WhatsAppButton';
 
 function App() {
-  const [activeSection, setActiveSection] = useState<string>('home');
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  const handleScroll = () => {
-    const sections = document.querySelectorAll('section[id]');
-    const scrollPosition = window.scrollY;
-
-    sections.forEach((section) => {
-      const sectionTop = (section as HTMLElement).offsetTop - 100;
-      const sectionHeight = (section as HTMLElement).offsetHeight;
-      const sectionId = section.getAttribute('id') || '';
-
-      if (
-        scrollPosition >= sectionTop &&
-        scrollPosition < sectionTop + sectionHeight
-      ) {
-        setActiveSection(sectionId);
-      }
-    });
-
-    if (window.scrollY > 300) {
-      setShowScrollTop(true);
-    } else {
-      setShowScrollTop(false);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  };
-
   return (
-    <div className="relative">
-      <Navbar activeSection={activeSection} />
-      <main>
-        <Home />
-        <Services />
-        <Results />
-        <Diagnosis />
-        <Products />
-        <Appointment />
-        <About />
-        <Faq />
-        <Contact />
+    <BrowserRouter>
+      <Navbar />
+      <main className="mt-24"> {/* deja espacio para Navbar fija */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/diagnosis" element={<Diagnosis />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/contact" element={<Contact />} />
+          {/* Puedes añadir una ruta “catch-all” para redirigir a “/” */}
+          <Route path="*" element={<Home />} />
+        </Routes>
       </main>
       <Footer />
       <WhatsAppButton />
-      
-      <button
-        onClick={scrollToTop}
-        className={`fixed bottom-24 right-8 z-40 bg-[#deb887] text-white p-3 rounded-full shadow-lg transition-all duration-300 ${
-          showScrollTop ? 'opacity-100 visible' : 'opacity-0 invisible'
-        }`}
-        aria-label="Scroll to top"
-      >
-        <ChevronUp size={24} />
-      </button>
-    </div>
+    </BrowserRouter>
   );
 }
 
