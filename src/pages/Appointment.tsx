@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const Appointment = () => {
-  // Estado del formulario
+  // Estados del formulario
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,7 +12,18 @@ const Appointment = () => {
     message: '',
   });
 
-  // Manejador de cambios
+  // Estados para manejo de horarios
+  const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+
+  // Todos los posibles horarios
+  const allTimes = [
+    '09:00', '10:00', '11:00', '12:00',
+    '13:00', '14:00', '15:00', '16:00',
+    '17:00', '18:00'
+  ];
+
+  // Función para cambiar estado de formulario
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -20,32 +31,40 @@ const Appointment = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // useEffect 1: Prueba de fetch de eventos
+  // useEffect: obtiene eventos cuando cambia la fecha
   useEffect(() => {
-    if (!formData.date) return; // solo si hay fecha
-    console.log('Obteniendo eventos para fecha:', formData.date);
+    if (!formData.date) return;
     fetch('/api/getEvents', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: formData.date }),
     })
-      .then((res) => {
-        console.log('Respuesta HTTP:', res.status);
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
-        console.log('Datos recibidos de /api/getEvents:', data);
+        // Extrae horas ocupadas en formato HH:mm
+        const times = data.occupiedTimes.map((e: any) =>
+          new Date(e.start).toTimeString().slice(0, 5)
+        );
+        setOccupiedTimes(times);
       })
-      .catch((err) => {
-        console.error('Error fetch /api/getEvents:', err);
-      });
+      .catch(() => setOccupiedTimes([]));
   }, [formData.date]);
 
-  // Envío del formulario
+  // useEffect: calcula horarios disponibles
+  useEffect(() => {
+    const libres = allTimes.filter((t) => !occupiedTimes.includes(t));
+    setAvailableTimes(libres);
+    // Limpia time seleccionado si ya no es válido
+    if (!libres.includes(formData.time)) {
+      setFormData((prev) => ({ ...prev, time: '' }));
+    }
+  }, [occupiedTimes]);
+
+  // Envío de formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Datos enviados:', formData);
-    alert('Datos en consola y fetch de eventos en la fecha ' + formData.date);
+    console.log('Enviando:', formData);
+    alert('Solicitud enviada: ' + JSON.stringify(formData));
   };
 
   return (
@@ -54,7 +73,7 @@ const Appointment = () => {
         <div className="text-center mb-16">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Segundo paso: fetch de eventos al cambiar fecha (revisa consola).
+            Tercer paso: selecciona hora según disponibilidad.
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -65,6 +84,7 @@ const Appointment = () => {
             value={formData.name}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+            required
           />
           <input
             type="email"
@@ -73,6 +93,7 @@ const Appointment = () => {
             value={formData.email}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+            required
           />
           <input
             type="tel"
@@ -81,6 +102,7 @@ const Appointment = () => {
             value={formData.phone}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+            required
           />
           <input
             type="text"
@@ -89,6 +111,7 @@ const Appointment = () => {
             value={formData.service}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+            required
           />
           <input
             type="date"
@@ -97,15 +120,24 @@ const Appointment = () => {
             value={formData.date}
             onChange={handleChange}
             className="w-full border p-2 rounded"
+            required
           />
-          <input
-            type="time"
+          <select
             name="time"
-            placeholder="Hora"
             value={formData.time}
             onChange={handleChange}
             className="w-full border p-2 rounded"
-          />
+            required
+          >
+            <option value="" disabled>
+              Selecciona hora
+            </option>
+            {availableTimes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
           <textarea
             name="message"
             placeholder="Mensaje adicional (opcional)"
