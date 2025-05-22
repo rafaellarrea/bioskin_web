@@ -11,7 +11,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/appointment" element={<Appointment />} />
-          {/* Agrega aquí las demás rutas si necesitas */}
         </Routes>
       </HashRouter>
     </ErrorBoundary>

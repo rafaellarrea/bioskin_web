@@ -1,7 +1,8 @@
 import React from 'react';
 
 interface State { hasError: boolean; error: Error | null }
-export class ErrorBoundary extends React.Component<{}, State> {
+
+class ErrorBoundary extends React.Component<{}, State> {
   constructor(props: {}) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -25,3 +26,6 @@ export class ErrorBoundary extends React.Component<{}, State> {
     return this.props.children;
   }
 }
+
+export { ErrorBoundary };
+export default ErrorBoundary;
