@@ -26,7 +26,6 @@ const Appointment = () => {
   const formatTimeLabel = (time24: string) => {
     const [hourStr, minuteStr] = time24.split(':');
     const hour = parseInt(hourStr, 10);
-    const minute = parseInt(minuteStr, 10);
     const suffix = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
     return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${suffix}`;
@@ -65,8 +64,6 @@ const Appointment = () => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
-    const dateISO = formData.date;
-    const dateFormatted = new Date(dateISO).toLocaleDateString();
     try {
       const res = await fetch('/api/sendEmail', {
         method: 'POST',
@@ -77,9 +74,9 @@ const Appointment = () => {
           message: `
             Teléfono: ${formData.phone}
             Servicio: ${formData.service}
-            Fecha: ${dateISO}
+            Fecha: ${formData.date}
             Hora: ${formData.time}
-            Comentario: ${formData.message}
+            Comentario adicional: ${formData.message}
           `,
         }),
       });
@@ -98,7 +95,7 @@ const Appointment = () => {
         const data = await res.json();
         setError(data.message || 'Error al enviar el formulario.');
       }
-    } catch (err) {
+    } catch {
       setError('Error de conexión.');
     }
     setSubmitting(false);
@@ -122,59 +119,29 @@ const Appointment = () => {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="animate-fade-in" data-aos="fade-right">
-            {/* Aquí puedes poner un panel con información o un botón a WhatsApp */}
+            {/* Aquí puedes poner un panel con información o WhatsApp */}
           </div>
           <div className="animate-fade-in" data-aos="fade-left">
             {!submitted ? (
-              <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  {/* Aquí van los campos name, email, phone, service */}
+              <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md space-y-4">
+                <input name="name" type="text" required placeholder="Nombre completo" value={formData.name} onChange={handleChange} className="w-full p-3 border rounded-md" />
+                <input name="email" type="email" required placeholder="Correo electrónico" value={formData.email} onChange={handleChange} className="w-full p-3 border rounded-md" />
+                <input name="phone" type="tel" required placeholder="Teléfono" value={formData.phone} onChange={handleChange} className="w-full p-3 border rounded-md" />
+                <input name="service" type="text" required placeholder="Servicio solicitado" value={formData.service} onChange={handleChange} className="w-full p-3 border rounded-md" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input name="date" type="date" required value={formData.date} onChange={handleChange} className="w-full p-3 border rounded-md" />
+                  <select name="time" required value={formData.time} onChange={handleChange} className="w-full p-3 border rounded-md">
+                    <option value="">Hora Disponible</option>
+                    {availableTimes.map(time => (
+                      <option key={time} value={time}>{formatTimeLabel(time)}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label htmlFor="date" className="block text-sm font-medium">Fecha Preferida*</label>
-                    <input
-                      type="date"
-                      id="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      className="w-full p-3 border rounded-md focus:ring-2 focus:ring-[#deb887]"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="time" className="block text-sm font-medium">Hora Disponible*</label>
-                    <select
-                      id="time"
-                      name="time"
-                      value={formData.time}
-                      onChange={handleChange}
-                      className="w-full p-3 border rounded-md focus:ring-2 focus:ring-[#deb887]"
-                      required
-                    >
-                      <option value="">Seleccionar...</option>
-                      {availableTimes.map((time) => (
-                        <option key={time} value={time}>
-                          {formatTimeLabel(time)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="mb-6">
-                  {/* Campo de mensaje */}
-                </div>
-                <button
-                  type="submit"
-                  className="w-full btn-primary py-3 flex justify-center items-center"
-                  disabled={submitting}
-                >
+                <textarea name="message" rows={4} placeholder="Mensaje adicional (opcional)" value={formData.message} onChange={handleChange} className="w-full p-3 border rounded-md" />
+                <button type="submit" disabled={submitting} className="btn-primary w-full py-3">
                   {submitting ? 'Enviando...' : 'Enviar Solicitud'}
                 </button>
-                {error && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>
-                )}
+                {error && <div className="text-red-600">{error}</div>}
               </form>
             ) : (
               <div className="text-center py-8">
