@@ -1,4 +1,5 @@
-// src/App.tsx
+
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -17,7 +18,7 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar />
-      <main className="mt-24"> {/* deja espacio para Navbar fija */}
+      <main className="mt-24">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
@@ -28,7 +29,6 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/contact" element={<Contact />} />
-          {/* Puedes añadir una ruta “catch-all” para redirigir a “/” */}
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
