@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 const Appointment = () => {
@@ -12,6 +13,9 @@ const Appointment = () => {
   });
   const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   const allTimes = [
     '09:00', '10:00', '11:00', '12:00',
@@ -70,13 +74,13 @@ const Appointment = () => {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          message: \`
-            Teléfono: \${formData.phone}
-            Servicio: \${formData.service}
-            Fecha: \${dateISO}
-            Hora: \${formData.time}
-            Comentario: \${formData.message}
-          \`,
+          message: `
+            Teléfono: ${formData.phone}
+            Servicio: ${formData.service}
+            Fecha: ${dateISO}
+            Hora: ${formData.time}
+            Comentario: ${formData.message}
+          `,
         }),
       });
       if (res.ok) {
@@ -100,11 +104,6 @@ const Appointment = () => {
     setSubmitting(false);
   };
 
-  // preserve submitting, submitted, error states
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
-
   const resetForm = () => {
     setFormData({ name: '', email: '', phone: '', service: '', date: '', time: '', message: '' });
     setSubmitting(false);
@@ -123,13 +122,13 @@ const Appointment = () => {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="animate-fade-in" data-aos="fade-right">
-            {/* Left contact/whatsapp schedule panel (unchanged) */}
+            {/* Aquí puedes poner un panel con información o un botón a WhatsApp */}
           </div>
           <div className="animate-fade-in" data-aos="fade-left">
             {!submitted ? (
               <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  {/* Name, email, phone, service fields */}
+                  {/* Aquí van los campos name, email, phone, service */}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -164,7 +163,7 @@ const Appointment = () => {
                   </div>
                 </div>
                 <div className="mb-6">
-                  {/* Message field */}
+                  {/* Campo de mensaje */}
                 </div>
                 <button
                   type="submit"
