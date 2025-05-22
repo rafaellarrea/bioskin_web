@@ -14,7 +14,7 @@ import Contact from './pages/Contact';
 import Products from './pages/Products';
 import WhatsAppButton from './components/WhatsAppButton';
 
-function App() {
+const App = () => {
   return (
     <BrowserRouter>
       <Navbar />
@@ -36,6 +36,6 @@ function App() {
       <WhatsAppButton />
     </BrowserRouter>
   );
-}
+};
 
 export default App;
