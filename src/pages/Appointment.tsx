@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Appointment = () => {
-  // Paso 1: Estado básico del formulario
+  // Estado del formulario
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,11 +20,32 @@ const Appointment = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Solo muestra los datos en consola al enviar
+  // useEffect 1: Prueba de fetch de eventos
+  useEffect(() => {
+    if (!formData.date) return; // solo si hay fecha
+    console.log('Obteniendo eventos para fecha:', formData.date);
+    fetch('/api/getEvents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: formData.date }),
+    })
+      .then((res) => {
+        console.log('Respuesta HTTP:', res.status);
+        return res.json();
+      })
+      .then((data) => {
+        console.log('Datos recibidos de /api/getEvents:', data);
+      })
+      .catch((err) => {
+        console.error('Error fetch /api/getEvents:', err);
+      });
+  }, [formData.date]);
+
+  // Envío del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Datos enviados:', formData);
-    alert('Datos en consola del navegador');
+    alert('Datos en consola y fetch de eventos en la fecha ' + formData.date);
   };
 
   return (
@@ -33,7 +54,7 @@ const Appointment = () => {
         <div className="text-center mb-16">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Primer paso: formulario funcional sin lógica externa.
+            Segundo paso: fetch de eventos al cambiar fecha (revisa consola).
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
