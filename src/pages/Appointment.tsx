@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const Appointment = () => {
-  // Estados del formulario
+  // Estado del formulario
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,7 +23,7 @@ const Appointment = () => {
     '17:00', '18:00'
   ];
 
-  // Función para cambiar estado de formulario
+  // Manejador de cambios
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -31,7 +31,7 @@ const Appointment = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // useEffect: obtiene eventos cuando cambia la fecha
+  // Fetch de eventos ocupados al cambiar fecha
   useEffect(() => {
     if (!formData.date) return;
     fetch('/api/getEvents', {
@@ -41,7 +41,6 @@ const Appointment = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        // Extrae horas ocupadas en formato HH:mm
         const times = data.occupiedTimes.map((e: any) =>
           new Date(e.start).toTimeString().slice(0, 5)
         );
@@ -50,21 +49,42 @@ const Appointment = () => {
       .catch(() => setOccupiedTimes([]));
   }, [formData.date]);
 
-  // useEffect: calcula horarios disponibles
+  // Calcula horarios disponibles
   useEffect(() => {
     const libres = allTimes.filter((t) => !occupiedTimes.includes(t));
     setAvailableTimes(libres);
-    // Limpia time seleccionado si ya no es válido
     if (!libres.includes(formData.time)) {
       setFormData((prev) => ({ ...prev, time: '' }));
     }
   }, [occupiedTimes]);
 
-  // Envío de formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handler para enviar y crear evento + enviar correo
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Enviando:', formData);
-    alert('Solicitud enviada: ' + JSON.stringify(formData));
+    try {
+      // Crear evento en Google Calendar
+      const eventResponse = await fetch('/api/createEvent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const eventResult = await eventResponse.json();
+
+      // Enviar notificación por correo si es necesario
+      const mailResponse = await fetch('/api/sendEmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const mailResult = await mailResponse.json();
+
+      alert('¡Cita agendada con éxito en Google Calendar! ID: ' + eventResult.id);
+      console.log('Evento creado:', eventResult);
+      console.log('Mail enviado:', mailResult);
+    } catch (err) {
+      console.error('Error al agendar:', err);
+      alert('Ocurrió un error al agendar tu cita. Por favor, intenta nuevamente.');
+    }
   };
 
   return (
@@ -73,7 +93,7 @@ const Appointment = () => {
         <div className="text-center mb-16">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Tercer paso: selecciona hora según disponibilidad.
+            Cuarto paso: crea evento en Google Calendar y envía email
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
