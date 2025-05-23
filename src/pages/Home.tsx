@@ -1,19 +1,14 @@
-
 import React from 'react';
 
 const Home = () => {
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#fefefe',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontSize: '2rem',
-      fontWeight: 'bold'
-    }}>
-      Hola, soy BIOSKIN
-    </div>
+    <section style={ padding: '80px', textAlign: 'center' }>
+      <h1>Home</h1>
+      <p>Render test con imágenes incluidas.</p>
+      <div style={ marginTop: '40px' }>
+        
+      </div>
+    </section>
   );
 };
 
