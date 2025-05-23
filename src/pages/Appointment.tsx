@@ -15,6 +15,8 @@ const Appointment = () => {
   // Estados para manejo de horarios
   const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Todos los posibles horarios
   const allTimes = [
@@ -23,15 +25,15 @@ const Appointment = () => {
     '17:00', '18:00'
   ];
 
-  // Manejador de cambios
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrorMessage('');
   };
 
-  // Fetch de eventos ocupados al cambiar fecha
+  // Fetch ocupados
   useEffect(() => {
     if (!formData.date) return;
     fetch('/api/getEvents', {
@@ -46,10 +48,13 @@ const Appointment = () => {
         );
         setOccupiedTimes(times);
       })
-      .catch(() => setOccupiedTimes([]));
+      .catch((err) => {
+        console.error('Error en getEvents:', err);
+        setOccupiedTimes([]);
+      });
   }, [formData.date]);
 
-  // Calcula horarios disponibles
+  // Calcular disponibles
   useEffect(() => {
     const libres = allTimes.filter((t) => !occupiedTimes.includes(t));
     setAvailableTimes(libres);
@@ -58,120 +63,87 @@ const Appointment = () => {
     }
   }, [occupiedTimes]);
 
-  // Handler para enviar y crear evento + enviar correo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
     try {
-      // Crear evento en Google Calendar
       const eventResponse = await fetch('/api/createEvent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       const eventResult = await eventResponse.json();
+      console.log('Evento creado:', eventResult);
 
-      // Enviar notificación por correo si es necesario
       const mailResponse = await fetch('/api/sendEmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       const mailResult = await mailResponse.json();
-
-      alert('¡Cita agendada con éxito en Google Calendar! ID: ' + eventResult.id);
-      console.log('Evento creado:', eventResult);
       console.log('Mail enviado:', mailResult);
-    } catch (err) {
-      console.error('Error al agendar:', err);
-      alert('Ocurrió un error al agendar tu cita. Por favor, intenta nuevamente.');
+
+      alert('¡Cita agendada con éxito! Revisa tu correo.');
+    } catch (err: any) {
+      console.error('Error al agendar cita:', err);
+      const msg = err.message || JSON.stringify(err);
+      setErrorMessage('Error al agendar la cita: ' + msg);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <section id="appointment" className="py-24">
       <div className="container-custom">
-        <div className="text-center mb-16">
+        <div className="text-center mb-6">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Cuarto paso: crea evento en Google Calendar y envía email
+            Paso final: creamos el evento y enviamos correo.
           </p>
         </div>
+        {errorMessage && (
+          <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">
+            {errorMessage}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nombre completo"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Correo electrónico"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Teléfono"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="text"
-            name="service"
-            placeholder="Servicio solicitado"
-            value={formData.service}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="date"
-            name="date"
-            placeholder="Fecha"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <select
-            name="time"
-            value={formData.time}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          >
-            <option value="" disabled>
-              Selecciona hora
-            </option>
+          {/* Campos del formulario */}
+          <input type="text" name="name" placeholder="Nombre completo"
+            value={formData.name} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
+          <input type="email" name="email" placeholder="Correo electrónico"
+            value={formData.email} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
+          <input type="tel" name="phone" placeholder="Teléfono"
+            value={formData.phone} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
+          <input type="text" name="service" placeholder="Servicio solicitado"
+            value={formData.service} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
+          <input type="date" name="date" placeholder="Fecha"
+            value={formData.date} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
+          <select name="time" value={formData.time} onChange={handleChange}
+            className="w-full border p-2 rounded" required>
+            <option value="" disabled>Selecciona hora</option>
             {availableTimes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
-          <textarea
-            name="message"
-            placeholder="Mensaje adicional (opcional)"
-            value={formData.message}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
-          <button
-            type="submit"
-            className="w-full bg-black text-white p-3 rounded"
-          >
-            Enviar Solicitud
+          <textarea name="message" placeholder="Mensaje adicional (opcional)"
+            value={formData.message} onChange={handleChange}
+            className="w-full border p-2 rounded" />
+          <button type="submit"
+            className={`w-full p-3 rounded text-white ${loading ? 'bg-gray-500' : 'bg-black'}`}
+            disabled={loading}>
+            {loading ? 'Procesando...' : 'Enviar Solicitud'}
           </button>
         </form>
+        <p className="text-xs text-gray-500 mt-4">
+          Si el error persiste, revisa la consola del navegador para detalles.
+        </p>
       </div>
     </section>
   );
