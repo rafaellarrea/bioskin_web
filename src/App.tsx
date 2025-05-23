@@ -7,8 +7,8 @@ import Results from './pages/Results';
 import Diagnosis from './pages/Diagnosis';
 import Products from './pages/Products';
 import Appointment from './pages/Appointment';
-import Nosotros from './pages/Nosotros';
-import Contacto from './pages/Contacto';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 function App() {
   return (
@@ -21,8 +21,8 @@ function App() {
         <Route path="/diagnostico" element={<Diagnosis />} />
         <Route path="/productos" element={<Products />} />
         <Route path="/agenda-tu-cita" element={<Appointment />} />
-        <Route path="/nosotros" element={<Nosotros />} />
-        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/nosotros" element={<About />} />
+        <Route path="/contacto" element={<Contact />} />
       </Routes>
     </HashRouter>
   );
