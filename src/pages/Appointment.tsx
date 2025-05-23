@@ -16,22 +16,15 @@ const Appointment = () => {
   const [infoMessage, setInfoMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const allTimes = [
-    '09:00','10:00','11:00','12:00',
-    '13:00','14:00','15:00','16:00',
-    '17:00','18:00'
-  ];
+  const allTimes = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrorMessage('');
     setInfoMessage('');
   };
 
-  // Obtiene horarios ocupados
   useEffect(() => {
     if (!formData.date) return;
     fetch('/api/getEvents', {
@@ -42,7 +35,7 @@ const Appointment = () => {
       .then(res => res.json())
       .then(data => {
         const times = data.occupiedTimes.map((e: any) =>
-          new Date(e.start).toTimeString().slice(0, 5)
+          new Date(e.start).toTimeString().slice(0,5)
         );
         setOccupiedTimes(times);
       })
@@ -52,7 +45,6 @@ const Appointment = () => {
       });
   }, [formData.date]);
 
-  // Calcula disponibles
   useEffect(() => {
     const libres = allTimes.filter(t => !occupiedTimes.includes(t));
     setAvailableTimes(libres);
@@ -68,20 +60,20 @@ const Appointment = () => {
     setInfoMessage('');
 
     try {
-      // Crear evento en Google Calendar
+      // Create Google Calendar event
       const evRes = await fetch('/api/createEvent', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify(formData),
       });
       console.log('createEvent status:', evRes.status);
       const evText = await evRes.text();
       console.log('createEvent raw:', evText);
 
-      // Enviar email de confirmación
+      // Send confirmation email
       const mailRes = await fetch('/api/sendEmail', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
         body: JSON.stringify(formData),
       });
       console.log('sendEmail status:', mailRes.status);
@@ -89,13 +81,13 @@ const Appointment = () => {
       console.log('sendEmail raw:', mailText);
 
       if (!mailRes.ok) {
-        throw new Error(`Email API responded ${mailRes.status}`);
+        throw new Error(\`Email API \${mailRes.status}: \${mailText}\`);
       }
 
       setInfoMessage('¡Cita agendada y correo enviado con éxito!');
     } catch (err: any) {
       console.error('Error en handleSubmit:', err);
-      setErrorMessage('Error al agendar o enviar correo: ' + (err.message || err));
+      setErrorMessage('Error al agendar o enviar correo: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -107,7 +99,7 @@ const Appointment = () => {
         <div className="text-center mb-6">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Detectando éxito o fallo en envío de correo.
+            Ajustado para mostrar cuerpo de error de email.
           </p>
         </div>
         {infoMessage && (
@@ -121,86 +113,30 @@ const Appointment = () => {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nombre completo"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Correo electrónico"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Teléfono"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="text"
-            name="service"
-            placeholder="Servicio solicitado"
-            value={formData.service}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <input
-            type="date"
-            name="date"
-            placeholder="Fecha"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
-          <select
-            name="time"
-            value={formData.time}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          >
-            <option value="" disabled>
-              Selecciona hora
-            </option>
-            {availableTimes.map(t => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
+          <input type="text" name="name" placeholder="Nombre completo"
+            value={formData.name} onChange={handleChange} className="w-full border p-2 rounded" required />
+          <input type="email" name="email" placeholder="Correo electrónico"
+            value={formData.email} onChange={handleChange} className="w-full border p-2 rounded" required />
+          <input type="tel" name="phone" placeholder="Teléfono"
+            value={formData.phone} onChange={handleChange} className="w-full border p-2 rounded" required />
+          <input type="text" name="service" placeholder="Servicio solicitado"
+            value={formData.service} onChange={handleChange} className="w-full border p-2 rounded" required />
+          <input type="date" name="date" placeholder="Fecha"
+            value={formData.date} onChange={handleChange} className="w-full border p-2 rounded" required />
+          <select name="time" value={formData.time} onChange={handleChange}
+            className="w-full border p-2 rounded" required>
+            <option value="" disabled>Selecciona hora</option>
+            {availableTimes.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <textarea
-            name="message"
-            placeholder="Mensaje adicional (opcional)"
-            value={formData.message}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
-          <button
-            type="submit"
-            className={`w-full p-3 rounded text-white ${
-              loading ? 'bg-gray-500' : 'bg-black'
-            }`}
-            disabled={loading}
-          >
+          <textarea name="message" placeholder="Mensaje adicional (opcional)"
+            value={formData.message} onChange={handleChange} className="w-full border p-2 rounded" />
+          <button type="submit" className={\`w-full p-3 rounded text-white \${loading ? 'bg-gray-500' : 'bg-black'}\`}
+            disabled={loading}>
             {loading ? 'Procesando...' : 'Enviar Solicitud'}
           </button>
         </form>
         <p className="text-xs text-gray-500 mt-4">
-          Revisa la consola para estado y cuerpo de la API de correo.
+          Revisa la consola y el mensaje de error para más detalles.
         </p>
       </div>
     </section>
