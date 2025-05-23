@@ -1,5 +1,5 @@
 import React from 'react';
-// import ServiceCard from '../components/ServiceCard'; // Comentado para pruebas
+import ServiceCard from '../components/ServiceCard'; 
 
 const Services = () => {
   const services = [
