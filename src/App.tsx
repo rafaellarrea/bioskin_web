@@ -13,11 +13,11 @@ import Contact from './pages/Contact';
 
 function App() {
   return (
-    <ErrorBoundary>
-      <HashRouter>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
+ <ErrorBoundary>
+    <HashRouter>
+      <Navbar />
+      <Routes>
+         <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
           <Route path="/results" element={<Results />} />
           <Route path="/diagnosis" element={<Diagnosis />} />
