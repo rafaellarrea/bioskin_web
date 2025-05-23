@@ -7,22 +7,22 @@ const Services = () => {
       title: "Limpieza Facial Profunda",
       description: "Elimina impurezas, puntos negros y células muertas.",
       price: 25
-    },
+    }},
     {
       title: "Tratamiento Antiaging",
       description: "Combate los signos del envejecimiento con radiofrecuencia.",
       price: 25
-    },
+    }},
     {
       title: "Tratamiento Antimanchas",
       description: "Unifica el tono de tu piel con protocolo profesional.",
       price: 25
-    },
+    }},
     {
       title: "Remoción de Tatuajes",
       description: "Eliminación profesional de tatuajes con tecnología láser.",
       price: 25
-    }
+    }}
   ];
 
   return (
