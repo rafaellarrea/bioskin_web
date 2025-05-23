@@ -81,7 +81,7 @@ const Appointment = () => {
       console.log('sendEmail raw:', mailText);
 
       if (!mailRes.ok) {
-        throw new Error(\`Email API \${mailRes.status}: \${mailText}\`);
+        throw new Error('Email API ' + mailRes.status + ': ' + mailText);
       }
 
       setInfoMessage('¡Cita agendada y correo enviado con éxito!');
@@ -99,7 +99,7 @@ const Appointment = () => {
         <div className="text-center mb-6">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Ajustado para mostrar cuerpo de error de email.
+            Ajustado para evitar template literals en build.
           </p>
         </div>
         {infoMessage && (
@@ -130,13 +130,13 @@ const Appointment = () => {
           </select>
           <textarea name="message" placeholder="Mensaje adicional (opcional)"
             value={formData.message} onChange={handleChange} className="w-full border p-2 rounded" />
-          <button type="submit" className={\`w-full p-3 rounded text-white \${loading ? 'bg-gray-500' : 'bg-black'}\`}
+          <button type="submit" className={'w-full p-3 rounded text-white ' + (loading ? 'bg-gray-500' : 'bg-black')}
             disabled={loading}>
             {loading ? 'Procesando...' : 'Enviar Solicitud'}
           </button>
         </form>
         <p className="text-xs text-gray-500 mt-4">
-          Revisa la consola y el mensaje de error para más detalles.
+          Ahora sin template literals para evitar fallo de build.
         </p>
       </div>
     </section>
