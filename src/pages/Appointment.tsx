@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 const Appointment = () => {
-  // Estado del formulario
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -11,14 +10,11 @@ const Appointment = () => {
     time: '',
     message: '',
   });
-
-  // Estados para manejo de horarios
   const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Todos los posibles horarios
   const allTimes = [
     '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00',
@@ -29,11 +25,11 @@ const Appointment = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     setErrorMessage('');
   };
 
-  // Fetch ocupados
+  // Fetch occupied times
   useEffect(() => {
     if (!formData.date) return;
     fetch('/api/getEvents', {
@@ -41,25 +37,25 @@ const Appointment = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ date: formData.date }),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         const times = data.occupiedTimes.map((e: any) =>
           new Date(e.start).toTimeString().slice(0, 5)
         );
         setOccupiedTimes(times);
       })
-      .catch((err) => {
-        console.error('Error en getEvents:', err);
+      .catch(err => {
+        console.error('Error in getEvents:', err);
         setOccupiedTimes([]);
       });
   }, [formData.date]);
 
-  // Calcular disponibles
+  // Compute available times
   useEffect(() => {
-    const libres = allTimes.filter((t) => !occupiedTimes.includes(t));
+    const libres = allTimes.filter(t => !occupiedTimes.includes(t));
     setAvailableTimes(libres);
     if (!libres.includes(formData.time)) {
-      setFormData((prev) => ({ ...prev, time: '' }));
+      setFormData(prev => ({ ...prev, time: '' }));
     }
   }, [occupiedTimes]);
 
@@ -68,23 +64,41 @@ const Appointment = () => {
     setLoading(true);
     setErrorMessage('');
     try {
+      // Create Google Calendar event
       const eventResponse = await fetch('/api/createEvent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      const eventResult = await eventResponse.json();
+
+      let eventText = await eventResponse.text();
+      let eventResult;
+      try {
+        eventResult = JSON.parse(eventText);
+      } catch {
+        console.warn('No JSON from createEvent, raw:', eventText);
+        eventResult = { id: null };
+      }
       console.log('Evento creado:', eventResult);
 
+      // Send confirmation email
       const mailResponse = await fetch('/api/sendEmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      const mailResult = await mailResponse.json();
+
+      let mailText = await mailResponse.text();
+      let mailResult;
+      try {
+        mailResult = JSON.parse(mailText);
+      } catch {
+        console.warn('No JSON from sendEmail, raw:', mailText);
+        mailResult = {};
+      }
       console.log('Mail enviado:', mailResult);
 
-      alert('¡Cita agendada con éxito! Revisa tu correo.');
+      alert('¡Cita procesada con éxito! Verifica tu correo o calendario.');
     } catch (err: any) {
       console.error('Error al agendar cita:', err);
       const msg = err.message || JSON.stringify(err);
@@ -109,7 +123,6 @@ const Appointment = () => {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-          {/* Campos del formulario */}
           <input type="text" name="name" placeholder="Nombre completo"
             value={formData.name} onChange={handleChange}
             className="w-full border p-2 rounded" required />
@@ -128,7 +141,7 @@ const Appointment = () => {
           <select name="time" value={formData.time} onChange={handleChange}
             className="w-full border p-2 rounded" required>
             <option value="" disabled>Selecciona hora</option>
-            {availableTimes.map((t) => (
+            {availableTimes.map(t => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
