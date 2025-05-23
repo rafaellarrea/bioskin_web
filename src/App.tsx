@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
+import ErrorBoundary from './pages/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -12,19 +13,21 @@ import Contact from './pages/Contact';
 
 function App() {
   return (
-    <HashRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/servicios" element={<Services />} />
-        <Route path="/resultados" element={<Results />} />
-        <Route path="/diagnostico" element={<Diagnosis />} />
-        <Route path="/productos" element={<Products />} />
-        <Route path="/agenda-tu-cita" element={<Appointment />} />
-        <Route path="/nosotros" element={<About />} />
-        <Route path="/contacto" element={<Contact />} />
-      </Routes>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/diagnosis" element={<Diagnosis />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </HashRouter>
+    </ErrorBoundary>
   );
 }
 
