@@ -32,17 +32,17 @@ const Appointment = () => {
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ date: formData.date }),
     })
-      .then(res => res.json())
-      .then(data => {
-        const times = data.occupiedTimes.map((e: any) =>
-          new Date(e.start).toTimeString().slice(0,5)
-        );
-        setOccupiedTimes(times);
-      })
-      .catch(err => {
-        console.error('getEvents error:', err);
-        setOccupiedTimes([]);
-      });
+    .then(res => res.json())
+    .then(data => {
+      const times = data.occupiedTimes.map((e: any) =>
+        new Date(e.start).toTimeString().slice(0,5)
+      );
+      setOccupiedTimes(times);
+    })
+    .catch(err => {
+      console.error('getEvents error:', err);
+      setOccupiedTimes([]);
+    });
   }, [formData.date]);
 
   useEffect(() => {
@@ -61,23 +61,32 @@ const Appointment = () => {
 
     try {
       // Create Google Calendar event
-      const evRes = await fetch('/api/createEvent', {
+      await fetch('/api/createEvent', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(formData),
       });
-      console.log('createEvent status:', evRes.status);
-      const evText = await evRes.text();
-      console.log('createEvent raw:', evText);
 
-      // Send confirmation email
+      // Prepare email payload with required fields
+      const emailPayload = {
+        to: formData.email,
+        subject: 'Confirmación de cita en BIOSKIN',
+        html: '<p>Hola ' + formData.name + ',</p>'
+          + '<p>Tu cita de ' + formData.service
+          + ' ha sido programada para el ' + formData.date
+          + ' a las ' + formData.time + '.</p>'
+          + '<p>Teléfono de contacto: ' + formData.phone + '</p>'
+          + (formData.message ? '<p>Mensaje: ' + formData.message + '</p>' : '')
+          + '<p>¡Gracias por confiar en BIOSKIN!</p>',
+      };
+
       const mailRes = await fetch('/api/sendEmail', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(formData),
+        body: JSON.stringify(emailPayload),
       });
-      console.log('sendEmail status:', mailRes.status);
       const mailText = await mailRes.text();
+      console.log('sendEmail status:', mailRes.status);
       console.log('sendEmail raw:', mailText);
 
       if (!mailRes.ok) {
@@ -99,7 +108,7 @@ const Appointment = () => {
         <div className="text-center mb-6">
           <h2 className="section-title">Agenda tu Cita</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Ajustado para evitar template literals en build.
+            Ajuste en payload de email para incluir subject y html.
           </p>
         </div>
         {infoMessage && (
@@ -114,30 +123,34 @@ const Appointment = () => {
         )}
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
           <input type="text" name="name" placeholder="Nombre completo"
-            value={formData.name} onChange={handleChange} className="w-full border p-2 rounded" required />
+            value={formData.name} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
           <input type="email" name="email" placeholder="Correo electrónico"
-            value={formData.email} onChange={handleChange} className="w-full border p-2 rounded" required />
+            value={formData.email} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
           <input type="tel" name="phone" placeholder="Teléfono"
-            value={formData.phone} onChange={handleChange} className="w-full border p-2 rounded" required />
+            value={formData.phone} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
           <input type="text" name="service" placeholder="Servicio solicitado"
-            value={formData.service} onChange={handleChange} className="w-full border p-2 rounded" required />
+            value={formData.service} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
           <input type="date" name="date" placeholder="Fecha"
-            value={formData.date} onChange={handleChange} className="w-full border p-2 rounded" required />
+            value={formData.date} onChange={handleChange}
+            className="w-full border p-2 rounded" required />
           <select name="time" value={formData.time} onChange={handleChange}
             className="w-full border p-2 rounded" required>
             <option value="" disabled>Selecciona hora</option>
             {availableTimes.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           <textarea name="message" placeholder="Mensaje adicional (opcional)"
-            value={formData.message} onChange={handleChange} className="w-full border p-2 rounded" />
-          <button type="submit" className={'w-full p-3 rounded text-white ' + (loading ? 'bg-gray-500' : 'bg-black')}
+            value={formData.message} onChange={handleChange}
+            className="w-full border p-2 rounded" />
+          <button type="submit"
+            className={'w-full p-3 rounded text-white ' + (loading ? 'bg-gray-500' : 'bg-black')}
             disabled={loading}>
             {loading ? 'Procesando...' : 'Enviar Solicitud'}
           </button>
         </form>
-        <p className="text-xs text-gray-500 mt-4">
-          Ahora sin template literals para evitar fallo de build.
-        </p>
       </div>
     </section>
   );
