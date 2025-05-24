@@ -17,9 +17,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   return (
     <div
-      className="card group animate-fade-in"
-      style={{ animationDelay: (index * 150) + 'ms' }}  // corregido
-      data-aos="fade-up"
+      className="card group"
+      style={{ animationDelay: (index * 150) + 'ms' }}
     >
       <div className="relative overflow-hidden h-48">
         <img

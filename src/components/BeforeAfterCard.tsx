@@ -16,7 +16,7 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({
   const [showAfter, setShowAfter] = useState(false);
 
   return (
-    <div className="card overflow-hidden animate-fade-in" data-aos="fade-up">
+    <div className="card overflow-hidden">
       <div className="relative">
         <div className="relative h-64 overflow-hidden">
           <img
@@ -36,7 +36,7 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({
             style={{ position: 'absolute', top: 0, left: 0 }}
           />
         </div>
-        
+
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex justify-between items-center">
           <span className={`text-white font-medium ${showAfter ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
             Antes
@@ -45,7 +45,7 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({
             Después
           </span>
         </div>
-        
+
         <button
           className="absolute inset-0 w-full h-full cursor-pointer z-10 focus:outline-none"
           onClick={() => setShowAfter(!showAfter)}
@@ -54,7 +54,7 @@ const BeforeAfterCard: React.FC<BeforeAfterCardProps> = ({
           aria-label="Ver antes y después"
         />
       </div>
-      
+
       <div className="p-5">
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
         <p className="text-gray-600 text-sm">{description}</p>
