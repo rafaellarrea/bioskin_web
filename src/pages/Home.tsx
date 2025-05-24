@@ -1,4 +1,5 @@
 import React from 'react';
+import Footer from '../components/Footer';
 
 const Home = () => {
   return (
@@ -80,6 +81,8 @@ const Home = () => {
         </div>
       </div>
     </section>
+	<Footer /> {/* 👈 Se agrega aquí al final */}
+    </>
   );
 };
 

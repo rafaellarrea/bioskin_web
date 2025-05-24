@@ -14,7 +14,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   rating,
 }) => {
   return (
-    <div className="card p-6 animate-fade-in" data-aos="fade-up">
+    <div className="card p-6">
       <div className="flex items-center space-x-1 mb-3">
         {[...Array(5)].map((_, i) => (
           <svg
@@ -30,9 +30,9 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
           </svg>
         ))}
       </div>
-      
+
       <p className="text-gray-600 mb-4 italic">"{testimonial}"</p>
-      
+
       <div>
         <p className="font-semibold">{name}</p>
         <p className="text-sm text-gray-500">Tratamiento: {treatment}</p>

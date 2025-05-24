@@ -16,7 +16,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   category,
 }) => {
   return (
-    <div className="card group animate-fade-in" data-aos="fade-up">
+    <div className="card group">
       <div className="relative overflow-hidden h-48">
         <img
           src={image}
