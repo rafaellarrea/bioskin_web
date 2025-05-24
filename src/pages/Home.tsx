@@ -3,6 +3,7 @@ import Footer from '../components/Footer';
 
 const Home = () => {
   return (
+<>
     <section id="home" className="relative min-h-screen flex items-center">
       <div className="absolute inset-0 z-0">
         <img
