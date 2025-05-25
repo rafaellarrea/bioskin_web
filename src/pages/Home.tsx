@@ -2,20 +2,7 @@ import React from 'react';
 import Footer from '../components/Footer';
 import FaqItem from '../components/FaqItem';
 
-const faqItems = [
-  {
-    question: "¿Cuánto tiempo duran los resultados de los tratamientos?",
-    answer: "La duración de los resultados varía según el tipo de tratamiento y factores individuales como el tipo de piel, edad y estilo de vida..."
-  },
-  {
-    question: "¿Los tratamientos son dolorosos?",
-    answer: "La mayoría de nuestros tratamientos son mínimamente invasivos y causan poca o ninguna molestia..."
-  },
-  {
-    question: "¿Cuánto tiempo de recuperación necesito después de un tratamiento?",
-    answer: "La mayoría de nuestros tratamientos faciales no requieren tiempo de inactividad..."
-  }
-];
+const faqItems = La duración de los resultados varía según el tipo de tratamiento y factores individuales como el tipo de piel, edad y estilo de vida. En general, los tratamientos como el antiaging requieren mantenimiento periódico, mientras que procedimientos como la remoción de manchas pueden tener resultados más duraderos. En tu consulta inicial, te proporcionaremos información específica sobre la duración esperada y recomendaciones de mantenimiento para tu caso particular.
 
 const Home = () => {
   return (
