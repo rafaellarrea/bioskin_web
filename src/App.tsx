@@ -10,14 +10,15 @@ import Products from './pages/Products';
 import Appointment from './pages/Appointment';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Faq from './pages/Faq';
 
 function App() {
   return (
- <ErrorBoundary>
-    <HashRouter>
-      <Navbar />
-      <Routes>
-         <Route path="/" element={<Home />} />
+    <ErrorBoundary>
+      <HashRouter>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
           <Route path="/results" element={<Results />} />
           <Route path="/diagnosis" element={<Diagnosis />} />
@@ -25,6 +26,7 @@ function App() {
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<Faq />} />
         </Routes>
       </HashRouter>
     </ErrorBoundary>
