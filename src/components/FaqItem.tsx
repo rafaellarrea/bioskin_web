@@ -10,7 +10,7 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-gray-200 last:border-b-0 animate-fade-in" data-aos="fade-up">
+    <div className="border-b border-gray-200 last:border-b-0">
       <button
         className="flex justify-between items-center w-full py-4 text-left"
         onClick={() => setIsOpen(!isOpen)}
