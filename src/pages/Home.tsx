@@ -2,7 +2,41 @@ import React from 'react';
 import Footer from '../components/Footer';
 import FaqItem from '../components/FaqItem';
 
-const faqItems = La duración de los resultados varía según el tipo de tratamiento y factores individuales como el tipo de piel, edad y estilo de vida. En general, los tratamientos como el antiaging requieren mantenimiento periódico, mientras que procedimientos como la remoción de manchas pueden tener resultados más duraderos. En tu consulta inicial, te proporcionaremos información específica sobre la duración esperada y recomendaciones de mantenimiento para tu caso particular.
+const faqItems = [
+    {
+      question: "¿Cuánto tiempo duran los resultados de los tratamientos?",
+      answer: "La duración de los resultados varía según el tipo de tratamiento y factores individuales como el tipo de piel, edad y estilo de vida. En general, los tratamientos como el antiaging requieren mantenimiento periódico, mientras que procedimientos como la remoción de manchas pueden tener resultados más duraderos. En tu consulta inicial, te proporcionaremos información específica sobre la duración esperada y recomendaciones de mantenimiento para tu caso particular."
+    },
+    {
+      question: "¿Los tratamientos son dolorosos?",
+      answer: "La mayoría de nuestros tratamientos son mínimamente invasivos y causan poca o ninguna molestia. Para procedimientos que puedan generar alguna sensación, utilizamos técnicas de enfriamiento y, en caso necesario, anestésicos tópicos para garantizar tu comodidad. El nivel de sensibilidad varía según la persona y el tipo de tratamiento, pero nuestro equipo siempre prioriza tu bienestar durante todo el proceso."
+    },
+    {
+      question: "¿Cuánto tiempo de recuperación necesito después de un tratamiento?",
+      answer: "La mayoría de nuestros tratamientos faciales no requieren tiempo de inactividad, permitiéndote volver inmediatamente a tus actividades normales. Algunos procedimientos más intensivos como peelings profundos o tratamientos con dermapen pueden causar enrojecimiento temporal o descamación leve que generalmente se resuelve en 24-72 horas. Te proporcionaremos instrucciones detalladas de cuidado posterior para optimizar la recuperación y los resultados."
+    },
+    {
+      question: "¿Cuántas sesiones necesitaré para ver resultados?",
+      answer: "El número de sesiones varía según el tratamiento y tus objetivos específicos. Algunos procedimientos como la hidratación profunda muestran resultados inmediatos, mientras que tratamientos como antimanchas o remoción de tatuajes requieren múltiples sesiones para resultados óptimos. Durante tu consulta inicial, desarrollaremos un plan personalizado detallando el número recomendado de sesiones y la frecuencia para lograr tus objetivos."
+    },
+    {
+      question: "¿Los productos que utilizan son hipoalergénicos?",
+      answer: "Utilizamos productos de grado médico y formulaciones hipoalergénicas adecuadas para pieles sensibles. Nuestra selección de productos está cuidadosamente evaluada para minimizar riesgos de reacciones alérgicas. Siempre realizamos una evaluación detallada de tu historial de alergias y sensibilidades antes de recomendar cualquier tratamiento o producto."
+    },
+    {
+      question: "¿Puedo combinar diferentes tratamientos?",
+      answer: "Sí, de hecho, muchos de nuestros protocolos más efectivos combinan diferentes tecnologías y técnicas para potenciar resultados. Nuestro enfoque personalizado nos permite diseñar combinaciones seguras y eficaces según tus necesidades específicas. En la consulta inicial evaluaremos qué combinaciones son más beneficiosas para ti y crearemos un plan integral de tratamiento."
+    },
+    {
+      question: "¿Es necesario realizar un diagnóstico facial antes de cualquier tratamiento?",
+      answer: "Sí, recomendamos comenzar con un diagnóstico facial para todos nuestros pacientes. Esta evaluación nos permite identificar con precisión las condiciones específicas de tu piel, factores subyacentes que puedan estar afectándola, y determinar el protocolo de tratamiento más efectivo. El diagnóstico nos proporciona una línea base para medir el progreso y ajustar tratamientos según sea necesario."
+    },
+    {
+      question: "¿Ofrecen planes o paquetes de tratamiento?",
+      answer: "Sí, ofrecemos varios paquetes diseñados para optimizar resultados y proporcionar valor. Estos paquetes combinan tratamientos complementarios a un precio reducido en comparación con sesiones individuales. También creamos planes personalizados basados en tus objetivos específicos y presupuesto. Todos nuestros paquetes incluyen consultas de seguimiento para evaluar el progreso."
+    }
+  ];
+
 
 const Home = () => {
   return (
