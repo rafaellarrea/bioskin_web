@@ -130,6 +130,7 @@ const Appointment = () => {
   <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
   <option value="Lipopapada enzimática">Lipopapada enzimática</option>
 </select>
+<p className="text-gray-600 max-w-2xl mx-auto">Selecciona fecha y hora disponibles.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input name="date" type="date" required value={formData.date} onChange={handleChange} className="w-full p-3 border rounded-md" />
                   <select name="time" required value={formData.time} onChange={handleChange} className="w-full p-3 border rounded-md">
