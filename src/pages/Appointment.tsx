@@ -108,7 +108,7 @@ const Appointment = () => {
                 <input name="email" type="email" required placeholder="Correo electrónico" value={formData.email} onChange={handleChange} className="w-full p-3 border rounded-md" />
                 <input name="phone" type="tel" required placeholder="Teléfono" value={formData.phone} onChange={handleChange} className="w-full p-3 border rounded-md" />
               
- /* <input name="service" type="text" required placeholder="Servicio solicitado" value={formData.service} onChange={handleChange} className="w-full p-3 border rounded-md" /> */
+ /{* <input name="service" type="text" required placeholder="Servicio solicitado" value={formData.service} onChange={handleChange} className="w-full p-3 border rounded-md" /> */}
 
 <select
   name="service"
