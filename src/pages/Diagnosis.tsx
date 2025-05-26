@@ -1,4 +1,5 @@
 import React from 'react';
+import Footer from '../components/Footer';
 
 const Diagnosis = () => {
   const steps = [
@@ -48,6 +49,7 @@ const Diagnosis = () => {
   ];
 
   return (
+ <>
     <section id="diagnosis" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -123,6 +125,10 @@ const Diagnosis = () => {
         </div>
       </div>
     </section>
+
+  <Footer />
+    </>
+
   );
 };
 
