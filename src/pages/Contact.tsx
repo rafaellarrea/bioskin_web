@@ -24,6 +24,10 @@ const Contact: React.FC = () => {
                     <div className="flex items-start">
                       <div className="bg-[#deb887]/10 p-3 rounded-lg mr-4">
                         {/* Icono de ubicación */}
+<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+  <circle cx="12" cy="10" r="3"></circle>
+</svg>
                       </div>
                       <div>
                         <h4 className="font-semibold mb-1">Dirección</h4>
@@ -63,15 +67,27 @@ const Contact: React.FC = () => {
                     <div className="flex space-x-4">
                       {/* Facebook */}
                       <a href="https://www.facebook.com/share/1BWcENMrip/" target="_blank" rel="noopener noreferrer" className="bg-blue-100 text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-colors duration-300">
+
                         {/* Icono Facebook */}
+<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+  </svg>
                       </a>
                       {/* Instagram */}
                       <a href="https://www.instagram.com/salud.bioskin?igsh=dnN2djR6dm94OGFq" target="_blank" rel="noopener noreferrer" className="bg-pink-100 text-pink-600 p-3 rounded-full hover:bg-pink-600 hover:text-white transition-colors duration-300">
                         {/* Icono Instagram */}
+<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
                       </a>
                       {/* WhatsApp */}
                       <a href="https://wa.me/593969890689" target="_blank" rel="noopener noreferrer" className="bg-green-100 text-green-600 p-3 rounded-full hover:bg-green-600 hover:text-white transition-colors duration-300">
                         {/* Icono WhatsApp */}
+<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+  </svg>
                       </a>
                     </div>
                   </div>
