@@ -31,7 +31,7 @@ const Products = () => {
       description: "Fórmula concentrada con ácido hialurónico.",
       price: 38,
       images: [
-	"/images/productos/cosmeticos/rocheHialuronico.jpeg"
+	"/images/productos/cosmeticos/rocheHialuronico.jpg",
         "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
       ],
       category: "cosmetic"
