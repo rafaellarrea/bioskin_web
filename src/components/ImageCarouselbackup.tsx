@@ -10,10 +10,6 @@ interface ImageCarouselProps {
 const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, folderPath, height = "h-[500px]" }) => {
   const [current, setCurrent] = useState(0);
 
-  const getImageSrc = (path: string) => {
-    return path.startsWith('http') || path.startsWith('/') ? path : \`\${folderPath}/\${path}\`;
-  };
-
   const handlePrev = () => {
     setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
@@ -25,9 +21,9 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, folderPath, heigh
   return (
     <div className="relative w-full overflow-hidden rounded-lg shadow-md mb-6">
       <img
-        src={getImageSrc(images[current])}
-        alt={\`Imagen \${current + 1}\`}
-        className={\`w-full \${height} object-cover transition duration-500\`}
+        src={`${folderPath}/${images[current]}`}
+        alt={`Imagen ${current + 1}`}
+        className={`w-full ${height} object-cover transition duration-500`}
       />
 
       <button onClick={handlePrev} className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white p-2 rounded-full shadow-md">
@@ -41,7 +37,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, folderPath, heigh
         {images.map((_, idx) => (
           <button
             key={idx}
-            className={\`w-3 h-3 rounded-full \${idx === current ? 'bg-[#deb887]' : 'bg-gray-300'} transition\`}
+            className={`w-3 h-3 rounded-full ${idx === current ? 'bg-[#deb887]' : 'bg-gray-300'} transition`}
             onClick={() => setCurrent(idx)}
           />
         ))}
