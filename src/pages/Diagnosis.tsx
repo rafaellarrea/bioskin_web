@@ -62,7 +62,7 @@ const Diagnosis = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           <div>
             <img
-              src="/images/diagnosticoComputarizado/diagnostico.jpg"
+              src="/images/diagnosticoComputarizado/diagnostico1.jpg"
               alt="Diagnóstico facial computarizado"
               className="w-full h-[500px] object-cover rounded-lg shadow-md"
             />
