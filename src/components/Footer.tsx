@@ -14,6 +14,12 @@ const Footer = () => {
             <p className="text-gray-400 mb-4">
               Especialistas en tratamientos faciales personalizados de alta tecnología con resultados visibles.
             </p>
+		
+		{/*redes sociales */}
+		<p className="text-gray-400 mb-4">
+              Siguenos en nuestras redes:
+            </p>
+
             <div className="flex space-x-4">
               <a href="https://www.facebook.com/share/1BWcENMrip/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#deb887]" aria-label="Facebook">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -43,6 +49,9 @@ const Footer = () => {
               <li><a href="#services" className="hover:text-[#deb887] transition-colors">Antimanchas</a></li>
               <li><a href="#services" className="hover:text-[#deb887] transition-colors">Remoción de Tatuajes</a></li>
               <li><a href="#services" className="hover:text-[#deb887] transition-colors">Hidratación Profunda</a></li>
+	      <li><a href="#services" className="hover:text-[#deb887] transition-colors">Exosomas</a></li>
+		<li><a href="#services" className="hover:text-[#deb887] transition-colors">Radiofrecuencia</a></li>
+		<li><a href="#services" className="hover:text-[#deb887] transition-colors">Y más...</a></li>
             </ul>
           </div>
           
@@ -50,6 +59,7 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Enlaces Rápidos</h4>
             <ul className="space-y-2 text-gray-400">
               <li><a href="#home" className="hover:text-[#deb887] transition-colors">Inicio</a></li>
+		<li><a href="#products" className="hover:text-[#deb887] transition-colors">Productos</a></li>
               <li><a href="#results" className="hover:text-[#deb887] transition-colors">Resultados</a></li>
               <li><a href="#diagnosis" className="hover:text-[#deb887] transition-colors">Diagnóstico Facial</a></li>
               <li><a href="#about" className="hover:text-[#deb887] transition-colors">Nosotros</a></li>

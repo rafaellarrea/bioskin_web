@@ -139,7 +139,7 @@ const Home = () => {
       </section>
 */}
 <Faq />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 };
