@@ -6,20 +6,20 @@ import Footer from '../components/Footer';
 const Results = () => {
   const beforeAfterResults = [
     {
-      beforeImage: "https://images.pexels.com/photos/3762453/pexels-photo-3762453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      afterImage: "https://images.pexels.com/photos/3762871/pexels-photo-3762871.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      beforeImage: "/images/results/manchas/manchasAntes.jpg",
+      afterImage: "/images/results/manchas/manchasDespues.jpg",
       title: "Tratamiento Antimanchas",
       description: "Reducción de hiperpigmentación y mejora en el tono de piel después de 4 sesiones."
     },
     {
-      beforeImage: "https://images.pexels.com/photos/6599542/pexels-photo-6599542.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      afterImage: "https://images.pexels.com/photos/6599559/pexels-photo-6599559.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      beforeImage: "/images/results/antiaging/antiagingAntes.jpg",
+      afterImage: "/images/results/antiaging/antiagingDespues.jpg",
       title: "Tratamiento Antiaging",
       description: "Disminución de líneas de expresión y mejora en la firmeza cutánea."
     },
     {
-      beforeImage: "https://images.pexels.com/photos/6724353/pexels-photo-6724353.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      afterImage: "https://images.pexels.com/photos/6724393/pexels-photo-6724393.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      beforeImage: "/images/results/hidratacion/hidratacionAntes.jpg",
+      afterImage: "/images/results/hidratacion/hidratacionDespues.jpg",
       title: "Hidratación Profunda",
       description: "Incremento notable en la hidratación y luminosidad de la piel."
     },
@@ -28,7 +28,7 @@ const Results = () => {
   const testimonials = [
     {
       name: "Carolina Méndez",
-      testimonial: "Después de 3 sesiones del tratamiento antimanchas, mi piel se ve mucho más uniforme y luminosa. El personal es muy profesional y el ambiente de la clínica es relajante.",
+      testimonial: "Después de 3 sesiones del tratamiento antimanchas, mi piel se ve mucho más uniforme y luminosa. El personal es muy profesional y el ambiente es relajante.",
       treatment: "Tratamiento Antimanchas",
       rating: 5
     },

@@ -26,7 +26,7 @@ const Services = () => {
       title: "Remoción de Tatuajes",
       description: "Eliminación progresiva de tatuajes mediante láser Nd:YAG de última generación. Sesiones personalizadas.",
       price: 15,
-      image: "/images/services/hollywoodPeel/hollywood.jpg"
+      image: "/images/services/remocionTatuajes/remocionTatuajes.jpg"
     },
     {
       title: "Hidratación Profunda",
@@ -38,7 +38,7 @@ const Services = () => {
       title: "Hollywood Peel",
       description: "Peeling de carbón con láser para rejuvenecer, eliminar impurezas y dar luminosidad inmediata a la piel.",
       price: 30,
-      image: "/images/services/remocionTatuajes/remocionTatuajes.jpg"
+      image: "/images/services/hollywoodPeel/hollywood.jpg"
     },
     {
       title: "Exosomas + Mesoterapia",
