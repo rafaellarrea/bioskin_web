@@ -17,8 +17,7 @@ const Appointment = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  // Modificado para agendar en intervalos de 2 horas
-  const allTimes = ['09:00','11:00','13:00','15:00','17:00','19:00'];  // cada cita dura 2 horas
+  const allTimes = ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'];
 
   const formatTimeLabel = (time24: string) => {
     const parts = time24.split(':');
@@ -135,6 +134,7 @@ const Appointment = () => {
     </section>
  <Footer />
     </>
+
   );
 };
 
