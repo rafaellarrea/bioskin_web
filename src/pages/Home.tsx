@@ -1,7 +1,7 @@
 import React from 'react';
 import Footer from '../components/Footer';
-import FaqItem from '../components/FaqItem';
-
+import Faq from '../pages/Faq';
+{/*
 const faqItems = [
     {
       question: "¿Cuánto tiempo duran los resultados de los tratamientos?",
@@ -36,6 +36,7 @@ const faqItems = [
       answer: "Sí, ofrecemos varios paquetes diseñados para optimizar resultados y proporcionar valor. Estos paquetes combinan tratamientos complementarios a un precio reducido en comparación con sesiones individuales. También creamos planes personalizados basados en tus objetivos específicos y presupuesto. Todos nuestros paquetes incluyen consultas de seguimiento para evaluar el progreso."
     }
   ];
+*/}
 
 
 const Home = () => {
@@ -120,7 +121,8 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="bg-white py-24">
+    {/*
+  <section className="bg-white py-24">
         <div className="container-custom text-center mb-10">
           <h2 className="text-3xl font-bold mb-4">Preguntas Frecuentes</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
@@ -135,7 +137,8 @@ const Home = () => {
           </div>
         </div>
       </section>
-
+*/}
+<Faq />
       <Footer />
     </>
   );
