@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Footer from '../components/Footer';
 
 const Appointment = () => {
   const [formData, setFormData] = useState({
@@ -90,6 +91,7 @@ const Appointment = () => {
   };
 
   return (
+<>
     <section id="appointment" className="py-24">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -130,6 +132,9 @@ const Appointment = () => {
         </div>
       </div>
     </section>
+ <Footer />
+    </>
+
   );
 };
 

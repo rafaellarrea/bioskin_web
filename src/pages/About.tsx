@@ -1,4 +1,5 @@
 import React from 'react';
+import Footer from '../components/Footer';
 
 const About = () => {
   const equipment = [
@@ -25,6 +26,7 @@ const About = () => {
   ];
 
   return (
+<>
     <section id="about" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -56,6 +58,9 @@ const About = () => {
         </div>
       </div>
     </section>
+<Footer />
+    </>
+
   );
 };
 

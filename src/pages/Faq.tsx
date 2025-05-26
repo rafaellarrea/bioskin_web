@@ -1,5 +1,6 @@
 import React from 'react';
 import FaqItem from '../components/FaqItem';
+import Footer from '../components/Footer';
 
 const Faq = () => {
   const faqItems = [
@@ -38,6 +39,7 @@ const Faq = () => {
   ];
 
   return (
+<>
     <section id="faq" className="py-24">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -89,6 +91,9 @@ const Faq = () => {
         </div>
       </div>
     </section>
+ <Footer />
+    </>
+
   );
 };
 

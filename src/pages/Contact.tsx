@@ -1,7 +1,10 @@
 import React from 'react';
+import Footer from '../components/Footer';
 
 const Contact = () => {
   return (
+<>
+
     <section id="contact" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -63,12 +66,12 @@ const Contact = () => {
                 <div className="mt-8 pt-8 border-t border-gray-100">
                   <h4 className="font-semibold mb-4">Síguenos en Redes Sociales</h4>
                   <div className="flex space-x-4">
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-blue-100 text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-colors duration-300">
+                    <a href="https://www.facebook.com/share/1BWcENMrip/" target="_blank" rel="noopener noreferrer" className="bg-blue-100 text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-colors duration-300">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
                       </svg>
                     </a>
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-pink-100 text-pink-600 p-3 rounded-full hover:bg-pink-600 hover:text-white transition-colors duration-300">
+                    <a href="https://www.instagram.com/salud.bioskin?igsh=dnN2djR6dm94OGFq" target="_blank" rel="noopener noreferrer" className="bg-pink-100 text-pink-600 p-3 rounded-full hover:bg-pink-600 hover:text-white transition-colors duration-300">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -90,7 +93,7 @@ const Contact = () => {
             <div className="bg-white rounded-lg shadow-md overflow-hidden h-full">
               <div className="h-[400px]">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15949.099667966528!2d-79.01075383022462!3d-2.9001466500000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91cd18095fc7e881%3A0xafd08fd090de6ff7!2sCuenca%2C%20Ecuador!5e0!3m2!1ses!2sus!4v1700328286320!5m2!1ses!2sus" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d996.1935152506928!2d-79.0625169436974!3d-2.8814131915642878!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91cd18095fc7e881%3A0xafd08fd090de6ff7!2sCuenca!5e0!3m2!1ses-419!2sec!4v1748277672632!5m2!1ses-419!2sec" 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
@@ -122,6 +125,9 @@ const Contact = () => {
         </div>
       </div>
     </section>
+ <Footer />
+    </>
+
   );
 };
 

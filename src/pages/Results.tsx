@@ -1,6 +1,7 @@
 import React from 'react';
 import BeforeAfterCard from '../components/BeforeAfterCard';
 import TestimonialCard from '../components/TestimonialCard';
+import Footer from '../components/Footer';
 
 const Results = () => {
   const beforeAfterResults = [
@@ -46,6 +47,8 @@ const Results = () => {
   ];
 
   return (
+	 <>
+
     <section id="results" className="py-24">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -89,6 +92,10 @@ const Results = () => {
         </div>
       </div>
     </section>
+
+ <Footer />
+    </>
+
   );
 };
 

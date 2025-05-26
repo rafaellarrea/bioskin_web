@@ -1,5 +1,6 @@
 import React from 'react';
 import ServiceCard from '../components/ServiceCard';
+import Footer from '../components/Footer';
 
 const Services = () => {
   const services = [
@@ -60,6 +61,7 @@ const Services = () => {
   ];
 
   return (
+<>
     <section id="services" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-12">
@@ -125,6 +127,10 @@ const Services = () => {
         </div>
       </div>
     </section>
+
+ <Footer />
+    </>
+
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
+import Footer from '../components/Footer';
 
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'cosmetic'>('all');
@@ -40,6 +41,7 @@ const Products = () => {
     : products.filter(product => product.category === activeCategory);
 
   return (
+<>
     <section id="products" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-16">
@@ -112,6 +114,9 @@ const Products = () => {
         </div>
       </div>
     </section>
+ <Footer />
+    </>
+
   );
 };
 
