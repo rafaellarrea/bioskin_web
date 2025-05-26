@@ -60,13 +60,28 @@ const Diagnosis = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-          <div>
+         
+	{/*
+	 <div>
             <img
               src="/images/diagnosticoComputarizado/diagnostico1.jpg"
               alt="Diagnóstico facial computarizado"
               className="w-full h-[500px] object-cover rounded-lg shadow-md"
             />
           </div>
+	*/}
+	
+	<div className="overflow-x-auto flex space-x-4 snap-x snap-mandatory rounded-lg">
+  {['diagnostico1.jpg', 'diagnostico2.jpg', 'diagnostico3.jpg', 'diagnostico4.jpg', 'diagnostico5.jpg'].map((img, index) => (
+    <img
+      key={index}
+      src={`/images/diagnosticoComputarizado/${img}`}
+      alt={`Diagnóstico ${index + 1}`}
+      className="snap-center min-w-[100%] h-[500px] object-cover rounded-lg shadow-md transition-transform duration-300"
+    />
+  ))}
+</div>
+	
 
           <div className="flex flex-col justify-center">
             <h3 className="text-2xl font-semibold mb-6">Análisis Avanzado de la Piel</h3>
