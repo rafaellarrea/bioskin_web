@@ -92,7 +92,17 @@ const Contact = () => {
           <div>
             <div className="bg-white rounded-lg shadow-md overflow-hidden h-full">
               <div className="h-[400px]">
-                <iframe 
+
+<iframe
+  width="100%"
+  height="100%"
+  style="border:0"
+  loading="lazy"
+  allowfullscreen
+  src="https://maps.google.com/maps?q=-2.881413,-79.061966&z=16&output=embed"
+></iframe>               
+
+/* <iframe 
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d996.1935152506928!2d-79.0625169436974!3d-2.8814131915642878!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91cd18095fc7e881%3A0xafd08fd090de6ff7!2sCuenca!5e0!3m2!1ses-419!2sec!4v1748277672632!5m2!1ses-419!2sec" 
                   width="100%" 
                   height="100%" 
@@ -101,7 +111,8 @@ const Contact = () => {
                   loading="lazy" 
                   referrerPolicy="no-referrer-when-downgrade"
                   title="Ubicación Bio Skin Salud y Estética"
-                ></iframe>
+                ></iframe>*/
+
               </div>
               <div className="p-6">
                 <h4 className="font-semibold mb-4">Horario de Atención</h4>
