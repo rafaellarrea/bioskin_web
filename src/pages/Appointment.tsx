@@ -120,6 +120,7 @@ const Appointment = () => {
   className="w-full p-3 border rounded-md"
 >
   <option value="">Selecciona un servicio</option>
+  <option value="OTRO">OTRO</option>
   <option value="Limpieza Facial Profunda">Limpieza Facial Profunda</option>
   <option value="Tratamiento Antiaging">Tratamiento Antiaging</option>
   <option value="Tratamiento Antimanchas">Tratamiento Antimanchas</option>
