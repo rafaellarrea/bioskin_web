@@ -107,7 +107,27 @@ const Appointment = () => {
                 <input name="name" type="text" required placeholder="Nombre completo" value={formData.name} onChange={handleChange} className="w-full p-3 border rounded-md" />
                 <input name="email" type="email" required placeholder="Correo electrónico" value={formData.email} onChange={handleChange} className="w-full p-3 border rounded-md" />
                 <input name="phone" type="tel" required placeholder="Teléfono" value={formData.phone} onChange={handleChange} className="w-full p-3 border rounded-md" />
-                <input name="service" type="text" required placeholder="Servicio solicitado" value={formData.service} onChange={handleChange} className="w-full p-3 border rounded-md" />
+              
+ /* <input name="service" type="text" required placeholder="Servicio solicitado" value={formData.service} onChange={handleChange} className="w-full p-3 border rounded-md" /> */
+
+<select
+  name="service"
+  required
+  value={formData.service}
+  onChange={handleChange}
+  className="w-full p-3 border rounded-md"
+>
+  <option value="">Selecciona un servicio</option>
+  <option value="Limpieza Facial Profunda">Limpieza Facial Profunda</option>
+  <option value="Tratamiento Antiaging">Tratamiento Antiaging</option>
+  <option value="Tratamiento Antimanchas">Tratamiento Antimanchas</option>
+  <option value="Remoción de Tatuajes">Remoción de Tatuajes</option>
+  <option value="Hidratación Profunda">Hidratación Profunda</option>
+  <option value="Hollywood Peel">Hollywood Peel</option>
+  <option value="Exosomas + Mesoterapia">Exosomas + Mesoterapia</option>
+  <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
+  <option value="Lipopapada enzimática">Lipopapada enzimática</option>
+</select>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input name="date" type="date" required value={formData.date} onChange={handleChange} className="w-full p-3 border rounded-md" />
                   <select name="time" required value={formData.time} onChange={handleChange} className="w-full p-3 border rounded-md">
