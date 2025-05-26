@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
@@ -11,39 +10,29 @@ const Products = () => {
       name: "Láser Nd:YAG Portátil",
       description: "Equipo profesional para tratamientos de rejuvenecimiento y eliminación de tatuajes.",
       price: 12000,
-      images: [
-        "https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg",
-        "https://images.pexels.com/photos/8460361/pexels-photo-8460361.jpeg"
-      ],
-      category: "equipment"
+      image: "https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      category: "equipment" as const
     },
     {
       name: "IPL Profesional",
       description: "Sistema de luz pulsada intensa para tratamientos faciales y corporales.",
       price: 8500,
-      images: [
-        "https://images.pexels.com/photos/8460361/pexels-photo-8460361.jpeg"
-      ],
-      category: "equipment"
+      image: "https://images.pexels.com/photos/8460361/pexels-photo-8460361.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      category: "equipment" as const
     },
     {
-      name: "La Roche Posay Sérum Hidratante Hyalu B5",
-      description: "Fórmula concentrada con ácido hialurónico.",
-      price: 38,
-      images: [
-	"/images/productos/cosmeticos/rocheHialuronico.jpeg"
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
-      ],
-      category: "cosmetic"
+      name: "Sérum Hidratante",
+      description: "Fórmula concentrada con ácido hialurónico y vitamina C.",
+      price: 45,
+      image: "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      category: "cosmetic" as const
     },
     {
       name: "Crema Antiaging",
       description: "Tratamiento intensivo con retinol y péptidos para combatir arrugas.",
       price: 65,
-      images: [
-        "https://images.pexels.com/photos/6621460/pexels-photo-6621460.jpeg"
-      ],
-      category: "cosmetic"
+      image: "https://images.pexels.com/photos/6621460/pexels-photo-6621460.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+      category: "cosmetic" as const
     }
   ];
 
@@ -104,7 +93,7 @@ const Products = () => {
               name={product.name}
               description={product.description}
               price={product.price}
-              images={product.images}
+              image={product.image}
               category={product.category}
             />
           ))}

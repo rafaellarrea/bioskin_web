@@ -1,12 +1,10 @@
-
 import React from 'react';
-import ImageCarousel from './ImageCarousel';
 
 type ProductCardProps = {
   name: string;
   description: string;
   price: number;
-  images: string[];
+  image: string;
   category: 'equipment' | 'cosmetic';
 };
 
@@ -14,13 +12,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
   name,
   description,
   price,
-  images,
+  image,
   category,
 }) => {
   return (
     <div className="card group">
-      <div className="relative overflow-hidden">
-        <ImageCarousel images={images} folderPath="" height="h-48" />
+      <div className="relative overflow-hidden h-48">
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
         <div className="absolute top-0 right-0 bg-[#deb887] text-white py-1 px-3 font-semibold">
           ${price} USD
         </div>
