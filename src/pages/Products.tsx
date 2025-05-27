@@ -56,24 +56,243 @@ const Products = () => {
       ],
       category: "cosmetic"
     },
-
 	{
-      name: "LA ROCHE POSAY HYALU B5 SERUM",
-      	description: "Serum antiarrugas que hidrata, repara y rellena la piel al mismo 	tiempo 	que suaviza arrugas y líneas de expresión. Fórmula única a base de ácido 	hialurónico y Vitamina B5 que repara tu dermis desde el interior. \n Contenido: 204g",
-      price: 38,
+      name: "ABIB COLLAGEN EYE PATCH",
+      description: "Parches con colágeno y niacinamida que hidrata, reafirma y reduce 	signos de fatiga en el contorno de ojos. \n Contenido: 90g / 30 pares",
+      price: 30,
       images: [
-	"/images/productos/cosmeticos/rocheHialuronico.jpg",
+	"/images/productos/cosmeticos/abibParchesOjos.jpg",
         "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
       ],
       category: "cosmetic"
     },
+	{
+      name: "COSRX PETIDE BOOSTER TONER",
+      description: "Peptide booster toner: mejora la luminosidad y elasticidad de la 	piel. \n Contenido> 150ml",
+      price: 30,
+      images: [
+	"/images/productos/cosmeticos/cosrxPeptide.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "COSRX SNAIL 96% MUCIN ESSENCE",
+      description: "Snail 96% Mucin Essence: rejuvenece piel dañada, ayuda a reparar 	manchas oscuras y promueve la vitalidad de la piel. \n Contenido> 100ml",
+      price: 30,
+      images: [
+	"/images/productos/cosmeticos/cosrxMucina.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "COSRX ADVANCE SNAIL MUCIN GLASS GLOW HYDROGEL MASK",
+      description: "Máscara de gel de mucina de caracol + colageno y niacinamida, hidrata 	profundamente la piel, mejorando la luminosidad, calma la piel sensible y suaviza 	la textura de la piel. \n Contenido: 3 hydrogel mask / 34g c/u",
+      price: 25,
+      images: [
+	"/images/productos/cosmeticos/cosrxMask.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "COSRX ACNE PIMPLE MASTER PATCH",
+      description: "Parches hidrocoloides para granitos o acné. Ayudan a contrarestar la 	inflamación, la rojez y las bacterias (no para tratamiento definitivo del acné). 	\n Contenido: 24 parches (7mmx10/10mmx5/12mmx9)",
+      price: 5,
+      images: [
+	"/images/productos/cosmeticos/cosrxParcheAcne.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "CERAVE JABÓN HIDRATANTE PARA PIEL NORMAL A SECA",
+      description: "Limpiador facial hidratante ideal para piel normal a seca. Contiene 3 	ceramidas, ácido hialurónico y glicerina para una piel más suave e hidratada. 	\n Contenido: 473ml",
+      price: 20,
+      images: [
+	"/images/productos/cosmeticos/ceraveLimpiadorDry.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "CERAVE FOAMING CLEANSER PARA PIEL NORMAL A GRASA",
+      description: "Jabón espumoso en gel ideal para piel grasa o mixta, elimina el exceso 	de sebo e hidrata a la piel. Contiene ceramidas, ácido hialurónico y niacinamida.	\n Contenido: 473ml",
+      price: 20,
+      images: [
+	"/images/productos/cosmeticos/ceraveLimpiadorOily.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "CERAVE RETINOL SERUM",
+      description: "Serum de retinol anti-edad con ácido hialurónico, niacinamida y 	ceramidas. Ayuda a suavizar arrugas y líneas finas; ilumina la piel. \n Contenido: 30ml",
+      price: 30,
+      images: [
+	"/images/productos/cosmeticos/ceraveRetinol.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "CERAVE ACNE FOAMING CREAM CLEANSER",
+      description: "Jabón espumoso formulado con peróxido de benzoílo al 4%, este limpiador 	ataca y trata eficazmente el acné, ayudando a eliminar los brotes existentes y 	previniendo los futuros. \n Contenido: 150 ml",
+      price: 20,
+      images: [
+	"/images/productos/cosmeticos/ceraveAcneCleanser.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "#OOTD VELOS FACIALES DE COLAGENO, CERAMIDAS O CENTELLA ASIATICA 2x$5",
+      description: "Velos faciales de uso nocturno para mejorar la elasticidad, hidratación 	y luminosidad en la piel, con ingredientes de origen vegano. Marca coreana. \n Contenido: 25g c/u",
+      price: 3,
+      images: [
+	"/images/productos/cosmeticos/ootdCeramideMask.jpg",
+        "/images/productos/cosmeticos/ootdCicaMask.jpg",
+	"/images/productos/cosmeticos/ootdCollagenMask.jpg",
+	"/images/productos/cosmeticos/ootdHyaluronMask.jpg",
+	"/images/productos/cosmeticos/ootdRetinolMask.jpg",
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "NEUTRÓGENA CLEAR FACE PROTECTOR SOLAR",
+      description: "Protector solar con FPS 50+ para piel grasa o mixta, libre de 	aceites/no comedogénico. Textura ligera. \n Contenido: 88ml",
+      price: 20,
+      images: [
+	"/images/productos/cosmeticos/neutrogenaSolar1.jpg",
+        "/images/productos/cosmeticos/neutrogenaSolar2.jpg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "TOCOBO ESPUMA LIMPIADORA ARCILLOSA DE COCO",
+      description: "Espuma limpiadora de arcilla de coco con burbujas finas que limpia el 	rostro, eliminando impurezas y sebo. Además, hidrata y cuida la piel sensible. \n 	Contenido: 204g",
+      price: 18,
+      images: [
+	"/images/productos/cosmeticos/tocoboEspumaLimpiadora.jpg",
+        "/images/productos/cosmeticos/neutrogenaSolar2.jpg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "TOCOBO GEL DE CONTORNO DE OJOS",
+      description: "Gel de contorno de ojos con colágeno, retinol y niacinamida para 	aportar firmeza, reducir arrugas y brindar claridad en la piel alrededor de los 	ojos. Cuidado calmante e hidratante. \n Contenido: 30ml",
+      price: 18,
+      images: [
+	"/images/productos/cosmeticos/tocoboContornoOjos.jpg",
+        "/images/productos/cosmeticos/neutrogenaSolar2.jpg"
+      ],
+      category: "cosmetic"
+    },
+	 {
+      name: "LA ROCHE POSAY HYALU B5 SERUM",
+      description: "Serum antiarrugas que hidrata, repara y rellena la piel al mismo tiempo 	que suaviza arrugas y líneas de expresión. Fórmula única a base de ácido 	hialurónico y Vitamina B5 que repara tu dermis desde el interior. \n Contenido: 	204g",
+      price: 38,
+      images: [
+	"/images/productos/cosmeticos/rocheHialuronico.jpg",
+        "/images/productos/cosmeticos/neutrogenaSolar2.jpg"
+      ],
+      category: "cosmetic"
+    },
+
+
+	{
+      name: "LA ROCHE POSAY MELA B3 SERUM",
+      	description: "Ideal para piel con manchas o hiperpigmentaciones. Ayuda a unificar 	el tono de la piel aportando luminosidad por su contenido de Niacinamida. \n 	Contenido: 30ml",
+      price: 40,
+      images: [
+	"/images/productos/cosmeticos/rocheMelaB3.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "LA ROCHE POSAY VITAMIN C SERUM",
+      	description: "Serum renovador anti-arrugas y antioxidante para pieles sensibles. 	Ayuda a controlar poros visibles en la piel. \n Contenido: 30ml",
+      price: 40,
+      images: [
+	"/images/productos/cosmeticos/rocheVitaminaC.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "LA ROCHE POSAY NIACINAMIDE SERUM",
+      	description: "Ideal para piel normal a grasa, ayuda a limpiar los poros, control de 	grasa en la piel. Además, ayuda a correguir manchas e hidrata la piel sin dejar 	sensación grasa/rápida absorción. \n Contenido: 30ml",
+      price: 40,
+      images: [
+	"/images/productos/cosmeticos/rocheNiacinamida.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "EUCERIN PROTECTOR SOLAR FPS 50+ OIL CONTROL",
+      	description: "Protector solar con FPS 50+ para piel mixta a grasa, anti-brillo, 	toque seco. \n Contenido: 50ml",
+      price: 26.50,
+      images: [
+	"/images/productos/cosmeticos/eucerinSolarToqueSeco.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "EUCERIN PROTECTOR SOLAR FPS 50+ PIGMENT CONTROL",
+      	description: "Protector solar con FPS 50+ para piel con manchas. Textura ligera. 	\n Contenido: 50ml",
+      price: 26.50,
+      images: [
+	"/images/productos/cosmeticos/eucerinSolarAntimanchas.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "EUCERIN PROTECTOR SOLAR FPS 50+ ANTIEDAD",
+      	description: "Advanced Spectral Technology: protección UVA/UVB y defensa contra la 	luz HEVIS. Para todo tipo de piel. Disminuye visiblemente las arrugas y mejora la 	apariencia de la piel. Humecta de manera intensiva. \n Contenido: 50ml",
+      price: 26.50,
+      images: [
+	"/images/productos/cosmeticos/eucerinSolarAntiedad.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	 {
+      name: "MADAGASCAR CENTELLA AMPOULE SKIN1004 ",
+      description: "La ampolla exclusiva de SKIN1004 ofrece propiedades hidratantes, 	antiinflamatorias, fortalecedoras de barrera, calmantes y antioxidantes. La 	centella asiática de Madagascar contiene 7 veces más activos calmantes que otras 	centella asiáticas. Calma e hidrata inmediatamente la piel sensible. \n Contenido: 100ml",
+      price: 35,
+      images: [
+        "/images/productos/cosmeticos/skin1004Centella.jpg",
+	"/images/productos/cosmeticos/skin1004Centella2.jpg",
+	
+      ],
+      category: "cosmetic"
+    },
+	
 
     {
-      name: "Crema Antiaging",
-      description: "Tratamiento intensivo con retinol y péptidos para combatir arrugas.",
-      price: 65,
+      name: "SKIN1004 MADAGASCAR CENTELLA POREMIZING FRESH AMPOULE",
+      description: "Esta línea de Madagascar Centella esta formluada con sal rosa del 	Himalaya que remueve las impurezas de los poros y reduce la apariencia de los 	mismos. Además, controla la producción de sebo en la piel. También exfolia 	gentilmente, calma y promueve la firmeza  de los poros dilatados. \n Contenido: 100ml",
+      price: 35,
       images: [
-        "https://images.pexels.com/photos/6621460/pexels-photo-6621460.jpeg"
+        "/images/productos/cosmeticos/skin1004CentellaAmpoule.jpg",
+	"/images/productos/cosmeticos/skin1004CentellaAmpoule2.jpg"
+	
+      ],
+      category: "cosmetic"
+    }, 
+	{
+      name: "skin1004 PROBIO-CICA BAKUCHIOL EYE CREAM",
+      description: "Una crema suave para el contorno de ojos con centella fermentada y 	bakuchiol (retinol vegano) que estimula la producción de colágeno y reduce la 	apariencia de líneas de expresión y arrugas. \n Contenido: 20ml",
+      price: 20,
+      images: [
+        "/images/productos/cosmeticos/skin1004Contorno.jpg",
+	"/images/productos/cosmeticos/skin1004Contorno2.jpg",
+	
       ],
       category: "cosmetic"
     }
