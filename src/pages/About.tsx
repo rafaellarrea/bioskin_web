@@ -5,23 +5,23 @@ const About = () => {
   const equipment = [
     {
       name: "Láser Nd:YAG",
-      description: "Tecnología de precisión para tratamientos de rejuvenecimiento y remoción de tatuajes.",
-      image: "https://images.pexels.com/photos/6476071/pexels-photo-6476071.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      description: "Tecnología de precisión para tratamientos de rejuvenecimiento, remoción de tatuajes, micropigmentaciones (cejas, 	labios, delineados), y tratamiento de lesiones pigmentadas como manchas solares, lunares y marcas de nacimiento. Preciso, seguro y 	eficaz en diferentes fototipos de piel.",
+      image: "/images/productos/dispositivos/ndyag/ndyag.jpg"
     },
     {
       name: "IPL (Luz Pulsada Intensa)",
-      description: "Efectiva para manchas, rojeces y fotoenvejecimiento con resultados visibles.",
-      image: "https://images.pexels.com/photos/6476574/pexels-photo-6476574.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      description: "Versátil y no invasiva, esta tecnología se utiliza para depilación permanente, tratamiento de manchas, 	rejuvenecimiento facial, acné, rosácea y mejora del tono de piel. Su acción selectiva permite tratar múltiples condiciones en una 	sola sesión.",
+      image: "/images/productos/dispositivos/ipl/ipl.jpg"
     },
     {
       name: "Radiofrecuencia",
-      description: "Estimula la producción de colágeno para una piel más firme y rejuvenecida.",
-      image: "https://images.pexels.com/photos/6476078/pexels-photo-6476078.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      description: "Ideal para tratamientos de rejuvenecimiento facial y corporal. Estimula la producción de colágeno, mejora la firmeza, 	reduce arrugas finas y redefine el contorno facial sin necesidad de cirugía ni tiempo de recuperación",
+      image: "/images/productos/dispositivos/radiofrecuencia/radiofrecuencia.jpg"
     },
     {
       name: "Dermapen",
-      description: "Microagujas que mejoran la textura de la piel y reducen cicatrices y líneas finas.",
-      image: "https://images.pexels.com/photos/5069435/pexels-photo-5069435.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+      description: "Dispositivo de microneedling que mejora la textura, tono e hidratación de la piel. Utilizado para tratar cicatrices, 	poros dilatados, arrugas finas y para favorecer la absorción de principios activos como exosomas, vitaminas, ácido 	hialurónico, entre otros.",
+      image: "/images/productos/dispositivos/dermapen/dermapen.jpg"
     }
   ];
 
