@@ -21,7 +21,7 @@ const Products = () => {
     {
       name: "3 en 1 IPL + LASER YAG + RADIOFRECUENCIA",
       description: "Equipo estético de alta tecnología que integra IPL, ND YAG láser y 	radiofrecuencia para ofrecer soluciones faciales y corporales completas. 	Permite realizar depilación permanente con IPL, incluso en vello fino y claro. 	Trata pecas, melasma, manchas solares y marcas de acné mediante luz pulsada intensa 	(IPL). La radiofrecuencia mejora la textura, poros dilatados, arrugas finas y 	estimula la elasticidad de la piel. Corrige enrojecimiento y rubor facial (rosácea 	leve) y unifica el tono con luz intensa. El láser ND YAG elimina tatuajes de 	múltiples colores (rojo, marrón, azul, negro) y micropigmentaciones en cejas, 	labios y ojos. También trata lesiones pigmentadas como lunares, manchas de la edad 	y marcas de nacimiento con precisión. Ideal para clínicas que buscan tecnología 	versátil, eficaz y rentable.",
-      price: 4000,
+      price: 3800,
       images: [
         "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
 	"/images/productos/dispositivos/multifuncional/multifuncional2.jpg",
