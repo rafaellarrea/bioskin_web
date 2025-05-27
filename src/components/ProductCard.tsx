@@ -30,7 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
       <div className="p-5">
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
-        <p className="text-gray-600 mb-4">{description}</p>
+        <p className="text-gray-600 mb-4 whitespace-pre-line">{description}</p>
         <a
           href="https://wa.me/593969890689"
           target="_blank"
