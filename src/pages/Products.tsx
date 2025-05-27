@@ -27,8 +27,43 @@ const Products = () => {
       category: "equipment"
     },
     {
-      name: "La Roche Posay Sérum Hidratante Hyalu B5",
-      description: "Fórmula concentrada con ácido hialurónico.",
+      name: "MEDICUBE DEEP VITA C CAPSULE CREAM",
+      description: "Cápsulas de liposomas con vitamina C, niacinamida, vitaminas y ácido 	ferúlico para una piel más brillante e hidratada.\\n
+	Contenido: 55g",
+      price: 35,
+      images: [
+	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "MEDICUBE PDRN PINK COLLAGEN CAPSULE CREAM",
+      description: "PDRN y DNA de Salmón encapsulado en crema facial que ayuda a hidratar, 	unificar el tono, da firmeza, mejora el brillo natural y la resistencia de la piel. 	\\n
+	Contenido: 55g",
+      price: 35,
+      images: [
+	"/images/productos/cosmeticos/medicubeCapsulePDRN.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+	{
+      name: "MEDICUBE KOJID ACID GEL MASK",
+      description: "Mascarillas de gel con ácido kójico, niacinamida y cúrcuma que ayudan al brillo natural de la piel, dejando un efecto glass glow. Mejora la elasticidad y la hidratación.\\n
+Contenido: 4 gel mask / 28g c/u",
+      price: 35,
+      images: [
+	"/images/productos/cosmeticos/medicubeMask.jpg",
+        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+      ],
+      category: "cosmetic"
+    },
+
+	{
+      name: "LA ROCHE POSAY HYALU B5 SERUM",
+      	description: "Serum antiarrugas que hidrata, repara y rellena la piel al mismo 	tiempo 	que suaviza arrugas y líneas de expresión. Fórmula única a base de ácido 	hialurónico y Vitamina B5 que repara tu dermis desde el interior.\\n
+	Contenido: 204g",
       price: 38,
       images: [
 	"/images/productos/cosmeticos/rocheHialuronico.jpg",
@@ -36,6 +71,7 @@ const Products = () => {
       ],
       category: "cosmetic"
     },
+
     {
       name: "Crema Antiaging",
       description: "Tratamiento intensivo con retinol y péptidos para combatir arrugas.",
