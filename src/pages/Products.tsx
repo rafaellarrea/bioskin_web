@@ -239,7 +239,7 @@ const Products = () => {
       	description: "Protector solar con FPS 50+ para piel con manchas. Textura ligera. 	\n Contenido: 50ml",
       price: 26.50,
       images: [
-	"/images/productos/cosmeticos/eucerinSolarAntimanchas.jpg"
+	"/images/productos/cosmeticos/EucerinSolarAntimanchas.jpg"
       ],
       category: "cosmetic"
     },
@@ -248,7 +248,7 @@ const Products = () => {
       	description: "Advanced Spectral Technology: protección UVA/UVB y defensa contra la 	luz HEVIS. Para todo tipo de piel. Disminuye visiblemente las arrugas y mejora la 	apariencia de la piel. Humecta de manera intensiva. \n Contenido: 50ml",
       price: 26.50,
       images: [
-	"/images/productos/cosmeticos/eucerinSolarAntiedad.jpg"
+	"/images/productos/cosmeticos/EucerinSolarAntiedad.jpg"
       ],
       category: "cosmetic"
     },
