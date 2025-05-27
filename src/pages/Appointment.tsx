@@ -160,7 +160,7 @@ const Appointment = () => {
 
 <div className="mt-10 pt-6 border-t border-gray-200 text-center">
             <p className="text-gray-600 mb-4">
-              ¿No encuentras la respuesta que buscas? Contáctanos directamente.
+              O escríbenos a Whatsapp directamente.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
               <a
