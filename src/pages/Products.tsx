@@ -8,21 +8,24 @@ const Products = () => {
 
   const products = [
     {
-      name: "Láser Nd:YAG Portátil",
-      description: "Equipo profesional para tratamientos de rejuvenecimiento y eliminación de tatuajes.",
-      price: 12000,
+      name: "ANALIZADOR FACIAL INTELIGENTE CON PANTALLA DE 21 pulgadas",
+      description: "Experiencia de análisis de piel profesional con tecnología de 	vanguardia: esta máquina analizadora de piel inteligente Bitmoji 3D AI utiliza 	tecnología RGB+UV+PL para proporcionar un análisis de piel integral. Detecta y 	analiza diversas afecciones de la piel, como acné, arrugas, poros, manchas y 	niveles de hidratación, proporcionando informes detallados para el cuidado 	personalizado de la piel.",
+      price: 3100,
       images: [
-        "https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg",
-        "https://images.pexels.com/photos/8460361/pexels-photo-8460361.jpeg"
+        "/images/productos/dispositivos/analizador/analizador1.jpg",
+	"/images/productos/dispositivos/analizador/analizador2.jpg",
+	"/images/productos/dispositivos/analizador/analizador3.jpg"
       ],
       category: "equipment"
     },
     {
-      name: "IPL Profesional",
-      description: "Sistema de luz pulsada intensa para tratamientos faciales y corporales.",
-      price: 8500,
+      name: "3 en 1 IPL + LASER YAG + RADIOFRECUENCIA",
+      description: "Equipo estético de alta tecnología que integra IPL, ND YAG láser y 	radiofrecuencia para ofrecer soluciones faciales y corporales completas. 	Permite realizar depilación permanente con IPL, incluso en vello fino y claro. 	Trata pecas, melasma, manchas solares y marcas de acné mediante luz pulsada intensa 	(IPL). La radiofrecuencia mejora la textura, poros dilatados, arrugas finas y 	estimula la elasticidad de la piel. Corrige enrojecimiento y rubor facial (rosácea 	leve) y unifica el tono con luz intensa. El láser ND YAG elimina tatuajes de 	múltiples colores (rojo, marrón, azul, negro) y micropigmentaciones en cejas, 	labios y ojos. También trata lesiones pigmentadas como lunares, manchas de la edad 	y marcas de nacimiento con precisión. Ideal para clínicas que buscan tecnología 	versátil, eficaz y rentable.",
+      price: 4000,
       images: [
-        "https://images.pexels.com/photos/8460361/pexels-photo-8460361.jpeg"
+        "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
+	"/images/productos/dispositivos/multifuncional/multifuncional2.jpg",
+	"/images/productos/dispositivos/multifuncional/multifuncional3.jpg"
       ],
       category: "equipment"
     },
@@ -31,8 +34,7 @@ const Products = () => {
       description: "Cápsulas de liposomas con vitamina C, niacinamida, vitaminas y ácido 	ferúlico para una piel más brillante e hidratada. \n Contenido: 55g",
       price: 35,
       images: [
-	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg"
       ],
       category: "cosmetic"
     },
@@ -41,8 +43,7 @@ const Products = () => {
       description: "PDRN y DNA de Salmón encapsulado en crema facial que ayuda a hidratar, 	unificar el tono, da firmeza, mejora el brillo natural y la resistencia de la piel.  \n Contenido: 55g",
       price: 35,
       images: [
-	"/images/productos/cosmeticos/medicubeCapsulePDRN.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/medicubeCapsulePDRN.jpg"
       ],
       category: "cosmetic"
     },
@@ -51,8 +52,7 @@ const Products = () => {
       description: "Mascarillas de gel con ácido kójico, niacinamida y cúrcuma que ayudan 	al brillo natural de la piel, dejando un efecto glass glow. Mejora la elasticidad y 	la hidratación. \n Contenido: 4 gel mask / 28g c/u",
       price: 35,
       images: [
-	"/images/productos/cosmeticos/medicubeMask.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/medicubeMask.jpg"
       ],
       category: "cosmetic"
     },
@@ -62,7 +62,7 @@ const Products = () => {
       price: 30,
       images: [
 	"/images/productos/cosmeticos/abibParchesOjos.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+        "/images/productos/cosmeticos/abibParchesOjos2.jpg"
       ],
       category: "cosmetic"
     },
@@ -71,8 +71,7 @@ const Products = () => {
       description: "Peptide booster toner: mejora la luminosidad y elasticidad de la 	piel. \n Contenido> 150ml",
       price: 30,
       images: [
-	"/images/productos/cosmeticos/cosrxPeptide.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/cosrxPeptide.jpg"
       ],
       category: "cosmetic"
     },
@@ -81,8 +80,7 @@ const Products = () => {
       description: "Snail 96% Mucin Essence: rejuvenece piel dañada, ayuda a reparar 	manchas oscuras y promueve la vitalidad de la piel. \n Contenido> 100ml",
       price: 30,
       images: [
-	"/images/productos/cosmeticos/cosrxMucina.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/cosrxMucina.jpg"
       ],
       category: "cosmetic"
     },
@@ -91,8 +89,7 @@ const Products = () => {
       description: "Máscara de gel de mucina de caracol + colageno y niacinamida, hidrata 	profundamente la piel, mejorando la luminosidad, calma la piel sensible y suaviza 	la textura de la piel. \n Contenido: 3 hydrogel mask / 34g c/u",
       price: 25,
       images: [
-	"/images/productos/cosmeticos/cosrxMask.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/cosrxMask.jpg"
       ],
       category: "cosmetic"
     },
@@ -102,7 +99,7 @@ const Products = () => {
       price: 5,
       images: [
 	"/images/productos/cosmeticos/cosrxParcheAcne.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+        "/images/productos/cosmeticos/cosrxParcheAcne2.jpg"
       ],
       category: "cosmetic"
     },
@@ -112,7 +109,7 @@ const Products = () => {
       price: 20,
       images: [
 	"/images/productos/cosmeticos/ceraveLimpiadorDry.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+        "/images/productos/cosmeticos/ceraveLimpiadorDry2.jpg"
       ],
       category: "cosmetic"
     },
@@ -122,7 +119,7 @@ const Products = () => {
       price: 20,
       images: [
 	"/images/productos/cosmeticos/ceraveLimpiadorOily.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+        "/images/productos/cosmeticos/ceraveLimpiadorOily2.jpg"
       ],
       category: "cosmetic"
     },
@@ -131,8 +128,7 @@ const Products = () => {
       description: "Serum de retinol anti-edad con ácido hialurónico, niacinamida y 	ceramidas. Ayuda a suavizar arrugas y líneas finas; ilumina la piel. \n Contenido: 30ml",
       price: 30,
       images: [
-	"/images/productos/cosmeticos/ceraveRetinol.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/ceraveRetinol.jpg"
       ],
       category: "cosmetic"
     },
@@ -141,8 +137,7 @@ const Products = () => {
       description: "Jabón espumoso formulado con peróxido de benzoílo al 4%, este limpiador 	ataca y trata eficazmente el acné, ayudando a eliminar los brotes existentes y 	previniendo los futuros. \n Contenido: 150 ml",
       price: 20,
       images: [
-	"/images/productos/cosmeticos/ceraveAcneCleanser.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/ceraveAcneCleanser.jpg"
       ],
       category: "cosmetic"
     }, 
@@ -175,7 +170,7 @@ const Products = () => {
       price: 18,
       images: [
 	"/images/productos/cosmeticos/tocoboEspumaLimpiadora.jpg",
-        "/images/productos/cosmeticos/neutrogenaSolar2.jpg"
+        "/images/productos/cosmeticos/tocoboEspumaLimpiadora2.jpg"
       ],
       category: "cosmetic"
     }, 
@@ -185,7 +180,7 @@ const Products = () => {
       price: 18,
       images: [
 	"/images/productos/cosmeticos/tocoboContornoOjos.jpg",
-        "/images/productos/cosmeticos/neutrogenaSolar2.jpg"
+        "/images/productos/cosmeticos/tocoboContornoOjos2.jpg"
       ],
       category: "cosmetic"
     },
@@ -207,7 +202,7 @@ const Products = () => {
       price: 40,
       images: [
 	"/images/productos/cosmeticos/rocheMelaB3.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+        "/images/productos/cosmeticos/rocheMelaB3_2.jpg"
       ],
       category: "cosmetic"
     }, 
@@ -216,8 +211,7 @@ const Products = () => {
       	description: "Serum renovador anti-arrugas y antioxidante para pieles sensibles. 	Ayuda a controlar poros visibles en la piel. \n Contenido: 30ml",
       price: 40,
       images: [
-	"/images/productos/cosmeticos/rocheVitaminaC.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/rocheVitaminaC.jpg"
       ],
       category: "cosmetic"
     }, 
@@ -227,7 +221,7 @@ const Products = () => {
       price: 40,
       images: [
 	"/images/productos/cosmeticos/rocheNiacinamida.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+        "/images/productos/cosmeticos/rocheNiacinamida2.jpg"
       ],
       category: "cosmetic"
     }, 
@@ -236,8 +230,7 @@ const Products = () => {
       	description: "Protector solar con FPS 50+ para piel mixta a grasa, anti-brillo, 	toque seco. \n Contenido: 50ml",
       price: 26.50,
       images: [
-	"/images/productos/cosmeticos/eucerinSolarToqueSeco.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/eucerinSolarToqueSeco.jpg"
       ],
       category: "cosmetic"
     }, 
@@ -246,8 +239,7 @@ const Products = () => {
       	description: "Protector solar con FPS 50+ para piel con manchas. Textura ligera. 	\n Contenido: 50ml",
       price: 26.50,
       images: [
-	"/images/productos/cosmeticos/eucerinSolarAntimanchas.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/eucerinSolarAntimanchas.jpg"
       ],
       category: "cosmetic"
     },
@@ -256,8 +248,7 @@ const Products = () => {
       	description: "Advanced Spectral Technology: protección UVA/UVB y defensa contra la 	luz HEVIS. Para todo tipo de piel. Disminuye visiblemente las arrugas y mejora la 	apariencia de la piel. Humecta de manera intensiva. \n Contenido: 50ml",
       price: 26.50,
       images: [
-	"/images/productos/cosmeticos/eucerinSolarAntiedad.jpg",
-        "https://images.pexels.com/photos/6621462/pexels-photo-6621462.jpeg"
+	"/images/productos/cosmeticos/eucerinSolarAntiedad.jpg"
       ],
       category: "cosmetic"
     },
