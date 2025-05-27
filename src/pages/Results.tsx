@@ -58,8 +58,13 @@ const Results = () => {
           </p>
         </div>
 
+
+
         <div className="mb-20">
           <h3 className="text-2xl font-semibold text-center mb-10">Antes y Después</h3>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Toca la imagen para ver el después.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {beforeAfterResults.map((result, index) => (
               <BeforeAfterCard
