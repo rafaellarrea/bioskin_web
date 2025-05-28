@@ -51,7 +51,8 @@ const Products = () => {
       description: "Mascarillas de gel con ácido kójico, niacinamida y cúrcuma que ayudan 	al brillo natural de la piel, dejando un efecto glass glow. Mejora la elasticidad y 	la hidratación. \n Contenido: 4 gel mask / 28g c/u",
       price: 35,
       images: [
-	"/images/productos/cosmeticos/medicubeMask.jpg"
+	"/images/productos/cosmeticos/medicubeMask.jpg",
+	"/images/productos/cosmeticos/medicubeMask2.jpg"
       ],
       category: "cosmetic"
     },
