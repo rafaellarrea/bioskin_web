@@ -34,7 +34,7 @@ const Products = () => {
       price: 35,
       images: [
 	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg",
-	"/images/productos/cosmeticos/medicubeCapsuleVitaC1.jpg"
+	"/images/productos/cosmeticos/medicubeCapsuleVitaC2.jpg"
       ],
       category: "cosmetic"
     },
