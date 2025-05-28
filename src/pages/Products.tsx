@@ -14,7 +14,8 @@ const Products = () => {
       images: [
         "/images/productos/dispositivos/analizador/analizador1.jpg",
 	"/images/productos/dispositivos/analizador/analizador2.jpg",
-	"/images/productos/dispositivos/analizador/analizador3.jpg"
+	"/images/productos/dispositivos/analizador/analizador3.jpg",
+	"/images/productos/dispositivos/analizador/analizador4.jpg"
       ],
       category: "equipment"
     },

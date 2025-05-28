@@ -22,7 +22,12 @@ const About = () => {
       name: "Dermapen",
       description: "Dispositivo de microneedling que mejora la textura, tono e hidratación de la piel. Utilizado para tratar cicatrices, 	poros dilatados, arrugas finas y para favorecer la absorción de principios activos como exosomas, vitaminas, ácido 	hialurónico, entre otros.",
       image: "/images/productos/dispositivos/dermapen/dermapen.jpg"
-    }
+    },
+	{
+      name: "Fototerapia LED",
+      description: "Tratamiento no invasivo que utiliza luz de diferentes colores para regenerar la piel, reducir acné, calmar 	irritaciones, estimular colágeno y unificar el tono. Ideal para potenciar resultados en protocolos faciales. Sin dolor, sin 	efectos secundarios.",
+      image: "/images/productos/dispositivos/dermapen/dermapen.jpg"
+    },
   ];
 
   return (
@@ -32,7 +37,7 @@ const About = () => {
         <div className="text-center mb-16">
           <h2 className="section-title">Nosotros</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Bio Skin es una clínica especializada en tratamientos faciales personalizados, donde combinamos tecnología de vanguardia con atención profesional y humana.
+            Bio Skin es un espacio especializado en tratamientos faciales personalizados, donde combinamos tecnología de vanguardia con una atención profesional, cercana y enfocada en resultados visibles desde la primera sesión.
           </p>
         </div>
 
