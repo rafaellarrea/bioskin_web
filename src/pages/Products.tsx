@@ -33,8 +33,7 @@ const Products = () => {
       description: "Cápsulas de liposomas con vitamina C, niacinamida, vitaminas y ácido 	ferúlico para una piel más brillante e hidratada. \n Contenido: 55g",
       price: 35,
       images: [
-	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg",
-	"/images/productos/cosmeticos/medicubeCapsuleVitaC2.jpg"
+	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg"	
       ],
       category: "cosmetic"
     },

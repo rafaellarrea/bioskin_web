@@ -26,8 +26,13 @@ const About = () => {
 	{
       name: "Fototerapia LED",
       description: "Tratamiento no invasivo que utiliza luz de diferentes colores para regenerar la piel, reducir acné, calmar 	irritaciones, estimular colágeno y unificar el tono. Ideal para potenciar resultados en protocolos faciales. Sin dolor, sin 	efectos secundarios.",
-      image: "/images/productos/dispositivos/dermapen/dermapen.jpg"
+      image: "/images/productos/dispositivos/led/led1.jpg"
     },
+	{
+      name: "Alta frecuencia",
+      description: "Terapia facial que utiliza corriente eléctrica suave para oxigenar la piel, eliminar bacterias y estimular la 	circulación. Ideal para pieles con acné, poros obstruidos o para potenciar limpiezas faciales profundas.",
+      image: "/images/productos/dispositivos/altaFrecuencia/altaFrecuencia1.jpg"
+    }
   ];
 
   return (
