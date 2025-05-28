@@ -134,37 +134,12 @@ const Appointment = () => {
 <p className="text-gray-600 max-w-2xl mx-auto">Selecciona fecha y hora disponibles.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input name="date" type="date" required value={formData.date} onChange={handleChange} className="w-full p-3 border rounded-md" />
- 
-{/*SE MUESTRAN HORAS PARA SELECCIONAR*/}                
-{/*
- <select name="time" required value={formData.time} onChange={handleChange} className="w-full p-3 border rounded-md">
+                  <select name="time" required value={formData.time} onChange={handleChange} className="w-full p-3 border rounded-md">
                     <option value="">Hora Disponible</option>
                     {availableTimes.map((time) => (
                       <option key={time} value={time}>{formatTimeLabel(time)}</option>
                     ))}
                   </select>
-*/}
-
-
-<select name="time" required value={formData.time} onChange={handleChange} className="w-full p-3 border rounded-md">
-  <option value="">Selecciona una hora</option>
-  {allTimes.map((time) => {
-    const isOccupied = occupiedTimes.includes(time);
-    return (
-      <option
-        key={time}
-        value={isOccupied ? '' : time}
-        disabled={isOccupied}
-        className={isOccupied ? 'bg-gray-200 text-gray-500' : ''}
-      >
-        {formatTimeLabel(time)} {isOccupied ? ' (No disponible)' : ''}
-      </option>
-    );
-  })}
-</select>
-
-
-
                 </div>
                 <textarea name="message" rows={4} placeholder="Mensaje adicional (opcional)" value={formData.message} onChange={handleChange} className="w-full p-3 border rounded-md" />
                 <button type="submit" disabled={submitting} className="btn-primary w-full py-3">
