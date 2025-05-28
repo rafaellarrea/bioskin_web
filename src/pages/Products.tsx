@@ -14,8 +14,7 @@ const Products = () => {
       images: [
         "/images/productos/dispositivos/analizador/analizador1.jpg",
 	"/images/productos/dispositivos/analizador/analizador2.jpg",
-	"/images/productos/dispositivos/analizador/analizador3.jpg",
-	"/images/productos/dispositivos/analizador/analizador4.jpg"
+	"/images/productos/dispositivos/analizador/analizador3.jpg"
       ],
       category: "equipment"
     },
@@ -25,8 +24,7 @@ const Products = () => {
       price: 3800,
       images: [
         "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
-	"/images/productos/dispositivos/multifuncional/multifuncional2.jpg",
-	"/images/productos/dispositivos/multifuncional/multifuncional3.jpg"
+	"/images/productos/dispositivos/multifuncional/multifuncional2.jpg"
       ],
       category: "equipment"
     },
@@ -35,7 +33,8 @@ const Products = () => {
       description: "Cápsulas de liposomas con vitamina C, niacinamida, vitaminas y ácido 	ferúlico para una piel más brillante e hidratada. \n Contenido: 55g",
       price: 35,
       images: [
-	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg"
+	"/images/productos/cosmeticos/medicubeCapsuleVitaC.jpg",
+	"/images/productos/cosmeticos/medicubeCapsuleVitaC1.jpg"
       ],
       category: "cosmetic"
     },
