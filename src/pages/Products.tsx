@@ -66,7 +66,7 @@ const Products = () => {
               <ProductCard
                 key={index}
                 name={product.name}
-                description={product.shortDescription}
+                description={product.description}
                 price={product.price}
                 images={product.images}
                 category={product.category}
