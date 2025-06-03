@@ -1,6 +1,13 @@
 
 import React from 'react';
 import ImageCarousel from './ImageCarousel';
+import { Link } from 'react-router-dom';
+import { slugify } from '../utils/slugify';
+
+// ... dentro de tu componente ProductCard, por ejemplo:
+<Link to={`/products/${slugify("analizador facial")}`}>
+  <button className="btn-primary w-full mt-4">Más información</button>
+</Link>
 
 type ProductCardProps = {
   name: string;
