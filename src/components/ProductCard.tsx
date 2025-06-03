@@ -19,7 +19,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   category,
 }) => {
   return (
-    <div className="card group">
+    <div className="card group flex flex-col h-full">
       <div className="relative overflow-hidden">
         <ImageCarousel images={images} folderPath="" height="h-48" />
         <div className="absolute top-0 right-0 bg-[#deb887] text-white py-1 px-3 font-semibold">
@@ -29,7 +29,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {category}
         </div>
       </div>
-      <div className="p-5 flex flex-col h-full">
+      <div className="p-5 flex flex-col flex-1">
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
         <p className="text-gray-600 mb-4 whitespace-pre-line flex-1">{description}</p>
         
