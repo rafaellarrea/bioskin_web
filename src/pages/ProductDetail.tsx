@@ -51,7 +51,51 @@ const ProductDetail = () => {
         </div>
 
         <div className="flex-1 flex flex-col justify-center items-center">
+
+          {/* Descripción principal */}
           <p className="mb-4 whitespace-pre-line text-center">{product.description}</p>
+
+          {/* Detalles */}
+          {product.details && (
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold mb-2">Detalles</h2>
+              <ul className="list-disc pl-6">
+                {product.details.map((item: string, i: number) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Especificaciones técnicas */}
+          {product.specifications && (
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold mb-2">Especificaciones técnicas</h2>
+              <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                <tbody>
+                  {Object.entries(product.specifications).map(([key, value], i) => (
+                    <tr key={i}>
+                      <td className="py-2 px-4 border-b font-semibold text-gray-700">{key}</td>
+                      <td className="py-2 px-4 border-b">{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Indicaciones */}
+          {product.indications && (
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold mb-2">Indicaciones</h2>
+              <ul className="list-disc pl-6">
+                {product.indications.map((item: string, i: number) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <p className="font-semibold text-xl mb-6">Precio: ${product.price}</p>
           <a
             href={`https://wa.me/593969890689?text=Hola,%20deseo%20más%20información%20sobre%20el%20producto:%20${encodeURIComponent(product.name)}`}

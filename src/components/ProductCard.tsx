@@ -5,7 +5,7 @@ import { slugify } from '../utils/slugify';
 
 type ProductCardProps = {
   name: string;
-  description: string;
+  shortDescription: string; // <-- Añadido
   price: number;
   images: string[];
   category: 'equipment' | 'cosmetic';
@@ -13,7 +13,7 @@ type ProductCardProps = {
 
 const ProductCard: React.FC<ProductCardProps> = ({
   name,
-  description,
+  shortDescription, // <-- Añadido
   price,
   images,
   category,
@@ -31,7 +31,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
       <div className="p-5 flex flex-col flex-1">
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
-        <p className="text-gray-600 mb-4 whitespace-pre-line flex-1">{description}</p>
+        <p className="text-gray-600 mb-4 whitespace-pre-line flex-1">{shortDescription}</p>
         
         {/* Botón Más información */}
         <Link to={`/products/${slugify(name)}`}>
