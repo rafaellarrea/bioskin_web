@@ -1,13 +1,7 @@
-
 import React from 'react';
 import ImageCarousel from './ImageCarousel';
 import { Link } from 'react-router-dom';
 import { slugify } from '../utils/slugify';
-
-// ... dentro de tu componente ProductCard, por ejemplo:
-<Link to={`/products/${slugify("analizador facial")}`}>
-  <button className="btn-primary w-full mt-4">Más información</button>
-</Link>
 
 type ProductCardProps = {
   name: string;
@@ -35,14 +29,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
           {category}
         </div>
       </div>
-      <div className="p-5">
+      <div className="p-5 flex flex-col h-full">
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
-        <p className="text-gray-600 mb-4 whitespace-pre-line">{description}</p>
+        <p className="text-gray-600 mb-4 whitespace-pre-line flex-1">{description}</p>
+        
+        {/* Botón Más información */}
+        <Link to={`/products/${slugify(name)}`}>
+          <button className="btn-primary w-full mt-2">Más información</button>
+        </Link>
+        
+        {/* Botón WhatsApp */}
         <a
           href="https://wa.me/593969890689"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#deb887] font-medium inline-flex items-center hover:underline"
+          className="text-[#deb887] font-medium inline-flex items-center hover:underline mt-2"
         >
           Consultar Disponibilidad
           <svg
