@@ -53,7 +53,7 @@ const ProductDetail = () => {
         <div className="flex-1 flex flex-col justify-center items-center">
 
           {/* Descripción principal */}
-          <p className="mb-4 whitespace-pre-line text-center">{product.description}</p>
+          <p className="text-gray-600 text-sm">{product.description}</p>
 
           {/* Detalles */}
           {product.details && (
