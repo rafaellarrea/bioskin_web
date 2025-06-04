@@ -32,8 +32,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </div>
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-xl font-semibold mb-2">{name}</h3>
-        <p className="text-gray-600 mb-4 whitespace-pre-line flex-1">{shortDescription}</p>
+        <h3 className="text-lg font-semibold mb-2">{name}</h3>
+        <p className="text-gray-600 text-sm">{shortDescription}</p>
         
         {/* Mostrar solo si showDetailButton es true */}
         {showDetailButton && (

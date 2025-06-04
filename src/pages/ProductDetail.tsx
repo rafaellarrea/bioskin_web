@@ -75,7 +75,7 @@ const ProductDetail = () => {
                 <tbody>
                   {Object.entries(product.specifications).map(([key, value], i) => (
                     <tr key={i}>
-                      <td className="py-2 px-4 border-b font-semibold text-gray-700">{key}</td>
+                      <td className="py-2 px-4 border-b font-semibold text-gray-600">{key}</td>
                       <td className="py-2 px-4 border-b">{value}</td>
                     </tr>
                   ))}
