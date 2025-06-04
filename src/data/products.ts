@@ -2,12 +2,12 @@ const products = [
   {
   name: "ANALIZADOR FACIAL INTELIGENTE CON PANTALLA DE 21 pulgadas",
   shortDescription: "Sistema profesional para diagnóstico facial con IA, 8 espectros de análisis, reportes automáticos y luz combinada WOOD+POSITIVE POLARIZATION + NEGATIVE POLARIZATION +RGB+UV+PL.",
-  description: `El Analizador Facial Inteligente con pantalla de 21 pulgadas es un equipo avanzado para diagnóstico profesional de piel. Incorpora inteligencia artificial Bitmoji 3D AI y sensores de espectro múltiple (WOOD'S LIGTH, RGB, UV, PL), permitiendo identificar 12 tipos de problemas cutáneos en segundos. 
+  description: `El Analizador Facial Inteligente con pantalla de 21 pulgadas es un equipo avanzado para diagnóstico profesional de piel. Incorpora inteligencia artificial y sensores de espectro múltiple (WOOD'S LIGTH, RGB, UV, PL), permitiendo identificar 12 tipos de problemas cutáneos en segundos. 
 Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añadido en sus consultas estéticas.`,
   details: [
     "Pantalla táctil de 21 pulgadas Full HD.",
     "8 tecnologías de imágenes espectrales: luz blanca RGB, polarización positiva, polarización negativa, UV365, luz azul claro de madera 405, luz roja, piel clara marrón.",
-    "Análisis completo de 14 indicadores de pielm mediante Luz combinada WOOD + RGB + UV + PL para evaluación profunda de capas superficiales y subdérmicas.",
+    "Análisis completo de 12 indicadores de piel mediante Luz combinada WOOD + RGB + UV + PL para evaluación profunda de capas superficiales y subdérmicas.",
     "40 filtros de fuente de luz LED: 40 filtros están distribuidos alrededor de la cámara para proteger la piel de los efectos secundarios de la luz.",
     "Inteligencia Artificial: Tecnología de reconocimiento facial AI: reconocimiento facial de inteligencia artificial, generación de modelos tridimensionales de rostro, detección automatizada y medición precisa.",
     "Se adopta un algoritmo para identificar con precisión el espacio O, el espacio T y el espacio U, lo que hace que los datos sean más precisos y rápidos.",
@@ -18,7 +18,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
   specifications: {
     "Resolución de pantalla": "FHD (touch)",
     "Pixeles" : "36 millones de píxeles de alta definición: imagen más clara, reconocimiento más preciso, análisis más preciso.",
-    "Modos de análisis": "8 modos, detección de 12 condiciones",
+    "Modos de análisis": "8 modos, detección de 12 condiciones. ANALISIS SUPERFICIAL: nivel de hidratacion, sebo, poros, arrugas, manchas, puntos negros, tono de piel. ANALISIS PROFUNDO: sensibilidad PL, punto uv, pigmento, acne uv, fibra de colageno",
     "Iluminación": "Wood's ligth (LAMPARA DE WOOD), RGB (luz blanca), UV (365 nm), PL (polarizada cruzada)",
     "Fuente de alimentación": "110V AC, 50/60 Hz",
     "Conectividad": "WiFi, USB",
