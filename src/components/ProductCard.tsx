@@ -5,18 +5,20 @@ import { slugify } from '../utils/slugify';
 
 type ProductCardProps = {
   name: string;
-  shortDescription: string; // <-- Añadido
+  shortDescription: string;
   price: number;
   images: string[];
   category: 'equipment' | 'cosmetic';
+  showDetailButton?: boolean; // <--- Añadido (opcional)
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({
   name,
-  shortDescription, // <-- Añadido
+  shortDescription,
   price,
   images,
   category,
+  showDetailButton = true, // Por defecto se muestra
 }) => {
   return (
     <div className="card group flex flex-col h-full">
@@ -33,10 +35,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <h3 className="text-xl font-semibold mb-2">{name}</h3>
         <p className="text-gray-600 mb-4 whitespace-pre-line flex-1">{shortDescription}</p>
         
-        {/* Botón Más información */}
-        <Link to={`/products/${slugify(name)}`}>
-          <button className="btn-primary w-full mt-2">Más información</button>
-        </Link>
+        {/* Mostrar solo si showDetailButton es true */}
+        {showDetailButton && (
+          <Link to={`/products/${slugify(name)}`}>
+            <button className="btn-primary w-full mt-2">Más información</button>
+          </Link>
+        )}
         
         {/* Botón WhatsApp */}
         <a
