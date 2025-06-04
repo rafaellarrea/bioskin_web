@@ -28,9 +28,11 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
   indications: [
     "Diagnóstico integral para cualquier tipo y fototipo de piel.",
     "Ideal para valoraciones en clínicas dermatológicas, centros de estética y consultorios médicos.",
-    "Útil para seguimiento de evolución de tratamientos faciales (antes y después)."
+    "Útil para seguimiento de evolución de tratamientos faciales (antes y después).",
+    "",
+    "INCLUYE GARANTIA DE 6 MESES"
   ],
-  price: 3100,
+  price: 3000,
   images: [
     "/images/productos/dispositivos/analizador/analizador1.jpg",
     "/images/productos/dispositivos/analizador/analizador2.jpg",
