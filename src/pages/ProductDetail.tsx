@@ -53,13 +53,13 @@ const ProductDetail = () => {
         <div className="flex-1 flex flex-col justify-center items-center">
 
           {/* Descripción principal */}
-          <p className="text-gray-600 text-sm">{product.description}</p>
+          <p className="text-gray-600 text-sm mb-6">{product.description}</p>
 
           {/* Detalles */}
           {product.details && (
             <div className="mb-6 w-full">
               <h2 className="text-lg font-semibold mb-2">Detalles</h2>
-              <ul className="list-disc pl-6 text-gray-600 text-sm">
+              <ul className="list-disc pl-6 text-gray-600 text-sm mb-4">
                 {product.details.map((item: string, i: number) => (
                   <li key={i}>{item}</li>
                 ))}
