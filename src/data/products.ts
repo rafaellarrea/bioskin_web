@@ -1,26 +1,28 @@
 const products = [
   {
   name: "ANALIZADOR FACIAL INTELIGENTE CON PANTALLA DE 21 pulgadas",
-  shortDescription: "Sistema profesional para diagnóstico facial con IA, 8 modos de análisis, reportes automáticos y luz combinada RGB+UV+PL.",
-  description: `El Analizador Facial Inteligente con pantalla de 21 pulgadas es un equipo avanzado para diagnóstico profesional de piel. Incorpora inteligencia artificial Bitmoji 3D AI y sensores de espectro múltiple (RGB, UV, PL), permitiendo identificar 12 tipos de problemas cutáneos en segundos. 
+  shortDescription: "Sistema profesional para diagnóstico facial con IA, 8 espectros de análisis, reportes automáticos y luz combinada WOOD+POSITIVE POLARIZATION + NEGATIVE POLARIZATION +RGB+UV+PL.",
+  description: `El Analizador Facial Inteligente con pantalla de 21 pulgadas es un equipo avanzado para diagnóstico profesional de piel. Incorpora inteligencia artificial Bitmoji 3D AI y sensores de espectro múltiple (WOOD'S LIGTH, RGB, UV, PL), permitiendo identificar 12 tipos de problemas cutáneos en segundos. 
 Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añadido en sus consultas estéticas.`,
   details: [
-    "Pantalla táctil de 21 pulgadas Full HD (1920x1080 px).",
-    "8 modos de análisis cutáneo: acné, arrugas, manchas, poros, hidratación, textura, sensibilidad y pigmentación.",
-    "Luz combinada RGB + UV + PL para evaluación profunda de capas superficiales y subdérmicas.",
-    "IA Bitmoji 3D: generación de modelos tridimensionales de rostro, detección automatizada y medición precisa.",
+    "Pantalla táctil de 21 pulgadas Full HD.",
+    "8 tecnologías de imágenes espectrales: luz blanca RGB, polarización positiva, polarización negativa, UV365, luz azul claro de madera 405, luz roja, piel clara marrón.",
+    "Análisis completo de 14 indicadores de pielm mediante Luz combinada WOOD + RGB + UV + PL para evaluación profunda de capas superficiales y subdérmicas.",
+    "40 filtros de fuente de luz LED: 40 filtros están distribuidos alrededor de la cámara para proteger la piel de los efectos secundarios de la luz.",
+    "Inteligencia Artificial: Tecnología de reconocimiento facial AI: reconocimiento facial de inteligencia artificial, generación de modelos tridimensionales de rostro, detección automatizada y medición precisa.",
+    "Se adopta un algoritmo para identificar con precisión el espacio O, el espacio T y el espacio U, lo que hace que los datos sean más precisos y rápidos.",
     "Emisión de reportes digitales inmediatos para el paciente y recomendaciones automáticas de tratamiento.",
     "Software multilenguaje y actualizable vía WiFi.",
-    "Cámara de alta resolución (mínimo 16 MP), puerto USB para exportar resultados e impresora integrada (opcional)."
+    "Cámara de alta resolución."
   ],
   specifications: {
-    "Resolución de pantalla": "1920x1080 px (táctil capacitiva)",
-    "Resolución de cámara": "16 MP o superior",
+    "Resolución de pantalla": "FHD (touch)",
+    "Pixeles" : "36 millones de píxeles de alta definición: imagen más clara, reconocimiento más preciso, análisis más preciso.",
     "Modos de análisis": "8 modos, detección de 12 condiciones",
     "Iluminación": "RGB (luz blanca), UV (365 nm), PL (polarizada cruzada)",
     "Fuente de alimentación": "100-240V AC, 50/60 Hz",
     "Conectividad": "WiFi, USB",
-    "Dimensiones": "42 × 35 × 52 cm",
+    "Dimensiones": "pantalla 32 × 60 cm : modulo analizador 36.5 x 44.5 x 50.8 cm",
     "Peso": "8.5 kg"
   },
   indications: [
