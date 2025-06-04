@@ -19,8 +19,8 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Resolución de pantalla": "FHD (touch)",
     "Pixeles" : "36 millones de píxeles de alta definición: imagen más clara, reconocimiento más preciso, análisis más preciso.",
     "Modos de análisis": "8 modos, detección de 12 condiciones",
-    "Iluminación": "RGB (luz blanca), UV (365 nm), PL (polarizada cruzada)",
-    "Fuente de alimentación": "100-240V AC, 50/60 Hz",
+    "Iluminación": "Wood's ligth (LAMPARA DE WOOD), RGB (luz blanca), UV (365 nm), PL (polarizada cruzada)",
+    "Fuente de alimentación": "110V AC, 50/60 Hz",
     "Conectividad": "WiFi, USB",
     "Dimensiones": "pantalla 32 × 60 cm : modulo analizador 36.5 x 44.5 x 50.8 cm",
     "Peso": "8.5 kg"
