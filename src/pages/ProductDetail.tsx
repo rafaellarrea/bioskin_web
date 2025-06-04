@@ -58,7 +58,7 @@ const ProductDetail = () => {
           {/* Detalles */}
           {product.details && (
             <div className="mb-6 w-full">
-              <h2 className="text-gray-600 text-sm">Detalles</h2>
+              <h2 className="text-lg font-semibold mb-2">Detalles</h2>
               <ul className="list-disc pl-6">
                 {product.details.map((item: string, i: number) => (
                   <li key={i}>{item}</li>
@@ -70,7 +70,7 @@ const ProductDetail = () => {
           {/* Especificaciones técnicas */}
           {product.specifications && (
             <div className="mb-6 w-full">
-              <h2 className="text-gray-600 text-sm">Especificaciones técnicas</h2>
+              <h2 className="text-lg font-semibold mb-2">Especificaciones técnicas</h2>
               <table className="min-w-full bg-white border border-gray-200 rounded-lg">
                 <tbody>
                   {Object.entries(product.specifications).map(([key, value], i) => (
@@ -87,7 +87,7 @@ const ProductDetail = () => {
           {/* Indicaciones */}
           {product.indications && (
             <div className="mb-6 w-full">
-              <h2 className="text-gray-600 text-sm">Indicaciones</h2>
+              <h2 className="text-lg font-semibold mb-2">Indicaciones</h2>
               <ul className="list-disc pl-6">
                 {product.indications.map((item: string, i: number) => (
                   <li key={i}>{item}</li>
