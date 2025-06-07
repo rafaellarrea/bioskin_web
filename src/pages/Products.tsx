@@ -77,7 +77,7 @@ const Products = () => {
 
           <div className="mt-16 text-center">
             <p className="text-gray-600 mb-8">
-              ¿Interesado en nuestros productos? Contáctanos para más información sobre disponibilidad y opciones de financiamiento.
+              ¿Interesado en nuestros productos? Contáctanos para más información sobre disponibilidad.
             </p>
             <a
               href="https://wa.me/593969890689"
