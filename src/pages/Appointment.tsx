@@ -1,42 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
-// Puedes usar estos iconos o los de tu preferencia
 import { CalendarDays, ShieldCheck, Smile } from 'lucide-react';
 
+// Helpers para español
+const daysOfWeek = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function getNextDays(count = 8) {
+  const days = [];
+  for (let i = 0; i < count; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    days.push({
+      dayName: daysOfWeek[date.getDay()],
+      dateNum: date.getDate(),
+      month: months[date.getMonth()],
+      iso: date.toISOString().slice(0,10)
+    });
+  }
+  return days;
+}
+
+const allTimes = ['09:00', '10:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
+
+const formatTimeLabel = (time24: string) => {
+  const parts = time24.split(':');
+  const hour = parseInt(parts[0], 10);
+  const minuteStr = parts[1];
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  const hourStr = hour12 < 10 ? '0' + hour12 : hour12.toString();
+  return hourStr + ':' + minuteStr + ' ' + suffix;
+};
+
 const Appointment = () => {
+  // Pasos: 1=día, 2=hora, 3=datos
+  const [step, setStep] = useState(1);
+
+  // Selección
+  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedHour, setSelectedHour] = useState('');
+
+  // Horarios ocupados para cada día
+  const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
+  const [loadingHours, setLoadingHours] = useState(false);
+
+  // Formulario
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     service: '',
-    date: '',
-    time: '',
     message: '',
   });
-  const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const allTimes = ['09:00','11:00','13:00','15:00','17:00','19:00'];
+  const days = getNextDays(8);
 
-  const formatTimeLabel = (time24: string) => {
-    const parts = time24.split(':');
-    const hour = parseInt(parts[0], 10);
-    const minuteStr = parts[1];
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-    const hourStr = hour12 < 10 ? '0' + hour12 : hour12.toString();
-    return hourStr + ':' + minuteStr + ' ' + suffix;
-  };
-
+  // Al cambiar el día, consulta horarios ocupados
   useEffect(() => {
-    if (!formData.date) return;
+    if (!selectedDay) return setOccupiedTimes([]);
+    setLoadingHours(true);
     fetch('/api/getEvents', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date: formData.date }),
+      body: JSON.stringify({ date: selectedDay }),
     })
       .then(res => res.json())
       .then(data => {
@@ -45,19 +76,17 @@ const Appointment = () => {
         );
         setOccupiedTimes(times);
       })
-      .catch(() => setOccupiedTimes([]));
-  }, [formData.date]);
+      .catch(() => setOccupiedTimes([]))
+      .finally(() => setLoadingHours(false));
+  }, [selectedDay]);
 
-  useEffect(() => {
-    const libres = allTimes.filter(t => !occupiedTimes.includes(t));
-    setAvailableTimes(libres);
-  }, [occupiedTimes]);
+  // Cambia de día => resetea hora
+  useEffect(() => { setSelectedHour(''); }, [selectedDay]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // Helpers
+  const isHourOccupied = (hour: string) => occupiedTimes.includes(hour);
 
+  // Envía datos
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -72,93 +101,166 @@ const Appointment = () => {
           message:
             'Teléfono: ' + formData.phone + '\n' +
             'Servicio: ' + formData.service + '\n' +
-            'Fecha: ' + formData.date + '\n' +
-            'Hora: ' + formData.time + '\n' +
+            'Fecha: ' + selectedDay + '\n' +
+            'Hora: ' + selectedHour + '\n' +
             'Comentario adicional: ' + formData.message,
         }),
       });
       setSubmitted(true);
-      setFormData({ name: '', email: '', phone: '', service: '', date: '', time: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', service: '', message: '' });
     } catch (e) {
       setError('Error al enviar');
     }
     setSubmitting(false);
   };
 
-  const resetForm = () => {
-    setFormData({ name: '', email: '', phone: '', service: '', date: '', time: '', message: '' });
-    setSubmitting(false);
+  // Reinicia todo
+  const resetAll = () => {
+    setStep(1);
+    setSelectedDay('');
+    setSelectedHour('');
+    setFormData({ name: '', email: '', phone: '', service: '', message: '' });
     setSubmitted(false);
     setError('');
   };
 
   return (
-<>
-  <section id="appointment" className="py-24 bg-gray-50 min-h-screen">
-    <div className="container-custom">
-      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-        {/* Panel izquierdo informativo */}
-        <div className="bg-[#fcf6ef] p-10 flex flex-col justify-center border-r border-gray-100">
-          <h3 className="text-2xl font-bold mb-5 text-[#99652f]">¿Por qué agendar con BIOSKIN?</h3>
-          <ul className="space-y-6 text-gray-700 mb-10">
-            <li className="flex items-center">
-              <CalendarDays className="w-7 h-7 text-[#deb887] mr-3" />
-              <span>Horarios flexibles y atención personalizada</span>
-            </li>
-            <li className="flex items-center">
-              <ShieldCheck className="w-7 h-7 text-[#deb887] mr-3" />
-              <span>100% confidencialidad y seguridad de tus datos</span>
-            </li>
-            <li className="flex items-center">
-              <Smile className="w-7 h-7 text-[#deb887] mr-3" />
-              <span>Resultados reales, profesionales certificados</span>
-            </li>
-          </ul>
-          <img
-            src="/images/ilustracion-agenda.png"
-            alt="Agendar cita"
-            className="rounded-xl shadow-lg mt-auto object-cover w-full max-h-52"
-            style={{ background: "#eae7df" }}
-            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+    <>
+    <section id="appointment" className="py-16 bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="max-w-3xl w-full mx-auto bg-white rounded-3xl shadow-2xl p-6 md:p-10">
+        {/* Panel superior informativo */}
+        <div className="flex flex-col md:flex-row md:items-center gap-6 mb-10">
+          <div className="flex-1">
+            <h3 className="text-2xl font-bold mb-3 text-[#99652f]">Agenda tu cita</h3>
+            <ul className="space-y-2 text-gray-700 text-sm">
+              <li className="flex items-center">
+                <CalendarDays className="w-5 h-5 text-[#deb887] mr-2" />
+                Horarios flexibles y atención personalizada
+              </li>
+              <li className="flex items-center">
+                <ShieldCheck className="w-5 h-5 text-[#deb887] mr-2" />
+                100% confidencialidad y seguridad de tus datos
+              </li>
+              <li className="flex items-center">
+                <Smile className="w-5 h-5 text-[#deb887] mr-2" />
+                Resultados reales, profesionales certificados
+              </li>
+            </ul>
+          </div>
+          <div className="w-40 flex-shrink-0 hidden md:block">
+            <img
+              src="/images/ilustracion-agenda.png"
+              alt="Agendar cita"
+              className="rounded-xl shadow-lg object-cover w-full"
+              style={{ background: "#eae7df" }}
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
         </div>
-        {/* Formulario derecho */}
-        <div className="p-8 flex flex-col justify-center">
-          {!submitted ? (
-            <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow space-y-4 border border-gray-100">
+
+        {/* ---- Wizard: Paso a paso ---- */}
+
+        {/* Paso 1: Día */}
+        {step === 1 && (
+          <>
+            <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">1. Selecciona el día</h4>
+            <div className="flex flex-wrap gap-4 justify-center mb-8">
+              {days.map(d => (
+                <button
+                  key={d.iso}
+                  onClick={() => setSelectedDay(d.iso)}
+                  className={`text-center rounded-xl border-2 p-5 w-28 md:w-32 transition-all duration-200
+                    ${selectedDay === d.iso ? 'bg-[#ffcfc4] text-[#0d5c6c] border-[#fa9271] shadow-lg scale-105' : 'bg-white text-[#0d5c6c] border-[#dde7eb] hover:bg-[#ffe2db]'}
+                  `}
+                  style={{ minHeight: 100 }}
+                >
+                  <span className="block font-semibold italic text-base">{d.dayName}</span>
+                  <span className="block text-3xl font-bold mt-1">{d.dateNum}</span>
+                  <span className="block text-base">{d.month}</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end">
+              <button
+                disabled={!selectedDay}
+                onClick={() => setStep(2)}
+                className={`px-7 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow transition ${!selectedDay ? 'opacity-50' : ''}`}
+              >
+                Siguiente
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Paso 2: Hora */}
+        {step === 2 && (
+          <>
+            <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">2. Selecciona la hora</h4>
+            <div className="flex flex-wrap gap-4 justify-center mb-8">
+              {loadingHours ? (
+                <div className="text-center col-span-3 w-full">Cargando horarios...</div>
+              ) : (
+                allTimes.map(h => (
+                  <button
+                    key={h}
+                    disabled={isHourOccupied(h)}
+                    onClick={() => setSelectedHour(h)}
+                    className={`w-28 rounded-xl p-4 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150
+                      ${selectedHour === h ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
+                      ${isHourOccupied(h) ? 'opacity-30 cursor-not-allowed' : ''}
+                    `}
+                  >
+                    <span className="text-lg font-semibold mb-1">Turno</span>
+                    <span className="text-2xl font-bold">{formatTimeLabel(h)}</span>
+                  </button>
+                ))
+              )}
+            </div>
+            <div className="flex justify-between">
+              <button
+                onClick={() => setStep(1)}
+                className="px-6 py-2 rounded-lg bg-[#fa9271] text-white font-bold shadow"
+              >Volver</button>
+              <button
+                disabled={!selectedHour}
+                onClick={() => setStep(3)}
+                className={`px-6 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow ${!selectedHour ? 'opacity-50' : ''}`}
+              >
+                Siguiente
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Paso 3: Formulario */}
+        {step === 3 && !submitted && (
+          <>
+            <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">3. Completa tus datos</h4>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <input
-                name="name"
-                type="text"
-                required
-                placeholder="Nombre completo"
+                name="name" placeholder="Nombre completo" required
                 value={formData.name}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#deb887] transition"
+                onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
+                className="w-full p-3 rounded border border-gray-200"
               />
               <input
-                name="email"
-                type="email"
-                required
-                placeholder="Correo electrónico"
+                name="email" type="email" placeholder="Correo electrónico" required
                 value={formData.email}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#deb887] transition"
+                onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
+                className="w-full p-3 rounded border border-gray-200"
               />
               <input
-                name="phone"
-                type="tel"
-                required
-                placeholder="Teléfono"
+                name="phone" type="tel" placeholder="Teléfono" required
                 value={formData.phone}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#deb887] transition"
+                onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
+                className="w-full p-3 rounded border border-gray-200"
               />
               <select
                 name="service"
                 required
                 value={formData.service}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-[#deb887] transition"
+                onChange={e => setFormData(f => ({ ...f, service: e.target.value }))}
+                className="w-full p-3 rounded border border-gray-200 bg-white"
               >
                 <option value="">Selecciona un servicio</option>
                 <option value="OTRO">OTRO</option>
@@ -172,79 +274,65 @@ const Appointment = () => {
                 <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
                 <option value="Lipopapada enzimática">Lipopapada enzimática</option>
               </select>
-              <p className="text-gray-600 text-sm">Selecciona fecha y hora disponibles.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input
-                  name="date"
-                  type="date"
-                  required
-                  value={formData.date}
-                  onChange={handleChange}
-                  className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#deb887] transition"
-                />
-                <select
-                  name="time"
-                  required
-                  value={formData.time}
-                  onChange={handleChange}
-                  className="w-full p-3 border border-gray-200 rounded-md bg-white focus:ring-2 focus:ring-[#deb887] transition"
-                >
-                  <option value="">Selecciona una hora</option>
-                  {allTimes.map((time) => {
-                    const isOccupied = occupiedTimes.includes(time);
-                    return (
-                      <option
-                        key={time}
-                        value={isOccupied ? '' : time}
-                        disabled={isOccupied}
-                        className={isOccupied ? 'bg-gray-200 text-gray-500' : ''}
-                      >
-                        {formatTimeLabel(time)} {isOccupied ? ' (No disponible)' : ''}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
               <textarea
-                name="message"
-                rows={4}
-                placeholder="Mensaje adicional (opcional)"
+                name="message" placeholder="Mensaje adicional (opcional)" rows={3}
                 value={formData.message}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#deb887] transition"
+                onChange={e => setFormData(f => ({ ...f, message: e.target.value }))}
+                className="w-full p-3 rounded border border-gray-200"
               />
-              <button
-                type="submit"
-                disabled={submitting}
-                className="btn-primary w-full py-3 text-lg rounded-xl transition-all duration-200"
-              >
-                {submitting ? 'Enviando...' : 'Enviar Solicitud'}
-              </button>
-              {error && <div className="text-red-600">{error}</div>}
+              {error && <div className="text-red-600 mb-2">{error}</div>}
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() => setStep(2)}
+                  className="px-6 py-2 rounded-lg bg-[#fa9271] text-white font-bold shadow"
+                  type="button"
+                >Volver</button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-6 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow"
+                >
+                  {submitting ? 'Enviando...' : 'Agendar cita'}
+                </button>
+              </div>
             </form>
-          ) : (
-            <div className="text-center py-10">
-              <svg className="mx-auto mb-4 text-[#deb887]" width={48} height={48} fill="none" stroke="currentColor" strokeWidth={2}>
-                <circle cx="24" cy="24" r="22" stroke="#deb887" strokeWidth="4" />
-                <path d="M16 24l6 6 10-10" stroke="#deb887" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <h3 className="text-2xl font-semibold mb-2">¡Solicitud enviada!</h3>
-              <p className="mb-6 text-gray-700">Pronto nos contactaremos contigo para confirmar tu cita.</p>
-              <button onClick={resetForm} className="btn-primary py-2 px-6 rounded-lg">Enviar otra solicitud</button>
-            </div>
-          )}
-        </div>
-      </div>
+          </>
+        )}
 
-      {/* WhatsApp section */}
-      <div className="mt-10 pt-6 border-t border-gray-200 text-center">
-        <p className="text-gray-600 mb-4">¿Prefieres agendar directo por WhatsApp?</p>
-        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center">
+        {/* Mensaje de éxito */}
+        {step === 3 && submitted && (
+          <div className="text-center py-12">
+            <svg className="mx-auto mb-5 text-[#deb887]" width={60} height={60} fill="none" stroke="currentColor" strokeWidth={2}>
+              <circle cx="30" cy="30" r="28" stroke="#deb887" strokeWidth="4" />
+              <path d="M18 30l8 8 16-16" stroke="#deb887" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <h3 className="text-2xl font-semibold mb-2 text-[#0d5c6c]">¡Cita agendada!</h3>
+            <p className="mb-6 text-gray-700">Gracias por reservar. Te confirmaremos pronto por WhatsApp o correo.</p>
+            <button onClick={resetAll} className="btn-primary py-2 px-6 rounded-lg mt-2 bg-[#deb887] text-white">Agendar otra cita</button>
+            <div className="mt-8">
+              <a
+                href="https://wa.me/593969890689"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                Contactar por WhatsApp
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Acceso rápido a WhatsApp visible en todos los pasos */}
+        <div className="mt-8 pt-5 border-t border-gray-200 text-center">
+          <p className="text-gray-600 mb-2">¿Prefieres agendar directo por WhatsApp?</p>
           <a
             href="https://wa.me/593969890689"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition-all duration-300"
+            className="inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
@@ -253,10 +341,9 @@ const Appointment = () => {
           </a>
         </div>
       </div>
-    </div>
-  </section>
-  <Footer />
-</>
+    </section>
+    <Footer />
+    </>
   );
 };
 
