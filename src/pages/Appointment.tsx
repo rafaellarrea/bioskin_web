@@ -21,7 +21,36 @@ function getNextDays(count = 8) {
   return days;
 }
 
-const allTimes = ['09:00', '10:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
+// Horarios posibles (intervalos de 2 horas)
+const allTimes = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
+
+// Defínela arriba del componente principal o dentro de él antes del render
+type EventType = { start: string; end: string };
+
+function isHourOccupied2h(selectedDay: string, hour: string, events: EventType[]): boolean {
+  if (!selectedDay) return true;
+  const startTime = new Date(selectedDay + 'T' + hour + ':00');
+  const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+  return events.some(ev => {
+    const evStart = new Date(ev.start);
+    const evEnd = new Date(ev.end);
+    return (startTime < evEnd && endTime > evStart);
+  });
+}
+
+
+// Devuelve true si la hora seleccionada (de 2h) colisiona con algún evento ocupado
+{/*function isHourOccupied2h(selectedDay, hour, events) {
+  if (!selectedDay) return true;
+  const startTime = new Date(selectedDay + 'T' + hour + ':00');
+  const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+  return events.some(ev => {
+    const evStart = new Date(ev.start);
+    const evEnd = new Date(ev.end);
+    return (startTime < evEnd && endTime > evStart);
+  });
+}
+  */}
 
 const formatTimeLabel = (time24: string) => {
   const parts = time24.split(':');
@@ -36,13 +65,11 @@ const formatTimeLabel = (time24: string) => {
 const Appointment = () => {
   // Pasos: 1=día, 2=hora, 3=datos
   const [step, setStep] = useState(1);
-
-  // Selección
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
 
-  // Horarios ocupados para cada día
-  const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
+  // Eventos ocupados del backend para el día seleccionado
+  const [events, setEvents] = useState<{ start: string, end: string }[]>([]);
   const [loadingHours, setLoadingHours] = useState(false);
 
   // Formulario
@@ -60,9 +87,12 @@ const Appointment = () => {
 
   const days = getNextDays(8);
 
-  // Al cambiar el día, consulta horarios ocupados
+  // Trae los eventos ocupados del backend cuando se selecciona un día
   useEffect(() => {
-    if (!selectedDay) return setOccupiedTimes([]);
+    if (!selectedDay) {
+      setEvents([]);
+      return;
+    }
     setLoadingHours(true);
     fetch('/api/getEvents', {
       method: 'POST',
@@ -71,27 +101,26 @@ const Appointment = () => {
     })
       .then(res => res.json())
       .then(data => {
-        const times = data.occupiedTimes.map((e: any) =>
-          new Date(e.start).toTimeString().slice(0, 5)
-        );
-        setOccupiedTimes(times);
+        setEvents(Array.isArray(data.occupiedTimes) ? data.occupiedTimes : []);
       })
-      .catch(() => setOccupiedTimes([]))
+      .catch(() => setEvents([]))
       .finally(() => setLoadingHours(false));
   }, [selectedDay]);
 
   // Cambia de día => resetea hora
   useEffect(() => { setSelectedHour(''); }, [selectedDay]);
 
-  // Helpers
-  const isHourOccupied = (hour: string) => occupiedTimes.includes(hour);
-
-  // Envía datos
+  // Envía datos a tu API (con hora de fin +2h)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     try {
+      // Calcula hora de inicio y fin (2h)
+      const start = `${selectedDay}T${selectedHour}:00`;
+      const endDate = new Date(new Date(start).getTime() + 2 * 60 * 60 * 1000);
+      const end = endDate.toISOString().slice(0, 16);
+
       await fetch('/api/sendEmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -102,8 +131,10 @@ const Appointment = () => {
             'Teléfono: ' + formData.phone + '\n' +
             'Servicio: ' + formData.service + '\n' +
             'Fecha: ' + selectedDay + '\n' +
-            'Hora: ' + selectedHour + '\n' +
+            'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
             'Comentario adicional: ' + formData.message,
+          start, // Para el evento
+          end,   // Para el evento
         }),
       });
       setSubmitted(true);
@@ -158,9 +189,7 @@ const Appointment = () => {
           </div>
         </div>
 
-        {/* ---- Wizard: Paso a paso ---- */}
-
-        {/* Paso 1: Día */}
+        {/* Wizard paso a paso */}
         {step === 1 && (
           <>
             <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">1. Selecciona el día</h4>
@@ -192,10 +221,9 @@ const Appointment = () => {
           </>
         )}
 
-        {/* Paso 2: Hora */}
         {step === 2 && (
           <>
-            <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">2. Selecciona la hora</h4>
+            <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">2. Selecciona la hora (2 horas de cita)</h4>
             <div className="flex flex-wrap gap-4 justify-center mb-8">
               {loadingHours ? (
                 <div className="text-center col-span-3 w-full">Cargando horarios...</div>
@@ -203,11 +231,11 @@ const Appointment = () => {
                 allTimes.map(h => (
                   <button
                     key={h}
-                    disabled={isHourOccupied(h)}
+                    disabled={isHourOccupied2h(selectedDay, h, events)}
                     onClick={() => setSelectedHour(h)}
                     className={`w-28 rounded-xl p-4 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150
                       ${selectedHour === h ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
-                      ${isHourOccupied(h) ? 'opacity-30 cursor-not-allowed' : ''}
+                      ${isHourOccupied2h(selectedDay, h, events) ? 'opacity-30 cursor-not-allowed' : ''}
                     `}
                   >
                     <span className="text-lg font-semibold mb-1">Turno</span>
@@ -232,7 +260,6 @@ const Appointment = () => {
           </>
         )}
 
-        {/* Paso 3: Formulario */}
         {step === 3 && !submitted && (
           <>
             <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">3. Completa tus datos</h4>
@@ -299,7 +326,6 @@ const Appointment = () => {
           </>
         )}
 
-        {/* Mensaje de éxito */}
         {step === 3 && submitted && (
           <div className="text-center py-12">
             <svg className="mx-auto mb-5 text-[#deb887]" width={60} height={60} fill="none" stroke="currentColor" strokeWidth={2}>
@@ -325,7 +351,7 @@ const Appointment = () => {
           </div>
         )}
 
-        {/* Acceso rápido a WhatsApp visible en todos los pasos */}
+        {/* WhatsApp visible siempre */}
         <div className="mt-8 pt-5 border-t border-gray-200 text-center">
           <p className="text-gray-600 mb-2">¿Prefieres agendar directo por WhatsApp?</p>
           <a
