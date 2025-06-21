@@ -5,7 +5,6 @@ import { CalendarDays, ShieldCheck, Smile } from 'lucide-react';
 // Helpers para español
 const daysOfWeek = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const [confirming, setConfirming] = useState(false);
 
 function getNextDays(count = 8) {
   const days = [];
@@ -22,12 +21,9 @@ function getNextDays(count = 8) {
   return days;
 }
 
-// Horarios posibles (intervalos de 2 horas)
 const allTimes = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
 
-// Defínela arriba del componente principal o dentro de él antes del render
 type EventType = { start: string; end: string };
-
 function isHourOccupied2h(selectedDay: string, hour: string, events: EventType[]): boolean {
   if (!selectedDay) return true;
   const startTime = new Date(selectedDay + 'T' + hour + ':00');
@@ -39,20 +35,6 @@ function isHourOccupied2h(selectedDay: string, hour: string, events: EventType[]
   });
 }
 
-
-// Devuelve true si la hora seleccionada (de 2h) colisiona con algún evento ocupado
-{/*function isHourOccupied2h(selectedDay, hour, events) {
-  if (!selectedDay) return true;
-  const startTime = new Date(selectedDay + 'T' + hour + ':00');
-  const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
-  return events.some(ev => {
-    const evStart = new Date(ev.start);
-    const evEnd = new Date(ev.end);
-    return (startTime < evEnd && endTime > evStart);
-  });
-}
-  */}
-
 const formatTimeLabel = (time24: string) => {
   const parts = time24.split(':');
   const hour = parseInt(parts[0], 10);
@@ -63,17 +45,15 @@ const formatTimeLabel = (time24: string) => {
   return hourStr + ':' + minuteStr + ' ' + suffix;
 };
 
+const TIMEZONE = "-05:00"; // Ecuador
+
 const Appointment = () => {
   // Pasos: 1=día, 2=hora, 3=datos
   const [step, setStep] = useState(1);
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
-
-  // Eventos ocupados del backend para el día seleccionado
   const [events, setEvents] = useState<{ start: string, end: string }[]>([]);
   const [loadingHours, setLoadingHours] = useState(false);
-
-  // Formulario
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -81,10 +61,10 @@ const Appointment = () => {
     service: '',
     message: '',
   });
-
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [confirming, setConfirming] = useState(false); // <-- el flag de confirmación
 
   const days = getNextDays(8);
 
@@ -108,19 +88,18 @@ const Appointment = () => {
       .finally(() => setLoadingHours(false));
   }, [selectedDay]);
 
-  // Cambia de día => resetea hora
   useEffect(() => { setSelectedHour(''); }, [selectedDay]);
 
-  // Envía datos a tu API (con hora de fin +2h)
-  {/*const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     try {
-      // Calcula hora de inicio y fin (2h)
-      const start = `${selectedDay}T${selectedHour}:00`;
-      const endDate = new Date(new Date(start).getTime() + 2 * 60 * 60 * 1000);
-      const end = endDate.toISOString().slice(0, 16);
+      const start = `${selectedDay}T${selectedHour}:00${TIMEZONE}`;
+      const startDateObj = new Date(start);
+      const endDateObj = new Date(startDateObj.getTime() + 2 * 60 * 60 * 1000);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const end = `${endDateObj.getFullYear()}-${pad(endDateObj.getMonth() + 1)}-${pad(endDateObj.getDate())}T${pad(endDateObj.getHours())}:${pad(endDateObj.getMinutes())}:00${TIMEZONE}`;
 
       await fetch('/api/sendEmail', {
         method: 'POST',
@@ -134,8 +113,8 @@ const Appointment = () => {
             'Fecha: ' + selectedDay + '\n' +
             'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
             'Comentario adicional: ' + formData.message,
-          start, // Para el evento
-          end,   // Para el evento
+          start,
+          end,
         }),
       });
       setSubmitted(true);
@@ -145,52 +124,7 @@ const Appointment = () => {
     }
     setSubmitting(false);
   };
-*/}
 
-// ...imports y helpers iguales...
-
-const TIMEZONE = "-05:00"; // Ecuador
-
-// En handleSubmit:
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setSubmitting(true);
-  setError('');
-  try {
-    // Hora inicio y fin con offset local
-    const start = `${selectedDay}T${selectedHour}:00${TIMEZONE}`;
-    const startDateObj = new Date(start);
-    const endDateObj = new Date(startDateObj.getTime() + 2 * 60 * 60 * 1000);
-    // Armado seguro del string con offset (no .toISOString que pasa a UTC)
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const end = `${endDateObj.getFullYear()}-${pad(endDateObj.getMonth() + 1)}-${pad(endDateObj.getDate())}T${pad(endDateObj.getHours())}:${pad(endDateObj.getMinutes())}:00${TIMEZONE}`;
-
-    await fetch('/api/sendEmail', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        message:
-          'Teléfono: ' + formData.phone + '\n' +
-          'Servicio: ' + formData.service + '\n' +
-          'Fecha: ' + selectedDay + '\n' +
-          'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
-          'Comentario adicional: ' + formData.message,
-        start, // ahora sí, con offset
-        end,   // fin, con offset
-      }),
-    });
-    setSubmitted(true);
-    setFormData({ name: '', email: '', phone: '', service: '', message: '' });
-  } catch (e) {
-    setError('Error al enviar');
-  }
-  setSubmitting(false);
-};
-
-
-  // Reinicia todo
   const resetAll = () => {
     setStep(1);
     setSelectedDay('');
@@ -198,6 +132,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     setFormData({ name: '', email: '', phone: '', service: '', message: '' });
     setSubmitted(false);
     setError('');
+    setConfirming(false);
   };
 
   return (
@@ -305,115 +240,116 @@ const handleSubmit = async (e: React.FormEvent) => {
           </>
         )}
 
+        {/* Paso 3 */}
         {step === 3 && !submitted && (
           <>
-            <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">3. Completa tus datos</h4>
-            <form onSubmit={e => {
-              e.preventDefault();
-              setConfirming(true); // Va al paso de confirmación
-          }} className="space-y-4">
-
-              <input
-                name="name" placeholder="Nombre completo" required
-                value={formData.name}
-                onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
-                className="w-full p-3 rounded border border-gray-200"
-              />
-              <input
-                name="email" type="email" placeholder="Correo electrónico" required
-                value={formData.email}
-                onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
-                className="w-full p-3 rounded border border-gray-200"
-              />
-              <input
-                name="phone" type="tel" placeholder="Teléfono" required
-                value={formData.phone}
-                onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
-                className="w-full p-3 rounded border border-gray-200"
-              />
-              <select
-                name="service"
-                required
-                value={formData.service}
-                onChange={e => setFormData(f => ({ ...f, service: e.target.value }))}
-                className="w-full p-3 rounded border border-gray-200 bg-white"
-              >
-                <option value="">Selecciona un servicio</option>
-                <option value="OTRO">OTRO</option>
-                <option value="Limpieza Facial Profunda">Limpieza Facial Profunda</option>
-                <option value="Tratamiento Antiaging">Tratamiento Antiaging</option>
-                <option value="Tratamiento Antimanchas">Tratamiento Antimanchas</option>
-                <option value="Remoción de Tatuajes">Remoción de Tatuajes</option>
-                <option value="Hidratación Profunda">Hidratación Profunda</option>
-                <option value="Hollywood Peel">Hollywood Peel</option>
-                <option value="Exosomas + Mesoterapia">Exosomas + Mesoterapia</option>
-                <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
-                <option value="Lipopapada enzimática">Lipopapada enzimática</option>
-              </select>
-              <textarea
-                name="message" placeholder="Mensaje adicional (opcional)" rows={3}
-                value={formData.message}
-                onChange={e => setFormData(f => ({ ...f, message: e.target.value }))}
-                className="w-full p-3 rounded border border-gray-200"
-              />
-              {error && <div className="text-red-600 mb-2">{error}</div>}
-              <div className="flex justify-between mt-4">
-                <button
-                  onClick={() => setStep(2)}
-                  className="px-6 py-2 rounded-lg bg-[#fa9271] text-white font-bold shadow"
-                  type="button"
-                >Volver</button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow"
-                >
-                  {submitting ? 'Enviando...' : 'Agendar cita'}
-                </button>
+            {!confirming ? (
+              <>
+                <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">3. Completa tus datos</h4>
+                <form onSubmit={e => {
+                  e.preventDefault();
+                  setConfirming(true); // Va al resumen de confirmación
+                }} className="space-y-4">
+                  <input
+                    name="name" placeholder="Nombre completo" required
+                    value={formData.name}
+                    onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
+                    className="w-full p-3 rounded border border-gray-200"
+                  />
+                  <input
+                    name="email" type="email" placeholder="Correo electrónico" required
+                    value={formData.email}
+                    onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
+                    className="w-full p-3 rounded border border-gray-200"
+                  />
+                  <input
+                    name="phone" type="tel" placeholder="Teléfono" required
+                    value={formData.phone}
+                    onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
+                    className="w-full p-3 rounded border border-gray-200"
+                  />
+                  <select
+                    name="service"
+                    required
+                    value={formData.service}
+                    onChange={e => setFormData(f => ({ ...f, service: e.target.value }))}
+                    className="w-full p-3 rounded border border-gray-200 bg-white"
+                  >
+                    <option value="">Selecciona un servicio</option>
+                    <option value="OTRO">OTRO</option>
+                    <option value="Limpieza Facial Profunda">Limpieza Facial Profunda</option>
+                    <option value="Tratamiento Antiaging">Tratamiento Antiaging</option>
+                    <option value="Tratamiento Antimanchas">Tratamiento Antimanchas</option>
+                    <option value="Remoción de Tatuajes">Remoción de Tatuajes</option>
+                    <option value="Hidratación Profunda">Hidratación Profunda</option>
+                    <option value="Hollywood Peel">Hollywood Peel</option>
+                    <option value="Exosomas + Mesoterapia">Exosomas + Mesoterapia</option>
+                    <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
+                    <option value="Lipopapada enzimática">Lipopapada enzimática</option>
+                  </select>
+                  <textarea
+                    name="message" placeholder="Mensaje adicional (opcional)" rows={3}
+                    value={formData.message}
+                    onChange={e => setFormData(f => ({ ...f, message: e.target.value }))}
+                    className="w-full p-3 rounded border border-gray-200"
+                  />
+                  {error && <div className="text-red-600 mb-2">{error}</div>}
+                  <div className="flex justify-between mt-4">
+                    <button
+                      onClick={() => setStep(2)}
+                      className="px-6 py-2 rounded-lg bg-[#fa9271] text-white font-bold shadow"
+                      type="button"
+                    >Volver</button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="px-6 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow"
+                    >
+                      {submitting ? 'Enviando...' : 'Agendar cita'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <div className="py-10 px-6 text-center bg-gray-50 rounded-2xl shadow mt-6">
+                <h4 className="text-xl font-semibold mb-4 text-[#ba9256]">¿Confirmar tu cita?</h4>
+                <div className="mb-6 text-gray-700">
+                  <div><b>Día:</b> {selectedDay && (() => {
+                    const d = new Date(selectedDay);
+                    return `${daysOfWeek[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]}`;
+                  })()}</div>
+                  <div><b>Hora:</b> {selectedHour && formatTimeLabel(selectedHour)} (2 horas)</div>
+                  <div><b>Tratamiento:</b> {formData.service}</div>
+                  <div><b>Nombre:</b> {formData.name}</div>
+                  <div><b>Email:</b> {formData.email}</div>
+                  <div><b>Teléfono:</b> {formData.phone}</div>
+                  {formData.message && <div className="mt-2"><b>Comentario:</b> {formData.message}</div>}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    className="px-8 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow"
+                    onClick={async e => {
+                      e.preventDefault();
+                      await handleSubmit(e);
+                      setConfirming(false);
+                    }}
+                  >
+                    Sí, agendar
+                  </button>
+                  <button
+                    className="px-8 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold shadow"
+                    onClick={e => {
+                      e.preventDefault();
+                      setConfirming(false);
+                    }}
+                  >
+                    No, volver a editar
+                  </button>
+                </div>
               </div>
-            </form>
+            )}
           </>
         )}
-
-{confirming && !submitted && (
-  <div className="py-10 px-6 text-center bg-gray-50 rounded-2xl shadow mt-6">
-    <h4 className="text-xl font-semibold mb-4 text-[#ba9256]">¿Confirmar tu cita?</h4>
-    <div className="mb-6 text-gray-700">
-      <div><b>Día:</b> {selectedDay && (() => {
-        const d = new Date(selectedDay);
-        return `${daysOfWeek[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]}`;
-      })()}</div>
-      <div><b>Hora:</b> {selectedHour && formatTimeLabel(selectedHour)} (2 horas)</div>
-      <div><b>Tratamiento:</b> {formData.service}</div>
-      <div><b>Nombre:</b> {formData.name}</div>
-      <div><b>Email:</b> {formData.email}</div>
-      <div><b>Teléfono:</b> {formData.phone}</div>
-      {formData.message && <div className="mt-2"><b>Comentario:</b> {formData.message}</div>}
-    </div>
-    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-      <button
-        className="px-8 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow"
-        onClick={async e => {
-          e.preventDefault();
-          await handleSubmit(e);
-          setConfirming(false);
-        }}
-      >
-        Sí, agendar
-      </button>
-      <button
-        className="px-8 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold shadow"
-        onClick={e => {
-          e.preventDefault();
-          setConfirming(false);
-        }}
-      >
-        No, volver a editar
-      </button>
-    </div>
-  </div>
-)}
-
 
         {step === 3 && submitted && (
           <div className="text-center py-12">
