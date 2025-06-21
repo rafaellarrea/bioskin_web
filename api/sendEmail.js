@@ -28,8 +28,7 @@ export default async function handler(req, res) {
   const whatsappMessage =
     `Hola ${paciente}, ¡gracias por agendar tu cita en BIOSKIN! 🧴✨\n` +
     `Hemos recibido tu solicitud para el servicio “${tratamiento}”.\n` +
-    (fecha && hora ? `Tu cita está programada para el ${fecha} a las ${hora} en nuestro consultorio de Cuenca.\n` : "") +
-    `En breve te contactaremos para confirmar todos los detalles.\n\n` +
+    (fecha && hora ? `Tu cita está programada para el ${fecha} a las ${hora} en nuestro consultorio Bioskin Cuenca.\n` : "") +
     `Si tienes alguna consulta, no dudes en responder este mensaje.\n` +
     `¡Nos vemos pronto!\n\n` +
     `— El equipo de BIOSKIN Salud y Estética`;
