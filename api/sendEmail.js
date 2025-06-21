@@ -24,29 +24,47 @@ export default async function handler(req, res) {
       },
     });
 
-    await transporter.sendMail({
-      from: `Formulario BIOSKIN <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_TO,
-      subject: 'Nuevo mensaje del formulario BIOSKIN',
-      html: `
-        <h3>Nuevo mensaje de ${name}</h3>
-        <p><strong>Correo:</strong> ${email}</p>
-        <pre style="font-family:inherit; white-space:pre-wrap;">${message}</pre>
-      `,
-    });
+    // correo a equipo BIOSKIN:
+await transporter.sendMail({
+  from: `Formulario BIOSKIN <${process.env.EMAIL_USER}>`,
+  to: `${process.env.EMAIL_TO}, salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com`,  // Puedes agregar más correos aquí
+  subject: 'Nueva cita agendada - BIOSKIN',
+  html: `
+    <h2 style="color:#ba9256;margin-bottom:4px;">¡Nueva cita agendada!</h2>
+    <p>Hola equipo BIOSKIN,<br>
+    Se ha registrado una nueva cita desde la web:</p>
+    <ul style="margin-bottom:12px;">
+      <li><b>Nombre:</b> ${name}</li>
+      <li><b>Email:</b> ${email}</li>
+    </ul>
+    <pre style="font-family:inherit;white-space:pre-wrap;background:#f5f5f5;padding:10px;border-radius:8px;">${message}</pre>
+    <p style="margin-top:18px;color:#7a5a30;">Revisa tu Google Calendar para bloquear la agenda.</p>
+    <p style="font-size:12px;color:#888;margin-top:14px;">Este mensaje es automático. No respondas a este correo.</p>
+  `,
+});
 
-    await transporter.sendMail({
-      from: `BIO SKIN Salud y Estética <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Confirmación de tu solicitud de cita',
-      html: `
-        <p>Hola <strong>${name}</strong>,</p>
-        <p>Gracias por contactarnos. Hemos recibido tu solicitud y nos comunicaremos contigo para confirmar tu cita.</p>
-        <p><strong>Detalles enviados:</strong></p>
-        <pre style="font-family:inherit; white-space:pre-wrap;">${message}</pre>
-        <p style="margin-top:20px;">— El equipo de <strong>BIO SKIN</strong></p>
-      `,
-    });
+// Correo al paciente
+await transporter.sendMail({
+  from: `BIO SKIN Salud y Estética <${process.env.EMAIL_USER}>`,
+  to: email,
+  subject: '¡Hemos recibido tu cita en BIOSKIN!',
+  html: `
+    <div style="font-family:Segoe UI,Arial,sans-serif;">
+      <h2 style="color:#ba9256;margin-bottom:4px;">¡Tu cita está en proceso!</h2>
+      <p>Hola <b>${name}</b>,<br>
+      Gracias por confiar en <b>BIO SKIN Salud y Estética</b>. Hemos recibido tu solicitud y la estamos procesando.</p>
+      <h4 style="margin-top:18px;">Resumen de tu solicitud:</h4>
+      <pre style="font-family:inherit;white-space:pre-wrap;background:#f5f5f5;padding:10px;border-radius:8px;">${message}</pre>
+      <p style="margin-top:18px;">
+        En breve nos contactaremos para confirmarte la hora exacta y resolver cualquier duda.<br>
+        <b>Si tienes alguna consulta, puedes responder a este email o escribirnos por WhatsApp.</b>
+      </p>
+      <p style="margin-top:30px;font-size:15px;">— El equipo de <b>BIOSKIN</b> Cuenca</p>
+      <img src="https://saludbioskin.vercel.app/images/logo_bioskin.png" style="height:36px;margin-top:18px;" alt="BIOSKIN logo"/>
+    </div>
+  `,
+});
+
 
     const decoded = Buffer.from(process.env.GOOGLE_CREDENTIALS_BASE64, 'base64').toString('utf8');
     const credentials = JSON.parse(decoded);

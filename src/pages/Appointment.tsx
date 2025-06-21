@@ -5,6 +5,7 @@ import { CalendarDays, ShieldCheck, Smile } from 'lucide-react';
 // Helpers para español
 const daysOfWeek = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const [confirming, setConfirming] = useState(false);
 
 function getNextDays(count = 8) {
   const days = [];
@@ -307,7 +308,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         {step === 3 && !submitted && (
           <>
             <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">3. Completa tus datos</h4>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={e => {
+              e.preventDefault();
+              setConfirming(true); // Va al paso de confirmación
+          }} className="space-y-4">
+
               <input
                 name="name" placeholder="Nombre completo" required
                 value={formData.name}
@@ -369,6 +374,46 @@ const handleSubmit = async (e: React.FormEvent) => {
             </form>
           </>
         )}
+
+{confirming && !submitted && (
+  <div className="py-10 px-6 text-center bg-gray-50 rounded-2xl shadow mt-6">
+    <h4 className="text-xl font-semibold mb-4 text-[#ba9256]">¿Confirmar tu cita?</h4>
+    <div className="mb-6 text-gray-700">
+      <div><b>Día:</b> {selectedDay && (() => {
+        const d = new Date(selectedDay);
+        return `${daysOfWeek[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]}`;
+      })()}</div>
+      <div><b>Hora:</b> {selectedHour && formatTimeLabel(selectedHour)} (2 horas)</div>
+      <div><b>Tratamiento:</b> {formData.service}</div>
+      <div><b>Nombre:</b> {formData.name}</div>
+      <div><b>Email:</b> {formData.email}</div>
+      <div><b>Teléfono:</b> {formData.phone}</div>
+      {formData.message && <div className="mt-2"><b>Comentario:</b> {formData.message}</div>}
+    </div>
+    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <button
+        className="px-8 py-2 rounded-lg bg-[#deb887] text-white font-bold shadow"
+        onClick={async e => {
+          e.preventDefault();
+          await handleSubmit(e);
+          setConfirming(false);
+        }}
+      >
+        Sí, agendar
+      </button>
+      <button
+        className="px-8 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold shadow"
+        onClick={e => {
+          e.preventDefault();
+          setConfirming(false);
+        }}
+      >
+        No, volver a editar
+      </button>
+    </div>
+  </div>
+)}
+
 
         {step === 3 && submitted && (
           <div className="text-center py-12">
