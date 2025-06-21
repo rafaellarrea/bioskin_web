@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
     console.log("📅 Detalles del evento:", { date, time });
 
-    if (date && time) {
+    {/*if (date && time) {
       const startDateTime = new Date(`${date}T${time}:00-05:00`);
       const endDateTime = new Date(startDateTime.getTime() + 2 * 60 * 60000);
 
@@ -86,6 +86,29 @@ export default async function handler(req, res) {
       console.log("✅ Evento creado exitosamente");
     } else {
       console.log("⚠️ No se encontró fecha u hora válida en el mensaje.");
+    }
+    */}
+
+        // Inserta el evento así:
+    if (req.body.start && req.body.end) {
+      await calendar.events.insert({
+        calendarId: credentials.calendar_id,
+        requestBody: {
+          summary: `Cita: ${name} - ${email}`,
+          description: message,
+          start: {
+            dateTime: req.body.start,
+            timeZone: "America/Guayaquil"
+          },
+          end: {
+            dateTime: req.body.end,
+            timeZone: "America/Guayaquil"
+          }
+        }
+      });
+      console.log("✅ Evento creado exitosamente");
+    } else {
+      console.log("⚠️ No se encontró fecha u hora válida en el body.");
     }
 
     return res.status(200).json({ success: true, message: 'Todo enviado y registrado con éxito' });

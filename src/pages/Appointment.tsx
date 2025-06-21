@@ -111,7 +111,7 @@ const Appointment = () => {
   useEffect(() => { setSelectedHour(''); }, [selectedDay]);
 
   // Envía datos a tu API (con hora de fin +2h)
-  const handleSubmit = async (e: React.FormEvent) => {
+  {/*const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
@@ -144,6 +144,50 @@ const Appointment = () => {
     }
     setSubmitting(false);
   };
+*/}
+
+// ...imports y helpers iguales...
+
+const TIMEZONE = "-05:00"; // Ecuador
+
+// En handleSubmit:
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSubmitting(true);
+  setError('');
+  try {
+    // Hora inicio y fin con offset local
+    const start = `${selectedDay}T${selectedHour}:00${TIMEZONE}`;
+    const startDateObj = new Date(start);
+    const endDateObj = new Date(startDateObj.getTime() + 2 * 60 * 60 * 1000);
+    // Armado seguro del string con offset (no .toISOString que pasa a UTC)
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const end = `${endDateObj.getFullYear()}-${pad(endDateObj.getMonth() + 1)}-${pad(endDateObj.getDate())}T${pad(endDateObj.getHours())}:${pad(endDateObj.getMinutes())}:00${TIMEZONE}`;
+
+    await fetch('/api/sendEmail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        message:
+          'Teléfono: ' + formData.phone + '\n' +
+          'Servicio: ' + formData.service + '\n' +
+          'Fecha: ' + selectedDay + '\n' +
+          'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
+          'Comentario adicional: ' + formData.message,
+        start, // ahora sí, con offset
+        end,   // fin, con offset
+      }),
+    });
+    setSubmitted(true);
+    setFormData({ name: '', email: '', phone: '', service: '', message: '' });
+  } catch (e) {
+    setError('Error al enviar');
+  }
+  setSubmitting(false);
+};
+
 
   // Reinicia todo
   const resetAll = () => {
