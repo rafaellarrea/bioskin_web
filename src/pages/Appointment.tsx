@@ -174,7 +174,7 @@ const Appointment = () => {
               </li>
               <li className="flex items-center">
                 <Smile className="w-5 h-5 text-[#deb887] mr-2" />
-                Resultados reales, profesionales certificados
+                Resultados visibles, profesional certificado.
               </li>
             </ul>
           </div>
