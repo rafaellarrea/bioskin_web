@@ -96,18 +96,22 @@ const Appointment = () => {
   setError('');
   try {
     const start = `${selectedDay}T${selectedHour}:00${TIMEZONE}`;
-    // Cálculo manual, no uses Date para strings con offset
-    const [h, m] = selectedHour.split(':').map(Number);
-    let endHour = h + 2;
-    let endDay = selectedDay;
-    let endDate = new Date(selectedDay);
-    if (endHour >= 24) {
-      endHour -= 24;
-      endDate.setDate(endDate.getDate() + 1);
-      endDay = endDate.toISOString().slice(0,10);
-    }
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
+const [h, m] = selectedHour.split(':').map(Number);
+let endHour = h + 2;
+let endDay = selectedDay;
+if (endHour >= 24) {
+  endHour -= 24;
+  // Sumar un día sin .toISOString()
+  const [year, month, day] = selectedDay.split('-').map(Number);
+  const nextDate = new Date(year, month - 1, day + 1);
+  endDay = [
+    nextDate.getFullYear(),
+    (nextDate.getMonth() + 1).toString().padStart(2, '0'),
+    nextDate.getDate().toString().padStart(2, '0')
+  ].join('-');
+}
+const pad = (n: number) => n.toString().padStart(2, '0');
+const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
 
     await fetch('/api/sendEmail', {
       method: 'POST',
