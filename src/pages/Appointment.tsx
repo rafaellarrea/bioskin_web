@@ -333,9 +333,13 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                 <h4 className="text-xl font-semibold mb-4 text-[#ba9256]">¿Confirmar tu cita?</h4>
                 <div className="mb-6 text-gray-700">
                   <div><b>Día:</b> {selectedDay && (() => {
-                    const d = new Date(selectedDay);
-                    return `${daysOfWeek[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]}`;
+                  // Descompón el string YYYY-MM-DD
+                  const [year, month, day] = selectedDay.split('-').map(Number);
+                  // Obtén el índice del día usando un objeto Date local
+                  const dateObj = new Date(year, month - 1, day);
+                  return `${daysOfWeek[dateObj.getDay()]} ${day} de ${months[month - 1]}`;
                   })()}</div>
+
                   <div><b>Hora:</b> {selectedHour && formatTimeLabel(selectedHour)} (2 horas)</div>
                   <div><b>Tratamiento:</b> {formData.service}</div>
                   <div><b>Nombre:</b> {formData.name}</div>
@@ -352,7 +356,7 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                       setConfirming(false);
                     }}
                   >
-                    Sí, agendar
+                  {submitting ? 'Agendando...' : 'Sí, agendar'}
                   </button>
                   <button
                     className="px-8 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold shadow"
