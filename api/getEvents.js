@@ -1,4 +1,3 @@
-
 import { google } from "googleapis";
 
 export default async function handler(req, res) {
@@ -21,13 +20,14 @@ export default async function handler(req, res) {
 
   const calendar = google.calendar({ version: "v3", auth });
 
-  const start = new Date(`${date}T00:00:00-05:00`);
-  const end = new Date(`${date}T23:59:59-05:00`);
+  //fecha y hora enviados 
+  const start = `${date}T00:00:00-05:00`;
+  const end = `${date}T23:59:59-05:00`;
 
   const events = await calendar.events.list({
     calendarId: credentials.calendar_id,
-    timeMin: start.toISOString(),
-    timeMax: end.toISOString(),
+    timeMin: start,
+    timeMax: end,
     singleEvents: true,
     orderBy: "startTime",
   });
