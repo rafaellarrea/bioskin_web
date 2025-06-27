@@ -91,39 +91,48 @@ const Appointment = () => {
   useEffect(() => { setSelectedHour(''); }, [selectedDay]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError('');
-    try {
-      const start = `${selectedDay}T${selectedHour}:00${TIMEZONE}`;
-      const startDateObj = new Date(start);
-      const endDateObj = new Date(startDateObj.getTime() + 2 * 60 * 60 * 1000);
-      const pad = (n: number) => n.toString().padStart(2, '0');
-      const end = `${endDateObj.getFullYear()}-${pad(endDateObj.getMonth() + 1)}-${pad(endDateObj.getDate())}T${pad(endDateObj.getHours())}:${pad(endDateObj.getMinutes())}:00${TIMEZONE}`;
-
-      await fetch('/api/sendEmail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          message:
-            'Teléfono: ' + formData.phone + '\n' +
-            'Servicio: ' + formData.service + '\n' +
-            'Fecha: ' + selectedDay + '\n' +
-            'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
-            'Comentario adicional: ' + formData.message,
-          start,
-          end,
-        }),
-      });
-      setSubmitted(true);
-      setFormData({ name: '', email: '', phone: '', service: '', message: '' });
-    } catch (e) {
-      setError('Error al enviar');
+  e.preventDefault();
+  setSubmitting(true);
+  setError('');
+  try {
+    const start = `${selectedDay}T${selectedHour}:00${TIMEZONE}`;
+    // Cálculo manual, no uses Date para strings con offset
+    const [h, m] = selectedHour.split(':').map(Number);
+    let endHour = h + 2;
+    let endDay = selectedDay;
+    let endDate = new Date(selectedDay);
+    if (endHour >= 24) {
+      endHour -= 24;
+      endDate.setDate(endDate.getDate() + 1);
+      endDay = endDate.toISOString().slice(0,10);
     }
-    setSubmitting(false);
-  };
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
+
+    await fetch('/api/sendEmail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        message:
+          'Teléfono: ' + formData.phone + '\n' +
+          'Servicio: ' + formData.service + '\n' +
+          'Fecha: ' + selectedDay + '\n' +
+          'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
+          'Comentario adicional: ' + formData.message,
+        start,
+        end,
+      }),
+    });
+    setSubmitted(true);
+    setFormData({ name: '', email: '', phone: '', service: '', message: '' });
+  } catch (e) {
+    setError('Error al enviar');
+  }
+  setSubmitting(false);
+};
+
 
   const resetAll = () => {
     setStep(1);
