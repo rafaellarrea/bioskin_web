@@ -15,7 +15,12 @@ function getNextDays(count = 8) {
       dayName: daysOfWeek[date.getDay()],
       dateNum: date.getDate(),
       month: months[date.getMonth()],
-      iso: date.toISOString().slice(0,10)
+      iso: [
+  date.getFullYear(),
+  (date.getMonth() + 1).toString().padStart(2, '0'),
+  date.getDate().toString().padStart(2, '0')
+].join('-')
+
     });
   }
   return days;
