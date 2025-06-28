@@ -85,7 +85,7 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
   ],
   category: "equipment"
 }
-
+,
 {
   name: "3 en 1 IPL + LASER YAG + RADIOFRECUENCIA",
   shortDescription: "Plataforma estética profesional: depilación IPL, remoción de tatuajes ND YAG, rejuvenecimiento con radiofrecuencia.",
