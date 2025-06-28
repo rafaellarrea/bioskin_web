@@ -41,6 +41,52 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
   category: "equipment"
 },
 {
+  name: "HIFU 7D con Doble manija",
+  shortDescription: "Tecnología MMFU de ultrasonido focalizado macro y micro para lifting facial, reafirmación muscular y remodelado corporal sin cirugía.",
+  description: `El HIFU 7D es un equipo de ultrasonido focalizado de alta intensidad que actúa en múltiples capas de la piel y tejido subcutáneo, desde la epidermis hasta la fascia muscular (SMAS). Su avanzada tecnología MMFU combina efectos mecánicos, térmicos y de cavitación para estimular colágeno, tensar la piel y eliminar grasa localizada de forma segura y eficaz.
+Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lifting facial, rejuvenecimiento y contorno corporal sin procedimientos invasivos.`,
+  details: [
+    "Sistema MMFU: ultrasonido focalizado macro y micro de alta precisión.",
+    "Incluye doble maneral y múltiples cartuchos (7 cartuchos) con profundidades: 1.5 mm, 2.0 mm, 3.0 mm, 4.5 mm, 6.0 mm, 9.0 mm y 13.0 mm.",
+    "Tecnología patentada para tratamiento exclusivo de zonas delicadas como el contorno de ojos (sonda 2.0 mm).",
+    "Estimulación de colágeno y elastina mediante efecto térmico entre 65-75°C.",
+    "Resultados progresivos y naturales en lifting facial, reafirmación, mejora de arrugas y flacidez.",
+    "Aplicación corporal para reducción de grasa localizada en abdomen, brazos, muslos y más.",
+    "Modo de disparo continuo o individual con ajuste fino de energía y distancia entre puntos.",
+    "Pantalla táctil con interfaz intuitiva y ajustes personalizables por zona y paciente."
+  ],
+  specifications: {
+    "Energía de salida": "0.1~3J (ajustable en incrementos de 0.1J)",
+    "Frecuencia": "5.5 MHz (zona ocular), 2.0 MHz (zona corporal)",
+    "Distancia entre puntos": "1~2 mm",
+    "Longitud del disparo": "5.0~25 mm",
+    "Profundidades disponibles": "1.5mm, 2.0mm, 3.0mm, 4.5mm, 6.0mm, 9.0mm, 13.0mm",
+    "Modos de operación": "Single / Repeat",
+    "Voltaje": "100–240V, 50/60 Hz",
+    "Certificaciones": "KFDA (Corea), CE (Europa)"
+  },
+  indications: [
+    "Lifting facial no invasivo.",
+    "Reducción de arrugas profundas y líneas de expresión.",
+    "Reafirmación del contorno facial y cuello.",
+    "Mejora de la textura y elasticidad cutánea.",
+    "Reducción de papada sin cirugía.",
+    "Modelado corporal en abdomen, brazos, muslos, flancos y más.",
+    "Tratamiento seguro y efectivo para pieles maduras y con flacidez.",
+    "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
+  ],
+  price: 3200,
+  images: [
+    "/images/productos/dispositivos/hifu/hifu1.jpg",
+    "/images/productos/dispositivos/hifu/hifu2.jpg",
+    "/images/productos/dispositivos/hifu/hifu3.jpg",
+    "/images/productos/dispositivos/hifu/hifu4.jpg",
+    "/images/productos/dispositivos/hifu/hifu5.jpg"
+  ],
+  category: "equipment"
+}
+
+{
   name: "3 en 1 IPL + LASER YAG + RADIOFRECUENCIA",
   shortDescription: "Plataforma estética profesional: depilación IPL, remoción de tatuajes ND YAG, rejuvenecimiento con radiofrecuencia.",
   description: `Equipo multifuncional que integra tecnología IPL (luz pulsada intensa), láser ND YAG y radiofrecuencia bipolar. Permite realizar depilación definitiva, tratamiento de lesiones pigmentadas, rejuvenecimiento cutáneo y remoción profesional de tatuajes de múltiples colores. 
