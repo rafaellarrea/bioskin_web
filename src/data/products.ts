@@ -75,7 +75,7 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
     "Tratamiento seguro y efectivo para pieles maduras y con flacidez.",
     "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
   ],
-  price: 2399,
+  price: 2240,
   images: [
     "/images/productos/dispositivos/hifu/hifu1.jpg",
     "/images/productos/dispositivos/hifu/hifu2.jpg",
