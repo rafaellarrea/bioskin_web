@@ -36,7 +36,7 @@ const Products = () => {
             >
               ×
             </button>
-            <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡25% de descuento!</h2>
+            <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡30% de descuento!</h2>
             <p className="text-lg mb-4">Solo por tiempo limitado en nuestro <span className="font-semibold text-[#0d5c6c]">equipo HIFU profesional</span>.</p>
             <img src="/images/productos/dispositivos/hifu/hifu1.jpg" alt="HIFU" className="mx-auto rounded-xl mb-4 max-h-48 object-contain shadow" />
             <Link
