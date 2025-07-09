@@ -5,6 +5,8 @@ import products from '../data/products';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
 import { slugify } from '../utils/slugify';
+import { Link } from 'react-router-dom';
+
 
 const Products = () => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'cosmetic'>('all');
@@ -37,13 +39,14 @@ const Products = () => {
             <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡25% de descuento!</h2>
             <p className="text-lg mb-4">Solo por tiempo limitado en nuestro <span className="font-semibold text-[#0d5c6c]">equipo HIFU profesional</span>.</p>
             <img src="/images/productos/dispositivos/hifu/hifu1.jpg" alt="HIFU" className="mx-auto rounded-xl mb-4 max-h-48 object-contain shadow" />
-            <a
-              href="/products/ultrasonido-focalizado-hifu"
-              className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
-              onClick={() => setShowModal(false)}
-            >
-              Ver Oferta
-            </a>
+            <Link
+          to="/products/ultrasonido-focalizado-hifu"
+          className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
+          onClick={() => setShowModal(false)}
+          >
+        Ver Oferta
+        </Link>
+
             <div className="mt-3">
               <a
                 href="https://wa.me/593969890689?text=Hola%2C%20vi%20el%20descuento%20de%2025%25%20en%20el%20equipo%20HIFU%2C%20quisiera%20más%20información."
@@ -57,7 +60,6 @@ const Products = () => {
           </div>
         </div>
       )}
-
 
       <section id="products" className="py-24 bg-gray-50">
         <div className="container-custom">
