@@ -19,43 +19,53 @@ const Products = () => {
     ? products
     : products.filter(product => product.category === activeCategory);
 
-  {showModal && (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative text-center animate-fade-in">
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
-          onClick={() => setShowModal(false)}
-          aria-label="Cerrar"
-        >
-          ×
-        </button>
-        <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡25% de descuento!</h2>
-        <p className="text-lg mb-4">Solo por tiempo limitado en nuestro <span className="font-semibold text-[#0d5c6c]">equipo HIFU profesional</span>.</p>
-        <img src="/images/productos/dispositivos/hifu/hifu1.jpg" alt="HIFU" className="mx-auto rounded-xl mb-4 max-h-48 object-contain shadow" />
-        <a
-          href="/products/ultrasonido-focalizado-hifu"
-          className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
-          onClick={() => setShowModal(false)}
-        >
-          Ver Oferta
-        </a>
-        <div className="mt-3">
-          <a
-            href="https://wa.me/593969890689?text=Hola%2C%20vi%20el%20descuento%20de%2025%25%20en%20el%20equipo%20HIFU%2C%20quisiera%20más%20información."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#0d5c6c] underline text-sm"
-          >
-            Consultar disponibilidad por WhatsApp
-          </a>
-        </div>
-      </div>
-    </div>
-  )}
-
 
   return (
     <>
+      {/*ventana emergente oferta equipo*/}
+return (
+  <>
+    {showModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative text-center animate-fade-in">
+          <button
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
+            onClick={() => setShowModal(false)}
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+          <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡25% de descuento!</h2>
+          <p className="text-lg mb-4">Solo por tiempo limitado en nuestro <span className="font-semibold text-[#0d5c6c]">equipo HIFU profesional</span>.</p>
+          <img src="/images/productos/dispositivos/hifu/hifu1.jpg" alt="HIFU" className="mx-auto rounded-xl mb-4 max-h-48 object-contain shadow" />
+          <a
+            href="/products/ultrasonido-focalizado-hifu"
+            className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
+            onClick={() => setShowModal(false)}
+          >
+            Ver Oferta
+          </a>
+          <div className="mt-3">
+            <a
+              href="https://wa.me/593969890689?text=Hola%2C%20vi%20el%20descuento%20de%2025%25%20en%20el%20equipo%20HIFU%2C%20quisiera%20más%20información."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0d5c6c] underline text-sm"
+            >
+              Consultar disponibilidad por WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+
+    <section id="products" className="py-24 bg-gray-50">
+      {/* ...el resto de tu código... */}
+    </section>
+    <Footer />
+  </>
+);
+
       <section id="products" className="py-24 bg-gray-50">
         <div className="container-custom">
           <div className="text-center mb-16">
