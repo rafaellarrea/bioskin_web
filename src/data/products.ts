@@ -32,7 +32,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "",
     "INCLUYE GARANTIA DE 6 MESES"
   ],
-  price: 2850,
+  price: 2800,
   images: [
     "/images/productos/dispositivos/analizador/analizador1.jpg",
     "/images/productos/dispositivos/analizador/analizador2.jpg",
@@ -75,7 +75,7 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
     "Tratamiento seguro y efectivo para pieles maduras y con flacidez.",
     "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
   ],
-  price: 3200,
+  price: 2399,
   images: [
     "/images/productos/dispositivos/hifu/hifu1.jpg",
     "/images/productos/dispositivos/hifu/hifu2.jpg",
@@ -116,7 +116,7 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Rejuvenecimiento facial, reducción de líneas finas y flacidez.",
     "Reducción de lesiones vasculares y pigmentadas."
   ],
-  price: 3800,
+  price: 3500,
   images: [
     "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
     "/images/productos/dispositivos/multifuncional/multifuncional2.jpg"
