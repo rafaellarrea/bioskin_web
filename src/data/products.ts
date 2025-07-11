@@ -41,6 +41,55 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
   category: "equipment"
 },
 {
+  "name": "Láser CO₂ Fraccionado",
+  "shortDescription": "Sistema de rejuvenecimiento y resurfacing con láser fraccionado de CO₂ de 10.600 nm. Ofrece escaneo gráfico de alta velocidad, múltiples modos de emisión y aplicaciones faciales, corporales y ginecológicas.",
+  "description": "El láser fraccionado CO₂ MSLCF10 es un equipo de última generación para tratamientos estéticos y ginecológicos no invasivos. Combina super pulso, escaneo de precisión y salida láser continua, permitiendo procedimientos personalizados para rejuvenecimiento facial, eliminación de arrugas, tratamiento de cicatrices, estrías, manchas y tensado vaginal. Incluye brazo articulado de 6 ejes, pantalla táctil, escáner gráfico y modos avanzados de operación. No requiere anestesia general y tiene un tiempo de recuperación mínimo.",
+  "details": [
+    "Láser de CO₂ con longitud de onda de 10.600 nm.",
+    "Modo fraccionado, pulso simple, intermitente y super pulso.",
+    "Cabezal fraccional con formas de escaneo: cuadrado, círculo, triángulo, línea, hexágono.",
+    "Escaneo aleatorio, secuencial y en división media (MidSplit).",
+    "Sistema de brazo articulado con 6 juntas y balance de peso.",
+    "Pantalla táctil para configuración de energía, ancho de pulso, espaciado de puntos y forma de escaneo.",
+    "Sistema de refrigeración por agua con cambio de agua cada 60 días.",
+    "Aplicación 360° para tratamientos íntimos con sonda giratoria por secciones.",
+    "Uso ginecológico para tensado, aumento de lubricación, rejuvenecimiento y restauración del pH vaginal.",
+    "Tratamientos sin dolor, sin necesidad de anestesia general y sin tiempo de inactividad prolongado."
+  ],
+  "specifications": {
+    "Longitud de onda": "10.600 nm",
+    "Potencia de salida": "1-60W",
+    "Tamaño del punto": "0.02-0.05 mm²",
+    "Sistema de escaneo": "Aleatorio, Secuencial, MidSplit",
+    "Formas de escaneo": "Cuadrado, círculo, triángulo, hexágono, línea",
+    "Área de escaneo": "0.1x0.1 mm hasta 20x20 mm",
+    "Modos de emisión": "Continuo, pulso único, intermitente, super pulso",
+    "Sistema de refrigeración": "Circulación de agua",
+    "Sistema de guiado": "Brazo articulado de 6 ejes",
+    "Peso": "31 kg",
+    "Dimensiones": "93 x 52 x 36 cm",
+    "Alimentación": "220V/110V",
+    "Rayo de apuntado": "Láser semiconductor rojo (650 nm)"
+  },
+  "indications": [
+    "Rejuvenecimiento facial: textura, firmeza, poros, luminosidad.",
+    "Eliminación de arrugas profundas y líneas finas.",
+    "Cicatrices: quirúrgicas, de acné, quemaduras, etc.",
+    "Reducción de estrías y flacidez en zonas corporales.",
+    "Lesiones pigmentarias: pecas, manchas solares, melasma.",
+    "Hiperplasia capilar y rosácea.",
+    "Rejuvenecimiento vaginal: tensado, lubricación, restauración de flora y pH.",
+    "Mejoría de sensibilidad íntima y estética genital femenina."
+  ],
+  "price": 4500,
+  "images": [
+    "/images/productos/dispositivos/laserco2/laser1.jpg",
+    "/images/productos/dispositivos/laserco2/laser2.jpg",
+    "/images/productos/dispositivos/laserco2/laser3.jpg"
+  ],
+  "category": "equipment"
+},
+{
   name: "HIFU 7D con Doble manija",
   shortDescription: "Tecnología MMFU de ultrasonido focalizado macro y micro para lifting facial, reafirmación muscular y remodelado corporal sin cirugía.",
   description: `El HIFU 7D es un equipo de ultrasonido focalizado de alta intensidad que actúa en múltiples capas de la piel y tejido subcutáneo, desde la epidermis hasta la fascia muscular (SMAS). Su avanzada tecnología MMFU combina efectos mecánicos, térmicos y de cavitación para estimular colágeno, tensar la piel y eliminar grasa localizada de forma segura y eficaz.
