@@ -1,32 +1,37 @@
 // src/pages/Products.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import products from '../data/products';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
 import { slugify } from '../utils/slugify';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
+type ProductsProps = {
+  initialCategory?: 'all' | 'equipment' | 'cosmetic';
+};
 
-const Products = () => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'cosmetic'>('all');
+const Products: React.FC<ProductsProps> = ({ initialCategory = 'all' }) => {
+  // Soporta inicialización por props
+  const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'cosmetic'>(initialCategory);
+  const [showModal, setShowModal] = useState(true); // Modal oferta HIFU
+  const location = useLocation();
 
-    // MODAL PROMO HIFU
-  const [showModal, setShowModal] = useState(true); // Mostrar al cargar
-
-  // Puedes hacer que solo salga una vez por sesión, usando localStorage si quieres.
-
+  // Cambia el filtro automáticamente según la URL
+  useEffect(() => {
+    if (location.pathname === '/products/aparatologia') setActiveCategory('equipment');
+    else if (location.pathname === '/products/cosmeticos') setActiveCategory('cosmetic');
+    else setActiveCategory('all');
+  }, [location.pathname]);
 
   const filteredProducts = activeCategory === 'all'
     ? products
     : products.filter(product => product.category === activeCategory);
 
-
   return (
     <>
-      {/*ventana emergente oferta equipo*/}
-
-     {showModal && (
+      {/* Modal Oferta HIFU */}
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative text-center">
             <button
@@ -36,17 +41,16 @@ const Products = () => {
             >
               ×
             </button>
-            <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡30% de descuento!</h2>
+            <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡25% de descuento!</h2>
             <p className="text-lg mb-4">Solo por tiempo limitado en nuestro <span className="font-semibold text-[#0d5c6c]">equipo HIFU profesional</span>.</p>
             <img src="/images/productos/dispositivos/hifu/hifu1.jpg" alt="HIFU" className="mx-auto rounded-xl mb-4 max-h-48 object-contain shadow" />
             <Link
-          to="/products/hifu-7d-con-doble-manija"
-          className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
-          onClick={() => setShowModal(false)}
-          >
-        Ver Oferta
-        </Link>
-
+              to="/products/ultrasonido-focalizado-hifu"
+              className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
+              onClick={() => setShowModal(false)}
+            >
+              Ver Oferta
+            </Link>
             <div className="mt-3">
               <a
                 href="https://wa.me/593969890689?text=Hola%2C%20vi%20el%20descuento%20de%2025%25%20en%20el%20equipo%20HIFU%2C%20quisiera%20más%20información."
@@ -63,6 +67,23 @@ const Products = () => {
 
       <section id="products" className="py-24 bg-gray-50">
         <div className="container-custom">
+
+          {/* Links directos para categorías */}
+          <div className="flex justify-end mb-6">
+            <Link
+              to="/products/aparatologia"
+              className="mr-3 px-3 py-1 rounded bg-[#deb887] text-white font-medium hover:bg-[#ba9256] transition"
+            >
+              Ver solo aparatología
+            </Link>
+            <Link
+              to="/products/cosmeticos"
+              className="px-3 py-1 rounded bg-[#deb887] text-white font-medium hover:bg-[#ba9256] transition"
+            >
+              Ver solo cosméticos
+            </Link>
+          </div>
+
           <div className="text-center mb-16">
             <h2 className="section-title">Nuestros Productos</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">

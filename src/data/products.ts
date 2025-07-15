@@ -81,7 +81,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Rejuvenecimiento vaginal: tensado, lubricación, restauración de flora y pH.",
     "Mejoría de sensibilidad íntima y estética genital femenina."
   ],
-  "price": 4500,
+  "price": 4400,
   "images": [
     "/images/productos/dispositivos/laserco2/laser1.jpg",
     "/images/productos/dispositivos/laserco2/laser2.jpg",
