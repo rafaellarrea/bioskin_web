@@ -41,11 +41,11 @@ const Products: React.FC<ProductsProps> = ({ initialCategory = 'all' }) => {
             >
               ×
             </button>
-            <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡25% de descuento!</h2>
+            <h2 className="text-3xl font-bold mb-2 text-[#ba9256]">¡30% de descuento!</h2>
             <p className="text-lg mb-4">Solo por tiempo limitado en nuestro <span className="font-semibold text-[#0d5c6c]">equipo HIFU profesional</span>.</p>
             <img src="/images/productos/dispositivos/hifu/hifu1.jpg" alt="HIFU" className="mx-auto rounded-xl mb-4 max-h-48 object-contain shadow" />
             <Link
-              to="/products/ultrasonido-focalizado-hifu"
+              to="/products/hifu-7d-con-doble-manija"
               className="inline-block bg-[#deb887] text-white font-bold py-2 px-6 rounded-lg text-lg shadow hover:bg-[#ba9256] transition"
               onClick={() => setShowModal(false)}
             >
