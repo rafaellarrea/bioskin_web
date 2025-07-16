@@ -3,48 +3,12 @@ import Footer from '../components/Footer';
 import Faq from '../pages/Faq';
 import { Link } from "react-router-dom";
 
-{/*
-const faqItems = [
-    {
-      question: "¿Cuánto tiempo duran los resultados de los tratamientos?",
-      answer: "La duración de los resultados varía según el tipo de tratamiento y factores individuales como el tipo de piel, edad y estilo de vida. En general, los tratamientos como el antiaging requieren mantenimiento periódico, mientras que procedimientos como la remoción de manchas pueden tener resultados más duraderos. En tu consulta inicial, te proporcionaremos información específica sobre la duración esperada y recomendaciones de mantenimiento para tu caso particular."
-    },
-    {
-      question: "¿Los tratamientos son dolorosos?",
-      answer: "La mayoría de nuestros tratamientos son mínimamente invasivos y causan poca o ninguna molestia. Para procedimientos que puedan generar alguna sensación, utilizamos técnicas de enfriamiento y, en caso necesario, anestésicos tópicos para garantizar tu comodidad. El nivel de sensibilidad varía según la persona y el tipo de tratamiento, pero nuestro equipo siempre prioriza tu bienestar durante todo el proceso."
-    },
-    {
-      question: "¿Cuánto tiempo de recuperación necesito después de un tratamiento?",
-      answer: "La mayoría de nuestros tratamientos faciales no requieren tiempo de inactividad, permitiéndote volver inmediatamente a tus actividades normales. Algunos procedimientos más intensivos como peelings profundos o tratamientos con dermapen pueden causar enrojecimiento temporal o descamación leve que generalmente se resuelve en 24-72 horas. Te proporcionaremos instrucciones detalladas de cuidado posterior para optimizar la recuperación y los resultados."
-    },
-    {
-      question: "¿Cuántas sesiones necesitaré para ver resultados?",
-      answer: "El número de sesiones varía según el tratamiento y tus objetivos específicos. Algunos procedimientos como la hidratación profunda muestran resultados inmediatos, mientras que tratamientos como antimanchas o remoción de tatuajes requieren múltiples sesiones para resultados óptimos. Durante tu consulta inicial, desarrollaremos un plan personalizado detallando el número recomendado de sesiones y la frecuencia para lograr tus objetivos."
-    },
-    {
-      question: "¿Los productos que utilizan son hipoalergénicos?",
-      answer: "Utilizamos productos de grado médico y formulaciones hipoalergénicas adecuadas para pieles sensibles. Nuestra selección de productos está cuidadosamente evaluada para minimizar riesgos de reacciones alérgicas. Siempre realizamos una evaluación detallada de tu historial de alergias y sensibilidades antes de recomendar cualquier tratamiento o producto."
-    },
-    {
-      question: "¿Puedo combinar diferentes tratamientos?",
-      answer: "Sí, de hecho, muchos de nuestros protocolos más efectivos combinan diferentes tecnologías y técnicas para potenciar resultados. Nuestro enfoque personalizado nos permite diseñar combinaciones seguras y eficaces según tus necesidades específicas. En la consulta inicial evaluaremos qué combinaciones son más beneficiosas para ti y crearemos un plan integral de tratamiento."
-    },
-    {
-      question: "¿Es necesario realizar un diagnóstico facial antes de cualquier tratamiento?",
-      answer: "Sí, recomendamos comenzar con un diagnóstico facial para todos nuestros pacientes. Esta evaluación nos permite identificar con precisión las condiciones específicas de tu piel, factores subyacentes que puedan estar afectándola, y determinar el protocolo de tratamiento más efectivo. El diagnóstico nos proporciona una línea base para medir el progreso y ajustar tratamientos según sea necesario."
-    },
-    {
-      question: "¿Ofrecen planes o paquetes de tratamiento?",
-      answer: "Sí, ofrecemos varios paquetes diseñados para optimizar resultados y proporcionar valor. Estos paquetes combinan tratamientos complementarios a un precio reducido en comparación con sesiones individuales. También creamos planes personalizados basados en tus objetivos específicos y presupuesto. Todos nuestros paquetes incluyen consultas de seguimiento para evaluar el progreso."
-    }
-  ];
-*/}
-
-
 const Home = () => {
   return (
     <>
+      {/* Hero principal con fondo y superposición */}
       <section id="home" className="relative min-h-screen flex items-center">
+        {/* Imagen de fondo + overlay oscuro */}
         <div className="absolute inset-0 z-0">
           <img
             src="/images/logo/logo1.jpg"
@@ -54,6 +18,7 @@ const Home = () => {
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         </div>
 
+        {/* Contenido principal */}
         <div className="container-custom relative z-10 mt-20">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
@@ -62,30 +27,42 @@ const Home = () => {
             <p className="text-xl md:text-2xl text-white/90 mb-8">
               Tratamientos faciales avanzados, personalizados y con resultados visibles.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xl mx-auto px-2">
-            <a href="#services" className="btn-primary w-full sm:w-auto text-center">
-               Nuestros Servicios
+            {/* === BOTONES ACCIÓN PRINCIPALES === */}
+            <div className="flex flex-col w-full max-w-lg mx-auto gap-3 px-4 mt-6">
+              {/* Botón: Servicios */}
+              <a
+                href="#services"
+                className="btn-primary w-full text-center text-lg"
+                style={{ minHeight: 48 }}
+              >
+                Nuestros Servicios
               </a>
-               <a 
-               href="#appointment"
-               className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-medium py-2 px-6 rounded-md transition-all duration-300 inline-block text-center w-full sm:w-auto"
-                >
+              {/* Botón: Agendar cita */}
+              <a
+                href="#appointment"
+                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-medium py-2 px-6 rounded-md transition-all duration-300 w-full text-center text-lg"
+                style={{ minHeight: 48 }}
+              >
                 Agenda tu Cita
               </a>
-             <Link
-              to="/products/aparatologia"
-              className="btn-primary w-full sm:w-auto text-center"
-                >
-              Ver Aparatología
-  </Link>
-</div>
-
+              {/* Botón: Aparatología */}
+              <Link
+                to="/products/aparatologia"
+                className="btn-primary w-full text-center text-lg"
+                style={{ minHeight: 48 }}
+              >
+                Ver Aparatología
+              </Link>
+            </div>
+            {/* === FIN BOTONES === */}
           </div>
         </div>
 
+        {/* Sección inferior destacando atributos clave */}
         <div className="absolute bottom-0 left-0 right-0 bg-white py-8 z-10">
           <div className="container-custom">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Bloque: Tecnología */}
               <div className="flex items-start space-x-4">
                 <div className="bg-[#deb887]/10 p-3 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -97,7 +74,7 @@ const Home = () => {
                   <p className="text-gray-600 text-sm">Equipos de última generación para tratamientos efectivos.</p>
                 </div>
               </div>
-
+              {/* Bloque: Atención */}
               <div className="flex items-start space-x-4">
                 <div className="bg-[#deb887]/10 p-3 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,7 +89,7 @@ const Home = () => {
                   <p className="text-gray-600 text-sm">Cada tratamiento adaptado a tus necesidades específicas.</p>
                 </div>
               </div>
-
+              {/* Bloque: Resultados */}
               <div className="flex items-start space-x-4">
                 <div className="bg-[#deb887]/10 p-3 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -130,24 +107,9 @@ const Home = () => {
         </div>
       </section>
 
-    {/*
-  <section className="bg-white py-24">
-        <div className="container-custom text-center mb-10">
-          <h2 className="text-3xl font-bold mb-4">Preguntas Frecuentes</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Resolvemos tus dudas sobre nuestros tratamientos y servicios.
-          </p>
-        </div>
-        <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
-          <div className="divide-y divide-gray-200">
-            {faqItems.map((item, index) => (
-              <FaqItem key={index} question={item.question} answer={item.answer} />
-            ))}
-          </div>
-        </div>
-      </section>
-*/}
-<Faq />
+      {/* Sección de preguntas frecuentes, actualmente oculta por comentarios */}
+      {/* <section className="bg-white py-24"> ... </section> */}
+      <Faq />
       {/* <Footer /> */}
     </>
   );
