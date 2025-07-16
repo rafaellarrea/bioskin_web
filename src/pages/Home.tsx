@@ -1,6 +1,8 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import Faq from '../pages/Faq';
+import { Link } from "react-router-dom";
+
 {/*
 const faqItems = [
     {
@@ -70,6 +72,13 @@ const Home = () => {
               >
                 Agenda tu Cita
               </a>
+              <Link
+              to="/products/aparatologia"
+              className="btn-primary"
+              >
+              Ver Aparatología
+              </Link>
+
             </div>
           </div>
         </div>
