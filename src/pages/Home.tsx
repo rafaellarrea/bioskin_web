@@ -62,24 +62,24 @@ const Home = () => {
             <p className="text-xl md:text-2xl text-white/90 mb-8">
               Tratamientos faciales avanzados, personalizados y con resultados visibles.
             </p>
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <a href="#services" className="btn-primary">
-                Nuestros Servicios
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xl mx-auto px-2">
+            <a href="#services" className="btn-primary w-full sm:w-auto text-center">
+               Nuestros Servicios
               </a>
-              <a 
-                href="#appointment"
-                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-medium py-2 px-6 rounded-md transition-all duration-300 inline-block text-center"
-              >
+               <a 
+               href="#appointment"
+               className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-medium py-2 px-6 rounded-md transition-all duration-300 inline-block text-center w-full sm:w-auto"
+                >
                 Agenda tu Cita
               </a>
-              <Link
+             <Link
               to="/products/aparatologia"
-              className="btn-primary"
-              >
+              className="btn-primary w-full sm:w-auto text-center"
+                >
               Ver Aparatología
-              </Link>
+  </Link>
+</div>
 
-            </div>
           </div>
         </div>
 
