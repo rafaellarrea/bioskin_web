@@ -6,8 +6,11 @@ import { Link } from "react-router-dom";
 const Home = () => {
   return (
     <>
-      {/* Hero principal con fondo y superposición */}
-      <section id="home" className="relative min-h-screen flex items-center">
+      {/* HERO principal: fondo, overlay, título, subtítulo, botones */}
+      <section
+        id="home"
+        className="relative flex items-center py-12 md:py-20"
+      >
         {/* Imagen de fondo + overlay oscuro */}
         <div className="absolute inset-0 z-0">
           <img
@@ -18,17 +21,18 @@ const Home = () => {
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         </div>
 
-        {/* Contenido principal */}
-        <div className="container-custom relative z-10 mt-20">
+        {/* Contenido hero centrado */}
+        <div className="container-custom relative z-10 mt-2 md:mt-12">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-5">
               Descubre Tu Mejor Versión con Bio Skin
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8">
+            <p className="text-xl md:text-2xl text-white/90 mb-6">
               Tratamientos faciales avanzados, personalizados y con resultados visibles.
             </p>
-            {/* === BOTONES ACCIÓN PRINCIPALES === */}
-            <div className="flex flex-col w-full max-w-lg mx-auto gap-3 px-4 mt-6">
+            {/* === BOTONES ACCIÓN SIEMPRE VISIBLES Y COMPACTOS === */}
+            <div className="flex flex-col w-full max-w-lg mx-auto gap-2 px-4 mt-4">
+              {/* Botón: Servicios */}
               <a
                 href="#services"
                 className="btn-primary w-full text-center text-lg"
@@ -36,6 +40,7 @@ const Home = () => {
               >
                 Nuestros Servicios
               </a>
+              {/* Botón: Agendar cita */}
               <a
                 href="#appointment"
                 className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-medium py-2 px-6 rounded-md transition-all duration-300 w-full text-center text-lg"
@@ -43,6 +48,7 @@ const Home = () => {
               >
                 Agenda tu Cita
               </a>
+              {/* Botón: Aparatología */}
               <Link
                 to="/products/aparatologia"
                 className="btn-primary w-full text-center text-lg"
@@ -56,8 +62,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* SECCIÓN DE BENEFICIOS - Mover FUERA del hero para que no tape los botones */}
-      <section className="bg-white py-12">
+      {/* SECCIÓN DE BENEFICIOS: tecnología, atención, resultados. FUERA del hero */}
+      <section className="bg-white py-10">
         <div className="container-custom">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Bloque: Tecnología */}
@@ -106,7 +112,7 @@ const Home = () => {
 
       {/* FAQs y Footer */}
       <Faq />
-      <Footer />
+      {/*<Footer />*/}
     </>
   );
 };
