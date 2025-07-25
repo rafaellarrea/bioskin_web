@@ -32,7 +32,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "",
     "INCLUYE GARANTIA DE 6 MESES"
   ],
-  price: 2750,
+  price: 2700,
   images: [
     "/images/productos/dispositivos/analizador/analizador1.jpg",
     "/images/productos/dispositivos/analizador/analizador2.jpg",
@@ -81,7 +81,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Rejuvenecimiento vaginal: tensado, lubricación, restauración de flora y pH.",
     "Mejoría de sensibilidad íntima y estética genital femenina."
   ],
-  "price": 4400,
+  "price": 4100,
   "images": [
     "/images/productos/dispositivos/laserco2/laser1.jpg",
     "/images/productos/dispositivos/laserco2/laser2.jpg",
@@ -165,7 +165,7 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Rejuvenecimiento facial, reducción de líneas finas y flacidez.",
     "Reducción de lesiones vasculares y pigmentadas."
   ],
-  price: 3500,
+  price: 3100,
   images: [
     "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
     "/images/productos/dispositivos/multifuncional/multifuncional2.jpg"
