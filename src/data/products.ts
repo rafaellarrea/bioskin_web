@@ -81,7 +81,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Rejuvenecimiento vaginal: tensado, lubricación, restauración de flora y pH.",
     "Mejoría de sensibilidad íntima y estética genital femenina."
   ],
-  "price": 4100,
+  "price": "",
   "images": [
     "/images/productos/dispositivos/laserco2/laser1.jpg",
     "/images/productos/dispositivos/laserco2/laser2.jpg",
@@ -124,7 +124,7 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
     "Tratamiento seguro y efectivo para pieles maduras y con flacidez.",
     "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
   ],
-  price: 2140,
+  price: "",
   images: [
     "/images/productos/dispositivos/hifu/hifu1.jpg",
     "/images/productos/dispositivos/hifu/hifu2.jpg",
@@ -165,14 +165,14 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Rejuvenecimiento facial, reducción de líneas finas y flacidez.",
     "Reducción de lesiones vasculares y pigmentadas."
   ],
-  price: 3100,
+  price: "",
   images: [
     "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
     "/images/productos/dispositivos/multifuncional/multifuncional2.jpg"
   ],
   category: "equipment"
-},
-{
+}
+/*{
   name: "MEDICUBE DEEP VITA C CAPSULE CREAM",
   shortDescription: "Cápsulas de vitamina C pura encapsulada, niacinamida y ácido ferúlico para luminosidad y protección antioxidante.",
   description: `Crema facial intensiva con cápsulas de liposomas de vitamina C (Pure Ascorbic Acid 10,000 ppm), niacinamida, ácido ferúlico y vitaminas E y F. 
@@ -1012,7 +1012,7 @@ Ofrece una triple acción: antioxidante, unificadora del tono y revitalizante. S
   ],
   category: "cosmetic",
   showDetailButton: true
-}
+}*/
 
 
 
