@@ -32,7 +32,7 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "",
     "INCLUYE GARANTIA DE 6 MESES"
   ],
-  price: 2700,
+  price: "",
   images: [
     "/images/productos/dispositivos/analizador/analizador1.jpg",
     "/images/productos/dispositivos/analizador/analizador2.jpg",
