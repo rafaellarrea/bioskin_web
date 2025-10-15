@@ -1,42 +1,22 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Clock, User, Tag, ArrowLeft, Share2, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, User, Tag, ArrowLeft, Share2, ChevronRight, Loader2 } from 'lucide-react';
 import Footer from '../components/Footer';
-import { getBlogBySlug, blogPosts, BlogPost } from '../data/blogs';
+import { useBlog, useBlogs } from '../hooks/useBlogs';
 
 const BlogDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [blog, setBlog] = useState<BlogPost | null>(null);
-  const [relatedBlogs, setRelatedBlogs] = useState<BlogPost[]>([]);
+  
+  // Obtener blog por slug
+  const { blog, loading, error } = useBlog(slug || '');
+  
+  // Obtener blogs relacionados (misma categoría)
+  const { blogs: relatedBlogs } = useBlogs({
+    category: blog?.category,
+    limit: 3
+  });
 
-  useEffect(() => {
-    if (slug) {
-      const foundBlog = getBlogBySlug(slug);
-      setBlog(foundBlog || null);
-
-      // Obtener blogs relacionados (misma categoría, excluyendo el actual)
-      if (foundBlog) {
-        const related = blogPosts
-          .filter(b => b.category === foundBlog.category && b.id !== foundBlog.id)
-          .slice(0, 3);
-        setRelatedBlogs(related);
-      }
-    }
-  }, [slug]);
-
-  if (!blog) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Artículo no encontrado</h1>
-          <p className="text-gray-600 mb-6">El artículo que buscas no existe o ha sido movido.</p>
-          <Link to="/blogs" className="btn-primary">
-            Volver al Blog
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Filtrar blogs relacionados excluyendo el actual
+  const filteredRelatedBlogs = relatedBlogs.filter(relatedBlog => relatedBlog.id !== blog?.id);
 
   const categoryLabels = {
     'medico-estetico': 'Médico Estético',
@@ -58,7 +38,7 @@ const BlogDetail = () => {
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
+    if (navigator.share && blog) {
       try {
         await navigator.share({
           title: blog.title,
@@ -69,11 +49,37 @@ const BlogDetail = () => {
         console.log('Error sharing:', err);
       }
     } else {
-      // Fallback: copiar URL al portapapeles
       navigator.clipboard.writeText(window.location.href);
       alert('Enlace copiado al portapapeles');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={64} className="mx-auto mb-4 text-gray-400 animate-spin" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Cargando artículo...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !blog) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {error || 'Artículo no encontrado'}
+          </h1>
+          <p className="text-gray-600 mb-6">El artículo que buscas no existe o ha sido movido.</p>
+          <Link to="/blogs" className="btn-primary">
+            Volver al Blog
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -164,21 +170,17 @@ const BlogDetail = () => {
               {/* Contenido */}
               <div className="prose prose-lg max-w-none">
                 <div 
-                  className="text-gray-800 leading-relaxed"
-                  dangerouslySetInnerHTML={{ 
-                    __html: blog.content.replace(/\n/g, '<br>').replace(/#{1,6}\s*/g, (match) => {
-                      const level = match.trim().length;
-                      return `<h${level} class="text-${4-level}xl font-bold text-gray-900 mt-8 mb-4">`;
-                    }).replace(/###\s*/g, '</h3>').replace(/##\s*/g, '</h2>').replace(/#\s*/g, '</h1>')
-                  }}
-                />
+                  className="text-gray-800 leading-relaxed whitespace-pre-line"
+                >
+                  {blog.content}
+                </div>
               </div>
 
               {/* Tags */}
               <div className="mt-12 pt-8 border-t">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Tags:</h3>
                 <div className="flex flex-wrap gap-2">
-                  {blog.tags.map((tag, index) => (
+                  {blog.tags.map((tag: string, index: number) => (
                     <span
                       key={index}
                       className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 transition-colors"
@@ -195,7 +197,7 @@ const BlogDetail = () => {
                 <div className="mt-12 pt-8 border-t">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Referencias:</h3>
                   <div className="space-y-3">
-                    {blog.citations.map((citation, index) => (
+                    {blog.citations.map((citation: any, index: number) => (
                       <div key={index} className="bg-gray-50 p-4 rounded-lg">
                         <p className="text-gray-700 italic mb-2">"{citation.text}"</p>
                         <p className="text-sm text-gray-600">
@@ -221,7 +223,7 @@ const BlogDetail = () => {
         </article>
 
         {/* Artículos relacionados */}
-        {relatedBlogs.length > 0 && (
+        {filteredRelatedBlogs.length > 0 && (
           <section className="py-16 bg-gray-100">
             <div className="container-custom">
               <div className="max-w-6xl mx-auto">
@@ -229,7 +231,7 @@ const BlogDetail = () => {
                   Artículos Relacionados
                 </h2>
                 <div className="grid md:grid-cols-3 gap-8">
-                  {relatedBlogs.map((relatedBlog) => (
+                  {filteredRelatedBlogs.map((relatedBlog) => (
                     <div key={relatedBlog.id} className="card">
                       <div className="h-48 overflow-hidden mb-4">
                         <img

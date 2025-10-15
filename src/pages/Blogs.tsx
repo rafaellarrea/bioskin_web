@@ -1,37 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, BookOpen, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Filter, BookOpen, TrendingUp, Loader2 } from 'lucide-react';
 import BlogCard from '../components/BlogCard';
 import Footer from '../components/Footer';
-import { blogPosts, getBlogsByCategory, getFeaturedBlogs, BlogPost } from '../data/blogs';
+import { useBlogs } from '../hooks/useBlogs';
 
 const Blogs = () => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'medico-estetico' | 'tecnico'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredBlogs, setFilteredBlogs] = useState<BlogPost[]>(blogPosts);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Filtrar blogs según categoría y término de búsqueda
-  useEffect(() => {
-    let filtered = selectedCategory === 'all' 
-      ? blogPosts 
-      : getBlogsByCategory(selectedCategory);
+  // Usar el hook para obtener blogs filtrados
+  const { 
+    blogs, 
+    loading, 
+    error, 
+    pagination 
+  } = useBlogs({
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    search: searchTerm || undefined,
+    page: currentPage,
+    limit: 9
+  });
 
-    if (searchTerm) {
-      filtered = filtered.filter(blog =>
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    setFilteredBlogs(filtered);
-  }, [selectedCategory, searchTerm]);
-
-  const featuredBlogs = getFeaturedBlogs();
+  // Obtener blogs destacados
+  const { 
+    blogs: featuredBlogs, 
+    loading: featuredLoading 
+  } = useBlogs({
+    featured: true,
+    limit: 3
+  });
 
   const categoryLabels = {
     'all': 'Todos',
     'medico-estetico': 'Médico Estético',
     'tecnico': 'Técnico'
+  };
+
+  const handleCategoryChange = (category: 'all' | 'medico-estetico' | 'tecnico') => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (search: string) => {
+    setSearchTerm(search);
+    setCurrentPage(1);
   };
 
   return (
@@ -63,7 +76,7 @@ const Blogs = () => {
         </section>
 
         {/* Blogs destacados */}
-        {featuredBlogs.length > 0 && (
+        {!featuredLoading && featuredBlogs.length > 0 && (
           <section className="py-12 bg-white">
             <div className="container-custom">
               <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">
@@ -89,7 +102,7 @@ const Blogs = () => {
                   type="text"
                   placeholder="Buscar artículos..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] focus:border-transparent"
                 />
               </div>
@@ -101,7 +114,7 @@ const Blogs = () => {
                   {Object.entries(categoryLabels).map(([value, label]) => (
                     <button
                       key={value}
-                      onClick={() => setSelectedCategory(value as any)}
+                      onClick={() => handleCategoryChange(value as any)}
                       className={`px-4 py-2 rounded-full font-medium transition-all duration-300 ${
                         selectedCategory === value
                           ? 'bg-[#deb887] text-white shadow-lg'
@@ -117,14 +130,21 @@ const Blogs = () => {
 
             {/* Resultados */}
             <div className="mb-6">
-              <p className="text-gray-600">
-                {filteredBlogs.length === 0 
-                  ? 'No se encontraron artículos'
-                  : `${filteredBlogs.length} artículo${filteredBlogs.length !== 1 ? 's' : ''} encontrado${filteredBlogs.length !== 1 ? 's' : ''}`
-                }
-                {searchTerm && ` para "${searchTerm}"`}
-                {selectedCategory !== 'all' && ` en "${categoryLabels[selectedCategory]}"`}
-              </p>
+              {loading ? (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Loader2 className="animate-spin" size={20} />
+                  <span>Cargando artículos...</span>
+                </div>
+              ) : (
+                <p className="text-gray-600">
+                  {pagination?.total === 0 
+                    ? 'No se encontraron artículos'
+                    : `${pagination?.total} artículo${pagination?.total !== 1 ? 's' : ''} encontrado${pagination?.total !== 1 ? 's' : ''}`
+                  }
+                  {searchTerm && ` para "${searchTerm}"`}
+                  {selectedCategory !== 'all' && ` en "${categoryLabels[selectedCategory]}"`}
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -132,7 +152,24 @@ const Blogs = () => {
         {/* Lista de blogs */}
         <section className="py-12 bg-gray-50">
           <div className="container-custom">
-            {filteredBlogs.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <Loader2 size={64} className="mx-auto mb-4 text-gray-400 animate-spin" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                  Cargando artículos...
+                </h3>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <BookOpen size={64} className="mx-auto mb-4 text-red-400" />
+                <h3 className="text-xl font-semibold text-red-600 mb-2">
+                  Error cargando artículos
+                </h3>
+                <p className="text-red-500 mb-6">
+                  {error}
+                </p>
+              </div>
+            ) : blogs.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen size={64} className="mx-auto mb-4 text-gray-400" />
                 <h3 className="text-xl font-semibold text-gray-600 mb-2">
@@ -143,8 +180,8 @@ const Blogs = () => {
                 </p>
                 <button
                   onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('all');
+                    handleSearchChange('');
+                    handleCategoryChange('all');
                   }}
                   className="btn-primary"
                 >
@@ -152,11 +189,48 @@ const Blogs = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredBlogs.map((blog) => (
-                  <BlogCard key={blog.id} {...blog} />
-                ))}
-              </div>
+              <>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {blogs.map((blog) => (
+                    <BlogCard key={blog.id} {...blog} />
+                  ))}
+                </div>
+
+                {/* Paginación */}
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="flex justify-center mt-12">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={!pagination.hasPrev}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                          pagination.hasPrev
+                            ? 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        Anterior
+                      </button>
+                      
+                      <span className="px-4 py-2 text-gray-600">
+                        Página {pagination.page} de {pagination.totalPages}
+                      </span>
+                      
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={!pagination.hasNext}
+                        className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                          pagination.hasNext
+                            ? 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        Siguiente
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

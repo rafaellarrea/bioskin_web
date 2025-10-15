@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Clock, Tag, User } from 'lucide-react';
 
 interface BlogCardProps {
-  id: string;
+  id: string | number;
   title: string;
   slug: string;
   excerpt: string;
