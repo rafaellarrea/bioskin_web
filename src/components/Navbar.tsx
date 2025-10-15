@@ -16,6 +16,7 @@ export default function Navbar() {
           <li><Link to="/results" className={`${baseLink} ${pathname === '/results' ? active : inactive}`}>Resultados</Link></li>
           <li><Link to="/diagnosis" className={`${baseLink} ${pathname === '/diagnosis' ? active : inactive}`}>Diagnóstico</Link></li>
           <li><Link to="/products" className={`${baseLink} ${pathname === '/products' ? active : inactive}`}>Productos</Link></li>
+          <li><Link to="/blogs" className={`${baseLink} ${pathname.startsWith('/blogs') ? active : inactive}`}>Blog</Link></li>
           <li><Link to="/appointment" className={`${baseLink} ${pathname === '/appointment' ? active : inactive}`}>Agenda tu cita</Link></li>
           <li><Link to="/about" className={`${baseLink} ${pathname === '/about' ? active : inactive}`}>Nosotros</Link></li>
           <li><Link to="/faq" className={`${baseLink} ${pathname === '/faq' ? active : inactive}`}>Preguntas</Link></li>

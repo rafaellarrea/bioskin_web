@@ -8,6 +8,8 @@ import Results from './pages/Results';
 import Diagnosis from './pages/Diagnosis';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
+import Blogs from './pages/Blogs';
+import BlogDetail from './pages/BlogDetail';
 import Appointment from './pages/Appointment';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -29,6 +31,10 @@ function App() {
           <Route path="/products/cosmeticos" element={<Products initialCategory="cosmetic" />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/products" element={<Products />} />
+
+          {/* RUTAS DE BLOG */}
+          <Route path="/blogs/:slug" element={<BlogDetail />} />
+          <Route path="/blogs" element={<Blogs />} />
 
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/about" element={<About />} />
