@@ -86,6 +86,8 @@ api/ai-blog/generate.js       # API generación
 - ✅ **Estructura médica/técnica**: Plantillas especializadas por tipo
 - ✅ Oct 16 Documentación proyecto: PROGRESS.md y ARCHITECTURE.md
 - ✅ Oct 16 Protocolo actualizaciones automáticas documentación
+- ✅ Oct 16 README.md completo con setup y guías desarrollo
+- ✅ Oct 16 Workflow documentación: obligatorio después cada cambio
 
 **Archivos modificados**:
 ```
