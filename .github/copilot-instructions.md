@@ -138,3 +138,50 @@ All user-facing content is in Spanish. Maintain Spanish naming conventions for c
 - `nodemailer` for email sending
 
 When adding new products, update `src/data/products.ts` and ensure images follow the established directory structure.
+
+## 📚 Documentation Management Protocol
+
+### **Automatic Documentation Updates**
+**MANDATORY**: After completing ANY file creation, modification, or feature implementation, you MUST update the following documentation files:
+
+#### **1. PROGRESS.md Updates**
+Add a brief entry (1-3 lines) to the current phase section:
+```markdown
+- ✅ [Date] Brief description of change/addition
+```
+**Example**: `- ✅ Oct 16 Added documentation management protocol`
+
+#### **2. ARCHITECTURE.md Updates**
+Update relevant sections if structural changes were made:
+- **File additions**: Update directory structure
+- **New components**: Add to component library section
+- **API changes**: Update endpoints section
+- **Database changes**: Update database layer section
+
+#### **Documentation Update Rules**
+1. **Be Concise**: Use 3-5 words maximum per entry
+2. **Be Specific**: Mention exact feature/file affected
+3. **Use Consistent Format**: Follow existing patterns
+4. **Update Both Files**: Progress for timeline, Architecture for structure
+5. **Mark Complete**: Use ✅ for finished items
+
+#### **When to Update Documentation**
+- ✅ New file creation
+- ✅ Component modifications
+- ✅ API endpoint changes
+- ✅ Database schema updates
+- ✅ Configuration changes
+- ✅ Feature implementations
+- ✅ Bug fixes that affect structure
+
+#### **Documentation Workflow**
+```
+1. Complete development work
+2. Test functionality
+3. Update PROGRESS.md (add to current phase)
+4. Update ARCHITECTURE.md (if structural changes)
+5. Git commit with descriptive message
+6. Git push
+```
+
+**Remember**: Documentation is NOT optional - it's part of the development process and must be updated with every change.
