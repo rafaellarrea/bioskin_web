@@ -2,7 +2,7 @@
 // Script para probar las APIs de producción desde local
 
 const testProductionAPI = async () => {
-  const baseUrl = 'https://bioskin-3vbozogh5-rafael-larreas-projects.vercel.app';
+  const baseUrl = 'https://bioskin-h9w0ah6iq-rafael-larreas-projects.vercel.app';
   
   console.log('🚀 Probando APIs en PRODUCCIÓN...\n');
   console.log(`Base URL: ${baseUrl}\n`);
@@ -19,8 +19,45 @@ const testProductionAPI = async () => {
   
   console.log('\n---\n');
   
-  // Test 2: Endpoint seguro de generación
-  console.log('2️⃣ Probando generación de blog en producción...');
+  // Test 2: Endpoint de producción (sin SQLite)
+  console.log('2️⃣ Probando endpoint de producción (sin SQLite)...');
+  try {
+    const productionResponse = await fetch(`${baseUrl}/api/ai-blog/generate-production`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        blogType: 'medico-estetico',
+        topic: 'Tratamiento HIFU para rejuvenecimiento facial sin cirugía',
+        manual: false
+      })
+    });
+    
+    const productionData = await productionResponse.json();
+    console.log('✅ Endpoint de producción:');
+    console.log('- Success:', productionData.success);
+    console.log('- Message:', productionData.message);
+    
+    if (productionData.success && productionData.blog) {
+      console.log('- Título:', productionData.blog.title);
+      console.log('- Categoría:', productionData.blog.category);
+      console.log('- Read time:', productionData.blog.read_time);
+      console.log('- Tags:', productionData.blog.tags);
+      console.log('- Word count:', productionData.meta?.wordCount);
+      console.log('- Environment:', productionData.meta?.environment);
+    } else {
+      console.log('- Error:', productionData.error || 'Sin detalles de error');
+    }
+    
+  } catch (error) {
+    console.log('❌ Error en endpoint producción:', error.message);
+  }
+  
+  console.log('\n---\n');
+  
+  // Test 3: Endpoint seguro de generación
+  console.log('3️⃣ Probando generación de blog segura...');
   try {
     const blogResponse = await fetch(`${baseUrl}/api/ai-blog/generate-safe`, {
       method: 'POST',
@@ -35,7 +72,7 @@ const testProductionAPI = async () => {
     });
     
     const blogData = await blogResponse.json();
-    console.log('✅ Generación de blog en producción:');
+    console.log('✅ Generación de blog segura:');
     console.log('- Success:', blogData.success);
     console.log('- Message:', blogData.message);
     
@@ -51,13 +88,13 @@ const testProductionAPI = async () => {
     }
     
   } catch (error) {
-    console.log('❌ Error en generación producción:', error.message);
+    console.log('❌ Error en generación segura:', error.message);
   }
   
   console.log('\n---\n');
   
-  // Test 3: Endpoint original
-  console.log('3️⃣ Probando endpoint original de generación...');
+  // Test 4: Endpoint original
+  console.log('4️⃣ Probando endpoint original de generación...');
   try {
     const originalResponse = await fetch(`${baseUrl}/api/ai-blog/generate`, {
       method: 'POST',
