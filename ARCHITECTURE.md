@@ -66,18 +66,29 @@ interface Product {
 
 #### **Blog System with AI**
 ```typescript
-// src/pages/Blogs.tsx - Main listing with filters
-// src/pages/BlogDetail.tsx - Individual post view
-// Custom hooks: useBlogs(), useBlog()
+// AI Blog Generation (v2.0 - Production Ready)
+api/ai-blog/generate.js      // Main generation endpoint
+api/ai-blog/generate-safe.js // Robust version with fallback
+api/blogs/test.js            // System diagnostic endpoint
+
+// Core AI Services
+lib/ai-service.js            // OpenAI integration + specialized prompts
+lib/database.js              // SQLite with weekly controls
+
+// Database Schema
+data/blogs.db                // SQLite: blogs, tags, citations, blog_tags
 ```
 
 ### **Backend Architecture**
 
 #### **API Endpoints**
 ```javascript
-// Vercel Serverless Functions
-api/ai-blog/generate.js    // POST - Generate blog with AI + limits
-api/ai-blog/status.js      // GET  - Weekly quota status
+// AI Blog Generation
+api/ai-blog/generate.js      // POST - Generate blog with weekly limits
+api/ai-blog/generate-safe.js // POST - Safe generation with fallback  
+api/blogs/test.js            // GET  - System diagnostic
+
+// Calendar & Email Integration
 api/getEvents.js          // GET  - Google Calendar events
 api/sendEmail.js          // POST - Email + WhatsApp notifications
 ```

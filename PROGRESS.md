@@ -49,6 +49,34 @@ src/utils/slugify.ts          # Generación URLs
 
 **Archivos clave**:
 ```
+api/getEvents.js             # Calendario ocupado
+api/sendEmail.js             # Emails + WhatsApp
+```
+
+---
+
+### ✅ **Fase 4: Sistema de Blogs con IA** (Octubre 2025)
+**Descripción**: Generación automatizada de contenido médico-estético con IA
+**Logros**:
+- ✅ Integración OpenAI GPT-4o-mini
+- ✅ Límite 2 blogs/semana (1 técnico + 1 médico-estético)
+- ✅ Base de datos SQLite con control semanal
+- ✅ Prompts especializados 500-700 palabras
+- ✅ APIs serverless robustas con manejo errores
+- ✅ Sistema de validación y diagnóstico
+- ✅ Oct 16 Sistema de blogs IA funcional en desarrollo
+
+**Archivos clave**:
+```
+lib/ai-service.js            # Servicio OpenAI + prompts
+lib/database.js              # SQLite blogs + control semanal
+api/ai-blog/generate.js      # Endpoint principal
+api/ai-blog/generate-safe.js # Endpoint con fallback
+api/blogs/test.js            # Diagnóstico sistema
+data/blogs.db                # Base datos SQLite
+init-database.js             # Inicialización BD
+```
+```
 api/getEvents.js     # Google Calendar API
 api/sendEmail.js     # Email + WhatsApp notifications
 ```
