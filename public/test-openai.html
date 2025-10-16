@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema de Blogs IA - BIOSKIN</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 20px auto; padding: 20px; }
+        .header { background: #deb887; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .control-group { background: #f5f5f5; padding: 15px; border-radius: 8px; }
+        button { background: #deb887; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #d4a574; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 5px; border-left: 4px solid #deb887; background: #f9f9f9; }
+        .result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; border-color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; border-color: #2e7d32; }
+        .loading { background: #e3f2fd; color: #1565c0; border-color: #1565c0; }
+        select, input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .weekly-status { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .status-card { background: white; border: 2px solid #deb887; border-radius: 8px; padding: 15px; text-align: center; }
+        .available { border-color: #4caf50; }
+        .unavailable { border-color: #f44336; background: #ffebee; }
+        details { margin: 10px 0; }
+        summary { cursor: pointer; padding: 10px; background: #f0f0f0; border-radius: 4px; }
+        .content-preview { max-height: 300px; overflow-y: auto; margin: 10px 0; padding: 10px; background: #f9f9f9; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Sistema de Blogs con IA - BIOSKIN v2.0</h1>
+        <p>Prueba el nuevo sistema limitado a 2 blogs por semana: 1 técnico + 1 médico estético</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3>📊 Estado Semanal</h3>
+            <button onclick="checkWeeklyStatus()">🔄 Verificar Cupos</button>
+            <div id="weeklyStatus"></div>
+        </div>
+
+        <div class="control-group">
+            <h3>🚀 Generar Blog</h3>
+            <label>Tipo de Blog:</label>
+            <select id="blogType">
+                <option value="medico-estetico">Médico Estético</option>
+                <option value="tecnico">Técnico</option>
+            </select>
+            
+            <label>Modo:</label>
+            <select id="mode" onchange="toggleManualTopic()">
+                <option value="auto">Automático (tema aleatorio)</option>
+                <option value="manual">Manual (elegir tema)</option>
+            </select>
+            
+            <div id="manualTopic" style="display: none;">
+                <label>Tema personalizado:</label>
+                <input type="text" id="customTopic" placeholder="Escribe el tema del blog...">
+            </div>
+            
+            <button id="generateBtn" onclick="generateBlog()">🤖 Generar Blog con IA</button>
+            
+            <label style="margin-top: 10px;">
+                <input type="checkbox" id="forceGeneration"> Forzar generación (testing)
+            </label>
+        </div>
+    </div>
+
+    <div id="loading" style="display: none;" class="result loading">
+        ⏳ Generando contenido con IA... Esto puede tomar 30-60 segundos.
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        let currentWeeklyStatus = null;
+
+        // Verificar estado semanal al cargar
+        window.onload = function() {
+            checkWeeklyStatus();
+        };
+
+        function toggleManualTopic() {
+            const mode = document.getElementById('mode').value;
+            const manualDiv = document.getElementById('manualTopic');
+            manualDiv.style.display = mode === 'manual' ? 'block' : 'none';
+        }
+
+        async function checkWeeklyStatus() {
+            try {
+                const response = await fetch('/api/ai-blog/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentWeeklyStatus = data.weeklyStatus;
+                    displayWeeklyStatus(data.weeklyStatus);
+                } else {
+                    document.getElementById('weeklyStatus').innerHTML = 
+                        '<div class="error">Error obteniendo estado semanal</div>';
+                }
+            } catch (error) {
+                document.getElementById('weeklyStatus').innerHTML = 
+                    '<div class="error">Error de conexión</div>';
+            }
+        }
+
+        function displayWeeklyStatus(status) {
+            const medicoStatus = status['medico-estetico'];
+            const tecnicoStatus = status['tecnico'];
+
+            document.getElementById('weeklyStatus').innerHTML = `
+                <div class="status">
+                    <strong>Semana:</strong> ${status.week}
+                </div>
+                <div class="weekly-status">
+                    <div class="status-card ${medicoStatus.available > 0 ? 'available' : 'unavailable'}">
+                        <h4>🩺 Médico Estético</h4>
+                        <div>Usado: ${medicoStatus.used}/1</div>
+                        <div>Disponible: ${medicoStatus.available}</div>
+                    </div>
+                    <div class="status-card ${tecnicoStatus.available > 0 ? 'available' : 'unavailable'}">
+                        <h4>⚙️ Técnico</h4>
+                        <div>Usado: ${tecnicoStatus.used}/1</div>
+                        <div>Disponible: ${tecnicoStatus.available}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function generateBlog() {
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const blogType = document.getElementById('blogType').value;
+            const mode = document.getElementById('mode').value;
+            const customTopic = document.getElementById('customTopic').value;
+            const forceGeneration = document.getElementById('forceGeneration').checked;
+            
+            // Validar límites semanales (excepto si es forzado)
+            if (!forceGeneration && currentWeeklyStatus) {
+                const typeStatus = currentWeeklyStatus[blogType];
+                if (typeStatus.available === 0) {
+                    result.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Límite Semanal Alcanzado</h3>
+                            <p>Ya se generó el blog ${blogType} para esta semana.</p>
+                            <p>Cupos disponibles se renuevan cada lunes.</p>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+            
+            btn.disabled = true;
+            loading.style.display = 'block';
+            result.innerHTML = '';
+            
+            try {
+                const requestBody = {
+                    blogType: blogType,
+                    manual: mode === 'manual',
+                    forceGeneration: forceGeneration
+                };
+                
+                if (mode === 'manual' && customTopic) {
+                    requestBody.topic = customTopic;
+                }
+                
+                const response = await fetch('/api/ai-blog/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Blog Generado Exitosamente</h3>
+                            <p><strong>ID:</strong> ${data.blog.id}</p>
+                            <p><strong>Título:</strong> ${data.blog.title}</p>
+                            <p><strong>Tipo:</strong> ${data.blog.blog_type}</p>
+                            <p><strong>Categoría:</strong> ${data.blog.category}</p>
+                            <p><strong>Semana:</strong> ${data.blog.week_year}</p>
+                            <p><strong>Tiempo de lectura:</strong> ${data.blog.readTime} minutos</p>
+                            <p><strong>Tags:</strong> ${data.blog.tags ? data.blog.tags.join(', ') : 'N/A'}</p>
+                            
+                            <details>
+                                <summary><strong>Ver Extracto</strong></summary>
+                                <div class="content-preview">
+                                    ${data.blog.excerpt}
+                                </div>
+                            </details>
+                            
+                            <details>
+                                <summary><strong>Ver Contenido Completo</strong></summary>
+                                <div class="content-preview">
+                                    ${data.blog.content.replace(/\n/g, '<br>')}
+                                </div>
+                            </details>
+                            
+                            ${data.weeklyStatus ? `
+                                <details>
+                                    <summary><strong>Estado Semanal Actualizado</strong></summary>
+                                    <div style="margin-top: 10px;">
+                                        <div>Médico Estético: ${data.weeklyStatus['medico-estetico'].used}/1 usado</div>
+                                        <div>Técnico: ${data.weeklyStatus['tecnico'].used}/1 usado</div>
+                                    </div>
+                                </details>
+                            ` : ''}
+                        </div>
+                    `;
+                    
+                    // Actualizar estado semanal
+                    if (data.weeklyStatus) {
+                        currentWeeklyStatus = data.weeklyStatus;
+                        displayWeeklyStatus(data.weeklyStatus);
+                    }
+                } else {
+                    result.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Error en la Generación</h3>
+                            <p><strong>Mensaje:</strong> ${data.message}</p>
+                            ${data.error ? `<p><strong>Error:</strong> ${data.error}</p>` : ''}
+                            ${data.weeklyStatus ? `
+                                <div style="margin-top: 15px;">
+                                    <strong>Estado Semanal:</strong>
+                                    <div>Médico Estético: ${data.weeklyStatus['medico-estetico'].used}/1</div>
+                                    <div>Técnico: ${data.weeklyStatus['tecnico'].used}/1</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Error de Conexión</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Asegúrate de que el servidor esté corriendo en localhost:5173</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

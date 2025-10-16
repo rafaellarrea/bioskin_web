@@ -81,57 +81,36 @@ export default async function handler(req, res) {
 
     const blogData = aiResult.blog;
 
+    // Preparar datos del blog
+    const blogData = {
+      title: aiResult.title,
+      slug: finalSlug,
+      excerpt: aiResult.excerpt,
+      content: aiResult.content,
+      category: category,
+      author: category === 'medico-estetico' ? 'Dra. Daniela Creamer' : 'Equipo Técnico BIOSKIN',
+      publishedAt: new Date().toISOString().split('T')[0],
+      readTime: aiResult.readTime,
+      image: `/images/blog/${finalSlug}.jpg`,
+      featured: Math.random() > 0.7 // 30% posibilidad de ser destacado
+    };
+
     // Guardar en base de datos
     try {
-      // Insertar blog principal
-      const insertBlog = blogQueries.create;
-      const blogResult = insertBlog.run(
-        blogData.title,
-        blogData.slug,
-        blogData.excerpt,
-        blogData.content,
-        blogData.category,
-        blogData.blog_type,
-        blogData.author,
-        blogData.published_at,
-        blogData.readTime,
-        null, // image
-        0, // featured
-        blogData.week_year,
-        blogData.is_ai_generated,
-        blogData.ai_prompt_version
-      );
-
-      const blogId = blogResult.lastInsertRowid;
-
-      // Insertar tags
-      if (blogData.tags && blogData.tags.length > 0) {
-        const insertTag = db.prepare('INSERT OR IGNORE INTO tags (name) VALUES (?)');
-        const insertBlogTag = db.prepare('INSERT INTO blog_tags (blog_id, tag_id) VALUES (?, ?)');
-        const getTagId = db.prepare('SELECT id FROM tags WHERE name = ?');
-
-        for (const tag of blogData.tags) {
-          insertTag.run(tag);
-          const tagRow = getTagId.get(tag);
-          if (tagRow) {
-            insertBlogTag.run(blogId, tagRow.id);
-          }
-        }
-      }
-
-      console.log(`✅ Blog guardado exitosamente con ID: ${blogId}`);
-
-      // Obtener estado semanal actualizado
-      const weeklyStatus = await getWeeklyStatus(db);
+      const blogId = createCompleteBlog(blogData, aiResult.tags, aiResult.citations);
+      
+      console.log(`Blog guardado exitosamente con ID: ${blogId}`);
 
       res.status(200).json({
         success: true,
         message: 'Blog generado y guardado exitosamente',
         blog: {
           id: blogId,
-          ...blogData
+          ...blogData,
+          tags: aiResult.tags,
+          citations: aiResult.citations
         },
-        weeklyStatus: weeklyStatus
+        searchInfo: searchInfo
       });
 
     } catch (dbError) {
@@ -141,8 +120,6 @@ export default async function handler(req, res) {
         message: 'Error guardando el blog en base de datos',
         error: dbError.message
       });
-    } finally {
-      db.close();
     }
 
   } catch (error) {
@@ -151,7 +128,7 @@ export default async function handler(req, res) {
     if (error.message.includes('OPENAI_API_KEY')) {
       res.status(500).json({
         success: false,
-        message: 'Configuración de IA no válida. Verificar OPENAI_API_KEY.',
+        message: 'Configuración de IA no válida. Verificar OPENAI_API_KEY',
         error: error.message
       });
     } else {
@@ -164,29 +141,22 @@ export default async function handler(req, res) {
   }
 }
 
-// Endpoint para obtener estado semanal sin generar
-export async function getStatus(req, res) {
+// Función para ejecutar generación automática (para Vercel Cron)
+export async function generateAutomaticBlog() {
+  const categories = ['medico-estetico', 'tecnico'];
+  const category = categories[Math.floor(Math.random() * categories.length)];
+  
   try {
-    const dbPath = path.join(__dirname, '..', '..', 'data', 'blogs.db');
-    const db = new Database(dbPath);
-    initializeDatabase();
-
-    const weeklyStatus = await getWeeklyStatus(db);
+    const response = await fetch('/api/ai-blog/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category })
+    });
     
-    res.status(200).json({
-      success: true,
-      weeklyStatus: weeklyStatus,
-      topics: BLOG_TOPICS
-    });
-
-    db.close();
-
+    const result = await response.json();
+    console.log('Blog automático generado:', result.blog?.title);
+    return result;
   } catch (error) {
-    console.error('Error obteniendo estado:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error obteniendo estado semanal',
-      error: error.message
-    });
+    console.error('Error en generación automática:', error);
   }
 }

@@ -93,6 +93,30 @@ Uses TailwindCSS with mobile-first approach and custom container class `containe
 - **Deploy**: Vercel with SPA routing via `vercel.json` rewrites
 - **Linting**: ESLint with React hooks and TypeScript rules
 
+## Configuración de OpenAI (API Key)
+- Variable requerida: `OPENAI_API_KEY` (no usar prefijo `VITE_` para evitar exponerla en el cliente).
+- Dónde se usa: `lib/ai-service.js` vía `process.env.OPENAI_API_KEY`, consumido por la función serverless `api/ai-blog/generate.js`.
+
+### Local (desarrollo)
+- Crear un archivo `.env` en la raíz (o copiar desde `.env.example`) y completar:
+  - `OPENAI_API_KEY=sk-...`
+- Asegúrate de ejecutar el entorno que levanta funciones serverless con variables de entorno cargadas (p. ej. `vercel dev`), o exporta la variable en la sesión:
+  - PowerShell: `$env:OPENAI_API_KEY="sk-..."` antes de iniciar el dev server que ejecute las APIs.
+
+Nota: El Vite dev server por sí solo no ejecuta las funciones; las variables se consumen en los handlers de `/api/*`.
+
+### Producción (Vercel)
+- En el dashboard de Vercel: Project → Settings → Environment Variables → agregar `OPENAI_API_KEY`.
+- Re-deploy para que la función `api/ai-blog/generate.js` tome el valor.
+
+### Validación rápida
+- Endpoint: `POST /api/ai-blog/generate` con JSON `{ "category": "medico-estetico" }`.
+- Si falta la clave, verás el error: "Configuración de IA no válida. Verificar OPENAI_API_KEY".
+
+### Seguridad
+- No expongas la clave en el frontend ni la nombres `VITE_OPENAI_KEY`.
+- `.gitignore` ya excluye `.env`; no subir secretos al repo.
+
 ### Git Workflow
 **ALWAYS** after making any changes to the codebase, execute the following Git commands to save changes to the repository:
 ```bash
