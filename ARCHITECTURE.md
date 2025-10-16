@@ -86,6 +86,7 @@ data/blogs.db                // SQLite: blogs, tags, citations, blog_tags
 // AI Blog Generation
 api/ai-blog/generate.js      // POST - Generate blog with weekly limits
 api/ai-blog/generate-safe.js // POST - Safe generation with fallback  
+api/ai-blog/stats.js         // GET  - Weekly statistics and limits
 api/blogs/test.js            // GET  - System diagnostic
 
 // Calendar & Email Integration
@@ -187,6 +188,11 @@ Responsive: Mobile-first approach
 - BlogCard: Blog listing item
 - ServiceCard: Service showcase
 - TestimonialCard: Customer testimonials
+- BlogAdmin: Complete admin interface for AI blog generation
+- BlogAdminPage: Admin page wrapper with navigation
+
+// Custom Hooks
+- useBlogAdmin: State management for blog administration
 ```
 
 ---

@@ -1,4 +1,3 @@
-import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './pages/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -14,6 +13,7 @@ import Appointment from './pages/Appointment';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Faq from './pages/Faq';
+import BlogAdminPage from './pages/BlogAdminPage';
 
 function App() {
   return (
@@ -33,6 +33,7 @@ function App() {
           <Route path="/products" element={<Products />} />
 
           {/* RUTAS DE BLOG */}
+          <Route path="/blogs/admin" element={<BlogAdminPage />} />
           <Route path="/blogs/:slug" element={<BlogDetail />} />
           <Route path="/blogs" element={<Blogs />} />
 

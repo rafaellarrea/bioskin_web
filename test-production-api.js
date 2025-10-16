@@ -2,10 +2,22 @@
 // Script para probar las APIs de producción desde local
 
 const testProductionAPI = async () => {
-  const baseUrl = 'https://bioskin-h9w0ah6iq-rafael-larreas-projects.vercel.app';
+  const baseUrl = 'https://saludbioskin.vercel.app';
   
   console.log('🚀 Probando APIs en PRODUCCIÓN...\n');
   console.log(`Base URL: ${baseUrl}\n`);
+  
+  // Test 0: Endpoint simple
+  console.log('0️⃣ Probando endpoint simple...');
+  try {
+    const simpleResponse = await fetch(`${baseUrl}/api/test-simple`);
+    const simpleData = await simpleResponse.json();
+    console.log('✅ Endpoint simple:', JSON.stringify(simpleData, null, 2));
+  } catch (error) {
+    console.log('❌ Error en endpoint simple:', error.message);
+  }
+  
+  console.log('\n---\n');
   
   // Test 1: Endpoint de diagnóstico
   console.log('1️⃣ Probando endpoint de diagnóstico en producción...');
