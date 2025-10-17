@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { LogOut } from 'lucide-react';
-import BlogAdmin from '../components/BlogAdmin';
+import AdminDashboard from '../components/AdminDashboard';
 import AdminLogin from '../components/AdminLogin';
 import useAuth from '../hooks/useAuth';
 
@@ -50,7 +50,7 @@ const BlogAdminPage: React.FC = () => {
           </button>
         </div>
         
-        <BlogAdmin />
+        <AdminDashboard />
         
         {/* Acceso Rápido */}
         <div className="max-w-4xl mx-auto mt-8 grid md:grid-cols-3 gap-4">
