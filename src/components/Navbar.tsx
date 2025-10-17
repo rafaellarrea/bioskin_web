@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
@@ -21,6 +20,7 @@ export default function Navbar() {
           <li><Link to="/about" className={`${baseLink} ${pathname === '/about' ? active : inactive}`}>Nosotros</Link></li>
           <li><Link to="/faq" className={`${baseLink} ${pathname === '/faq' ? active : inactive}`}>Preguntas</Link></li>
           <li><Link to="/contact" className={`${baseLink} ${pathname === '/contact' ? active : inactive}`}>Contacto</Link></li>
+          <li><Link to="/admin" className={`${baseLink} ${pathname.startsWith('/admin') ? active : inactive}`}>Admin</Link></li>
         </ul>
       </div>
     </nav>

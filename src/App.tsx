@@ -33,9 +33,11 @@ function App() {
           <Route path="/products" element={<Products />} />
 
           {/* RUTAS DE BLOG */}
-          <Route path="/blogs/admin" element={<BlogAdminPage />} />
           <Route path="/blogs/:slug" element={<BlogDetail />} />
           <Route path="/blogs" element={<Blogs />} />
+
+          {/* RUTAS ADMINISTRATIVAS */}
+          <Route path="/admin" element={<BlogAdminPage />} />
 
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/about" element={<About />} />

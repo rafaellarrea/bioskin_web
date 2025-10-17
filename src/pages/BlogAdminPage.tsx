@@ -10,10 +10,10 @@ const BlogAdminPage: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Panel de Administración
+            Panel de Administración BIOSKIN
           </h1>
           <p className="text-gray-600">
-            Gestiona y genera contenido de blogs con inteligencia artificial
+            Gestión de contenido y configuraciones del sitio web
           </p>
         </div>
         

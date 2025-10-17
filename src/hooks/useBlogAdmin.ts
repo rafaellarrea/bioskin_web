@@ -38,14 +38,52 @@ interface GenerationResult {
 
 const useBlogAdmin = () => {
   const [stats, setStats] = useState<BlogStats | null>(null);
-  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastGenerationResult, setLastGenerationResult] = useState<GenerationResult | null>(null);
+
+  // Función helper para obtener semana del año
+  const getCurrentWeekYear = () => {
+    const date = new Date();
+    const week = getWeekNumber(date);
+    return `${date.getFullYear()}-W${week.toString().padStart(2, '0')}`;
+  };
+
+  const getWeekNumber = (date: Date) => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  };
 
   // Cargar estadísticas
   const loadStats = useCallback(async () => {
     try {
       setIsLoadingStats(true);
+      
+      // Mock data temporal mientras se resuelve el routing de Vercel
+      // TODO: Cambiar por endpoint real cuando esté funcionando
+      const mockStats = {
+        currentWeek: getCurrentWeekYear(),
+        weeklyLimits: {
+          total: 2,
+          'medico-estetico': 1,
+          'tecnico': 1
+        },
+        generated: {
+          total: 1,
+          'medico-estetico': 1,
+          'tecnico': 0
+        },
+        canGenerate: {
+          'medico-estetico': false,
+          'tecnico': true,
+          any: true
+        }
+      };
+      
+      setStats(mockStats);
+      
+      /* Código original - restaurar cuando el endpoint funcione
       const response = await fetch('/api/ai-blog/stats');
       const data = await response.json();
       
@@ -54,6 +92,7 @@ const useBlogAdmin = () => {
       } else {
         console.error('Error cargando estadísticas:', data.message);
       }
+      */
     } catch (error) {
       console.error('Error de conexión al cargar estadísticas:', error);
     } finally {
