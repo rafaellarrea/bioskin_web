@@ -1,7 +1,7 @@
 // api/ai-blog/stats.js
 // Endpoint para obtener estadísticas de blogs generados
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
   // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
