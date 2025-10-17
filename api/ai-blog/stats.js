@@ -1,7 +1,7 @@
 // api/ai-blog/stats.js
 // Endpoint para obtener estadísticas de blogs generados
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -33,56 +33,37 @@ export default function handler(req, res) {
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     };
 
-    const currentWeek = getCurrentWeekYear();
-
-    // Simulación de estadísticas (en producción, esto vendría de la base de datos)
-    // Por ahora, simulamos datos para que la interfaz funcione
+    // Mock data para testing (sin SQLite)
     const mockStats = {
-      currentWeek,
+      currentWeek: getCurrentWeekYear(),
       weeklyLimits: {
         total: 2,
         'medico-estetico': 1,
         'tecnico': 1
       },
       generated: {
-        total: 0, // Se actualizará dinámicamente
-        'medico-estetico': 0,
+        total: 1,
+        'medico-estetico': 1,
         'tecnico': 0
       },
       canGenerate: {
-        'medico-estetico': true,
+        'medico-estetico': false,
         'tecnico': true,
         any: true
-      },
-      history: [
-        {
-          week: currentWeek,
-          generated: 0,
-          types: { 'medico-estetico': 0, 'tecnico': 0 }
-        }
-      ]
+      }
     };
 
-    // Calcular si se puede generar más contenido
-    mockStats.canGenerate['medico-estetico'] = mockStats.generated['medico-estetico'] < mockStats.weeklyLimits['medico-estetico'];
-    mockStats.canGenerate['tecnico'] = mockStats.generated['tecnico'] < mockStats.weeklyLimits['tecnico'];
-    mockStats.canGenerate.any = mockStats.generated.total < mockStats.weeklyLimits.total;
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Estadísticas obtenidas correctamente',
-      stats: mockStats,
-      meta: {
-        endpoint: '/api/ai-blog/stats',
-        timestamp: new Date().toISOString(),
-        week: currentWeek
-      }
+      data: mockStats,
+      message: 'Estadísticas obtenidas exitosamente',
+      endpoint: '/api/ai-blog/stats'
     });
 
   } catch (error) {
     console.error('Error en stats:', error);
     
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Error obteniendo estadísticas',
       error: {
