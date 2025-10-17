@@ -114,6 +114,19 @@ const useBlogAdmin = () => {
         body: JSON.stringify(request)
       });
 
+      // Verificar si la respuesta es válida
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} - ${response.statusText}`);
+      }
+
+      // Verificar si la respuesta es JSON válido
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Respuesta no es JSON:', textResponse);
+        throw new Error('El servidor devolvió una respuesta no válida (HTML en lugar de JSON)');
+      }
+
       const result = await response.json();
       setLastGenerationResult(result);
 
@@ -135,7 +148,7 @@ const useBlogAdmin = () => {
     } catch (error) {
       const errorResult: GenerationResult = {
         success: false,
-        message: 'Error de conexión',
+        message: 'Error de conexión o servidor',
         error: error instanceof Error ? error.message : String(error)
       };
       
