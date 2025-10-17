@@ -1,12 +1,7 @@
 
 {
-  "functions": {
-    "api/ai-blog/stats.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/" }
   ],
   "crons": [
     {
