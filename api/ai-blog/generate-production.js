@@ -217,7 +217,7 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
         const host = req.headers.host;
         const baseUrl = `${protocol}://${host}`;
         
-        const fallbackResponse = await fetch(`${baseUrl}/api/blogs/static`, {
+        const fallbackResponse = await fetch(`${baseUrl}/api/blogs/manage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ blog: blogData })

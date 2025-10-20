@@ -1,58 +1,18 @@
 // api/blogs/manage.js
 // Endpoint unificado para gestión completa de blogs (CRUD + JSON storage)
 
-import { blogPosts } from '../../src/data/blogs.js';
-import { createWriteStream, readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+// import { blogPosts } from '../../src/data/blogs.ts';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Ruta para almacenamiento JSON local (solo para desarrollo)
-const BLOGS_JSON_PATH = join(__dirname, '../../data/blogs-generated.json');
-
-// Array para almacenar blogs dinámicamente en memoria (producción)
-let dynamicBlogs = [];
-
-// Función para leer blogs JSON existentes
-function loadBlogsFromJSON() {
-  if (typeof window !== 'undefined') return []; // Browser environment
-  
-  try {
-    if (existsSync(BLOGS_JSON_PATH)) {
-      const data = readFileSync(BLOGS_JSON_PATH, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.warn('Error leyendo blogs JSON:', error.message);
-  }
-  return [];
-}
-
-// Función para guardar blogs en JSON (solo desarrollo local)
-function saveBlogsToJSON(blogs) {
-  if (typeof window !== 'undefined' || process.env.VERCEL) return false; // Skip en browser y Vercel
-  
-  try {
-    const dataDir = dirname(BLOGS_JSON_PATH);
-    if (!existsSync(dataDir)) {
-      mkdirSync(dataDir, { recursive: true });
-    }
-    
-    writeFileSync(BLOGS_JSON_PATH, JSON.stringify(blogs, null, 2), 'utf8');
-    return true;
-  } catch (error) {
-    console.warn('Error guardando blogs JSON:', error.message);
-    return false;
-  }
-}
-
-// Inicializar blogs dinámicos al importar
-if (dynamicBlogs.length === 0) {
-  const savedBlogs = loadBlogsFromJSON();
-  dynamicBlogs.push(...savedBlogs);
-}
+// Datos estáticos de blogs (temporal - evitar problema de importación TS)
+const blogPosts = [];
+import { 
+  getDynamicBlogs, 
+  addDynamicBlog, 
+  updateDynamicBlog, 
+  deleteDynamicBlog, 
+  findDynamicBlog,
+  getDynamicBlogsCount
+} from '../../lib/dynamic-blogs-storage.js';
 
 export default async function handler(req, res) {
   // Headers CORS
@@ -114,6 +74,7 @@ async function handleGet(req, res) {
     allBlogs.push(...blogPosts.map(blog => ({ ...blog, source: 'static' })));
   }
   if (source === 'dynamic' || source === 'all') {
+    const dynamicBlogs = getDynamicBlogs();
     allBlogs.push(...dynamicBlogs.map(blog => ({ ...blog, source: 'dynamic' })));
   }
 
@@ -176,7 +137,7 @@ async function handleGet(req, res) {
     },
     stats: {
       static: blogPosts.length,
-      dynamic: dynamicBlogs.length,
+      dynamic: getDynamicBlogsCount(),
       total: allBlogs.length
     },
     endpoint: '/api/blogs/manage'
@@ -195,6 +156,7 @@ async function handlePost(req, res) {
   }
 
   // Verificar que no existe un blog con el mismo slug
+  const dynamicBlogs = getDynamicBlogs();
   const allBlogs = [...blogPosts, ...dynamicBlogs];
   if (allBlogs.find(b => b.slug === blog.slug)) {
     return res.status(400).json({
@@ -221,11 +183,8 @@ async function handlePost(req, res) {
     updatedAt: new Date().toISOString()
   };
 
-  // Agregar al array dinámico
-  dynamicBlogs.unshift(newBlog);
-
-  // Intentar guardar en JSON (solo desarrollo local)
-  const saved = saveBlogsToJSON(dynamicBlogs);
+  // Agregar usando el módulo de almacenamiento compartido
+  const saved = addDynamicBlog(newBlog);
 
   return res.status(201).json({
     success: true,
@@ -233,8 +192,8 @@ async function handlePost(req, res) {
     blog: formatBlog(newBlog),
     storage: {
       memory: true,
-      json: saved,
-      location: saved ? BLOGS_JSON_PATH : 'memory-only'
+      json: saved.json,
+      location: saved.json ? 'json-file' : 'memory-only'
     },
     endpoint: '/api/blogs/manage'
   });
@@ -252,12 +211,13 @@ async function handlePut(req, res) {
     });
   }
 
-  // Buscar blog en dinámicos (solo se pueden editar los generados dinámicamente)
-  const blogIndex = dynamicBlogs.findIndex(b => 
+  // Buscar blog en dinámicos
+  const dynamicBlogs = getDynamicBlogs();
+  const existingBlog = dynamicBlogs.find(b => 
     (id && b.id === id) || (slug && b.slug === slug)
   );
 
-  if (blogIndex === -1) {
+  if (!existingBlog) {
     return res.status(404).json({
       success: false,
       message: 'Blog no encontrado o no editable (solo blogs generados dinámicamente)'
@@ -266,15 +226,13 @@ async function handlePut(req, res) {
 
   // Actualizar blog
   const updatedBlog = {
-    ...dynamicBlogs[blogIndex],
+    ...existingBlog,
     ...blog,
     updatedAt: new Date().toISOString()
   };
 
-  dynamicBlogs[blogIndex] = updatedBlog;
-
-  // Intentar guardar en JSON
-  const saved = saveBlogsToJSON(dynamicBlogs);
+  // Actualizar usando el módulo de almacenamiento
+  const saved = updateDynamicBlog(existingBlog.id, updatedBlog);
 
   return res.status(200).json({
     success: true,
@@ -282,7 +240,7 @@ async function handlePut(req, res) {
     blog: formatBlog(updatedBlog),
     storage: {
       memory: true,
-      json: saved
+      json: saved.json
     },
     endpoint: '/api/blogs/manage'
   });
@@ -300,30 +258,28 @@ async function handleDelete(req, res) {
   }
 
   // Buscar blog en dinámicos
-  const blogIndex = dynamicBlogs.findIndex(b => 
+  const dynamicBlogs = getDynamicBlogs();
+  const blogToDelete = dynamicBlogs.find(b => 
     (id && b.id === id) || (slug && b.slug === slug)
   );
 
-  if (blogIndex === -1) {
+  if (!blogToDelete) {
     return res.status(404).json({
       success: false,
       message: 'Blog no encontrado o no eliminable (solo blogs generados dinámicamente)'
     });
   }
 
-  // Eliminar blog
-  const deletedBlog = dynamicBlogs.splice(blogIndex, 1)[0];
-
-  // Guardar cambios en JSON
-  const saved = saveBlogsToJSON(dynamicBlogs);
+  // Eliminar blog usando el módulo de almacenamiento
+  const saved = deleteDynamicBlog(blogToDelete.id);
 
   return res.status(200).json({
     success: true,
     message: 'Blog eliminado exitosamente',
-    blog: formatBlog(deletedBlog),
+    blog: formatBlog(blogToDelete),
     storage: {
       memory: true,
-      json: saved
+      json: saved.json
     },
     endpoint: '/api/blogs/manage'
   });

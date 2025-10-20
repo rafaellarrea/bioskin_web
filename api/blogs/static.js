@@ -1,12 +1,43 @@
 // api/blogs/static.js
 // Endpoint para blogs usando datos estáticos + blogs generados dinámicamente
 
-import { blogPosts } from '../../src/data/blogs.js';
+// Datos estáticos de blogs (fallback temporal)
+const blogPosts = [
+  {
+    id: "acido-hialuronico-facial",
+    title: "Beneficios del Ácido Hialurónico en Tratamientos Faciales", 
+    slug: "acido-hialuronico-facial",
+    excerpt: "Descubre cómo el ácido hialurónico puede transformar tu piel y los diferentes tipos de tratamientos disponibles en medicina estética.",
+    content: "El ácido hialurónico es una sustancia...",
+    category: "medico-estetico",
+    author: "Dra. Daniela Creamer",
+    publishedAt: "2024-10-09",
+    readTime: 5,
+    image: "/images/blog/medico-estetico/acido-hialuronico.jpg",
+    featured: true,
+    tags: ["ácido hialurónico", "hidratación", "anti-aging"]
+  },
+  {
+    id: "tecnologia-ipl",
+    title: "Tecnología IPL: Fundamentos y Aplicaciones Clínicas",
+    slug: "tecnologia-ipl", 
+    excerpt: "Análisis técnico de la tecnología de Luz Pulsada Intensa (IPL) y sus múltiples aplicaciones en medicina estética.",
+    content: "La tecnología IPL representa...",
+    category: "tecnico",
+    author: "Equipo Técnico BIOSKIN",
+    publishedAt: "2024-10-07",
+    readTime: 8,
+    image: "/images/blog/tecnico/ipl-technology.jpg",
+    featured: false,
+    tags: ["IPL", "fototermólisis", "tecnología médica"]
+  }
+];
 
-// Array para almacenar blogs generados dinámicamente en memoria
-// En producción, esto se perdería al reiniciar el serverless
-// Pero es mejor que nada como solución temporal
-let dynamicBlogs = [];
+// Importar funciones de almacenamiento compartido
+import { 
+  getDynamicBlogs, 
+  addDynamicBlog
+} from '../../lib/dynamic-blogs-storage.js';
 
 export default async function handler(req, res) {
   // Headers CORS
@@ -39,13 +70,8 @@ export default async function handler(req, res) {
           featured: false
         };
 
-        // Agregar a array dinámico (evitar duplicados)
-        const existingIndex = dynamicBlogs.findIndex(b => b.slug === formattedBlog.slug);
-        if (existingIndex >= 0) {
-          dynamicBlogs[existingIndex] = formattedBlog;
-        } else {
-          dynamicBlogs.unshift(formattedBlog); // Agregar al inicio
-        }
+        // Agregar usando el módulo de almacenamiento compartido
+        addDynamicBlog(formattedBlog);
 
         return res.status(200).json({
           success: true,
@@ -83,6 +109,7 @@ export default async function handler(req, res) {
     // Si se solicita un blog específico por slug
     if (slug) {
       // Buscar primero en blogs dinámicos, luego en estáticos
+      const dynamicBlogs = getDynamicBlogs();
       let blog = dynamicBlogs.find(b => b.slug === slug);
       if (!blog) {
         blog = blogPosts.find(b => b.slug === slug);
@@ -118,6 +145,7 @@ export default async function handler(req, res) {
     const offset = (pageNum - 1) * limitNum;
 
     // Combinar blogs estáticos + dinámicos
+    const dynamicBlogs = getDynamicBlogs();
     let filteredBlogs = [...dynamicBlogs, ...blogPosts];
 
     // Filtrar por categoría
