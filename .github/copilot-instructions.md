@@ -184,6 +184,22 @@ Nota: El Vite dev server por sí solo no ejecuta las funciones; las variables se
 - No expongas la clave en el frontend ni la nombres `VITE_OPENAI_KEY`.
 - `.gitignore` ya excluye `.env`; no subir secretos al repo.
 
+### Vercel Extension Integration
+**MANDATORY**: Use the installed VSCode Vercel extension (`frenco.vscode-vercel@2.2.1`) for Vercel-related investigations and deployments.
+
+#### **Extension Usage Guidelines**
+1. **Project Status**: Use extension commands to verify deployment status and configuration
+2. **Function Limits**: Monitor serverless function count through extension interface
+3. **Environment Variables**: Manage production secrets through Vercel dashboard integration
+4. **Deployment Verification**: Use extension to confirm successful deployments and check logs
+5. **Storage Limitations**: Remember Vercel's filesystem constraints when designing persistence solutions
+
+#### **Critical Vercel Storage Facts (VERIFIED)**
+- **Filesystem**: Read-only with writable `/tmp` (500MB limit, temporary)
+- **SQLite**: Cannot persist writes to `data/blogs.db` - use external storage or memory fallbacks
+- **Functions**: 12 maximum on Hobby plan - strictly monitor usage
+- **Project**: Currently linked as ID `prj_Q5wFypHi6ErM9WpFUfSPYGrjIXL6`
+
 ### Git Workflow
 **ALWAYS** after making any changes to the codebase, execute the following Git commands to save changes to the repository:
 ```bash
