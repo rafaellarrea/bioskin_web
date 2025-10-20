@@ -73,8 +73,15 @@ export function useBlogs(options: {
       if (options.search) params.append('search', options.search);
       if (options.featured) params.append('featured', 'true');
 
-      // Usar endpoint estático que funciona sin base de datos
-      const response = await fetch(`/api/blogs/static?${params.toString()}`);
+      // Intentar usar endpoint con base de datos primero, fallback a estático
+      let response;
+      try {
+        response = await fetch(`/api/blogs?${params.toString()}`);
+        if (!response.ok) throw new Error('DB endpoint failed');
+      } catch {
+        // Fallback al endpoint estático
+        response = await fetch(`/api/blogs/static?${params.toString()}`);
+      }
       
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status}`);
@@ -121,8 +128,15 @@ export function useBlog(slug: string) {
       setLoading(true);
       setError(null);
 
-      // Usar endpoint estático
-      const response = await fetch(`/api/blogs/static?slug=${slug}`);
+      // Intentar usar endpoint con base de datos primero, fallback a estático
+      let response;
+      try {
+        response = await fetch(`/api/blogs/${slug}`);
+        if (!response.ok) throw new Error('DB endpoint failed');
+      } catch {
+        // Fallback al endpoint estático
+        response = await fetch(`/api/blogs/static?slug=${slug}`);
+      }
       
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status}`);

@@ -1,5 +1,7 @@
 // api/ai-blog/generate-production.js
-// Versión de producción sin dependencia de SQLite
+// Versión de producción CON guardado en base de datos SQLite
+
+import { createCompleteBlog } from '../../lib/database.js';
 
 export default async function handler(req, res) {
   // Headers CORS
@@ -183,9 +185,33 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     };
 
-    // Crear objeto blog
+    // Crear objeto blog para la base de datos
+    const blogData = {
+      title,
+      slug,
+      excerpt,
+      content,
+      category: blogType,
+      author: 'BIOSKIN IA',
+      publishedAt: new Date().toISOString().split('T')[0],
+      readTime: Math.ceil(content.split(' ').length / 200),
+      image: `/images/blog/${blogType}/default.jpg`, // Imagen por defecto
+      featured: false
+    };
+
+    // Guardar en la base de datos SQLite
+    let blogId;
+    try {
+      blogId = createCompleteBlog(blogData, tags, []);
+      console.log(`✅ Blog guardado en BD con ID: ${blogId}`);
+    } catch (dbError) {
+      console.error('Error guardando en BD:', dbError);
+      // Continuar sin fallar, el blog se generó correctamente
+    }
+
+    // Crear objeto blog para respuesta
     const blog = {
-      id: Date.now(),
+      id: blogId || Date.now(),
       title,
       slug,
       excerpt,
@@ -193,24 +219,28 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
       category: blogType,
       blog_type: blogType,
       tags,
-      read_time: Math.ceil(content.split(' ').length / 200), // ~200 palabras por minuto
+      read_time: Math.ceil(content.split(' ').length / 200),
       author: 'BIOSKIN IA',
       published_at: new Date().toISOString().split('T')[0],
       week_year: getCurrentWeekYear(),
       is_ai_generated: true,
       ai_prompt_version: 'v2.0-production',
       created_at: new Date().toISOString(),
-      endpoint: '/api/ai-blog/generate-production'
+      endpoint: '/api/ai-blog/generate-production',
+      saved_to_db: !!blogId
     };
 
     // Respuesta exitosa
     res.status(200).json({
       success: true,
-      message: 'Blog generado exitosamente con IA en producción',
+      message: blogId 
+        ? 'Blog generado exitosamente y guardado en base de datos' 
+        : 'Blog generado exitosamente (sin guardar en BD)',
       blog,
       meta: {
         wordCount: content.split(' ').length,
         hasOpenAI: true,
+        savedToDB: !!blogId,
         endpoint: '/api/ai-blog/generate-production',
         timestamp: new Date().toISOString(),
         environment: 'production'
