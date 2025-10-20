@@ -73,18 +73,23 @@ export function useBlogs(options: {
       if (options.search) params.append('search', options.search);
       if (options.featured) params.append('featured', 'true');
 
-      // Usar endpoint estático que incluye blogs dinámicos
-      // En Vercel, la BD SQLite no funciona, así que priorizamos el estático
+      // Usar endpoint de gestión unificado que incluye blogs estáticos y dinámicos
       let response;
       try {
-        response = await fetch(`/api/blogs/static?${params.toString()}`);
-        if (!response.ok) throw new Error('Static endpoint failed');
+        response = await fetch(`/api/blogs/manage?${params.toString()}`);
+        if (!response.ok) throw new Error('Management endpoint failed');
       } catch {
-        // Fallback al endpoint de BD (para desarrollo local)
+        // Fallback al endpoint estático
         try {
-          response = await fetch(`/api/blogs?${params.toString()}`);
+          response = await fetch(`/api/blogs/static?${params.toString()}`);
+          if (!response.ok) throw new Error('Static endpoint failed');
         } catch {
-          throw new Error('Ambos endpoints fallaron');
+          // Último fallback al endpoint de BD (para desarrollo local)
+          try {
+            response = await fetch(`/api/blogs?${params.toString()}`);
+          } catch {
+            throw new Error('Todos los endpoints fallaron');
+          }
         }
       }
       
@@ -133,17 +138,23 @@ export function useBlog(slug: string) {
       setLoading(true);
       setError(null);
 
-      // Usar endpoint estático que incluye blogs dinámicos
+      // Usar endpoint de gestión unificado que incluye blogs estáticos y dinámicos
       let response;
       try {
-        response = await fetch(`/api/blogs/static?slug=${slug}`);
-        if (!response.ok) throw new Error('Static endpoint failed');
+        response = await fetch(`/api/blogs/manage?slug=${slug}`);
+        if (!response.ok) throw new Error('Management endpoint failed');
       } catch {
-        // Fallback al endpoint de BD (para desarrollo local)
+        // Fallback al endpoint estático
         try {
-          response = await fetch(`/api/blogs/${slug}`);
+          response = await fetch(`/api/blogs/static?slug=${slug}`);
+          if (!response.ok) throw new Error('Static endpoint failed');
         } catch {
-          throw new Error('Ambos endpoints fallaron');
+          // Último fallback al endpoint de BD (para desarrollo local)
+          try {
+            response = await fetch(`/api/blogs/${slug}`);
+          } catch {
+            throw new Error('Todos los endpoints fallaron');
+          }
         }
       }
       

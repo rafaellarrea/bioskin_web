@@ -17,6 +17,7 @@ import {
 
 // Importar componentes de gestión
 import BlogAdmin from './BlogAdmin';
+import BlogManagement from './BlogManagement';
 
 interface AdminOption {
   id: string;
@@ -33,10 +34,18 @@ const AdminDashboard: React.FC = () => {
   const adminOptions: AdminOption[] = [
     {
       id: 'blogs',
-      title: 'Gestión de Blogs',
-      description: 'Crear y administrar artículos con IA',
+      title: 'Generar Blogs IA',
+      description: 'Crear artículos automáticamente con IA',
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-blue-500',
+      available: true
+    },
+    {
+      id: 'blog-management',
+      title: 'Gestión de Blogs',
+      description: 'Administrar, editar y eliminar blogs',
+      icon: <Database className="w-6 h-6" />,
+      color: 'bg-indigo-500',
       available: true
     },
     {
@@ -117,6 +126,8 @@ const AdminDashboard: React.FC = () => {
     switch (activeSection) {
       case 'blogs':
         return <BlogAdmin />;
+      case 'blog-management':
+        return <BlogManagement />;
       case 'dashboard':
       default:
         return (

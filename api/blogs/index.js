@@ -1,34 +1,42 @@
 // api/blogs/index.js
-// Endpoint principal para obtener blogs desde la base de datos SQLite
-
-import { getBlogsWithTags, getCompleteBlog, blogQueries } from '../../lib/database.js';
+// Endpoint simplificado que redirige al sistema de gestión unificado
 
 export default async function handler(req, res) {
   // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  const { method, query } = req;
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', ['GET']);
+    return res.status(405).json({ 
+      message: 'Método no permitido. Use /api/blogs/manage para operaciones CRUD' 
+    });
+  }
 
+  // Redirigir al endpoint de gestión unificada
   try {
-    switch (method) {
-      case 'GET':
-        return handleGetBlogs(req, res);
-      default:
-        res.setHeader('Allow', ['GET']);
-        res.status(405).json({ message: `Método ${method} no permitido` });
-    }
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host;
+    const queryString = new URLSearchParams(req.query).toString();
+    const redirectUrl = `${protocol}://${host}/api/blogs/manage${queryString ? '?' + queryString : ''}`;
+    
+    const response = await fetch(redirectUrl);
+    const data = await response.json();
+    
+    return res.status(response.status).json(data);
   } catch (error) {
-    console.error('Error en API de blogs:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error interno del servidor',
-      error: error.message 
+    console.error('Error redirigiendo a gestión:', error);
+    
+    return res.status(500).json({
+      success: false,
+      message: 'Error accediendo al sistema de blogs',
+      error: error.message,
+      redirect: '/api/blogs/manage'
     });
   }
 }
