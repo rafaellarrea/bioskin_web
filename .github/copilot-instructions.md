@@ -11,6 +11,23 @@ BIOSKIN is a medical aesthetics clinic website built with **React 18 + TypeScrip
 - **Styling**: TailwindCSS with custom gold theme (`#deb887`) and Poppins/Playfair Display fonts
 - **State Management**: Component-level state only, no external state management
 
+### 🚨 **CRITICAL VERCEL CONSTRAINTS**
+
+#### **Serverless Functions Limit**
+- **MAXIMUM 12 functions** in Vercel Hobby plan
+- **Current usage**: Check `/api/` directory before creating new functions
+- **Strategy**: Combine related functionality into single endpoints
+- **Examples**: 
+  - ✅ `/api/blogs/index.js` handles GET for all blog operations
+  - ✅ `/api/ai-blog/generate-production.js` handles all AI generation
+  - ❌ Don't create separate functions for similar operations
+
+#### **Database Management**
+- **SINGLE DATABASE ONLY**: Use existing SQLite database at `data/blogs.db`
+- **NO additional databases**: Don't create new DB files or external databases
+- **Schema expansion**: Add tables to existing database using `lib/database.js`
+- **Migrations**: Use existing initialization scripts in `init-database.js`
+
 ### Critical File Organization
 ```
 src/
@@ -93,6 +110,56 @@ Uses TailwindCSS with mobile-first approach and custom container class `containe
 - **Deploy**: Vercel with SPA routing via `vercel.json` rewrites
 - **Linting**: ESLint with React hooks and TypeScript rules
 
+## 🎯 **RESOURCE MANAGEMENT GUIDELINES**
+
+### **Vercel Serverless Functions - STRICT LIMITS**
+**CRITICAL**: Vercel Hobby plan allows MAXIMUM 12 serverless functions
+
+#### **Current Function Inventory (Monitor Before Adding New)**
+```
+/api/
+├── ai-blog/generate-production.js  # AI blog generation
+├── blogs/index.js                  # Blog listing endpoint  
+├── blogs/[slug].js                 # Individual blog endpoint
+├── blogs/static.js                 # Static fallback
+├── getEvents.js                    # Google Calendar integration
+└── sendEmail.js                    # Email/WhatsApp notifications
+```
+
+#### **Function Development Rules**
+1. **Before creating ANY new function**: Count existing functions in `/api/`
+2. **Combine related functionality** into single endpoints
+3. **Use query parameters** instead of separate endpoints when possible
+4. **Delete unused functions** immediately
+5. **Prefer client-side logic** when security allows
+
+#### **Function Consolidation Strategies**
+- ✅ Use `/api/blogs/index.js?action=list|get|search` instead of separate endpoints
+- ✅ Combine CRUD operations in single function with method switching
+- ✅ Use dynamic routes `[...params].js` for multiple related endpoints
+- ❌ Don't create separate functions for similar operations
+
+### **Database Management - SINGLE SOURCE**
+**CRITICAL**: Use ONLY the existing SQLite database at `data/blogs.db`
+
+#### **Database Rules**
+1. **NO new database files**: Don't create additional `.db` files
+2. **NO external databases**: Don't integrate PostgreSQL, MySQL, etc.
+3. **Schema expansion ONLY**: Add tables to existing database
+4. **Use existing patterns**: Follow `lib/database.js` structure
+5. **Migrations through `init-database.js`**: Update schema properly
+
+#### **Adding New Data Tables**
+```javascript
+// In lib/database.js - ADD to existing database
+db.exec(`
+  CREATE TABLE IF NOT EXISTS new_table (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    // ... fields
+  )
+`);
+```
+
 ## Configuración de OpenAI (API Key)
 - Variable requerida: `OPENAI_API_KEY` (no usar prefijo `VITE_` para evitar exponerla en el cliente).
 - Dónde se usa: `lib/ai-service.js` vía `process.env.OPENAI_API_KEY`, consumido por la función serverless `api/ai-blog/generate.js`.
@@ -138,6 +205,29 @@ All user-facing content is in Spanish. Maintain Spanish naming conventions for c
 - `nodemailer` for email sending
 
 When adding new products, update `src/data/products.ts` and ensure images follow the established directory structure.
+
+## ⚠️ **MANDATORY VALIDATION CHECKLIST**
+
+### **Before Creating Any New API Function**
+1. ✅ Count existing functions in `/api/` directory (must be < 12)
+2. ✅ Check if functionality can be added to existing endpoint
+3. ✅ Consider using query parameters instead of new function
+4. ✅ Document function purpose and ensure it's essential
+5. ✅ If creating new function, delete unused ones first
+
+### **Before Adding Data Storage**
+1. ✅ Check if data can be stored in existing `data/blogs.db`
+2. ✅ Add new tables to existing database using `lib/database.js`
+3. ✅ Update `init-database.js` if schema changes needed
+4. ✅ **NEVER** create new `.db` files or external databases
+5. ✅ Test with existing database connection patterns
+
+### **Function Efficiency Rules**
+- **Combine**: Related operations in single function
+- **Parameterize**: Use query params for variations
+- **Reuse**: Extend existing functions when possible
+- **Document**: Clear purpose for each function
+- **Monitor**: Keep track of total function count
 
 ## 📚 Documentation Management Protocol
 
