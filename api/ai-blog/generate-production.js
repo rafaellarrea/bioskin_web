@@ -199,14 +199,39 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
       featured: false
     };
 
-    // Guardar en la base de datos SQLite
+    // Guardar en la base de datos SQLite (si es posible)
     let blogId;
+    let saveError = null;
+    let savedToDynamic = false;
+    
     try {
       blogId = createCompleteBlog(blogData, tags, []);
       console.log(`✅ Blog guardado en BD con ID: ${blogId}`);
     } catch (dbError) {
-      console.error('Error guardando en BD:', dbError);
-      // Continuar sin fallar, el blog se generó correctamente
+      console.error('❌ Error guardando en BD:', dbError);
+      saveError = dbError.message;
+      
+      // Fallback: guardar dinámicamente en memoria del endpoint estático
+      try {
+        const protocol = req.headers['x-forwarded-proto'] || 'http';
+        const host = req.headers.host;
+        const baseUrl = `${protocol}://${host}`;
+        
+        const fallbackResponse = await fetch(`${baseUrl}/api/blogs/static`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blog: blogData })
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackResult = await fallbackResponse.json();
+          savedToDynamic = true;
+          blogId = fallbackResult.blogId;
+          console.log('✅ Blog guardado dinámicamente como fallback');
+        }
+      } catch (fallbackError) {
+        console.error('❌ Error en fallback dinámico:', fallbackError);
+      }
     }
 
     // Crear objeto blog para respuesta
@@ -230,20 +255,27 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
       saved_to_db: !!blogId
     };
 
-    // Respuesta exitosa
+    // Respuesta con diagnóstico completo
+    const saveMethod = blogId && !savedToDynamic ? 'database' : 
+                     savedToDynamic ? 'dynamic-memory' : 'failed';
+                     
     res.status(200).json({
       success: true,
       message: blogId 
-        ? 'Blog generado exitosamente y guardado en base de datos' 
-        : 'Blog generado exitosamente (sin guardar en BD)',
+        ? `Blog generado exitosamente y guardado (${saveMethod})` 
+        : `Blog generado pero no guardado. Error: ${saveError || 'desconocido'}`,
       blog,
       meta: {
         wordCount: content.split(' ').length,
         hasOpenAI: true,
-        savedToDB: !!blogId,
+        savedToDB: !!blogId && !savedToDynamic,
+        savedToDynamic: savedToDynamic,
+        saveMethod: saveMethod,
+        saveError: saveError,
         endpoint: '/api/ai-blog/generate-production',
         timestamp: new Date().toISOString(),
-        environment: 'production'
+        environment: process.env.VERCEL ? 'vercel' : 'local',
+        isVercel: !!process.env.VERCEL
       }
     });
 

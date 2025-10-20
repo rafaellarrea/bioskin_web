@@ -73,14 +73,19 @@ export function useBlogs(options: {
       if (options.search) params.append('search', options.search);
       if (options.featured) params.append('featured', 'true');
 
-      // Intentar usar endpoint con base de datos primero, fallback a estático
+      // Usar endpoint estático que incluye blogs dinámicos
+      // En Vercel, la BD SQLite no funciona, así que priorizamos el estático
       let response;
       try {
-        response = await fetch(`/api/blogs?${params.toString()}`);
-        if (!response.ok) throw new Error('DB endpoint failed');
-      } catch {
-        // Fallback al endpoint estático
         response = await fetch(`/api/blogs/static?${params.toString()}`);
+        if (!response.ok) throw new Error('Static endpoint failed');
+      } catch {
+        // Fallback al endpoint de BD (para desarrollo local)
+        try {
+          response = await fetch(`/api/blogs?${params.toString()}`);
+        } catch {
+          throw new Error('Ambos endpoints fallaron');
+        }
       }
       
       if (!response.ok) {
@@ -128,14 +133,18 @@ export function useBlog(slug: string) {
       setLoading(true);
       setError(null);
 
-      // Intentar usar endpoint con base de datos primero, fallback a estático
+      // Usar endpoint estático que incluye blogs dinámicos
       let response;
       try {
-        response = await fetch(`/api/blogs/${slug}`);
-        if (!response.ok) throw new Error('DB endpoint failed');
-      } catch {
-        // Fallback al endpoint estático
         response = await fetch(`/api/blogs/static?slug=${slug}`);
+        if (!response.ok) throw new Error('Static endpoint failed');
+      } catch {
+        // Fallback al endpoint de BD (para desarrollo local)
+        try {
+          response = await fetch(`/api/blogs/${slug}`);
+        } catch {
+          throw new Error('Ambos endpoints fallaron');
+        }
       }
       
       if (!response.ok) {
