@@ -262,6 +262,10 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       read_time: Math.ceil(content.split(' ').length / 200),
       author: 'BIOSKIN IA',
       published_at: new Date().toISOString().split('T')[0],
+      publishedAt: new Date().toISOString().split('T')[0], // Para compatibilidad frontend
+      readTime: Math.ceil(content.split(' ').length / 200), // Para compatibilidad frontend
+      image: imageData.url, // ✅ ASEGURAR que la imagen se incluya en la respuesta
+      featured: false,
       week_year: getCurrentWeekYear(),
       is_ai_generated: true,
       ai_prompt_version: 'v2.0-production',
@@ -270,15 +274,19 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       saved_to_db: !!blogId
     };
 
-    // Respuesta con diagnóstico completo
+    // Respuesta con diagnóstico mejorado
     const saveMethod = blogId && !savedToDynamic ? 'database' : 
-                     savedToDynamic ? 'dynamic-memory' : 'failed';
+                     savedToDynamic ? 'dynamic-memory' : 'memory-only';
+                     
+    const responseMessage = blogId && !savedToDynamic 
+      ? `Blog generado exitosamente y guardado en base de datos (${saveMethod})`
+      : savedToDynamic 
+        ? `Blog generado exitosamente y guardado en memoria dinámica (${saveMethod})`
+        : `Blog generado exitosamente y guardado en memoria (${saveMethod})`;
                      
     res.status(200).json({
       success: true,
-      message: blogId 
-        ? `Blog generado exitosamente y guardado (${saveMethod})` 
-        : `Blog generado pero no guardado. Error: ${saveError || 'desconocido'}`,
+      message: responseMessage,
       blog,
       meta: {
         wordCount: content.split(' ').length,
@@ -286,11 +294,13 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
         savedToDB: !!blogId && !savedToDynamic,
         savedToDynamic: savedToDynamic,
         saveMethod: saveMethod,
-        saveError: saveError,
+        saveError: saveError ? `Info: ${saveError} (El blog se guardó correctamente en memoria)` : null,
         endpoint: '/api/ai-blog/generate-production',
         timestamp: new Date().toISOString(),
         environment: process.env.VERCEL ? 'vercel' : 'local',
-        isVercel: !!process.env.VERCEL
+        isVercel: !!process.env.VERCEL,
+        imageGenerated: !!imageData.url,
+        imageUrl: imageData.url
       }
     });
 

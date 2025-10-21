@@ -84,22 +84,45 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
         continue;
       }
 
-      // Texto en negrita (**texto**)
-      if (line.includes('**')) {
-        const parts = line.split('**');
-        const formattedParts = parts.map((part, index) => {
-          if (index % 2 === 1) {
-            return <strong key={index} className="font-semibold text-gray-900">{part}</strong>;
-          }
-          return part;
-        });
+      // Texto en negrita (**texto** o *texto*)
+      if (line.includes('**') || line.includes('*')) {
+        let processedLine = line;
         
-        formattedElements.push(
-          <p key={currentKey++} className="text-gray-700 leading-relaxed mb-4">
-            {formattedParts}
-          </p>
-        );
-        continue;
+        // Primero procesar **texto**
+        if (processedLine.includes('**')) {
+          const parts = processedLine.split('**');
+          const formattedParts = parts.map((part, index) => {
+            if (index % 2 === 1) {
+              return <strong key={`bold-${currentKey}-${index}`} className="font-semibold text-gray-900">{part}</strong>;
+            }
+            return part;
+          });
+          
+          formattedElements.push(
+            <p key={currentKey++} className="text-gray-700 leading-relaxed mb-4">
+              {formattedParts}
+            </p>
+          );
+          continue;
+        }
+        
+        // Luego procesar *texto* simple (pero evitar listas)
+        if (processedLine.includes('*') && !processedLine.startsWith('*') && !processedLine.startsWith('- ')) {
+          const parts = processedLine.split('*');
+          const formattedParts = parts.map((part, index) => {
+            if (index % 2 === 1) {
+              return <strong key={`italic-${currentKey}-${index}`} className="font-semibold text-gray-900">{part}</strong>;
+            }
+            return part;
+          });
+          
+          formattedElements.push(
+            <p key={currentKey++} className="text-gray-700 leading-relaxed mb-4">
+              {formattedParts}
+            </p>
+          );
+          continue;
+        }
       }
 
       // Párrafos normales
