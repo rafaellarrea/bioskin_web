@@ -156,7 +156,13 @@ REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
         { role: "user", content: prompt.userPrompt(topic) },
         { 
           role: "user", 
-          content: `ADICIONAL: Al final del artículo, en una línea separada, proporciona una descripción visual concisa (máximo 6 palabras en inglés) que represente el tema principal para buscar una imagen relacionada. Formato: "IMAGEN_BUSQUEDA: [descripción en inglés]"` 
+          content: `ADICIONAL OBLIGATORIO: Al final del artículo, en líneas separadas, proporciona:
+1. IMAGEN_BUSQUEDA: [descripción visual en inglés máximo 6 palabras]
+2. TAGS_BLOG: [5-6 tags específicos separados por comas, basados exactamente en el contenido del blog]
+
+Ejemplo:
+IMAGEN_BUSQUEDA: aesthetic medical laser treatment face
+TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento anti-aging, BIOSKIN` 
         }
       ],
       max_tokens: 1200,
@@ -165,15 +171,24 @@ REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
 
     const content = completion.choices[0].message.content;
     
-    // Extraer descripción visual para imagen
+    // ✅ NUEVO: Extraer tanto descripción visual como tags generados por IA
     let visualDescription = '';
+    let aiGeneratedTags = [];
     let cleanContent = content;
     
+    // Extraer descripción visual para imagen
     const imageMatch = content.match(/IMAGEN_BUSQUEDA:\s*(.+)$/m);
     if (imageMatch) {
       visualDescription = imageMatch[1].trim();
-      // Remover la línea de descripción visual del contenido
-      cleanContent = content.replace(/IMAGEN_BUSQUEDA:\s*.+$/m, '').trim();
+      cleanContent = cleanContent.replace(/IMAGEN_BUSQUEDA:\s*.+$/m, '').trim();
+    }
+    
+    // ✅ NUEVO: Extraer tags generados por IA
+    const tagsMatch = content.match(/TAGS_BLOG:\s*(.+)$/m);
+    if (tagsMatch) {
+      const tagsString = tagsMatch[1].trim();
+      aiGeneratedTags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      cleanContent = cleanContent.replace(/TAGS_BLOG:\s*.+$/m, '').trim();
     }
     
     // Si no se generó descripción visual, crear una basada en el tema
@@ -268,7 +283,10 @@ REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
       return [...new Set(allTags)].slice(0, 6); // Eliminar duplicados y limitar a 6
     };
 
-    const tags = generateDynamicTags(cleanContent, title, blogType);
+    // ✅ PRIORIDAD: Usar tags generados por IA, fallback al sistema dinámico
+    const tags = aiGeneratedTags.length > 0 
+      ? aiGeneratedTags.slice(0, 6) // Usar tags de IA (máximo 6)
+      : generateDynamicTags(cleanContent, title, blogType); // Fallback al sistema anterior
 
     // Función para obtener semana del año
     const getCurrentWeekYear = () => {
@@ -469,6 +487,14 @@ REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
           imageKeywords: imageData.keywords,
           imageSource: imageData.source,
           finalImageUrl: imageData.url
+        },
+        // ✅ NUEVO: Información sobre tags generados por IA
+        tagsProcessing: {
+          aiGeneratedTags: aiGeneratedTags,
+          aiTagsCount: aiGeneratedTags.length,
+          usedAiTags: aiGeneratedTags.length > 0,
+          finalTags: tags,
+          tagSource: aiGeneratedTags.length > 0 ? 'ai-generated' : 'dynamic-keywords'
         }
       }
     });
