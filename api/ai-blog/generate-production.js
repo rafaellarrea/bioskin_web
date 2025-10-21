@@ -48,7 +48,10 @@ export default async function handler(req, res) {
     }
 
     // Importar OpenAI
-    const { OpenAI } = await import('openai');
+    const OpenAI = require('openai');
+const fs = require('fs');
+const path = require('path');
+const { searchRealImage } = require('../../lib/real-image-search');
     
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
@@ -301,89 +304,31 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     };
 
-    // ✅ NUEVO SISTEMA: Generar imagen relevante usando descripción visual mejorada
+    // ✅ SISTEMA BÚSQUEDA REAL DE IMÁGENES
     let imageUrl = '/images/logo/logo-bioskin.png'; // Default fallback
-    let imageData = null; // Inicializar imageData
+    let imageData = null;
     
     try {
-      if (visualDescription && visualDescription.trim()) {
-        // Usar descripción visual de IA para selección de imagen
-        console.log(`🔍 Seleccionando imagen con descripción IA: "${visualDescription}"`);
+      if (aiGeneratedTags.length > 0) {
+        // 🎯 BÚSQUEDA REAL: Usar nuevo servicio de búsqueda con tags de IA
+        console.log(`🎯 Buscando imagen real usando tags IA: [${aiGeneratedTags.join(', ')}]`);
         
-        // ✅ BÚSQUEDA EN TIEMPO REAL: Generar query específico basado en el contenido
-        const keywords = visualDescription.toLowerCase();
-        let searchQuery = '';
+        imageData = await searchRealImage(aiGeneratedTags, visualDescription);
+        imageUrl = imageData.url;
         
-        // Generar query de búsqueda específico basado en keywords del contenido
-        if (keywords.includes('laser') || keywords.includes('láser')) {
-          searchQuery = 'medical laser treatment aesthetic';
-        } else if (keywords.includes('liposucción') || keywords.includes('liposuction')) {
-          searchQuery = 'aesthetic surgery body contouring';
-        } else if (keywords.includes('ultrasonido') || keywords.includes('ultrasound')) {
-          searchQuery = 'ultrasound medical treatment';
-        } else if (keywords.includes('radiofrecuencia') || keywords.includes('radiofrequency')) {
-          searchQuery = 'radiofrequency medical device';
-        } else if (keywords.includes('botox') || keywords.includes('toxina')) {
-          searchQuery = 'botox injection aesthetic';
-        } else if (keywords.includes('ácido hialurónico') || keywords.includes('hyaluronic')) {
-          searchQuery = 'hyaluronic acid injection';
-        } else if (keywords.includes('peeling') || keywords.includes('chemical peel')) {
-          searchQuery = 'chemical peel facial treatment';
-        } else if (keywords.includes('colágeno') || keywords.includes('collagen')) {
-          searchQuery = 'collagen skin treatment';
-        } else if (keywords.includes('facial') || keywords.includes('cara')) {
-          searchQuery = 'facial aesthetic treatment';
-        } else if (keywords.includes('corporal') || keywords.includes('body')) {
-          searchQuery = 'body aesthetic treatment';
-        } else if (keywords.includes('tecnología') || keywords.includes('technology')) {
-          searchQuery = 'medical technology aesthetic device';
-        } else {
-          // Fallback: usar las primeras 3 palabras de la descripción visual
-          searchQuery = visualDescription.split(' ').slice(0, 3).join(' ') + ' medical aesthetic';
-        }
+        console.log(`✅ Imagen encontrada: ${imageData.source} - ${imageData.primaryTerm}`);
         
-        // Usar Unsplash con query específico (más confiable que placeholder)
-        const unsplashBaseUrl = 'https://images.unsplash.com/';
-        const imageIds = [
-          'photo-1559757148-5c350e09d4c6', // Aesthetic treatment
-          'photo-1582750433449-648ed127bb54', // Medical clinic
-          'photo-1559757175-0eb30cd8c063', // Skincare
-          'photo-1576091160399-112ba8d25d1f', // Medical technology
-          'photo-1512290923902-8a9f81dc236c'  // Medical equipment
-        ];
+      } else if (visualDescription && visualDescription.trim()) {
+        // Fallback: usar descripción visual si no hay tags de IA
+        console.log(`🔄 Fallback: Usando descripción visual: "${visualDescription}"`);
         
-        // Seleccionar imagen basada en el query
-        let selectedId = 0;
-        if (searchQuery.includes('laser') || searchQuery.includes('device')) {
-          selectedId = 4; // Medical equipment
-        } else if (searchQuery.includes('injection') || searchQuery.includes('botox')) {
-          selectedId = 0; // Aesthetic treatment
-        } else if (searchQuery.includes('technology') || searchQuery.includes('ultrasound')) {
-          selectedId = 3; // Medical technology
-        } else if (searchQuery.includes('facial') || searchQuery.includes('skin')) {
-          selectedId = 2; // Skincare
-        } else if (searchQuery.includes('clinic') || searchQuery.includes('medical')) {
-          selectedId = 1; // Medical clinic
-        }
-        
-        // Construir URL final con parámetros optimizados
-        const timestamp = Date.now();
-        imageUrl = `${unsplashBaseUrl}${imageIds[selectedId]}?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80&t=${timestamp}`;
-        
-        console.log(`🎯 Query de búsqueda: "${searchQuery}" → Imagen ID: ${selectedId} → ${imageUrl}`);
-        
-        // Crear objeto imageData para compatibilidad
-        imageData = {
-          url: imageUrl,
-          keywords: searchQuery.split(' '),
-          source: 'real-time-search-unsplash',
-          attribution: 'Photo by Unsplash contributors',
-          searchQuery: searchQuery,
-          visualDescription: visualDescription
-        };
+        // Usar el mismo servicio de búsqueda pero con descripción visual como fallback
+        const fallbackTags = visualDescription.split(' ').filter(word => word.length > 3).slice(0, 3);
+        imageData = await searchRealImage(fallbackTags, visualDescription);
+        imageUrl = imageData.url;
         
       } else {
-        // Fallback: usar sistema de mapeo tradicional
+        // Último fallback: usar sistema de mapeo tradicional
         imageData = generateBlogImage({
           title,
           category: blogType,
