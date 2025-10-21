@@ -3,6 +3,10 @@
 
 import { createCompleteBlog } from '../../lib/database.js';
 import { generateBlogImage, getReliableImageUrl } from '../../lib/image-search-service.js';
+import { searchRealImage } from '../../lib/real-image-search.js';
+import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
 
 export default async function handler(req, res) {
   // Headers CORS
@@ -47,12 +51,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Importar OpenAI
-    const OpenAI = require('openai');
-const fs = require('fs');
-const path = require('path');
-const { searchRealImage } = require('../../lib/real-image-search');
-    
+    // Configurar OpenAI
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
     });
