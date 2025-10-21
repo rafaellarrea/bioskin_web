@@ -67,7 +67,7 @@ api/sendEmail.js             # Emails + WhatsApp
 - ✅ Oct 16 Sistema gestión blogs con CRUD completo + formularios
 - ✅ Oct 16 Integración OpenAI para generación automática contenido
 - ✅ Oct 16 Base datos SQLite blogs con múltiples fuentes datos
-- ✅ Oct 16 Sistema imágenes personalizadas blogs (principal/conclusión)
+- ✅ Oct 20 Gestión completa blogs todas las fuentes (localStorage + servidor)
 
 **Archivos clave**:
 ```

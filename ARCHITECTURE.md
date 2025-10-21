@@ -296,6 +296,7 @@ Environment Setup:
 - **Prepared statements**: Database performance and security
 - **Backup files**: Version control at file level vs Git branches
 - **Custom image management**: Optional imagenPrincipal/imagenConclusion fields for manual content control
+- **Multi-source blog management**: Combines server memory + localStorage + static data for complete blog control
 
 ---
 
