@@ -27,6 +27,8 @@ interface Blog {
   publishedAt: string;
   readTime: number;
   image: string;
+  imagenPrincipal?: string;    // Nueva imagen principal personalizada
+  imagenConclusion?: string;   // Nueva imagen después de conclusión
   featured: boolean;
   tags: string[];
   source: 'static' | 'dynamic';
@@ -65,7 +67,9 @@ const BlogManagement: React.FC = () => {
     category: 'medico-estetico',
     author: 'BIOSKIN IA',
     featured: false,
-    tags: []
+    tags: [],
+    imagenPrincipal: '',
+    imagenConclusion: ''
   });
 
   // Cargar blogs
@@ -327,6 +331,83 @@ const BlogManagement: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887]"
                 placeholder="Contenido en formato Markdown"
               />
+            </div>
+
+            {/* 🖼️ NUEVOS CAMPOS DE IMÁGENES PERSONALIZADAS */}
+            <div className="border-t pt-6">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4">📸 Imágenes Personalizadas</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Imagen Principal */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    🎯 Imagen Principal (al inicio del blog)
+                  </label>
+                  <input
+                    type="url"
+                    value={blog.imagenPrincipal || ''}
+                    onChange={(e) => {
+                      if (isNew) {
+                        setNewBlog({ ...newBlog, imagenPrincipal: e.target.value });
+                      } else {
+                        setEditingBlog({ ...editingBlog!, imagenPrincipal: e.target.value });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887]"
+                    placeholder="https://ejemplo.com/imagen-principal.jpg"
+                  />
+                  {blog.imagenPrincipal && (
+                    <div className="mt-2">
+                      <img 
+                        src={blog.imagenPrincipal} 
+                        alt="Vista previa principal" 
+                        className="w-full h-32 object-cover rounded-md border"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Se mostrará al inicio del blog si se proporciona una URL válida
+                  </p>
+                </div>
+
+                {/* Imagen de Conclusión */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    🏁 Imagen de Conclusión (después de conclusión)
+                  </label>
+                  <input
+                    type="url"
+                    value={blog.imagenConclusion || ''}
+                    onChange={(e) => {
+                      if (isNew) {
+                        setNewBlog({ ...newBlog, imagenConclusion: e.target.value });
+                      } else {
+                        setEditingBlog({ ...editingBlog!, imagenConclusion: e.target.value });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887]"
+                    placeholder="https://ejemplo.com/imagen-conclusion.jpg"
+                  />
+                  {blog.imagenConclusion && (
+                    <div className="mt-2">
+                      <img 
+                        src={blog.imagenConclusion} 
+                        alt="Vista previa conclusión" 
+                        className="w-full h-32 object-cover rounded-md border"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Se mostrará después de la sección de conclusión si se proporciona una URL válida
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-6">

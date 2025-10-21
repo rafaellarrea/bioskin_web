@@ -156,26 +156,62 @@ const BlogDetail = () => {
                 </button>
               </div>
 
-              {/* Imagen principal */}
-              <div className="mb-12">
-                <img
-                  src={blog.image}
-                  alt={blog.title}
-                  className="w-full h-96 object-cover rounded-lg shadow-lg"
-                  onError={(e) => {
-                    const img = e.target as HTMLImageElement;
-                    console.log('❌ Error cargando imagen:', blog.image);
-                    console.log('🔄 Cambiando a imagen de fallback');
-                    img.src = '/images/logo/logo1.jpg';
-                  }}
-                  onLoad={() => {
-                    console.log('✅ Imagen cargada exitosamente:', blog.image);
-                  }}
-                />
-              </div>
+              {/* Imagen personalizada principal (si existe) */}
+              {blog.imagenPrincipal && (
+                <div className="mb-12">
+                  <img
+                    src={blog.imagenPrincipal}
+                    alt="Imagen principal del artículo"
+                    className="w-full h-96 object-cover rounded-lg shadow-lg"
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      console.log('❌ Error cargando imagen principal personalizada:', blog.imagenPrincipal);
+                      console.log('🔄 Cambiando a imagen de fallback');
+                      img.src = '/images/logo/logo1.jpg';
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Imagen principal por defecto (solo si no hay imagen personalizada) */}
+              {!blog.imagenPrincipal && (
+                <div className="mb-12">
+                  <img
+                    src={blog.image}
+                    alt={blog.title}
+                    className="w-full h-96 object-cover rounded-lg shadow-lg"
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      console.log('❌ Error cargando imagen:', blog.image);
+                      console.log('🔄 Cambiando a imagen de fallback');
+                      img.src = '/images/logo/logo1.jpg';
+                    }}
+                    onLoad={() => {
+                      console.log('✅ Imagen cargada exitosamente:', blog.image);
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Contenido */}
               <BlogContent content={blog.content || ''} />
+
+              {/* Imagen después de conclusión (si existe) */}
+              {blog.imagenConclusion && (
+                <div className="mt-8 mb-12">
+                  <img
+                    src={blog.imagenConclusion}
+                    alt="Imagen de conclusión del artículo"
+                    className="w-full h-80 object-cover rounded-lg shadow-lg"
+                    onError={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      console.log('❌ Error cargando imagen de conclusión:', blog.imagenConclusion);
+                      console.log('🔄 Cambiando a imagen de fallback');
+                      img.src = '/images/logo/logo1.jpg';
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Tags */}
               <div className="mt-12 pt-8 border-t">

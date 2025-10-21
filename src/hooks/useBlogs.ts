@@ -16,6 +16,8 @@ export interface BlogPost {
   publishedAt: string;
   readTime: number;
   image: string;
+  imagenPrincipal?: string;    // Imagen principal personalizada
+  imagenConclusion?: string;   // Imagen después de conclusión
   featured: boolean;
   tags: string[];
   citations?: {

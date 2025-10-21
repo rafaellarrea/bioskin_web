@@ -3,8 +3,79 @@
 
 // import { blogPosts } from '../../src/data/blogs.ts';
 
-// Datos estáticos de blogs (temporal - evitar problema de importación TS)
-const blogPosts = [];
+// Datos estáticos de blogs (cargados manualmente para evitar problemas TS/JS)
+const blogPosts = [
+  {
+    id: "1",
+    title: "Beneficios del Ácido Hialurónico en Tratamientos Faciales",
+    slug: "beneficios-acido-hialuronico-tratamientos-faciales",
+    excerpt: "Descubre cómo el ácido hialurónico puede transformar tu piel y los diferentes tipos de tratamientos disponibles en medicina estética.",
+    content: `# Beneficios del Ácido Hialurónico en Tratamientos Faciales
+
+El ácido hialurónico es una de las sustancias más revolucionarias en el mundo de la medicina estética moderna. Esta molécula natural, presente en nuestro cuerpo, ha demostrado ser fundamental para mantener la hidratación y elasticidad de la piel.
+
+## ¿Qué es el Ácido Hialurónico?
+
+El ácido hialurónico es una sustancia naturalmente presente en nuestro organismo, especialmente en la piel, articulaciones y ojos. Su principal característica es su capacidad de retener hasta 1000 veces su peso en agua.
+
+## Beneficios Principales
+
+### 1. Hidratación Profunda
+La aplicación de ácido hialurónico proporciona una hidratación inmediata y duradera, mejorando la textura y apariencia de la piel.
+
+### 2. Reducción de Arrugas
+Los tratamientos con ácido hialurónico ayudan a suavizar líneas finas y arrugas, proporcionando un aspecto más juvenil.
+
+### 3. Volumen Natural
+Permite restaurar volúmenes perdidos de forma natural, especialmente en pómulos y labios.
+
+## Conclusión
+El ácido hialurónico representa una excelente opción para quienes buscan mejorar la apariencia de su piel de manera segura y efectiva.`,
+    category: 'medico-estetico',
+    author: 'Dr. BIOSKIN',
+    publishedAt: '2024-01-15T10:00:00.000Z',
+    readTime: 8,
+    tags: ['ácido hialurónico', 'hidratación', 'anti-aging'],
+    image: '/images/services/hidratacionProfunda/antes-despues-1.jpg',
+    featured: true,
+    source: 'static'
+  },
+  {
+    id: "2", 
+    title: "Tecnología IPL: Revolución en Tratamientos de Fotorrejuvenecimiento",
+    slug: "tecnologia-ipl-revolucion-fotorrejuvenecimiento",
+    excerpt: "Explora cómo la tecnología de Luz Pulsada Intensa (IPL) está transformando los tratamientos de rejuvenecimiento facial.",
+    content: `# Tecnología IPL: Revolución en Tratamientos de Fotorrejuvenecimiento
+
+La tecnología de Luz Pulsada Intensa (IPL) representa uno de los avances más significativos en medicina estética no invasiva.
+
+## ¿Qué es el IPL?
+
+El IPL utiliza pulsos de luz de amplio espectro para tratar diversas condiciones de la piel de manera segura y eficaz.
+
+## Aplicaciones Principales
+
+### 1. Tratamiento de Manchas
+Efectivo para reducir hiperpigmentación y manchas solares.
+
+### 2. Rejuvenecimiento Facial
+Estimula la producción de colágeno para una piel más firme.
+
+### 3. Reducción de Rojeces
+Trata rosácea y capilares dilatados.
+
+## Conclusión
+El IPL ofrece resultados excepcionales con mínimo tiempo de recuperación.`,
+    category: 'tecnico',
+    author: 'BIOSKIN Técnico',
+    publishedAt: '2024-01-20T14:30:00.000Z',
+    readTime: 6,
+    tags: ['IPL', 'fotorrejuvenecimiento', 'tecnología'],
+    image: '/images/productos/dispositivos/ipl/equipo-principal.jpg',
+    featured: false,
+    source: 'static'
+  }
+];
 import { 
   getDynamicBlogs, 
   addDynamicBlog, 
