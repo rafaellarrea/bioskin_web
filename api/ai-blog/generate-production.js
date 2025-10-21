@@ -145,7 +145,11 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: prompt.systemPrompt },
-        { role: "user", content: prompt.userPrompt(topic) }
+        { role: "user", content: prompt.userPrompt(topic) },
+        { 
+          role: "user", 
+          content: `ADICIONAL: Al final del artículo, en una línea separada, proporciona una descripción visual concisa (máximo 6 palabras en inglés) que represente el tema principal para buscar una imagen relacionada. Formato: "IMAGEN_BUSQUEDA: [descripción en inglés]"` 
+        }
       ],
       max_tokens: 1200,
       temperature: 0.7
@@ -153,8 +157,28 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
 
     const content = completion.choices[0].message.content;
     
+    // Extraer descripción visual para imagen
+    let visualDescription = '';
+    let cleanContent = content;
+    
+    const imageMatch = content.match(/IMAGEN_BUSQUEDA:\s*(.+)$/m);
+    if (imageMatch) {
+      visualDescription = imageMatch[1].trim();
+      // Remover la línea de descripción visual del contenido
+      cleanContent = content.replace(/IMAGEN_BUSQUEDA:\s*.+$/m, '').trim();
+    }
+    
+    // Si no se generó descripción visual, crear una basada en el tema
+    if (!visualDescription) {
+      visualDescription = blogType === 'medico-estetico' 
+        ? 'aesthetic medical treatment skincare' 
+        : 'medical equipment technology device';
+    }
+    
+    console.log('🖼️ Descripción visual generada:', visualDescription);
+    
     // Extraer título del contenido
-    const titleMatch = content.match(/^#\s+(.+)$/m);
+    const titleMatch = cleanContent.match(/^#\s+(.+)$/m);
     const title = titleMatch ? titleMatch[1] : topic;
     
     // Generar slug
@@ -192,12 +216,13 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     };
 
-    // Generar imagen relevante desde Unsplash
+    // Generar imagen relevante desde Unsplash usando la descripción visual generada por IA
     const imageData = generateBlogImage({
       title,
       category: blogType,
-      content: excerpt,
-      excerpt
+      content: cleanContent,
+      excerpt,
+      visualDescription // ✅ Usar la descripción específica generada por IA
     });
 
     // Crear objeto blog para la base de datos
@@ -205,11 +230,11 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       title,
       slug,
       excerpt,
-      content,
+      content: cleanContent, // ✅ Usar contenido limpio sin la línea de descripción visual
       category: blogType,
       author: 'BIOSKIN IA',
       publishedAt: new Date().toISOString().split('T')[0],
-      readTime: Math.ceil(content.split(' ').length / 200),
+      readTime: Math.ceil(cleanContent.split(' ').length / 200),
       image: imageData.url, // Imagen relevante desde Unsplash
       featured: false
     };
@@ -255,15 +280,15 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       title,
       slug,
       excerpt,
-      content,
+      content: cleanContent, // ✅ Usar contenido limpio
       category: blogType,
       blog_type: blogType,
       tags,
-      read_time: Math.ceil(content.split(' ').length / 200),
+      read_time: Math.ceil(cleanContent.split(' ').length / 200),
       author: 'BIOSKIN IA',
       published_at: new Date().toISOString().split('T')[0],
       publishedAt: new Date().toISOString().split('T')[0], // Para compatibilidad frontend
-      readTime: Math.ceil(content.split(' ').length / 200), // Para compatibilidad frontend
+      readTime: Math.ceil(cleanContent.split(' ').length / 200), // Para compatibilidad frontend
       image: imageData.url, // ✅ ASEGURAR que la imagen se incluya en la respuesta
       featured: false,
       week_year: getCurrentWeekYear(),
@@ -271,7 +296,14 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       ai_prompt_version: 'v2.0-production',
       created_at: new Date().toISOString(),
       endpoint: '/api/ai-blog/generate-production',
-      saved_to_db: !!blogId
+      saved_to_db: !!blogId,
+      // ✅ Información adicional sobre la imagen generada
+      image_data: {
+        url: imageData.url,
+        keywords: imageData.keywords,
+        source: imageData.source,
+        visual_description: visualDescription
+      }
     };
 
     // Respuesta con diagnóstico mejorado
@@ -289,7 +321,7 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       message: responseMessage,
       blog,
       meta: {
-        wordCount: content.split(' ').length,
+        wordCount: cleanContent.split(' ').length,
         hasOpenAI: true,
         savedToDB: !!blogId && !savedToDynamic,
         savedToDynamic: savedToDynamic,
@@ -300,7 +332,15 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
         environment: process.env.VERCEL ? 'vercel' : 'local',
         isVercel: !!process.env.VERCEL,
         imageGenerated: !!imageData.url,
-        imageUrl: imageData.url
+        imageUrl: imageData.url,
+        // ✅ Información detallada sobre la imagen
+        imageProcessing: {
+          visualDescriptionGenerated: !!visualDescription,
+          visualDescription: visualDescription,
+          imageKeywords: imageData.keywords,
+          imageSource: imageData.source,
+          finalImageUrl: imageData.url
+        }
       }
     });
 
