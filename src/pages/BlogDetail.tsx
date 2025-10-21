@@ -163,7 +163,13 @@ const BlogDetail = () => {
                   alt={blog.title}
                   className="w-full h-96 object-cover rounded-lg shadow-lg"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/logo/logo1.jpg';
+                    const img = e.target as HTMLImageElement;
+                    console.log('❌ Error cargando imagen:', blog.image);
+                    console.log('🔄 Cambiando a imagen de fallback');
+                    img.src = '/images/logo/logo1.jpg';
+                  }}
+                  onLoad={() => {
+                    console.log('✅ Imagen cargada exitosamente:', blog.image);
                   }}
                 />
               </div>

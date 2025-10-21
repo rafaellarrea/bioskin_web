@@ -318,11 +318,11 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
         const imageVariant = (contentHash % 10) + 1;
         
         const strategies = [
-          `https://via.placeholder.com/1200x600/C8A882/FFFFFF?text=BIOSKIN+-+Medicina+Estetica`, // Medicina estética general
-          `https://via.placeholder.com/1200x600/D4AF37/FFFFFF?text=BIOSKIN+-+Tratamientos+Faciales`, // Tratamientos de piel  
-          `https://via.placeholder.com/1200x600/B8860B/FFFFFF?text=BIOSKIN+-+Tecnologia+Medica`, // Equipos médicos
-          `https://via.placeholder.com/1200x600/DAA520/FFFFFF?text=BIOSKIN+-+Clinica+Especializada`, // Clínica estética
-          `https://via.placeholder.com/1200x600/CD853F/FFFFFF?text=BIOSKIN+-+Innovacion+Medica`  // Tecnología médica
+          `https://via.placeholder.com/1200x600/C8A882/FFFFFF?text=BIOSKIN+Medicina+Estetica`, // Medicina estética general
+          `https://via.placeholder.com/1200x600/D4AF37/FFFFFF?text=BIOSKIN+Tratamientos`, // Tratamientos de piel  
+          `https://via.placeholder.com/1200x600/B8860B/FFFFFF?text=BIOSKIN+Tecnologia`, // Equipos médicos
+          `https://via.placeholder.com/1200x600/DAA520/FFFFFF?text=BIOSKIN+Clinica`, // Clínica estética
+          `https://via.placeholder.com/1200x600/CD853F/FFFFFF?text=BIOSKIN+Innovacion`  // Tecnología médica
         ];
         
         // Seleccionar estrategia basada en keywords más específicos
@@ -340,8 +340,10 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
           selectedStrategy = 3; // Clínica especializada
         }
         
-        // Usar la estrategia seleccionada sin modificar la URL
+        // Usar la estrategia seleccionada
         imageUrl = strategies[selectedStrategy];
+        
+        console.log(`🎯 Estrategia seleccionada: ${selectedStrategy} → ${imageUrl}`);
         
         // Crear objeto imageData para compatibilidad
         imageData = {
