@@ -101,6 +101,14 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       blogs: uniqueBlogs,
+      pagination: {
+        page: 1,
+        limit: uniqueBlogs.length,
+        total: uniqueBlogs.length,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false
+      },
       stats: stats,
       message: `${uniqueBlogs.length} blogs disponibles`,
       endpoint: '/api/blogs/list-all'

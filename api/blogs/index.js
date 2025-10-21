@@ -18,25 +18,25 @@ export default async function handler(req, res) {
     });
   }
 
-  // Redirigir al endpoint de gestión unificada
+  // Redirigir al nuevo endpoint que lista TODOS los blogs
   try {
     const protocol = req.headers['x-forwarded-proto'] || 'http';
     const host = req.headers.host;
     const queryString = new URLSearchParams(req.query).toString();
-    const redirectUrl = `${protocol}://${host}/api/blogs/manage${queryString ? '?' + queryString : ''}`;
+    const redirectUrl = `${protocol}://${host}/api/blogs/list-all${queryString ? '?' + queryString : ''}`;
     
     const response = await fetch(redirectUrl);
     const data = await response.json();
     
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error('Error redirigiendo a gestión:', error);
+    console.error('Error redirigiendo a list-all:', error);
     
     return res.status(500).json({
       success: false,
       message: 'Error accediendo al sistema de blogs',
       error: error.message,
-      redirect: '/api/blogs/manage'
+      redirect: '/api/blogs/list-all'
     });
   }
 }
