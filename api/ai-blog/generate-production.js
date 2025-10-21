@@ -310,13 +310,6 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
         // Usar descripción visual de IA para selección de imagen
         console.log(`🔍 Seleccionando imagen con descripción IA: "${visualDescription}"`);
         
-        // ✅ CAMBIO: Usar sistema de imágenes por categorías basado en keywords
-        const keywords = visualDescription.toLowerCase();
-        
-        // Generar hash del contenido para consistencia pero variedad
-        const contentHash = title.length + (cleanContent.length % 100);
-        const imageVariant = (contentHash % 10) + 1;
-        
         // ✅ BÚSQUEDA EN TIEMPO REAL: Generar query específico basado en el contenido
         const keywords = visualDescription.toLowerCase();
         let searchQuery = '';
