@@ -224,6 +224,11 @@ REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
         'láser': 'tratamiento láser',
         'laser': 'tratamiento láser', 
         'hifu': 'HIFU',
+        'ultrasonido': 'ultrasonido estético',
+        'liposucción': 'liposucción',
+        'lipoescultura': 'lipoescultura',
+        'contorno corporal': 'contorno corporal',
+        'grasa': 'reducción de grasa',
         'radiofrecuencia': 'radiofrecuencia',
         'toxina botulínica': 'toxina botulínica',
         'ácido hialurónico': 'ácido hialurónico',
@@ -295,28 +300,30 @@ REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
         const imageVariant = (contentHash % 10) + 1;
         
         const strategies = [
-          `https://via.placeholder.com/1200x600/4A90E2/FFFFFF?text=Medicina+Est%C3%A9tica+%E2%9C%A8`, // Medicina estética general
-          `https://via.placeholder.com/1200x600/7ED321/FFFFFF?text=Tratamientos+Faciales+%F0%9F%92%86`, // Tratamientos de piel  
-          `https://via.placeholder.com/1200x600/BD10E0/FFFFFF?text=Tecnolog%C3%ADa+M%C3%A9dica+%F0%9F%94%AC`, // Equipos médicos
-          `https://via.placeholder.com/1200x600/F5A623/FFFFFF?text=Cl%C3%ADnica+BIOSKIN+%F0%9F%8F%A5`, // Clínica estética
-          `https://via.placeholder.com/1200x600/50E3C2/FFFFFF?text=Innovaci%C3%B3n+M%C3%A9dica+%E2%9A%A1`  // Tecnología médica
+          `https://via.placeholder.com/1200x600/C8A882/FFFFFF?text=BIOSKIN+-+Medicina+Estetica`, // Medicina estética general
+          `https://via.placeholder.com/1200x600/D4AF37/FFFFFF?text=BIOSKIN+-+Tratamientos+Faciales`, // Tratamientos de piel  
+          `https://via.placeholder.com/1200x600/B8860B/FFFFFF?text=BIOSKIN+-+Tecnologia+Medica`, // Equipos médicos
+          `https://via.placeholder.com/1200x600/DAA520/FFFFFF?text=BIOSKIN+-+Clinica+Especializada`, // Clínica estética
+          `https://via.placeholder.com/1200x600/CD853F/FFFFFF?text=BIOSKIN+-+Innovacion+Medica`  // Tecnología médica
         ];
         
-        // Seleccionar estrategia basada en keywords
-        let selectedStrategy = 0;
-        if (keywords.includes('laser') || keywords.includes('equipment') || keywords.includes('dispositivo')) {
-          selectedStrategy = 2;
-        } else if (keywords.includes('skincare') || keywords.includes('treatment') || keywords.includes('tratamiento')) {
-          selectedStrategy = 1;
-        } else if (keywords.includes('technology') || keywords.includes('device') || keywords.includes('tecnología')) {
-          selectedStrategy = 4;
-        } else if (keywords.includes('clinic') || keywords.includes('aesthetic') || keywords.includes('clínica')) {
-          selectedStrategy = 3;
+        // Seleccionar estrategia basada en keywords más específicos
+        let selectedStrategy = 0; // Default: medicina estética general
+        
+        if (keywords.includes('laser') || keywords.includes('láser') || keywords.includes('equipment') || keywords.includes('dispositivo')) {
+          selectedStrategy = 2; // Tecnología médica
+        } else if (keywords.includes('liposucción') || keywords.includes('ultrasonido') || keywords.includes('contorno') || keywords.includes('grasa')) {
+          selectedStrategy = 1; // Tratamientos faciales/corporales
+        } else if (keywords.includes('skincare') || keywords.includes('treatment') || keywords.includes('tratamiento') || keywords.includes('facial')) {
+          selectedStrategy = 1; // Tratamientos faciales
+        } else if (keywords.includes('technology') || keywords.includes('device') || keywords.includes('tecnología') || keywords.includes('innovación')) {
+          selectedStrategy = 4; // Innovación médica
+        } else if (keywords.includes('clinic') || keywords.includes('aesthetic') || keywords.includes('clínica') || keywords.includes('bioskin')) {
+          selectedStrategy = 3; // Clínica especializada
         }
         
-        // Agregar timestamp para evitar caché
-        const timestamp = Date.now();
-        imageUrl = strategies[selectedStrategy] + `&t=${timestamp}`;
+        // Usar la estrategia seleccionada sin modificar la URL
+        imageUrl = strategies[selectedStrategy];
         
         // Crear objeto imageData para compatibilidad
         imageData = {
