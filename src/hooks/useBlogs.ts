@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 
+// @ts-ignore
+import { getAllBlogsWithLocalStorage, getBlogBySlugWithLocalStorage } from '../../lib/frontend-blog-sync.js';
+
 export interface BlogPost {
   id: number;
   title: string;
@@ -40,11 +43,6 @@ interface BlogsResponse {
   };
 }
 
-interface BlogResponse {
-  success: boolean;
-  blog: BlogPost;
-}
-
 export function useBlogs(options: {
   category?: 'medico-estetico' | 'tecnico';
   page?: number;
@@ -66,46 +64,51 @@ export function useBlogs(options: {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      if (options.category) params.append('category', options.category);
-      if (options.page) params.append('page', options.page.toString());
-      if (options.limit) params.append('limit', options.limit.toString());
-      if (options.search) params.append('search', options.search);
-      if (options.featured) params.append('featured', 'true');
-
-      // Usar endpoint de gestión unificado que incluye blogs estáticos y dinámicos
-      let response;
-      try {
-        response = await fetch(`/api/blogs/manage?${params.toString()}`);
-        if (!response.ok) throw new Error('Management endpoint failed');
-      } catch {
-        // Fallback al endpoint estático
-        try {
-          response = await fetch(`/api/blogs/static?${params.toString()}`);
-          if (!response.ok) throw new Error('Static endpoint failed');
-        } catch {
-          // Último fallback al endpoint de BD (para desarrollo local)
-          try {
-            response = await fetch(`/api/blogs?${params.toString()}`);
-          } catch {
-            throw new Error('Todos los endpoints fallaron');
-          }
-        }
-      }
+      // Usar el nuevo sistema de sincronización que combina backend + localStorage
+      const response = await getAllBlogsWithLocalStorage();
       
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
-      }
+      if (response.success) {
+        let filteredBlogs = response.blogs;
 
-      const data: BlogsResponse = await response.json();
+        // Aplicar filtros
+        if (options.category) {
+          filteredBlogs = filteredBlogs.filter(blog => blog.category === options.category);
+        }
 
-      if (data.success) {
-        setBlogs(data.blogs);
-        setPagination(data.pagination);
+        if (options.search) {
+          const searchLower = options.search.toLowerCase();
+          filteredBlogs = filteredBlogs.filter(blog =>
+            blog.title.toLowerCase().includes(searchLower) ||
+            blog.excerpt.toLowerCase().includes(searchLower) ||
+            blog.tags?.some(tag => tag.toLowerCase().includes(searchLower))
+          );
+        }
+
+        if (options.featured) {
+          filteredBlogs = filteredBlogs.filter(blog => blog.featured);
+        }
+
+        // Aplicar paginación
+        const page = options.page || 1;
+        const limit = options.limit || 10;
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedBlogs = filteredBlogs.slice(startIndex, endIndex);
+
+        setBlogs(paginatedBlogs);
+        setPagination({
+          page,
+          limit,
+          total: filteredBlogs.length,
+          totalPages: Math.ceil(filteredBlogs.length / limit),
+          hasNext: endIndex < filteredBlogs.length,
+          hasPrev: page > 1
+        });
       } else {
         throw new Error('Error cargando blogs');
       }
     } catch (err) {
+      console.error('Error en fetchBlogs:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       setBlogs([]);
     } finally {
@@ -138,34 +141,11 @@ export function useBlog(slug: string) {
       setLoading(true);
       setError(null);
 
-      // Usar endpoint de gestión unificado que incluye blogs estáticos y dinámicos
-      let response;
-      try {
-        response = await fetch(`/api/blogs/manage?slug=${slug}`);
-        if (!response.ok) throw new Error('Management endpoint failed');
-      } catch {
-        // Fallback al endpoint estático
-        try {
-          response = await fetch(`/api/blogs/static?slug=${slug}`);
-          if (!response.ok) throw new Error('Static endpoint failed');
-        } catch {
-          // Último fallback al endpoint de BD (para desarrollo local)
-          try {
-            response = await fetch(`/api/blogs/${slug}`);
-          } catch {
-            throw new Error('Todos los endpoints fallaron');
-          }
-        }
-      }
-      
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
-      }
+      // Usar el nuevo sistema de sincronización
+      const response = await getBlogBySlugWithLocalStorage(slug);
 
-      const data: BlogResponse = await response.json();
-
-      if (data.success) {
-        setBlog(data.blog);
+      if (response.success && response.blog) {
+        setBlog(response.blog);
       } else {
         throw new Error('Blog no encontrado');
       }

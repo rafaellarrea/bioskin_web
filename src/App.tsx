@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './pages/ErrorBoundary';
 import Navbar from './components/Navbar';
+import BlogSyncManager from './components/BlogSyncManager';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import Results from './pages/Results';
@@ -20,6 +21,7 @@ function App() {
     <ErrorBoundary>
       <HashRouter>
         <Navbar />
+        <BlogSyncManager />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />

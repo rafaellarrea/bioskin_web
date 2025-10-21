@@ -70,28 +70,31 @@ INSTRUCCIONES ESPECÍFICAS:
         userPrompt: (topic) => `Escribe un blog profesional sobre: "${topic}"
 
 ESTRUCTURA REQUERIDA:
-# Introducción
+# [TÍTULO ATRACTIVO Y PROFESIONAL SOBRE EL TEMA]
+
+## Introducción
 [Párrafo explicando qué es el tratamiento y por qué es relevante]
 
-# ¿Qué es y cómo funciona?
+## ¿Qué es y cómo funciona?
 [Explicación técnica pero accesible del procedimiento]
 
-# Principales beneficios
+## Principales beneficios
 [Lista numerada de 4-5 beneficios principales con explicación]
 
-# Proceso del tratamiento
+## Proceso del tratamiento
 [Descripción paso a paso del procedimiento]
 
-# Cuidados importantes
+## Cuidados importantes
 ### Pre tratamiento:
 ### Post tratamiento:
 
-# Conclusión
+## Conclusión
 [Resumen y invitación a consulta en BIOSKIN]
 
 LONGITUD: Exactamente 500-700 palabras
 TONO: Profesional, confiable, educativo
-INCLUIR: Información médica precisa, beneficios reales, precauciones necesarias`
+INCLUIR: Información médica precisa, beneficios reales, precauciones necesarias
+IMPORTANTE: El primer # debe ser un título atractivo específico del tema, no "Introducción"`
       },
       
       'tecnico': {
@@ -108,27 +111,30 @@ INSTRUCCIONES ESPECÍFICAS:
         userPrompt: (topic) => `Escribe un artículo técnico sobre: "${topic}"
 
 ESTRUCTURA REQUERIDA:
-# Introducción
+# [TÍTULO ESPECÍFICO Y TÉCNICO SOBRE EL TEMA]
+
+## Introducción
 [Contexto de la tecnología en medicina estética]
 
-# Características técnicas principales
+## Características técnicas principales
 [Especificaciones y capacidades del equipo]
 
-# Aplicaciones clínicas
+## Aplicaciones clínicas
 [Tratamientos y procedimientos donde se utiliza]
 
-# Ventajas competitivas
+## Ventajas competitivas
 [Por qué esta tecnología es superior]
 
-# Consideraciones técnicas
+## Consideraciones técnicas
 [Requisitos, mantenimiento, capacitación]
 
-# Conclusión
+## Conclusión
 [Impacto en la práctica médico-estética]
 
 LONGITUD: Exactamente 500-700 palabras
 TONO: Técnico, informativo, profesional
-INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
+INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos
+IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "Introducción"`
       }
     };
 

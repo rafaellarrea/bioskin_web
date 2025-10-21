@@ -130,6 +130,22 @@ const useBlogAdmin = () => {
       const result = await response.json();
       setLastGenerationResult(result);
 
+      // Si la generación fue exitosa, sincronizar con localStorage
+      if (result.success && result.blog) {
+        try {
+          // Importar y usar la función de sincronización
+          // @ts-ignore
+          const { syncBlogToLocalStorage } = await import('../../lib/frontend-blog-sync.js');
+          const synced = syncBlogToLocalStorage(result.blog);
+          
+          if (synced) {
+            console.log('Blog sincronizado con localStorage:', result.blog.title);
+          }
+        } catch (syncError) {
+          console.warn('Error sincronizando blog:', syncError);
+        }
+      }
+
       // Actualizar estadísticas si la generación fue exitosa
       if (result.success && stats) {
         const newStats = { ...stats };
