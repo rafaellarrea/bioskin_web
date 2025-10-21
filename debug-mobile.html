@@ -103,6 +103,8 @@
             <h2>🔧 Acciones de Reparación</h2>
             <button class="btn btn-success" onclick="copyBlogsFromPublic()">📋 Copiar Blogs Públicos</button>
             <button class="btn btn-success" onclick="generateTestBlog()">✨ Generar Blog de Prueba</button>
+            <button class="btn btn-warning" onclick="syncLocalStorageToServer()">🔄 Sincronizar a Servidor</button>
+            <button class="btn btn-danger" onclick="migrateAllBlogs()">🚀 MIGRAR TODOS LOS BLOGS</button>
         </div>
         
         <div class="section">
@@ -176,30 +178,42 @@
         // Cargar blogs del servidor
         async function loadServerBlogs() {
             try {
-                const response = await fetch('/api/blogs');
+                // Usar el nuevo endpoint que lista TODOS los blogs
+                const response = await fetch('/api/blogs/list-all');
                 const data = await response.json();
                 const container = document.getElementById('server-blogs');
                 
                 if (!data.success || !data.blogs || data.blogs.length === 0) {
                     container.innerHTML = `
                         <div class="alert alert-warning">
-                            <strong>⚠️ Solo blogs estáticos en servidor</strong><br>
-                            El servidor solo tiene ${data.blogs ? data.blogs.length : 0} blogs (probablemente los 2 estáticos).
+                            <strong>❌ No hay blogs en servidor</strong><br>
+                            Usa el botón "MIGRAR TODOS LOS BLOGS" para subirlos.
                         </div>
                     `;
                     return;
                 }
                 
+                const { blogs, stats } = data;
+                
                 container.innerHTML = `
-                    <div class="alert alert-info">
-                        <strong>📊 ${data.blogs.length} blogs en servidor</strong>
+                    <div class="alert alert-success">
+                        <strong>🌐 ${stats.total} blogs disponibles en servidor</strong><br>
+                        🔥 Dinámicos: ${stats.dynamic} | 📋 Estáticos: ${stats.static}
                     </div>
-                    ${data.blogs.map(blog => `
-                        <div class="blog-item">
-                            <strong>${blog.title}</strong><br>
-                            <small>Categoría: ${blog.category} | Fecha: ${new Date(blog.publishedAt).toLocaleDateString('es-ES')}</small>
-                        </div>
-                    `).join('')}
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${blogs.slice(0, 10).map(blog => `
+                            <div class="blog-item" style="background: ${blog.source === 'dynamic' ? '#e8f5e8' : '#f8f9fa'};">
+                                <strong>${blog.title}</strong><br>
+                                <small>
+                                    📂 ${blog.category} | 
+                                    📅 ${new Date(blog.publishedAt).toLocaleDateString('es-ES')} | 
+                                    🏷️ ${blog.source}
+                                    ${blog.featured ? ' | ⭐ Destacado' : ''}
+                                </small>
+                            </div>
+                        `).join('')}
+                        ${blogs.length > 10 ? `<div style="text-align: center; padding: 10px; color: #666;">... y ${blogs.length - 10} blogs más</div>` : ''}
+                    </div>
                 `;
             } catch (error) {
                 document.getElementById('server-blogs').innerHTML = `
@@ -283,6 +297,103 @@
             
             alert('✅ Blog de prueba agregado');
             loadAllData();
+        }
+        
+        // Sincronizar localStorage con servidor
+        async function syncLocalStorageToServer() {
+            try {
+                // Obtener blogs de localStorage
+                const localStorageBlogs = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+                
+                if (localStorageBlogs.length === 0) {
+                    alert('❌ No hay blogs en localStorage para sincronizar');
+                    return;
+                }
+                
+                alert(`🔄 Sincronizando ${localStorageBlogs.length} blogs al servidor...`);
+                
+                // Enviar al endpoint de sincronización
+                const response = await fetch('/api/blogs/sync-localStorage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        localStorageBlogs: localStorageBlogs
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`✅ Sincronización exitosa!\n\n` +
+                          `📊 Procesados: ${result.results.processed}\n` +
+                          `✨ Agregados: ${result.results.added}\n` +
+                          `🔄 Actualizados: ${result.results.updated}\n` +
+                          `⏭️ Omitidos: ${result.results.skipped}`);
+                    
+                    // Recargar datos del servidor
+                    loadServerBlogs();
+                } else {
+                    alert('❌ Error en sincronización: ' + result.message);
+                }
+                
+            } catch (error) {
+                alert('❌ Error de conexión: ' + error.message);
+                console.error('Error sincronizando:', error);
+            }
+        }
+        
+        // Migrar TODOS los blogs de localStorage al servidor
+        async function migrateAllBlogs() {
+            try {
+                if (!confirm('⚠️ MIGRACIÓN COMPLETA\n\n¿Estás seguro de migrar TODOS los blogs de localStorage al servidor?\n\nEsto hará que estén disponibles en todos los dispositivos.')) {
+                    return;
+                }
+                
+                // Obtener TODOS los blogs de localStorage
+                const allLocalBlogs = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY) || '[]');
+                
+                if (allLocalBlogs.length === 0) {
+                    alert('❌ No hay blogs en localStorage para migrar');
+                    return;
+                }
+                
+                alert(`🚀 INICIANDO MIGRACIÓN COMPLETA\n\n📊 Total de blogs: ${allLocalBlogs.length}\n\n⏳ Por favor espera...`);
+                
+                // Enviar todos los blogs al endpoint de migración
+                const response = await fetch('/api/blogs/migrate-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        blogs: allLocalBlogs
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`🎉 ¡MIGRACIÓN EXITOSA!\n\n` +
+                          `📊 Total procesados: ${result.results.total}\n` +
+                          `✅ Agregados al servidor: ${result.results.added}\n` +
+                          `⏭️ Ya existían: ${result.results.skipped}\n` +
+                          `🔥 Total en servidor: ${result.newTotal}\n\n` +
+                          `🌐 Ahora todos los blogs estarán disponibles en cualquier dispositivo!`);
+                    
+                    // Recargar para ver los cambios
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    alert('❌ Error en migración: ' + result.message);
+                }
+                
+            } catch (error) {
+                alert('❌ Error de red: ' + error.message);
+                console.error('Error migrando todos los blogs:', error);
+            }
         }
         
         // Cargar todos los datos
