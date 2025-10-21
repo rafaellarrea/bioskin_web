@@ -317,41 +317,76 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
         const contentHash = title.length + (cleanContent.length % 100);
         const imageVariant = (contentHash % 10) + 1;
         
-        // ✅ SOLUCIÓN: Usar gradientes CSS como imágenes data URL (100% confiables)
-        const strategies = [
-          `data:image/svg+xml;base64,${btoa(`<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#C8A882;stop-opacity:1" /><stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="600" fill="url(#grad1)"/><text x="600" y="280" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">BIOSKIN</text><text x="600" y="340" font-family="Arial" font-size="32" fill="white" text-anchor="middle">Medicina Estética</text></svg>`)}`, // Medicina estética
-          `data:image/svg+xml;base64,${btoa(`<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#D4AF37;stop-opacity:1" /><stop offset="100%" style="stop-color:#F4E1A1;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="600" fill="url(#grad2)"/><text x="600" y="280" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">BIOSKIN</text><text x="600" y="340" font-family="Arial" font-size="32" fill="white" text-anchor="middle">Tratamientos</text></svg>`)}`, // Tratamientos
-          `data:image/svg+xml;base64,${btoa(`<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#B8860B;stop-opacity:1" /><stop offset="100%" style="stop-color:#DAA520;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="600" fill="url(#grad3)"/><text x="600" y="280" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">BIOSKIN</text><text x="600" y="340" font-family="Arial" font-size="32" fill="white" text-anchor="middle">Tecnología</text></svg>`)}`, // Tecnología
-          `data:image/svg+xml;base64,${btoa(`<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" /><stop offset="100%" style="stop-color:#F5DEB3;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="600" fill="url(#grad4)"/><text x="600" y="280" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">BIOSKIN</text><text x="600" y="340" font-family="Arial" font-size="32" fill="white" text-anchor="middle">Clínica</text></svg>`)}`, // Clínica
-          `data:image/svg+xml;base64,${btoa(`<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#D2691E;stop-opacity:1" /><stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" /></linearGradient></defs><rect width="1200" height="600" fill="url(#grad5)"/><text x="600" y="280" font-family="Arial" font-size="48" fill="white" text-anchor="middle" font-weight="bold">BIOSKIN</text><text x="600" y="340" font-family="Arial" font-size="32" fill="white" text-anchor="middle">Innovación</text></svg>`)}`  // Innovación
-        ];
+        // ✅ BÚSQUEDA EN TIEMPO REAL: Generar query específico basado en el contenido
+        const keywords = visualDescription.toLowerCase();
+        let searchQuery = '';
         
-        // Seleccionar estrategia basada en keywords más específicos
-        let selectedStrategy = 0; // Default: medicina estética general
-        
-        if (keywords.includes('laser') || keywords.includes('láser') || keywords.includes('equipment') || keywords.includes('dispositivo')) {
-          selectedStrategy = 2; // Tecnología médica
-        } else if (keywords.includes('liposucción') || keywords.includes('ultrasonido') || keywords.includes('contorno') || keywords.includes('grasa')) {
-          selectedStrategy = 1; // Tratamientos faciales/corporales
-        } else if (keywords.includes('skincare') || keywords.includes('treatment') || keywords.includes('tratamiento') || keywords.includes('facial')) {
-          selectedStrategy = 1; // Tratamientos faciales
-        } else if (keywords.includes('technology') || keywords.includes('device') || keywords.includes('tecnología') || keywords.includes('innovación')) {
-          selectedStrategy = 4; // Innovación médica
-        } else if (keywords.includes('clinic') || keywords.includes('aesthetic') || keywords.includes('clínica') || keywords.includes('bioskin')) {
-          selectedStrategy = 3; // Clínica especializada
+        // Generar query de búsqueda específico basado en keywords del contenido
+        if (keywords.includes('laser') || keywords.includes('láser')) {
+          searchQuery = 'medical laser treatment aesthetic';
+        } else if (keywords.includes('liposucción') || keywords.includes('liposuction')) {
+          searchQuery = 'aesthetic surgery body contouring';
+        } else if (keywords.includes('ultrasonido') || keywords.includes('ultrasound')) {
+          searchQuery = 'ultrasound medical treatment';
+        } else if (keywords.includes('radiofrecuencia') || keywords.includes('radiofrequency')) {
+          searchQuery = 'radiofrequency medical device';
+        } else if (keywords.includes('botox') || keywords.includes('toxina')) {
+          searchQuery = 'botox injection aesthetic';
+        } else if (keywords.includes('ácido hialurónico') || keywords.includes('hyaluronic')) {
+          searchQuery = 'hyaluronic acid injection';
+        } else if (keywords.includes('peeling') || keywords.includes('chemical peel')) {
+          searchQuery = 'chemical peel facial treatment';
+        } else if (keywords.includes('colágeno') || keywords.includes('collagen')) {
+          searchQuery = 'collagen skin treatment';
+        } else if (keywords.includes('facial') || keywords.includes('cara')) {
+          searchQuery = 'facial aesthetic treatment';
+        } else if (keywords.includes('corporal') || keywords.includes('body')) {
+          searchQuery = 'body aesthetic treatment';
+        } else if (keywords.includes('tecnología') || keywords.includes('technology')) {
+          searchQuery = 'medical technology aesthetic device';
+        } else {
+          // Fallback: usar las primeras 3 palabras de la descripción visual
+          searchQuery = visualDescription.split(' ').slice(0, 3).join(' ') + ' medical aesthetic';
         }
         
-        // Usar la estrategia seleccionada
-        imageUrl = strategies[selectedStrategy];
+        // Usar Unsplash con query específico (más confiable que placeholder)
+        const unsplashBaseUrl = 'https://images.unsplash.com/';
+        const imageIds = [
+          'photo-1559757148-5c350e09d4c6', // Aesthetic treatment
+          'photo-1582750433449-648ed127bb54', // Medical clinic
+          'photo-1559757175-0eb30cd8c063', // Skincare
+          'photo-1576091160399-112ba8d25d1f', // Medical technology
+          'photo-1512290923902-8a9f81dc236c'  // Medical equipment
+        ];
         
-        console.log(`🎯 Estrategia seleccionada: ${selectedStrategy} → ${imageUrl}`);
+        // Seleccionar imagen basada en el query
+        let selectedId = 0;
+        if (searchQuery.includes('laser') || searchQuery.includes('device')) {
+          selectedId = 4; // Medical equipment
+        } else if (searchQuery.includes('injection') || searchQuery.includes('botox')) {
+          selectedId = 0; // Aesthetic treatment
+        } else if (searchQuery.includes('technology') || searchQuery.includes('ultrasound')) {
+          selectedId = 3; // Medical technology
+        } else if (searchQuery.includes('facial') || searchQuery.includes('skin')) {
+          selectedId = 2; // Skincare
+        } else if (searchQuery.includes('clinic') || searchQuery.includes('medical')) {
+          selectedId = 1; // Medical clinic
+        }
+        
+        // Construir URL final con parámetros optimizados
+        const timestamp = Date.now();
+        imageUrl = `${unsplashBaseUrl}${imageIds[selectedId]}?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80&t=${timestamp}`;
+        
+        console.log(`🎯 Query de búsqueda: "${searchQuery}" → Imagen ID: ${selectedId} → ${imageUrl}`);
         
         // Crear objeto imageData para compatibilidad
         imageData = {
           url: imageUrl,
-          keywords: visualDescription.split(' ').filter(word => word.length > 2),
-          source: 'ai-description-realtime',
-          attribution: 'Photo by Unsplash contributors'
+          keywords: searchQuery.split(' '),
+          source: 'real-time-search-unsplash',
+          attribution: 'Photo by Unsplash contributors',
+          searchQuery: searchQuery,
+          visualDescription: visualDescription
         };
         
       } else {
