@@ -91,10 +91,14 @@ ESTRUCTURA REQUERIDA:
 ## Conclusión
 [Resumen y invitación a consulta en BIOSKIN]
 
-LONGITUD: Exactamente 500-700 palabras
+## Referencias y Fuentes
+[3-4 referencias científicas relevantes al tema, con formato académico]
+
+LONGITUD: Exactamente 500-700 palabras (sin contar la sección de referencias)
 TONO: Profesional, confiable, educativo
 INCLUIR: Información médica precisa, beneficios reales, precauciones necesarias
-IMPORTANTE: El primer # debe ser un título atractivo específico del tema, no "Introducción"`
+IMPORTANTE: El primer # debe ser un título atractivo específico del tema, no "Introducción"
+REFERENCIAS: Incluir siempre fuentes científicas confiables al final`
       },
       
       'tecnico': {
@@ -131,10 +135,14 @@ ESTRUCTURA REQUERIDA:
 ## Conclusión
 [Impacto en la práctica médico-estética]
 
-LONGITUD: Exactamente 500-700 palabras
+## Referencias Técnicas y Fuentes
+[3-4 referencias científicas y técnicas relevantes, incluyendo estudios clínicos]
+
+LONGITUD: Exactamente 500-700 palabras (sin contar la sección de referencias)
 TONO: Técnico, informativo, profesional
 INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos
-IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "Introducción"`
+IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "Introducción"
+REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
       }
     };
 
@@ -198,10 +206,64 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
     const firstParagraph = content.split('\n\n')[1] || content.substring(0, 200);
     const excerpt = firstParagraph.replace(/^#+\s+/, '').substring(0, 150) + '...';
 
-    // Generar tags basados en el tipo
-    const tags = blogType === 'medico-estetico' 
-      ? ['medicina estética', 'tratamientos', 'bioskin', 'belleza', 'salud']
-      : ['tecnología médica', 'equipamiento', 'innovación', 'medicina estética', 'bioskin'];
+    // ✅ MEJORAR: Generar tags dinámicos basados en el contenido del blog
+    const generateDynamicTags = (content, title, blogType) => {
+      const contentLower = (content + ' ' + title).toLowerCase();
+      
+      // Tags base por categoría
+      const baseTags = ['bioskin'];
+      if (blogType === 'medico-estetico') {
+        baseTags.push('medicina estética');
+      } else {
+        baseTags.push('tecnología médica');
+      }
+      
+      // Keywords específicos a buscar en el contenido
+      const keywordMap = {
+        // Tratamientos
+        'láser': 'tratamiento láser',
+        'laser': 'tratamiento láser', 
+        'hifu': 'HIFU',
+        'radiofrecuencia': 'radiofrecuencia',
+        'toxina botulínica': 'toxina botulínica',
+        'ácido hialurónico': 'ácido hialurónico',
+        'peeling': 'peeling químico',
+        'microagujas': 'microagujas',
+        'led': 'terapia LED',
+        'ipl': 'IPL',
+        
+        // Condiciones y tratamientos
+        'arrugas': 'anti-aging',
+        'antienvejecimiento': 'anti-aging',
+        'acné': 'tratamiento acné',
+        'manchas': 'pigmentación',
+        'melasma': 'melasma',
+        'flacidez': 'firmeza cutánea',
+        'celulitis': 'celulitis',
+        
+        // Tecnologías
+        'inteligencia artificial': 'IA médica',
+        'personalización': 'tratamientos personalizados',
+        'innovación': 'innovación médica',
+        'colágeno': 'estimulación colágeno',
+        'células madre': 'células madre',
+        'exosomas': 'terapia exosomas'
+      };
+      
+      // Buscar keywords en el contenido
+      const foundTags = [];
+      for (const [keyword, tag] of Object.entries(keywordMap)) {
+        if (contentLower.includes(keyword)) {
+          foundTags.push(tag);
+        }
+      }
+      
+      // Combinar tags base con los encontrados (máximo 5-6 tags)
+      const allTags = [...baseTags, ...foundTags];
+      return [...new Set(allTags)].slice(0, 6); // Eliminar duplicados y limitar a 6
+    };
+
+    const tags = generateDynamicTags(cleanContent, title, blogType);
 
     // Función para obtener semana del año
     const getCurrentWeekYear = () => {
@@ -225,14 +287,19 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
         // Usar descripción visual de IA para selección de imagen
         console.log(`🔍 Seleccionando imagen con descripción IA: "${visualDescription}"`);
         
-        // Seleccionar imagen basada en keywords de la descripción visual
+        // ✅ CAMBIO: Usar sistema de imágenes por categorías basado en keywords
         const keywords = visualDescription.toLowerCase();
+        
+        // Generar hash del contenido para consistencia pero variedad
+        const contentHash = title.length + (cleanContent.length % 100);
+        const imageVariant = (contentHash % 10) + 1;
+        
         const strategies = [
-          'https://images.unsplash.com/photo-1556909114-14e8ec2fec52?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80', // Medical/aesthetic base
-          'https://images.unsplash.com/photo-1559757148-5c350e09d4c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80', // Skincare treatment
-          'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80', // Medical equipment
-          'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80', // Aesthetic clinic
-          'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=600&q=80'  // Medical technology
+          `https://via.placeholder.com/1200x600/4A90E2/FFFFFF?text=Medicina+Est%C3%A9tica+%E2%9C%A8`, // Medicina estética general
+          `https://via.placeholder.com/1200x600/7ED321/FFFFFF?text=Tratamientos+Faciales+%F0%9F%92%86`, // Tratamientos de piel  
+          `https://via.placeholder.com/1200x600/BD10E0/FFFFFF?text=Tecnolog%C3%ADa+M%C3%A9dica+%F0%9F%94%AC`, // Equipos médicos
+          `https://via.placeholder.com/1200x600/F5A623/FFFFFF?text=Cl%C3%ADnica+BIOSKIN+%F0%9F%8F%A5`, // Clínica estética
+          `https://via.placeholder.com/1200x600/50E3C2/FFFFFF?text=Innovaci%C3%B3n+M%C3%A9dica+%E2%9A%A1`  // Tecnología médica
         ];
         
         // Seleccionar estrategia basada en keywords
