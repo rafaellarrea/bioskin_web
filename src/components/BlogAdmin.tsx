@@ -8,6 +8,8 @@ import useBlogAdmin from '../hooks/useBlogAdmin';
 const BlogAdmin: React.FC = () => {
   const [blogType, setBlogType] = useState<'medico-estetico' | 'tecnico'>('medico-estetico');
   const [customTopic, setCustomTopic] = useState('');
+  const [suggestedTopics, setSuggestedTopics] = useState<Record<string, string[]>>({});
+  const [isRefreshingTopics, setIsRefreshingTopics] = useState(false);
   
   const {
     stats,
@@ -23,6 +25,27 @@ const BlogAdmin: React.FC = () => {
       topic: customTopic || undefined,
       manual: true
     });
+  };
+
+  // ✅ NUEVA FUNCIÓN: Refrescar temas sugeridos con IA
+  const refreshSuggestedTopics = async () => {
+    setIsRefreshingTopics(true);
+    try {
+      const response = await fetch('/api/ai-blog/generate-topics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: blogType })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setSuggestedTopics(prev => ({ ...prev, [blogType]: data.topics }));
+      }
+    } catch (error) {
+      console.error('Error generando temas:', error);
+    } finally {
+      setIsRefreshingTopics(false);
+    }
   };
 
   const predefinedTopics = {
@@ -117,20 +140,37 @@ const BlogAdmin: React.FC = () => {
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] focus:border-transparent"
             rows={3}
           />
+          <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-xs text-blue-700 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              <strong>Búsqueda Inteligente:</strong> Las imágenes se buscan en tiempo real según tu tema específico usando IA
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Temas Predefinidos */}
+      {/* Temas Sugeridos */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">
-          Temas Sugeridos para {blogType === 'medico-estetico' ? 'Médico Estético' : 'Técnico'}
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-gray-700">
+            Temas Sugeridos para {blogType === 'medico-estetico' ? 'Médico Estético' : 'Técnico'}
+          </h3>
+          <button
+            onClick={refreshSuggestedTopics}
+            disabled={isRefreshingTopics}
+            className="flex items-center gap-2 px-3 py-1 text-xs bg-[#deb887] text-white rounded-lg hover:bg-[#d4a574] transition-colors disabled:opacity-50"
+          >
+            <Sparkles className={`w-3 h-3 ${isRefreshingTopics ? 'animate-spin' : ''}`} />
+            {isRefreshingTopics ? 'Generando...' : 'Temas Frescos IA'}
+          </button>
+        </div>
         <div className="grid gap-2">
-          {predefinedTopics[blogType].map((topic, index) => (
+          {/* Mostrar temas dinámicos si existen, sino usar predefinidos */}
+          {(suggestedTopics[blogType] || predefinedTopics[blogType]).map((topic, index) => (
             <button
               key={index}
               onClick={() => setCustomTopic(topic)}
-              className="text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
+              className="text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors border border-transparent hover:border-[#deb887]"
             >
               {topic}
             </button>
