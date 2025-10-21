@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Blogs Storage - BIOSKIN</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .blog-item { background: #f9f9f9; padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .btn { padding: 10px 20px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; }
+        .btn-primary { background: #deb887; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .stats { background: #e9f7ef; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Blogs Storage - BIOSKIN</h1>
+        
+        <div class="section">
+            <h2>📊 Estadísticas de Almacenamiento</h2>
+            <div id="stats" class="stats">Cargando...</div>
+            <button class="btn btn-primary" onclick="loadStats()">🔄 Actualizar Estadísticas</button>
+        </div>
+        
+        <div class="section">
+            <h2>💾 Blogs en localStorage</h2>
+            <div id="localStorage-blogs">Cargando...</div>
+            <button class="btn btn-danger" onclick="clearLocalStorage()">🗑️ Limpiar localStorage</button>
+        </div>
+        
+        <div class="section">
+            <h2>🌐 Blogs desde Backend (/api/blogs)</h2>
+            <div id="backend-blogs">Cargando...</div>
+            <button class="btn btn-primary" onclick="loadBackendBlogs()">🔄 Recargar Backend</button>
+        </div>
+        
+        <div class="section">
+            <h2>🔄 Blogs Combinados (getAllBlogsWithLocalStorage)</h2>
+            <div id="combined-blogs">Cargando...</div>
+            <button class="btn btn-primary" onclick="loadCombinedBlogs()">🔄 Recargar Combinados</button>
+        </div>
+        
+        <div class="section">
+            <h2>⚙️ Gestión API (/api/blogs/manage)</h2>
+            <div id="manage-blogs">Cargando...</div>
+            <button class="btn btn-primary" onclick="loadManageBlogs()">🔄 Recargar Gestión</button>
+        </div>
+    </div>
+
+    <script>
+        const LOCALSTORAGE_KEY = 'bioskin_dynamic_blogs';
+        
+        // Función para cargar estadísticas
+        function loadStats() {
+            const localBlogs = loadBlogsFromLocalStorage();
+            const stats = {
+                localStorage: localBlogs.length,
+                lastUpdate: localStorage.getItem(LOCALSTORAGE_KEY + '_updated') || 'Nunca'
+            };
+            
+            document.getElementById('stats').innerHTML = `
+                <div><strong>Blogs en localStorage:</strong> ${stats.localStorage}</div>
+                <div><strong>Última actualización:</strong> ${stats.lastUpdate}</div>
+                <div><strong>URL actual:</strong> ${window.location.href}</div>
+            `;
+        }
+        
+        // Función para cargar blogs desde localStorage
+        function loadBlogsFromLocalStorage() {
+            try {
+                const data = localStorage.getItem(LOCALSTORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                console.error('Error leyendo localStorage:', error);
+                return [];
+            }
+        }
+        
+        // Función para mostrar blogs de localStorage
+        function displayLocalStorageBlogs() {
+            const blogs = loadBlogsFromLocalStorage();
+            const container = document.getElementById('localStorage-blogs');
+            
+            if (blogs.length === 0) {
+                container.innerHTML = '<p>No hay blogs en localStorage</p>';
+                return;
+            }
+            
+            container.innerHTML = blogs.map(blog => `
+                <div class="blog-item">
+                    <strong>${blog.title}</strong><br>
+                    <small>Slug: ${blog.slug} | Categoría: ${blog.category} | Fecha: ${new Date(blog.publishedAt).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        }
+        
+        // Función para cargar blogs del backend
+        async function loadBackendBlogs() {
+            try {
+                const response = await fetch('/api/blogs');
+                const data = await response.json();
+                const container = document.getElementById('backend-blogs');
+                
+                if (!data.success || !data.blogs || data.blogs.length === 0) {
+                    container.innerHTML = '<p>No hay blogs en el backend</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.blogs.map(blog => `
+                    <div class="blog-item">
+                        <strong>${blog.title}</strong><br>
+                        <small>Slug: ${blog.slug} | Categoría: ${blog.category} | Fecha: ${new Date(blog.publishedAt).toLocaleDateString()}</small>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('backend-blogs').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Función para cargar blogs combinados
+        async function loadCombinedBlogs() {
+            try {
+                // Simular la función getAllBlogsWithLocalStorage
+                const backendResponse = await fetch('/api/blogs');
+                const backendData = await backendResponse.json();
+                const localBlogs = loadBlogsFromLocalStorage();
+                
+                const allBlogs = [...localBlogs];
+                
+                if (backendData.success && backendData.blogs) {
+                    backendData.blogs.forEach(backendBlog => {
+                        const exists = allBlogs.some(localBlog => 
+                            localBlog.slug === backendBlog.slug || localBlog.id === backendBlog.id
+                        );
+                        
+                        if (!exists) {
+                            allBlogs.push(backendBlog);
+                        }
+                    });
+                }
+                
+                allBlogs.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+                
+                const container = document.getElementById('combined-blogs');
+                container.innerHTML = `
+                    <p><strong>Total combinados:</strong> ${allBlogs.length} (localStorage: ${localBlogs.length}, backend: ${backendData.success ? backendData.blogs.length : 0})</p>
+                    ${allBlogs.map(blog => `
+                        <div class="blog-item">
+                            <strong>${blog.title}</strong><br>
+                            <small>Slug: ${blog.slug} | Categoría: ${blog.category} | Fecha: ${new Date(blog.publishedAt).toLocaleDateString()}</small>
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                document.getElementById('combined-blogs').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Función para cargar blogs de gestión
+        async function loadManageBlogs() {
+            try {
+                const response = await fetch('/api/blogs/manage?source=all&limit=50');
+                const data = await response.json();
+                const container = document.getElementById('manage-blogs');
+                
+                if (!data.success || !data.blogs || data.blogs.length === 0) {
+                    container.innerHTML = '<p>No hay blogs en gestión</p>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <p><strong>Total gestión:</strong> ${data.blogs.length}</p>
+                    ${data.blogs.map(blog => `
+                        <div class="blog-item">
+                            <strong>${blog.title}</strong><br>
+                            <small>Slug: ${blog.slug} | Categoría: ${blog.category} | Source: ${blog.source} | Fecha: ${new Date(blog.publishedAt).toLocaleDateString()}</small>
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                document.getElementById('manage-blogs').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Función para limpiar localStorage
+        function clearLocalStorage() {
+            if (confirm('¿Estás seguro de que quieres limpiar todos los blogs de localStorage?')) {
+                localStorage.removeItem(LOCALSTORAGE_KEY);
+                localStorage.removeItem(LOCALSTORAGE_KEY + '_updated');
+                alert('localStorage limpiado');
+                loadStats();
+                displayLocalStorageBlogs();
+            }
+        }
+        
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            displayLocalStorageBlogs();
+            loadBackendBlogs();
+            loadCombinedBlogs();
+            loadManageBlogs();
+        });
+    </script>
+</body>
+</html>

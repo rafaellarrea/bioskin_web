@@ -72,30 +72,154 @@ const BlogManagement: React.FC = () => {
     imagenConclusion: ''
   });
 
-  // Cargar blogs
+  // Función para cargar blogs desde localStorage
+  const loadBlogsFromLocalStorage = () => {
+    try {
+      const data = localStorage.getItem('bioskin_dynamic_blogs');
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.warn('Error leyendo localStorage:', error.message);
+      return [];
+    }
+  };
+
+  // Cargar blogs (combinando backend + localStorage)
   const loadBlogs = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      // Obtener blogs del backend (estáticos + dinámicos en memoria del servidor)
       const params = new URLSearchParams({
         limit: '50',
-        source: sourceFilter,
+        source: 'all', // Siempre cargar todos del servidor
         ...(categoryFilter !== 'all' && { category: categoryFilter }),
         ...(searchTerm && { search: searchTerm })
       });
 
       const response = await fetch(`/api/blogs/manage?${params}`);
       const data = await response.json();
+      
+      // Obtener blogs adicionales de localStorage
+      const localStorageBlogs = loadBlogsFromLocalStorage();
+      
+      // Combinar blogs evitando duplicados
+      let allBlogs = [];
+      
+      if (data.success && data.blogs) {
+        allBlogs = [...data.blogs];
+      }
+      
+      // Agregar blogs de localStorage que no estén en el servidor
+      localStorageBlogs.forEach(localBlog => {
+        const exists = allBlogs.some(serverBlog => 
+          serverBlog.slug === localBlog.slug || serverBlog.id === localBlog.id
+        );
+        
+        if (!exists) {
+          // Marcar como fuente localStorage y agregar
+          allBlogs.push({
+            ...localBlog,
+            source: 'localStorage'
+          });
+        }
+      });
+
+      // Aplicar filtros de fuente
+      let filteredBlogs = allBlogs;
+      if (sourceFilter === 'static') {
+        filteredBlogs = allBlogs.filter(blog => blog.source === 'static');
+      } else if (sourceFilter === 'dynamic') {
+        filteredBlogs = allBlogs.filter(blog => blog.source === 'dynamic' || blog.source === 'localStorage');
+      }
+
+      // Aplicar filtros de categoría
+      if (categoryFilter !== 'all') {
+        filteredBlogs = filteredBlogs.filter(blog => blog.category === categoryFilter);
+      }
+
+      // Aplicar búsqueda
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        filteredBlogs = filteredBlogs.filter(blog =>
+          blog.title.toLowerCase().includes(searchLower) ||
+          blog.excerpt.toLowerCase().includes(searchLower) ||
+          (blog.tags && blog.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+        );
+      }
+
+      // Ordenar por fecha (más recientes primero)
+      filteredBlogs.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+      setBlogs(filteredBlogs);
+      
+      // Calcular estadísticas
+      const staticCount = allBlogs.filter(blog => blog.source === 'static').length;
+      const dynamicCount = allBlogs.filter(blog => blog.source === 'dynamic' || blog.source === 'localStorage').length;
+      
+      setStats({
+        static: staticCount,
+        dynamic: dynamicCount,
+        total: allBlogs.length
+      });
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando blogs');
+      
+      // Fallback: intentar cargar solo desde localStorage
+      try {
+        const localStorageBlogs = loadBlogsFromLocalStorage();
+        setBlogs(localStorageBlogs.map(blog => ({ ...blog, source: 'localStorage' })));
+        setStats({
+          static: 0,
+          dynamic: localStorageBlogs.length,
+          total: localStorageBlogs.length
+        });
+      } catch (localError) {
+        console.error('Error incluso con fallback localStorage:', localError);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para sincronizar blogs de localStorage al servidor
+  const syncLocalStorageToServer = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const localStorageBlogs = loadBlogsFromLocalStorage();
+
+      if (localStorageBlogs.length === 0) {
+        alert('No hay blogs en localStorage para sincronizar');
+        return;
+      }
+
+      const response = await fetch('/api/blogs/sync-localStorage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ localStorageBlogs })
+      });
+
+      const data = await response.json();
 
       if (data.success) {
-        setBlogs(data.blogs);
-        setStats(data.stats);
+        alert(`Sincronización completada: ${data.results.added} blogs agregados, ${data.results.skipped} omitidos`);
+        
+        // Limpiar localStorage después de sincronización exitosa
+        if (data.results.added > 0 && confirm('¿Quieres limpiar localStorage ya que los blogs fueron sincronizados al servidor?')) {
+          localStorage.removeItem('bioskin_dynamic_blogs');
+        }
+        
+        // Recargar blogs para reflejar los cambios
+        await loadBlogs();
       } else {
         throw new Error(data.message);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando blogs');
+
+    } catch (error) {
+      setError('Error durante la sincronización: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -448,15 +572,53 @@ const BlogManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">Gestión de Blogs</h2>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Nuevo Blog
-        </button>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Gestión de Blogs</h2>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={loadBlogs}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            disabled={loading}
+            title="Recargar lista de blogs"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+              </svg>
+            )}
+            Recargar
+          </button>
+          <button
+            onClick={syncLocalStorageToServer}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            disabled={loading}
+            title="Sincronizar blogs de localStorage al servidor"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+                <path d="M4 7l16 0"/>
+                <path d="M10 15l6 0"/>
+              </svg>
+            )}
+            Sincronizar
+          </button>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus size={16} />
+            Nuevo Blog
+          </button>
+        </div>
       </div>
 
       {/* Estadísticas */}
@@ -633,9 +795,12 @@ const BlogManagement: React.FC = () => {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         blog.source === 'static' 
                           ? 'bg-green-100 text-green-800' 
+                          : blog.source === 'localStorage'
+                          ? 'bg-orange-100 text-orange-800'
                           : 'bg-purple-100 text-purple-800'
                       }`}>
-                        {blog.source === 'static' ? 'Estático' : 'Generado'}
+                        {blog.source === 'static' ? 'Estático' : 
+                         blog.source === 'localStorage' ? 'LocalStorage' : 'Generado'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
