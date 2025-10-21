@@ -196,16 +196,21 @@ const BlogManagement: React.FC = () => {
         return;
       }
 
-      const response = await fetch('/api/blogs/sync-localStorage', {
+      const response = await fetch('/api/blogs/migrate-all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ localStorageBlogs })
+        body: JSON.stringify({ blogs: localStorageBlogs })
       });
 
       const data = await response.json();
 
       if (data.success) {
-        alert(`Sincronización completada: ${data.results.added} blogs agregados, ${data.results.skipped} omitidos`);
+        alert(`🎉 MIGRACIÓN EXITOSA!\n\n` +
+              `📊 Total procesados: ${data.results.total}\n` +
+              `✅ Agregados al servidor: ${data.results.added}\n` +
+              `⏭️ Ya existían: ${data.results.skipped}\n` +
+              `🌐 Total en servidor: ${data.newTotal}\n\n` +
+              `Ahora todos los blogs estarán disponibles en cualquier dispositivo!`);
         
         // Limpiar localStorage después de sincronización exitosa
         if (data.results.added > 0 && confirm('¿Quieres limpiar localStorage ya que los blogs fueron sincronizados al servidor?')) {
@@ -220,6 +225,63 @@ const BlogManagement: React.FC = () => {
 
     } catch (error) {
       setError('Error durante la sincronización: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para forzar migración completa de TODOS los blogs
+  const forceCompleteSync = async () => {
+    if (!confirm('⚠️ MIGRACIÓN FORZADA COMPLETA\n\n¿Estás seguro de que quieres migrar TODOS los blogs de localStorage al servidor?\n\nEsto asegurará que estén disponibles en todos los dispositivos.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const localStorageBlogs = loadBlogsFromLocalStorage();
+
+      if (localStorageBlogs.length === 0) {
+        alert('❌ No hay blogs en localStorage para migrar');
+        return;
+      }
+
+      console.log(`🚀 Iniciando migración forzada de ${localStorageBlogs.length} blogs...`);
+
+      const response = await fetch('/api/blogs/migrate-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blogs: localStorageBlogs })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`🎉 ¡MIGRACIÓN FORZADA EXITOSA!\n\n` +
+              `📊 Blogs procesados: ${data.results.total}\n` +
+              `✅ Nuevos en servidor: ${data.results.added}\n` +
+              `⏭️ Ya existían: ${data.results.skipped}\n` +
+              `📈 Total en servidor: ${data.newTotal}\n\n` +
+              `🌐 ¡Todos los blogs ahora están disponibles en cualquier dispositivo!\n\n` +
+              `Recarga la página desde tu móvil para verlos.`);
+        
+        // Recargar blogs para reflejar los cambios
+        await loadBlogs();
+        
+        // Sugerir limpiar localStorage
+        if (data.results.added > 0 && confirm('✅ Migración exitosa!\n\n¿Quieres limpiar localStorage ahora que todos los blogs están en el servidor?\n\n(Recomendado para evitar duplicados)')) {
+          localStorage.removeItem('bioskin_dynamic_blogs');
+          alert('🧹 localStorage limpiado. Los blogs seguirán disponibles desde el servidor.');
+          await loadBlogs(); // Recargar para mostrar solo los del servidor
+        }
+      } else {
+        throw new Error(data.message);
+      }
+
+    } catch (error) {
+      setError('Error durante la migración forzada: ' + error.message);
+      alert('❌ Error en la migración: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -610,6 +672,23 @@ const BlogManagement: React.FC = () => {
               </svg>
             )}
             Sincronizar
+          </button>
+          <button
+            onClick={forceCompleteSync}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            disabled={loading}
+            title="MIGRAR TODOS los blogs de localStorage al servidor (forzado)"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 6l4-4 4 4"/>
+                <path d="M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22"/>
+                <path d="M20 22l-6.828-6.828A4 4 0 0 1 12 12.3"/>
+              </svg>
+            )}
+            🚀 MIGRAR TODOS
           </button>
           <button
             onClick={() => setIsCreating(true)}
