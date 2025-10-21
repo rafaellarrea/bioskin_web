@@ -218,6 +218,7 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
 
     // ✅ NUEVO SISTEMA: Generar imagen relevante usando descripción visual mejorada
     let imageUrl = '/images/logo/logo-bioskin.png'; // Default fallback
+    let imageData = null; // Inicializar imageData
     
     try {
       if (visualDescription && visualDescription.trim()) {
@@ -250,9 +251,17 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
         const timestamp = Date.now();
         imageUrl = strategies[selectedStrategy] + `&t=${timestamp}`;
         
+        // Crear objeto imageData para compatibilidad
+        imageData = {
+          url: imageUrl,
+          keywords: visualDescription.split(' ').filter(word => word.length > 2),
+          source: 'ai-description-realtime',
+          attribution: 'Photo by Unsplash contributors'
+        };
+        
       } else {
         // Fallback: usar sistema de mapeo tradicional
-        const imageData = generateBlogImage({
+        imageData = generateBlogImage({
           title,
           category: blogType,
           content: cleanContent,
@@ -262,7 +271,13 @@ IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "I
       }
     } catch (error) {
       console.error('Error generando imagen:', error);
-      // Mantener imagen por defecto
+      // Crear imageData por defecto
+      imageData = {
+        url: imageUrl,
+        keywords: ['medicina', 'estética'],
+        source: 'fallback',
+        attribution: 'BIOSKIN'
+      };
     }
 
     // Crear objeto blog para la base de datos
