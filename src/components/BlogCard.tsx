@@ -76,14 +76,14 @@ const BlogCard: React.FC<BlogCardProps> = ({
       {/* Contenido */}
       <div className="p-6">
         {/* Título */}
-        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#deb887] transition-colors">
+        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#deb887] transition-colors font-['Playfair_Display'] leading-tight">
           <Link to={`/blogs/${slug}`} className="hover:underline">
             {title}
           </Link>
         </h3>
 
         {/* Excerpt */}
-        <p className="text-gray-600 mb-4 line-clamp-3">
+        <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed font-['Poppins'] text-base">
           {excerpt}
         </p>
 
@@ -104,20 +104,20 @@ const BlogCard: React.FC<BlogCardProps> = ({
         </div>
 
         {/* Metadata */}
-        <div className="flex items-center justify-between text-sm text-gray-500 border-t pt-4">
+        <div className="flex items-center justify-between text-sm text-gray-500 border-t pt-4 font-['Poppins']">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
               <User size={14} />
-              <span>{author}</span>
+              <span className="font-medium">{author}</span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar size={14} />
               <span>{formatDate(publishedAt)}</span>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 text-[#deb887] font-medium">
             <Clock size={14} />
-            <span>{readTime} min lectura</span>
+            <span>{readTime} min</span>
           </div>
         </div>
 
@@ -125,11 +125,11 @@ const BlogCard: React.FC<BlogCardProps> = ({
         <div className="mt-4">
           <Link
             to={`/blogs/${slug}`}
-            className="inline-flex items-center text-[#deb887] hover:text-[#c9a677] font-medium transition-colors"
+            className="inline-flex items-center text-[#deb887] hover:text-[#c9a677] font-medium transition-all duration-200 hover:gap-3 gap-2 font-['Poppins']"
           >
-            Leer más
+            Continuar leyendo
             <svg
-              className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+              className="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

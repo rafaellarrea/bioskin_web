@@ -29,6 +29,32 @@
     content: '';
     @apply absolute bottom-0 left-1/2 transform -translate-x-1/2 h-1 w-16 bg-[#deb887] rounded-full mt-2;
   }
+
+  /* Estilos específicos para contenido de blogs */
+  .blog-content h2 {
+    @apply font-serif text-2xl font-bold text-gray-900 mt-8 mb-4 border-b-2 border-[#deb887] pb-2;
+  }
+
+  .blog-content h3 {
+    @apply font-sans text-xl font-semibold text-gray-800 mt-6 mb-3;
+  }
+
+  .blog-content h4 {
+    @apply font-sans text-lg font-medium text-gray-700 mt-4 mb-2;
+  }
+
+  .blog-content p {
+    @apply font-sans text-base text-gray-700 leading-relaxed mb-4;
+  }
+
+  .blog-content strong {
+    @apply font-semibold text-gray-900;
+  }
+
+  /* Efectos hover para títulos de blog */
+  .blog-content h2:hover {
+    @apply text-[#deb887] transition-colors duration-200;
+  }
   
   .btn-primary {
     @apply bg-[#deb887] hover:bg-[#c9a677] text-white font-medium py-2 px-6 rounded-md transition-all duration-300 inline-block;

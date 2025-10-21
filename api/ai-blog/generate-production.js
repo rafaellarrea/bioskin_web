@@ -2,6 +2,7 @@
 // Versión de producción CON guardado en base de datos SQLite
 
 import { createCompleteBlog } from '../../lib/database.js';
+import { generateBlogImage } from '../../lib/image-search-service.js';
 
 export default async function handler(req, res) {
   // Headers CORS
@@ -185,6 +186,14 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
       return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
     };
 
+    // Generar imagen relevante desde Unsplash
+    const imageData = generateBlogImage({
+      title,
+      category: blogType,
+      content: excerpt,
+      excerpt
+    });
+
     // Crear objeto blog para la base de datos
     const blogData = {
       title,
@@ -195,7 +204,7 @@ INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos`
       author: 'BIOSKIN IA',
       publishedAt: new Date().toISOString().split('T')[0],
       readTime: Math.ceil(content.split(' ').length / 200),
-      image: `/images/blog/${blogType}/default.jpg`, // Imagen por defecto
+      image: imageData.url, // Imagen relevante desde Unsplash
       featured: false
     };
 

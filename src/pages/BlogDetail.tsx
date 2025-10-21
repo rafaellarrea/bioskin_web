@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, Clock, User, Tag, ArrowLeft, Share2, ChevronRight, Loader2 } from 'lucide-react';
 import Footer from '../components/Footer';
+import BlogContent from '../components/BlogContent';
 import { useBlog, useBlogs } from '../hooks/useBlogs';
 
 const BlogDetail = () => {
@@ -123,17 +124,17 @@ const BlogDetail = () => {
               </div>
 
               {/* Título */}
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight font-['Playfair_Display']">
                 {blog.title}
               </h1>
 
               {/* Excerpt */}
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed font-['Poppins'] font-light">
                 {blog.excerpt}
               </p>
 
               {/* Metadata */}
-              <div className="flex flex-wrap items-center gap-6 text-gray-600 mb-8 pb-8 border-b">
+              <div className="flex flex-wrap items-center gap-6 text-gray-600 mb-8 pb-8 border-b font-['Poppins']">
                 <div className="flex items-center gap-2">
                   <User size={18} />
                   <span className="font-medium">{blog.author}</span>
@@ -142,13 +143,13 @@ const BlogDetail = () => {
                   <Calendar size={18} />
                   <span>{formatDate(blog.publishedAt)}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-[#deb887]">
                   <Clock size={18} />
-                  <span>{blog.readTime} min de lectura</span>
+                  <span className="font-medium">{blog.readTime} min de lectura</span>
                 </div>
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 text-[#deb887] hover:text-[#c9a677] transition-colors"
+                  className="flex items-center gap-2 text-[#deb887] hover:text-[#c9a677] transition-colors font-medium"
                 >
                   <Share2 size={18} />
                   <span>Compartir</span>
@@ -168,13 +169,7 @@ const BlogDetail = () => {
               </div>
 
               {/* Contenido */}
-              <div className="prose prose-lg max-w-none">
-                <div 
-                  className="text-gray-800 leading-relaxed whitespace-pre-line"
-                >
-                  {blog.content}
-                </div>
-              </div>
+              <BlogContent content={blog.content || ''} />
 
               {/* Tags */}
               <div className="mt-12 pt-8 border-t">
