@@ -1,0 +1,17 @@
+{
+  "id": "blog-002", 
+  "title": "Tecnología IPL: Revolución en Tratamientos de Fotorrejuvenecimiento",
+  "slug": "tecnologia-ipl-revolucion-fotorrejuvenecimiento",
+  "excerpt": "Explora cómo la tecnología de Luz Pulsada Intensa (IPL) está transformando los tratamientos de rejuvenecimiento facial.",
+  "content": "# Tecnología IPL: Revolución en Tratamientos de Fotorrejuvenecimiento\n\nLa tecnología de Luz Pulsada Intensa (IPL) representa uno de los avances más significativos en medicina estética no invasiva.\n\n## ¿Qué es el IPL?\n\nEl IPL utiliza pulsos de luz de amplio espectro para tratar diversas condiciones de la piel de manera segura y eficaz.\n\n## Aplicaciones Principales\n\n### 1. Tratamiento de Manchas\nEfectivo para reducir hiperpigmentación y manchas solares.\n\n### 2. Rejuvenecimiento Facial\nEstimula la producción de colágeno para una piel más firme.\n\n### 3. Reducción de Rojeces\nTrata rosácea y capilares dilatados.\n\n## Conclusión\nEl IPL ofrece resultados excepcionales con mínimo tiempo de recuperación.",
+  "category": "tecnico",
+  "author": "BIOSKIN Técnico",
+  "publishedAt": "2024-01-20T14:30:00.000Z",
+  "readTime": 6,
+  "tags": ["IPL", "fotorrejuvenecimiento", "tecnología"],
+  "image": "/images/productos/dispositivos/ipl/equipo-principal.jpg",
+  "imagenPrincipal": "/images/productos/dispositivos/ipl/equipo-principal.jpg",
+  "imagenConclusion": "/images/productos/dispositivos/ipl/resultados-tratamiento.jpg",
+  "featured": false,
+  "source": "json-static"
+}

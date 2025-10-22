@@ -268,7 +268,51 @@ const BlogManagement: React.FC = () => {
     });
   };
 
-  // Función para exportar todos los blogs a JSON
+  // Función para exportar un blog individual en formato del proyecto
+  const exportIndividualBlog = async (blog: Blog) => {
+    try {
+      // Formato estándar del proyecto
+      const blogForExport = {
+        id: blog.id,
+        title: blog.title,
+        slug: blog.slug,
+        excerpt: blog.excerpt,
+        content: blog.content,
+        category: blog.category,
+        author: blog.author,
+        publishedAt: blog.publishedAt,
+        readTime: blog.readTime,
+        tags: blog.tags || [],
+        image: blog.image,
+        imagenPrincipal: blog.imagenPrincipal || blog.image,
+        imagenConclusion: blog.imagenConclusion || '',
+        featured: Boolean(blog.featured),
+        source: 'json-exported'
+      };
+
+      // Crear archivo JSON individual
+      const dataStr = JSON.stringify(blogForExport, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      // Crear link de descarga con nombre basado en slug
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${blog.slug}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert(`✅ Blog exportado!\n\n📄 "${blog.title}"\n📁 Archivo: ${blog.slug}.json\n\n💡 Este archivo se puede agregar directamente a la carpeta src/data/blogs/ del proyecto.`);
+      
+    } catch (error) {
+      console.error('Error exportando blog individual:', error);
+      alert('❌ Error al exportar blog: ' + error.message);
+    }
+  };
+
+  // Función para exportar todos los blogs a JSON (backup completo)
   const exportBlogsToJSON = async () => {
     try {
       setLoading(true);
@@ -307,7 +351,7 @@ const BlogManagement: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      alert(`✅ Exportación completada!\n\n📊 ${allBlogs.length} blogs exportados exitosamente\n📁 Archivo: ${link.download}\n\n💡 Guarda este archivo en un lugar seguro para poder restaurar tus blogs en cualquier momento.`);
+      alert(`✅ Backup completo!\n\n📊 ${allBlogs.length} blogs exportados\n📁 Archivo: ${link.download}\n\n💡 Para blogs individuales, usa el botón 📁 de cada blog.`);
       
     } catch (error) {
       console.error('Error exportando blogs:', error);
@@ -1167,7 +1211,7 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
             onClick={exportBlogsToJSON}
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
             disabled={loading}
-            title="Exportar todos los blogs a archivo JSON para backup permanente"
+            title="Backup completo: Exportar todos los blogs en un solo archivo JSON"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />
@@ -1178,7 +1222,7 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
             )}
-            Exportar JSON
+            🗂️ Backup Completo
           </button>
           
           <div className="relative">
@@ -1287,15 +1331,19 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
               💾 Importante: Persistencia de Blogs
             </h3>
             <div className="mt-1 text-sm text-orange-700">
-              <p>Los navegadores pueden eliminar datos locales automáticamente. Para evitar pérdida de blogs:</p>
+              <p>Para máxima persistencia y control de blogs:</p>
               <ul className="mt-2 list-disc list-inside space-y-1">
-                <li><strong>Safari:</strong> Elimina datos después de 7 días sin interacción</li>
-                <li><strong>Modo privado:</strong> Elimina todo al cerrar el navegador</li>
-                <li><strong>Solución recomendada:</strong> Usa <strong>"Exportar JSON"</strong> regularmente</li>
+                <li><strong>📁 Blogs JSON:</strong> Persistentes, en carpeta <code>src/data/blogs/</code></li>
+                <li><strong>📥 Exportar Individual:</strong> Botón 📁 en cada blog → archivo JSON listo</li>
+                <li><strong>🗂️ Backup Completo:</strong> Botón verde → backup de todos los blogs</li>
+                <li><strong>⚠️ Navegadores:</strong> Safari elimina datos cada 7 días, modo privado al cerrar</li>
               </ul>
               <div className="mt-2 flex items-center gap-2 text-xs">
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  ✅ Blogs JSON = Persistencia garantizada
+                </span>
                 <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                  💡 Para diagnóstico completo, haz clic en "Diagnóstico"
+                  🔍 Usa "Diagnóstico" si hay problemas
                 </span>
               </div>
             </div>
@@ -1335,16 +1383,18 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Esta Semana</p>
+              <p className="text-sm text-gray-600">Blogs JSON</p>
               <p className="text-2xl font-bold text-gray-900">
-                {blogs.filter(b => {
-                  const weekAgo = new Date();
-                  weekAgo.setDate(weekAgo.getDate() - 7);
-                  return new Date(b.publishedAt) > weekAgo;
-                }).length}
+                {blogs.filter(b => b.source === 'json-file').length}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Archivos estáticos
               </p>
             </div>
-            <Calendar className="w-8 h-8 text-orange-500" />
+            <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v6a1 1 0 001 1h6"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -1496,6 +1546,19 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
                         >
                           <Eye size={16} />
                         </a>
+                        <button
+                          onClick={() => exportIndividualBlog(blog)}
+                          className="text-green-600 hover:text-green-900"
+                          title="Exportar blog individual como JSON"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10,9 9,9 8,9"/>
+                          </svg>
+                        </button>
                         {blog.source === 'dynamic' && (
                           <>
                             <button

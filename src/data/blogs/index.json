@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2024-10-22T12:00:00.000Z",
+  "blogFiles": [
+    {
+      "file": "acido-hialuronico-beneficios.json",
+      "id": "blog-001",
+      "title": "Beneficios del Ácido Hialurónico en Tratamientos Faciales",
+      "slug": "beneficios-acido-hialuronico-tratamientos-faciales",
+      "category": "medico-estetico",
+      "featured": true,
+      "publishedAt": "2024-01-15T10:00:00.000Z"
+    },
+    {
+      "file": "tecnologia-ipl-fotorrejuvenecimiento.json",
+      "id": "blog-002", 
+      "title": "Tecnología IPL: Revolución en Tratamientos de Fotorrejuvenecimiento",
+      "slug": "tecnologia-ipl-revolucion-fotorrejuvenecimiento",
+      "category": "tecnico",
+      "featured": false,
+      "publishedAt": "2024-01-20T14:30:00.000Z"
+    },
+    {
+      "file": "exosomas-medicina-estetica.json",
+      "id": "blog-003",
+      "title": "Exosomas en Medicina Estética: El Futuro de la Regeneración Celular",
+      "slug": "exosomas-medicina-estetica-regeneracion-celular",
+      "category": "medico-estetico",
+      "featured": true,
+      "publishedAt": "2024-10-22T09:00:00.000Z"
+    }
+  ],
+  "categories": ["medico-estetico", "tecnico"],
+  "totalBlogs": 3
+}
