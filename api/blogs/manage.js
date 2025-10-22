@@ -101,6 +101,25 @@ export default async function handler(req, res) {
   try {
     switch (method) {
       case 'GET':
+        // Check for health endpoint
+        if (action === 'health') {
+          return res.status(200).json({
+            success: true,
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            serverInfo: {
+              vercelRegion: process.env.VERCEL_REGION || 'unknown',
+              nodeVersion: process.version,
+              storageStatus: 'operational'
+            },
+            blogStats: {
+              static: blogPosts.length,
+              dynamic: getDynamicBlogsCount(),
+              total: blogPosts.length + getDynamicBlogsCount()
+            },
+            endpoint: '/api/blogs/manage'
+          });
+        }
         return await handleGet(req, res);
       case 'POST':
         return await handlePost(req, res);

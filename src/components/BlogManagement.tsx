@@ -268,6 +268,132 @@ const BlogManagement: React.FC = () => {
     });
   };
 
+  // Función para exportar todos los blogs a JSON
+  const exportBlogsToJSON = async () => {
+    try {
+      setLoading(true);
+      
+      // Obtener todos los blogs
+      const { getAllBlogsWithLocalStorage } = await import('../../lib/frontend-blog-sync.js');
+      const allBlogs = getAllBlogsWithLocalStorage();
+      
+      if (allBlogs.length === 0) {
+        alert('❌ No hay blogs para exportar');
+        return;
+      }
+
+      // Crear objeto de exportación con metadata
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        version: '1.0',
+        totalBlogs: allBlogs.length,
+        blogs: allBlogs.map(blog => ({
+          ...blog,
+          exportedAt: new Date().toISOString()
+        }))
+      };
+
+      // Crear archivo JSON para descarga
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      // Crear link de descarga
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bioskin-blogs-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      alert(`✅ Exportación completada!\n\n📊 ${allBlogs.length} blogs exportados exitosamente\n📁 Archivo: ${link.download}\n\n💡 Guarda este archivo en un lugar seguro para poder restaurar tus blogs en cualquier momento.`);
+      
+    } catch (error) {
+      console.error('Error exportando blogs:', error);
+      alert('❌ Error al exportar blogs: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para importar blogs desde JSON
+  const importBlogsFromJSON = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      
+      const fileContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+
+      const importData = JSON.parse(fileContent);
+      
+      // Validar estructura del archivo
+      if (!importData.blogs || !Array.isArray(importData.blogs)) {
+        throw new Error('Formato de archivo inválido. Se esperaba un archivo de exportación de blogs.');
+      }
+
+      const blogsToImport = importData.blogs;
+      let imported = 0;
+      let skipped = 0;
+      
+      // Obtener blogs existentes para evitar duplicados
+      const { getAllBlogsWithLocalStorage, syncBlogToLocalStorage } = await import('../../lib/frontend-blog-sync.js');
+      const existingBlogs = getAllBlogsWithLocalStorage();
+      const existingSlugs = new Set(existingBlogs.map(b => b.slug));
+
+      for (const blog of blogsToImport) {
+        if (!existingSlugs.has(blog.slug)) {
+          // Asignar nuevo ID y fecha de importación
+          const importedBlog = {
+            ...blog,
+            id: blog.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            importedAt: new Date().toISOString(),
+            source: 'imported'
+          };
+          
+          // Guardar en localStorage para visibilidad inmediata
+          syncBlogToLocalStorage(importedBlog);
+          
+          // También enviar al servidor
+          try {
+            await fetch('/api/blogs/manage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ blog: importedBlog })
+            });
+          } catch (serverError) {
+            console.warn('Error enviando al servidor, pero guardado en localStorage:', serverError);
+          }
+          
+          imported++;
+        } else {
+          skipped++;
+        }
+      }
+
+      await loadBlogs(); // Recargar lista
+      
+      alert(`✅ Importación completada!\n\n📊 Blogs importados: ${imported}\n⏭️ Blogs omitidos (ya existían): ${skipped}\n📈 Total en archivo: ${blogsToImport.length}\n\n💡 Los blogs importados están ahora disponibles en todos tus dispositivos.`);
+      
+    } catch (error) {
+      console.error('Error importando blogs:', error);
+      alert('❌ Error al importar blogs: ' + error.message);
+    } finally {
+      setLoading(false);
+      // Limpiar el input file
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
+  };
+
   // Función para probar CRUD operations
   const testCRUDOperations = async () => {
     const testResults = {
@@ -354,6 +480,147 @@ const BlogManagement: React.FC = () => {
     } catch (error) {
       console.error('Error en pruebas CRUD:', error);
       alert('❌ Error ejecutando pruebas CRUD: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función de diagnóstico de persistencia
+  const diagnosticPersistenceIssues = async () => {
+    try {
+      setLoading(true);
+      
+      const diagnostics = {
+        localStorage: {},
+        browser: {},
+        server: {},
+        recommendations: []
+      };
+
+      // Diagnóstico localStorage
+      try {
+        const testKey = 'bioskin_persistence_test';
+        localStorage.setItem(testKey, 'test_value');
+        const retrieved = localStorage.getItem(testKey);
+        localStorage.removeItem(testKey);
+        
+        diagnostics.localStorage = {
+          available: true,
+          working: retrieved === 'test_value',
+          quota: null
+        };
+
+        // Verificar quota de localStorage si es posible
+        if (navigator.storage && navigator.storage.estimate) {
+          const estimate = await navigator.storage.estimate();
+          diagnostics.localStorage.quota = {
+            used: estimate.usage,
+            available: estimate.quota,
+            percentUsed: ((estimate.usage / estimate.quota) * 100).toFixed(2)
+          };
+        }
+      } catch (e) {
+        diagnostics.localStorage = {
+          available: false,
+          error: e.message
+        };
+      }
+
+      // Diagnóstico del navegador
+      diagnostics.browser = {
+        userAgent: navigator.userAgent,
+        isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
+        isFirefox: /Firefox/.test(navigator.userAgent),
+        isChrome: /Chrome/.test(navigator.userAgent),
+        isPWA: window.matchMedia('(display-mode: standalone)').matches,
+        cookiesEnabled: navigator.cookieEnabled,
+        isPrivateMode: false // Detectar más abajo
+      };
+
+      // Detectar modo privado/incógnito
+      try {
+        if (diagnostics.browser.isFirefox) {
+          const db = indexedDB.open('test');
+          diagnostics.browser.isPrivateMode = false;
+        } else {
+          // Para otros navegadores
+          const testStorage = window.sessionStorage;
+          testStorage.setItem('private_test', '1');
+          testStorage.removeItem('private_test');
+          diagnostics.browser.isPrivateMode = false;
+        }
+      } catch (e) {
+        diagnostics.browser.isPrivateMode = true;
+      }
+
+      // Diagnóstico del servidor
+      try {
+        const serverResponse = await fetch('/api/blogs/manage?action=health');
+        const serverData = await serverResponse.json();
+        diagnostics.server = {
+          accessible: true,
+          response: serverData,
+          latency: null // Se podría medir
+        };
+      } catch (e) {
+        diagnostics.server = {
+          accessible: false,
+          error: e.message
+        };
+      }
+
+      // Generar recomendaciones
+      if (diagnostics.browser.isSafari) {
+        diagnostics.recommendations.push('🍎 Safari detectado: Los datos se eliminan automáticamente después de 7 días sin interacción. Recomendación: Exportar blogs regularmente.');
+      }
+
+      if (diagnostics.browser.isPrivateMode) {
+        diagnostics.recommendations.push('🕶️ Modo privado detectado: Los datos se eliminan al cerrar el navegador. Use modo normal para persistencia.');
+      }
+
+      if (!diagnostics.localStorage.available) {
+        diagnostics.recommendations.push('❌ localStorage no disponible: Use exportación JSON como respaldo único.');
+      }
+
+      if (!diagnostics.server.accessible) {
+        diagnostics.recommendations.push('🌐 Servidor no accesible: Los blogs solo se guardan localmente. Verifique conexión a internet.');
+      }
+
+      diagnostics.recommendations.push('💡 Solución recomendada: Use "Exportar JSON" regularmente y guarde los archivos en un lugar seguro.');
+      diagnostics.recommendations.push('🔄 Para recuperar: Use "Importar JSON" con los archivos exportados.');
+
+      // Mostrar diagnóstico
+      const report = `
+🔍 DIAGNÓSTICO DE PERSISTENCIA DE BLOGS
+
+📱 NAVEGADOR:
+• Tipo: ${diagnostics.browser.isSafari ? 'Safari' : diagnostics.browser.isFirefox ? 'Firefox' : diagnostics.browser.isChrome ? 'Chrome' : 'Otro'}
+• Modo privado: ${diagnostics.browser.isPrivateMode ? 'SÍ ⚠️' : 'NO ✅'}
+• PWA instalada: ${diagnostics.browser.isPWA ? 'SÍ' : 'NO'}
+
+💾 ALMACENAMIENTO LOCAL:
+• Disponible: ${diagnostics.localStorage.available ? 'SÍ ✅' : 'NO ❌'}
+• Funcionando: ${diagnostics.localStorage.working ? 'SÍ ✅' : 'NO ❌'}
+${diagnostics.localStorage.quota ? `• Espacio usado: ${diagnostics.localStorage.quota.percentUsed}%` : ''}
+
+🌐 SERVIDOR:
+• Accesible: ${diagnostics.server.accessible ? 'SÍ ✅' : 'NO ❌'}
+
+⚠️ POSIBLES CAUSAS DEL PROBLEMA:
+${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
+
+💡 SOLUCIÓN INMEDIATA:
+1. Haz clic en "Exportar JSON" AHORA
+2. Guarda el archivo en un lugar seguro
+3. Repite la exportación regularmente
+4. Para restaurar: usa "Importar JSON"
+      `;
+
+      alert(report);
+
+    } catch (error) {
+      console.error('Error en diagnóstico:', error);
+      alert('❌ Error ejecutando diagnóstico: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -897,6 +1164,69 @@ const BlogManagement: React.FC = () => {
             Sincronizar
           </button>
           <button
+            onClick={exportBlogsToJSON}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            disabled={loading}
+            title="Exportar todos los blogs a archivo JSON para backup permanente"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            )}
+            Exportar JSON
+          </button>
+          
+          <div className="relative">
+            <input
+              type="file"
+              accept=".json"
+              onChange={importBlogsFromJSON}
+              className="hidden"
+              id="import-blogs-input"
+              disabled={loading}
+            />
+            <label
+              htmlFor="import-blogs-input"
+              className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Importar blogs desde archivo JSON de backup"
+            >
+              {loading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17,8 12,3 7,8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              )}
+              Importar JSON
+            </label>
+          </div>
+
+          <button
+            onClick={diagnosticPersistenceIssues}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            disabled={loading}
+            title="Diagnosticar problemas de persistencia y obtener recomendaciones"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4"/>
+                <path d="M12 8h.01"/>
+              </svg>
+            )}
+            Diagnóstico
+          </button>
+
+          <button
             onClick={testCRUDOperations}
             className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
             disabled={loading}
@@ -939,6 +1269,37 @@ const BlogManagement: React.FC = () => {
             <Plus size={16} />
             Nuevo Blog
           </button>
+        </div>
+      </div>
+
+      {/* Banner informativo sobre persistencia */}
+      <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-orange-400 p-4 rounded-md">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-400">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-orange-800">
+              💾 Importante: Persistencia de Blogs
+            </h3>
+            <div className="mt-1 text-sm text-orange-700">
+              <p>Los navegadores pueden eliminar datos locales automáticamente. Para evitar pérdida de blogs:</p>
+              <ul className="mt-2 list-disc list-inside space-y-1">
+                <li><strong>Safari:</strong> Elimina datos después de 7 días sin interacción</li>
+                <li><strong>Modo privado:</strong> Elimina todo al cerrar el navegador</li>
+                <li><strong>Solución recomendada:</strong> Usa <strong>"Exportar JSON"</strong> regularmente</li>
+              </ul>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                  💡 Para diagnóstico completo, haz clic en "Diagnóstico"
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
