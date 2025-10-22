@@ -230,6 +230,135 @@ const BlogManagement: React.FC = () => {
     }
   };
 
+  // Función para manejar carga de imágenes
+  const handleImageUpload = async (file: File, imageType: 'principal' | 'conclusion'): Promise<string> => {
+    try {
+      // Crear FormData para subir la imagen
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('type', imageType);
+      formData.append('folder', 'blog');
+
+      // Subir imagen al servidor
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        return result.imageUrl;
+      } else {
+        throw new Error(result.message || 'Error subiendo imagen');
+      }
+    } catch (error) {
+      console.error('Error subiendo imagen:', error);
+      throw error;
+    }
+  };
+
+  // Función para convertir imagen a base64 (fallback si no hay endpoint de upload)
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Función para probar CRUD operations
+  const testCRUDOperations = async () => {
+    const testResults = {
+      create: false,
+      read: false,
+      update: false,
+      delete: false
+    };
+
+    try {
+      setLoading(true);
+      
+      // Test CREATE
+      const testBlog = {
+        title: 'Test Blog CRUD - ' + Date.now(),
+        slug: 'test-blog-crud-' + Date.now(),
+        excerpt: 'Blog de prueba para verificar operaciones CRUD',
+        content: 'Contenido de prueba para verificar que las operaciones CRUD funcionan correctamente.',
+        category: 'prueba',
+        status: 'published',
+        imagenPrincipal: '',
+        imagenConclusion: ''
+      };
+
+      console.log('🧪 Probando CREATE...');
+      const createResponse = await fetch('/api/blogs/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testBlog)
+      });
+      const createResult = await createResponse.json();
+      testResults.create = createResult.success;
+      
+      if (testResults.create) {
+        const createdId = createResult.blog.id;
+        console.log(`✅ CREATE exitoso - ID: ${createdId}`);
+        
+        // Test READ
+        console.log('🧪 Probando READ...');
+        await loadBlogs();
+        const foundBlog = blogs.find(b => b.id === createdId);
+        testResults.read = !!foundBlog;
+        console.log(testResults.read ? '✅ READ exitoso' : '❌ READ fallido');
+        
+        if (testResults.read) {
+          // Test UPDATE
+          console.log('🧪 Probando UPDATE...');
+          const updatedBlog = {
+            ...foundBlog,
+            title: foundBlog.title + ' - ACTUALIZADO',
+            content: foundBlog.content + ' - CONTENIDO ACTUALIZADO'
+          };
+          
+          const updateResponse = await fetch('/api/blogs/manage', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedBlog)
+          });
+          const updateResult = await updateResponse.json();
+          testResults.update = updateResult.success;
+          console.log(testResults.update ? '✅ UPDATE exitoso' : '❌ UPDATE fallido');
+          
+          // Test DELETE
+          console.log('🧪 Probando DELETE...');
+          const deleteResponse = await fetch('/api/blogs/manage', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: createdId })
+          });
+          const deleteResult = await deleteResponse.json();
+          testResults.delete = deleteResult.success;
+          console.log(testResults.delete ? '✅ DELETE exitoso' : '❌ DELETE fallido');
+        }
+      }
+
+      // Mostrar resultados
+      const passedTests = Object.values(testResults).filter(Boolean).length;
+      const totalTests = Object.keys(testResults).length;
+      
+      alert(`🧪 Pruebas CRUD completadas:\n\n✅ CREATE: ${testResults.create ? 'PASÓ' : 'FALLÓ'}\n✅ READ: ${testResults.read ? 'PASÓ' : 'FALLÓ'}\n✅ UPDATE: ${testResults.update ? 'PASÓ' : 'FALLÓ'}\n✅ DELETE: ${testResults.delete ? 'PASÓ' : 'FALLÓ'}\n\nResultado: ${passedTests}/${totalTests} pruebas exitosas`);
+      
+      await loadBlogs(); // Recargar lista
+      
+    } catch (error) {
+      console.error('Error en pruebas CRUD:', error);
+      alert('❌ Error ejecutando pruebas CRUD: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Función para forzar migración completa de TODOS los blogs
   const forceCompleteSync = async () => {
     if (!confirm('⚠️ MIGRACIÓN FORZADA COMPLETA\n\n¿Estás seguro de que quieres migrar TODOS los blogs de localStorage al servidor?\n\nEsto asegurará que estén disponibles en todos los dispositivos.')) {
@@ -328,6 +457,32 @@ const BlogManagement: React.FC = () => {
       const result = await response.json();
 
       if (result.success) {
+        // También sincronizar con localStorage para visibilidad inmediata
+        if (!isUpdate) {
+          // Para nuevos blogs, agregamos también a localStorage
+          const blogForLocalStorage = {
+            id: result.blog?.id || blogData.id || Date.now().toString(),
+            title: blogData.title,
+            slug: blogData.slug,
+            excerpt: blogData.excerpt,
+            content: blogData.content,
+            category: blogData.category,
+            author: blogData.author,
+            publishedAt: new Date().toISOString(),
+            readTime: blogData.readTime || 5,
+            tags: blogData.tags || [],
+            image: blogData.imagenPrincipal || blogData.image || '',
+            imagenPrincipal: blogData.imagenPrincipal || '',
+            imagenConclusion: blogData.imagenConclusion || '',
+            featured: Boolean(blogData.featured),
+            source: 'dynamic'
+          };
+          
+          // Sincronizar con localStorage
+          const { syncBlogToLocalStorage } = await import('../../lib/frontend-blog-sync.js');
+          syncBlogToLocalStorage(blogForLocalStorage);
+        }
+        
         await loadBlogs(); // Recargar lista
         setEditingBlog(null);
         setIsEditing(false);
@@ -368,6 +523,12 @@ const BlogManagement: React.FC = () => {
       const result = await response.json();
 
       if (result.success) {
+        // También eliminar de localStorage si existe
+        const { loadBlogsFromLocalStorage, saveBlogsToLocalStorage } = await import('../../lib/frontend-blog-sync.js');
+        const localBlogs = loadBlogsFromLocalStorage();
+        const updatedLocalBlogs = localBlogs.filter(blog => blog.slug !== slug);
+        saveBlogsToLocalStorage(updatedLocalBlogs);
+        
         await loadBlogs(); // Recargar lista
       } else {
         throw new Error(result.message);
@@ -529,9 +690,39 @@ const BlogManagement: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     🎯 Imagen Principal (al inicio del blog)
                   </label>
+                  
+                  {/* Selector de archivo */}
+                  <div className="mb-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            setIsLoading(true);
+                            const imageUrl = await convertImageToBase64(file);
+                            if (isNew) {
+                              setNewBlog({ ...newBlog, imagenPrincipal: imageUrl });
+                            } else {
+                              setEditingBlog({ ...editingBlog!, imagenPrincipal: imageUrl });
+                            }
+                          } catch (error) {
+                            console.error('Error cargando imagen:', error);
+                            alert('Error cargando la imagen');
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887] file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#deb887] file:text-white hover:file:bg-[#d4a574]"
+                    />
+                  </div>
+                  
+                  {/* Campo URL alternativo */}
                   <input
                     type="url"
-                    value={blog.imagenPrincipal || ''}
+                    value={blog.imagenPrincipal?.startsWith('data:') ? '' : blog.imagenPrincipal || ''}
                     onChange={(e) => {
                       if (isNew) {
                         setNewBlog({ ...newBlog, imagenPrincipal: e.target.value });
@@ -540,8 +731,9 @@ const BlogManagement: React.FC = () => {
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887]"
-                    placeholder="https://ejemplo.com/imagen-principal.jpg"
+                    placeholder="O ingresa una URL: https://ejemplo.com/imagen-principal.jpg"
                   />
+                  
                   {blog.imagenPrincipal && (
                     <div className="mt-2">
                       <img 
@@ -555,7 +747,7 @@ const BlogManagement: React.FC = () => {
                     </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    Se mostrará al inicio del blog si se proporciona una URL válida
+                    Sube una imagen desde tu dispositivo o ingresa una URL válida
                   </p>
                 </div>
 
@@ -564,9 +756,39 @@ const BlogManagement: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     🏁 Imagen de Conclusión (después de conclusión)
                   </label>
+                  
+                  {/* Selector de archivo */}
+                  <div className="mb-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            setIsLoading(true);
+                            const imageUrl = await convertImageToBase64(file);
+                            if (isNew) {
+                              setNewBlog({ ...newBlog, imagenConclusion: imageUrl });
+                            } else {
+                              setEditingBlog({ ...editingBlog!, imagenConclusion: imageUrl });
+                            }
+                          } catch (error) {
+                            console.error('Error cargando imagen:', error);
+                            alert('Error cargando la imagen');
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887] file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#deb887] file:text-white hover:file:bg-[#d4a574]"
+                    />
+                  </div>
+                  
+                  {/* Campo URL alternativo */}
                   <input
                     type="url"
-                    value={blog.imagenConclusion || ''}
+                    value={blog.imagenConclusion?.startsWith('data:') ? '' : blog.imagenConclusion || ''}
                     onChange={(e) => {
                       if (isNew) {
                         setNewBlog({ ...newBlog, imagenConclusion: e.target.value });
@@ -575,8 +797,9 @@ const BlogManagement: React.FC = () => {
                       }
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#deb887]"
-                    placeholder="https://ejemplo.com/imagen-conclusion.jpg"
+                    placeholder="O ingresa una URL: https://ejemplo.com/imagen-conclusion.jpg"
                   />
+                  
                   {blog.imagenConclusion && (
                     <div className="mt-2">
                       <img 
@@ -590,7 +813,7 @@ const BlogManagement: React.FC = () => {
                     </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
-                    Se mostrará después de la sección de conclusión si se proporciona una URL válida
+                    Sube una imagen desde tu dispositivo o ingresa una URL válida
                   </p>
                 </div>
               </div>
@@ -672,6 +895,25 @@ const BlogManagement: React.FC = () => {
               </svg>
             )}
             Sincronizar
+          </button>
+          <button
+            onClick={testCRUDOperations}
+            className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+            disabled={loading}
+            title="Probar todas las operaciones CRUD (Crear, Leer, Actualizar, Eliminar)"
+          >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4"/>
+                <path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"/>
+                <path d="M3 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"/>
+                <path d="M12 21c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"/>
+                <path d="M12 3c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"/>
+              </svg>
+            )}
+            Probar CRUD
           </button>
           <button
             onClick={forceCompleteSync}
