@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2024-10-22T12:00:00.000Z",
+  "lastUpdated": "2024-10-22T12:30:00.000Z",
   "blogFiles": [
     {
       "file": "acido-hialuronico-beneficios.json",
@@ -14,10 +14,10 @@
     {
       "file": "tecnologia-ipl-fotorrejuvenecimiento.json",
       "id": "blog-002", 
-      "title": "Tecnología IPL: Revolución en Tratamientos de Fotorrejuvenecimiento",
+      "title": "Tecnología IPL: Revolución en Fotorrejuvenecimiento Facial Avanzado",
       "slug": "tecnologia-ipl-revolucion-fotorrejuvenecimiento",
       "category": "tecnico",
-      "featured": false,
+      "featured": true,
       "publishedAt": "2024-01-20T14:30:00.000Z"
     },
     {
@@ -28,8 +28,17 @@
       "category": "medico-estetico",
       "featured": true,
       "publishedAt": "2024-10-22T09:00:00.000Z"
+    },
+    {
+      "file": "hifu-tecnologia-ultrasonido-focalizado.json",
+      "id": "blog-004",
+      "title": "HIFU: Revolución en Lifting Facial No Invasivo con Ultrasonido Focalizado",
+      "slug": "hifu-tecnologia-ultrasonido-focalizado-lifting-facial",
+      "category": "tecnico",
+      "featured": false,
+      "publishedAt": "2024-10-22T10:00:00.000Z"
     }
   ],
   "categories": ["medico-estetico", "tecnico"],
-  "totalBlogs": 3
+  "totalBlogs": 4
 }

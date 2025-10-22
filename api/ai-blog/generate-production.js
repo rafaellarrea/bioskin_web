@@ -63,44 +63,132 @@ export default async function handler(req, res) {
 
 INSTRUCCIONES ESPECÍFICAS:
 - Escribe en español profesional y accesible
-- Extensión: 500-700 palabras exactas
-- Incluye información médica precisa y actualizada
-- Menciona BIOSKIN como la clínica de referencia
-- Estructura: Introducción, desarrollo con subsecciones, conclusión
-- Incluye llamada a la acción al final`,
+- Extensión: 800-1200 palabras exactas
+- Incluye información médica precisa y actualizada con datos técnicos
+- Menciona BIOSKIN como la clínica de referencia con tecnología avanzada
+- Estructura: Múltiples secciones técnicas detalladas con subsecciones
+- Incluye llamada a la acción específica al final`,
         
         userPrompt: (topic) => `Escribe un blog profesional sobre: "${topic}"
 
-ESTRUCTURA REQUERIDA:
+ESTRUCTURA REQUERIDA (SEGUIR EXACTAMENTE):
 # [TÍTULO ATRACTIVO Y PROFESIONAL SOBRE EL TEMA]
 
-## Introducción
-[Párrafo explicando qué es el tratamiento y por qué es relevante]
+[Párrafo de introducción explicando la importancia y relevancia del tratamiento]
 
-## ¿Qué es y cómo funciona?
-[Explicación técnica pero accesible del procedimiento]
+## ¿Qué es [el tratamiento/tecnología]?
 
-## Principales beneficios
-[Lista numerada de 4-5 beneficios principales con explicación]
+[Explicación técnica accesible del procedimiento, incluyendo mecanismo de acción]
 
-## Proceso del tratamiento
-[Descripción paso a paso del procedimiento]
+### Aplicaciones Principales / Mecanismo de Acción
 
-## Cuidados importantes
-### Pre tratamiento:
-### Post tratamiento:
+**1. [Primera aplicación/beneficio]**
+- Punto específico 1
+- Punto específico 2
+- Punto específico 3
+
+**2. [Segunda aplicación/beneficio]**
+- Punto específico 1
+- Punto específico 2
+- Punto específico 3
+
+**3. [Tercera aplicación/beneficio]**
+- Punto específico 1
+- Punto específico 2
+- Punto específico 3
+
+## Protocolo de Tratamiento BIOSKIN
+
+### Evaluación Inicial
+[Proceso de evaluación inicial]
+
+### Sesiones Recomendadas
+- **Serie inicial**: [número] sesiones
+- **Intervalo**: [tiempo entre sesiones]
+- **Mantenimiento**: [frecuencia de mantenimiento]
+
+### Parámetros Técnicos
+- [Parámetro 1]: [valores]
+- [Parámetro 2]: [valores]
+- [Parámetro 3]: [valores]
+
+## Ventajas del Sistema [Nombre del tratamiento]
+
+### Beneficios Clínicos
+- **[Beneficio 1]**: [Explicación detallada]
+- **[Beneficio 2]**: [Explicación detallada]
+- **[Beneficio 3]**: [Explicación detallada]
+- **[Beneficio 4]**: [Explicación detallada]
+
+### Tiempo de Recuperación
+- **Inmediato**: [Descripción]
+- **24-48h**: [Descripción]
+- **1 semana**: [Descripción]
+- **2-4 semanas**: [Descripción]
+
+## Indicaciones y Contraindicaciones
+
+### Candidatos Ideales
+- [Criterio 1]
+- [Criterio 2]
+- [Criterio 3]
+- [Criterio 4]
+
+### Contraindicaciones Absolutas
+- [Contraindicación 1]
+- [Contraindicación 2]
+- [Contraindicación 3]
+- [Contraindicación 4]
+
+## Cuidados Post-Tratamiento
+
+### Primeras 48 Horas
+- [Cuidado específico 1]
+- [Cuidado específico 2]
+- [Cuidado específico 3]
+
+### Primera Semana
+- [Cuidado específico 1]
+- [Cuidado específico 2]
+- [Cuidado específico 3]
+
+### Seguimiento
+- [Protocolo de seguimiento detallado]
+
+## Resultados Esperados
+
+### Mejoras Graduales
+- **Semana 1-2**: [Descripción de cambios]
+- **Semana 3-4**: [Descripción de cambios]
+- **Mes 2-3**: [Descripción de cambios]
+- **Mes 4-6**: [Descripción de cambios]
+
+### Porcentajes de Mejora
+- [Aspecto 1]: [Porcentaje]%
+- [Aspecto 2]: [Porcentaje]%
+- [Aspecto 3]: [Porcentaje]%
+- Satisfacción del paciente: [Porcentaje]%
+
+## Tecnología de Vanguardia en BIOSKIN
+
+[Descripción de la tecnología específica que usa BIOSKIN, incluyendo:]
+
+- **[Característica 1]**
+- **[Característica 2]**
+- **[Característica 3]**
+- **[Característica 4]**
 
 ## Conclusión
-[Resumen y invitación a consulta en BIOSKIN]
 
-## Referencias y Fuentes
-[3-4 referencias científicas relevantes al tema, con formato académico]
+[Párrafo de conclusión que resuma los beneficios principales y invite a la acción]
 
-LONGITUD: Exactamente 500-700 palabras (sin contar la sección de referencias)
-TONO: Profesional, confiable, educativo
-INCLUIR: Información médica precisa, beneficios reales, precauciones necesarias
-IMPORTANTE: El primer # debe ser un título atractivo específico del tema, no "Introducción"
-REFERENCIAS: Incluir siempre fuentes científicas confiables al final`
+**¿Interesado en conocer más sobre nuestros tratamientos [nombre del tratamiento]? Agenda tu consulta de evaluación sin costo.**
+
+LONGITUD: Exactamente 800-1200 palabras
+TONO: Profesional, técnico pero accesible, educativo
+INCLUIR: Datos específicos, porcentajes, parámetros técnicos, protocolos detallados
+IMPORTANTE: Seguir EXACTAMENTE la estructura con subtítulos y formato de listas
+FORMATO: Usar **negritas** para términos clave y listas con viñetas para detalles`
       },
       
       'tecnico': {
@@ -108,43 +196,139 @@ REFERENCIAS: Incluir siempre fuentes científicas confiables al final`
 
 INSTRUCCIONES ESPECÍFICAS:
 - Escribe en español técnico pero comprensible
-- Extensión: 500-700 palabras exactas
-- Incluye especificaciones técnicas relevantes
-- Explica aplicaciones clínicas reales
-- Menciona ventajas competitivas del equipo
-- Estructura: Introducción, características técnicas, aplicaciones, conclusión`,
+- Extensión: 1000-1400 palabras exactas
+- Incluye especificaciones técnicas detalladas con parámetros numéricos
+- Explica aplicaciones clínicas reales con protocolos específicos
+- Menciona ventajas competitivas del equipo BIOSKIN
+- Estructura: Múltiples secciones técnicas especializadas con comparativas`,
         
         userPrompt: (topic) => `Escribe un artículo técnico sobre: "${topic}"
 
-ESTRUCTURA REQUERIDA:
+ESTRUCTURA REQUERIDA (SEGUIR EXACTAMENTE):
 # [TÍTULO ESPECÍFICO Y TÉCNICO SOBRE EL TEMA]
 
-## Introducción
-[Contexto de la tecnología en medicina estética]
+[Párrafo de introducción técnica sobre la importancia de esta tecnología en medicina estética]
 
-## Características técnicas principales
-[Especificaciones y capacidades del equipo]
+## ¿Qué es la Tecnología [Nombre]?
 
-## Aplicaciones clínicas
-[Tratamientos y procedimientos donde se utiliza]
+[Explicación técnica detallada del funcionamiento, incluyendo principios físicos]
 
-## Ventajas competitivas
-[Por qué esta tecnología es superior]
+### Mecanismo de Acción / Características Técnicas Principales
 
-## Consideraciones técnicas
-[Requisitos, mantenimiento, capacitación]
+**1. [Aspecto técnico 1]**
+- Especificación técnica 1
+- Especificación técnica 2
+- Especificación técnica 3
+
+**2. [Aspecto técnico 2]**
+- Especificación técnica 1
+- Especificación técnica 2
+- Especificación técnica 3
+
+**3. [Aspecto técnico 3]**
+- Especificación técnica 1
+- Especificación técnica 2
+- Especificación técnica 3
+
+## Protocolo de Tratamiento BIOSKIN
+
+### Evaluación Inicial Completa
+[Proceso técnico de evaluación]
+
+### Áreas de Aplicación Principales
+- **[Aplicación 1]**
+- **[Aplicación 2]**
+- **[Aplicación 3]**
+- **[Aplicación 4]**
+
+### Parámetros Técnicos Avanzados
+- [Parámetro técnico 1]: [valores específicos]
+- [Parámetro técnico 2]: [valores específicos]
+- [Parámetro técnico 3]: [valores específicos]
+- [Parámetro técnico 4]: [valores específicos]
+
+## Ventajas del Sistema [Tecnología]
+
+### Beneficios Clínicos Superiores
+- **[Ventaja técnica 1]**: [Explicación técnica]
+- **[Ventaja técnica 2]**: [Explicación técnica]
+- **[Ventaja técnica 3]**: [Explicación técnica]
+- **[Ventaja técnica 4]**: [Explicación técnica]
+
+### Perfil de Recuperación
+- **Inmediato**: [Descripción técnica]
+- **24-72h**: [Descripción técnica]
+- **1 semana**: [Descripción técnica]
+- **4-12 semanas**: [Descripción técnica]
+
+## Indicaciones y Selección de Pacientes
+
+### Candidatos Ideales
+- [Criterio técnico 1]
+- [Criterio técnico 2]
+- [Criterio técnico 3]
+- [Criterio técnico 4]
+
+### Contraindicaciones Absolutas
+- [Contraindicación técnica 1]
+- [Contraindicación técnica 2]
+- [Contraindicación técnica 3]
+- [Contraindicación técnica 4]
+
+## Protocolo de Sesión Detallado
+
+### Preparación del Paciente
+[Pasos técnicos específicos de preparación]
+
+### Ejecución del Tratamiento
+[Proceso técnico paso a paso]
+
+### Finalización y Cuidados
+[Protocolo técnico de finalización]
+
+## Resultados Clínicos Documentados
+
+### Cronología de Mejoras
+- **Inmediato**: [Resultado técnico específico]
+- **2-4 semanas**: [Resultado técnico específico]
+- **6-12 semanas**: [Resultado técnico específico]
+- **3-6 meses**: [Resultado técnico específico]
+
+### Métricas de Eficacia
+- [Métrica 1]: [Porcentaje]% de mejora
+- [Métrica 2]: [Porcentaje]% de mejora
+- [Métrica 3]: [Porcentaje]% de mejora
+- Satisfacción del paciente: [Porcentaje]%
+
+## Innovación Tecnológica BIOSKIN
+
+### Equipo de Última Generación
+- **[Innovación técnica 1]**
+- **[Innovación técnica 2]**
+- **[Innovación técnica 3]**
+- **[Innovación técnica 4]**
+
+### Ventajas Competitivas
+[Lista de ventajas técnicas específicas del equipo BIOSKIN]
+
+## Comparación con Otros Tratamientos
+
+### [Tecnología] vs [Alternativa 1]
+- **[Aspecto comparativo 1]**: [Comparación técnica]
+- **[Aspecto comparativo 2]**: [Comparación técnica]
+- **[Aspecto comparativo 3]**: [Comparación técnica]
 
 ## Conclusión
-[Impacto en la práctica médico-estética]
 
-## Referencias Técnicas y Fuentes
-[3-4 referencias científicas y técnicas relevantes, incluyendo estudios clínicos]
+[Párrafo técnico de conclusión sobre el impacto de esta tecnología en medicina estética]
 
-LONGITUD: Exactamente 500-700 palabras (sin contar la sección de referencias)
-TONO: Técnico, informativo, profesional
-INCLUIR: Datos técnicos, aplicaciones reales, beneficios clínicos
-IMPORTANTE: El primer # debe ser un título específico del tema técnico, no "Introducción"
-REFERENCIAS: Incluir siempre fuentes científicas y estudios técnicos al final`
+**¿Listo para experimentar [beneficio principal de la tecnología]? Agenda tu consulta especializada y descubre cómo esta tecnología avanzada puede [beneficio específico].**
+
+LONGITUD: Exactamente 1000-1400 palabras
+TONO: Técnico profesional, detallado, científico pero accesible
+INCLUIR: Especificaciones técnicas exactas, parámetros numéricos, protocolos detallados, métricas de eficacia
+IMPORTANTE: Seguir EXACTAMENTE la estructura con subtítulos técnicos específicos
+FORMATO: Usar **negritas** para términos técnicos clave y especificaciones numéricas`
       }
     };
 
@@ -220,8 +404,12 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
       .trim('-') + '-' + Date.now();
 
     // Generar extracto
-    const firstParagraph = content.split('\n\n')[1] || content.substring(0, 200);
-    const excerpt = firstParagraph.replace(/^#+\s+/, '').substring(0, 150) + '...';
+    const firstParagraph = content.split('\n\n')[1] || content.substring(0, 250);
+    const excerpt = firstParagraph.replace(/^#+\s+/, '').substring(0, 200) + '...';
+
+    // Calcular tiempo de lectura más preciso (palabras por minuto = 200)
+    const wordCount = cleanContent.split(/\s+/).filter(word => word.length > 0).length;
+    const readTimeMinutes = Math.ceil(wordCount / 200);
 
     // ✅ MEJORAR: Generar tags dinámicos basados en el contenido del blog
     const generateDynamicTags = (content, title, blogType) => {
@@ -356,7 +544,7 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
       category: blogType,
       author: 'BIOSKIN IA',
       publishedAt: new Date().toISOString().split('T')[0],
-      readTime: Math.ceil(cleanContent.split(' ').length / 200),
+      readTime: readTimeMinutes, // ✅ Usar tiempo de lectura calculado correctamente
       image: imageUrl, // ✅ Imagen confiable con validación
       featured: false
     };
@@ -406,11 +594,11 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
       category: blogType,
       blog_type: blogType,
       tags,
-      read_time: Math.ceil(cleanContent.split(' ').length / 200),
+      read_time: readTimeMinutes, // ✅ Usar tiempo de lectura calculado correctamente
       author: 'BIOSKIN IA',
       published_at: new Date().toISOString().split('T')[0],
       publishedAt: new Date().toISOString().split('T')[0], // Para compatibilidad frontend
-      readTime: Math.ceil(cleanContent.split(' ').length / 200), // Para compatibilidad frontend
+      readTime: readTimeMinutes, // ✅ Para compatibilidad frontend
       image: imageData.url, // ✅ ASEGURAR que la imagen se incluya en la respuesta
       featured: false,
       week_year: getCurrentWeekYear(),
@@ -443,7 +631,7 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
       message: responseMessage,
       blog,
       meta: {
-        wordCount: cleanContent.split(' ').length,
+        wordCount: wordCount, // ✅ Usar conteo de palabras calculado correctamente
         hasOpenAI: true,
         savedToDB: !!blogId && !savedToDynamic,
         savedToDynamic: savedToDynamic,
