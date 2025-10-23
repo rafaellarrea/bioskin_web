@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug - Blogs System</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .blog { border: 1px solid #ccc; margin: 10px 0; padding: 10px; }
+        .error { color: red; background: #ffe6e6; padding: 10px; }
+        .success { color: green; background: #e6ffe6; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug - Sistema de Blogs</h1>
+    <div id="result">Cargando...</div>
+
+    <script>
+        async function testBlogs() {
+            const result = document.getElementById('result');
+            
+            try {
+                console.log('Testing /api/blogs/manage?source=all');
+                const response = await fetch('/api/blogs/manage?source=all&limit=50');
+                const data = await response.json();
+                
+                if (data.success && data.blogs) {
+                    result.innerHTML = `
+                        <div class="success">✅ Éxito: ${data.blogs.length} blogs cargados</div>
+                        <h3>Blogs encontrados:</h3>
+                        ${data.blogs.map(blog => `
+                            <div class="blog">
+                                <strong>${blog.title}</strong><br>
+                                <small>Slug: ${blog.slug} | Fuente: ${blog.source} | Categoría: ${blog.category}</small><br>
+                                <a href="/#/blogs/${blog.slug}" target="_blank">Ver blog →</a>
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Error: ${data.message || 'No se pudieron cargar blogs'}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error de conexión: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-load
+        testBlogs();
+    </script>
+</body>
+</html>
