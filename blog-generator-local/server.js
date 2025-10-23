@@ -42,15 +42,42 @@ const upload = multer({
   }
 });
 
-// Importar servicios
-const BlogGenerator = require('./services/blog-generator');
-const BlogManager = require('./services/blog-manager');
-const DeployManager = require('./services/deploy-manager');
+// Importar servicios con manejo de errores
+let BlogGenerator, BlogManager, DeployManager;
+let blogGenerator, blogManager, deployManager;
 
-// Instanciar servicios
-const blogGenerator = new BlogGenerator();
-const blogManager = new BlogManager();
-const deployManager = new DeployManager();
+try {
+  BlogGenerator = require('./services/blog-generator');
+  BlogManager = require('./services/blog-manager');
+  DeployManager = require('./services/deploy-manager');
+
+  // Instanciar servicios
+  blogGenerator = new BlogGenerator();
+  blogManager = new BlogManager();
+  deployManager = new DeployManager();
+  
+  console.log('✅ Servicios cargados correctamente');
+} catch (error) {
+  console.error('❌ Error cargando servicios:', error.message);
+  console.log('🔧 Iniciando con servicios mock...');
+  
+  // Servicios mock para desarrollo
+  blogGenerator = {
+    generateBlog: async () => ({ success: false, message: 'Servicio no disponible' }),
+    validateApiKey: async () => ({ valid: false, message: 'Servicio no disponible' })
+  };
+  
+  blogManager = {
+    saveBlog: async () => ({ success: false, message: 'Servicio no disponible' }),
+    getSavedBlogs: async () => [],
+    getBlogBySlug: async () => null
+  };
+  
+  deployManager = {
+    deployBlog: async () => ({ success: false, message: 'Servicio no disponible' }),
+    checkGitStatus: async () => ({ success: false, message: 'Servicio no disponible' })
+  };
+}
 
 // RUTAS
 

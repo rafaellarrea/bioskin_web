@@ -12,6 +12,6 @@ echo.
 echo Presiona Ctrl+C para detener el servidor
 echo.
 
-node server.js
+node server-simple.js
 
 pause
