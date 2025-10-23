@@ -146,6 +146,47 @@ export default async function handler(req, res) {
   }
 }
 
+// Función para cargar blogs JSON
+async function loadJsonBlogs() {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const blogsDir = path.default.join(process.cwd(), 'src', 'data', 'blogs');
+    const indexPath = path.default.join(blogsDir, 'index.json');
+    
+    if (!fs.default.existsSync(indexPath)) {
+      console.warn('Índice de blogs JSON no encontrado');
+      return [];
+    }
+
+    const indexContent = fs.default.readFileSync(indexPath, 'utf8');
+    const index = JSON.parse(indexContent);
+    
+    const jsonBlogs = [];
+    for (const fileInfo of index.blogFiles) {
+      try {
+        const blogPath = path.default.join(blogsDir, fileInfo.file);
+        if (fs.default.existsSync(blogPath)) {
+          const blogContent = fs.default.readFileSync(blogPath, 'utf8');
+          const blog = JSON.parse(blogContent);
+          jsonBlogs.push({
+            ...blog,
+            source: 'json-file'
+          });
+        }
+      } catch (error) {
+        console.warn(`Error cargando blog JSON ${fileInfo.file}:`, error.message);
+      }
+    }
+    
+    return jsonBlogs;
+  } catch (error) {
+    console.warn('Error cargando blogs JSON:', error);
+    return [];
+  }
+}
+
 // GET: Obtener blogs (lista o individual)
 async function handleGet(req, res) {
   const { 
@@ -155,7 +196,7 @@ async function handleGet(req, res) {
     search, 
     featured,
     slug,
-    source = 'all' // 'static', 'dynamic', 'all'
+    source = 'all' // 'static', 'dynamic', 'json', 'all'
   } = req.query;
 
   // Combinar blogs según source
@@ -166,6 +207,10 @@ async function handleGet(req, res) {
   if (source === 'dynamic' || source === 'all') {
     const dynamicBlogs = getDynamicBlogs();
     allBlogs.push(...dynamicBlogs.map(blog => ({ ...blog, source: 'dynamic' })));
+  }
+  if (source === 'json' || source === 'all') {
+    const jsonBlogs = await loadJsonBlogs();
+    allBlogs.push(...jsonBlogs);
   }
 
   // Si se solicita un blog específico por slug
