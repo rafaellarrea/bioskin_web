@@ -9,7 +9,7 @@ const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
-const PORT = 3335;
+const PORT = 3336;
 
 console.log(`
   ╔════════════════════════════════════════╗
@@ -34,10 +34,20 @@ app.use(express.static('public'));
 // Configuración de multer para subida de imágenes organizadas por blog
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log('🔍 Determinando destino para subida de imagen...');
+    console.log('📋 req.body:', req.body);
+    
     // Obtener el slug del blog desde el formulario
     const blogSlug = req.body.blogSlug || 'temporal';
+    console.log(`📂 Slug detectado: ${blogSlug}`);
+    
     const blogImagesDir = path.join(projectRoot, 'public', 'images', 'blog', blogSlug);
-    fs.ensureDir(blogImagesDir);
+    console.log(`📁 Directorio de destino: ${blogImagesDir}`);
+    
+    // Crear directorio de forma síncrona para multer
+    fs.ensureDirSync(blogImagesDir);
+    console.log(`✅ Directorio creado/verificado: ${blogImagesDir}`);
+    
     cb(null, blogImagesDir);
   },
   filename: function (req, file, cb) {
@@ -48,7 +58,9 @@ const storage = multer.diskStorage({
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
-    cb(null, `${safeFilename}-${timestamp}${extension}`);
+    const finalFilename = `${safeFilename}-${timestamp}${extension}`;
+    console.log(`📷 Nombre de archivo generado: ${finalFilename}`);
+    cb(null, finalFilename);
   }
 });
 
@@ -499,6 +511,49 @@ app.post('/api/generate-blog', async (req, res) => {
   }
 });
 
+// Función para mover imágenes temporales al directorio correcto
+async function moveTemporalImages(blogSlug) {
+  try {
+    const temporalDir = path.join(projectRoot, 'public', 'images', 'blog', 'temporal');
+    const blogImagesDir = path.join(projectRoot, 'public', 'images', 'blog', blogSlug);
+    
+    if (await fs.pathExists(temporalDir)) {
+      const temporalFiles = await fs.readdir(temporalDir);
+      
+      if (temporalFiles.length > 0) {
+        console.log(`🔄 Moviendo ${temporalFiles.length} imágenes temporales a ${blogSlug}`);
+        
+        await fs.ensureDir(blogImagesDir);
+        
+        for (const file of temporalFiles) {
+          const sourcePath = path.join(temporalDir, file);
+          const targetPath = path.join(blogImagesDir, file);
+          
+          try {
+            await fs.move(sourcePath, targetPath);
+            console.log(`✅ Movida: ${file} -> ${blogSlug}/`);
+          } catch (moveError) {
+            console.warn(`⚠️ Error moviendo ${file}:`, moveError.message);
+          }
+        }
+        
+        // Intentar eliminar directorio temporal si está vacío
+        try {
+          const remainingFiles = await fs.readdir(temporalDir);
+          if (remainingFiles.length === 0) {
+            await fs.remove(temporalDir);
+            console.log('🗑️ Directorio temporal limpiado');
+          }
+        } catch (cleanupError) {
+          console.log('⚠️ No se pudo limpiar directorio temporal:', cleanupError.message);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error moviendo imágenes temporales:', error);
+  }
+}
+
 // Guardar blog con estructura organizada
 app.post('/api/save-blog', async (req, res) => {
   try {
@@ -519,6 +574,9 @@ app.post('/api/save-blog', async (req, res) => {
     // Asegurar que existen los directorios
     await fs.ensureDir(blogDir);
     await fs.ensureDir(blogImagesDir);
+
+    // Mover imágenes temporales si existen
+    await moveTemporalImages(blogSlug);
 
     // Paths de archivos
     const blogFilePath = path.join(blogDir, 'index.json');
@@ -689,28 +747,42 @@ app.post('/api/deploy-blog', async (req, res) => {
     // Despliegue con Git
     const git = simpleGit(projectRoot);
 
+    console.log(`🔄 Iniciando despliegue para blog: ${blogSlug}`);
+
     // Añadir todos los archivos del blog
     if (blogData.structure === 'organized') {
       // Blog organizado: añadir directorio completo
-      const relativeBlogDir = path.relative(projectRoot, path.dirname(blogPath));
-      await git.add(`${relativeBlogDir}/*`);
+      const relativeBlogDir = path.relative(projectRoot, path.dirname(blogPath)).replace(/\\/g, '/');
+      console.log(`📁 Añadiendo directorio del blog: ${relativeBlogDir}`);
+      await git.add(`${relativeBlogDir}/`);
       
       // También añadir imágenes si existen
       const blogImagesDir = path.join(projectRoot, 'public', 'images', 'blog', blogSlug);
       if (await fs.pathExists(blogImagesDir)) {
-        const relativeImagesDir = path.relative(projectRoot, blogImagesDir);
-        await git.add(`${relativeImagesDir}/*`);
+        // Verificar que hay archivos en el directorio
+        const imageFiles = await fs.readdir(blogImagesDir);
+        if (imageFiles.length > 0) {
+          const relativeImagesDir = path.relative(projectRoot, blogImagesDir).replace(/\\/g, '/');
+          console.log(`🖼️ Añadiendo imágenes: ${relativeImagesDir}/ (${imageFiles.length} archivos)`);
+          await git.add(`${relativeImagesDir}/`);
+        } else {
+          console.log(`⚠️ Directorio de imágenes vacío: ${blogImagesDir}`);
+        }
+      } else {
+        console.log(`⚠️ Directorio de imágenes no existe: ${blogImagesDir}`);
       }
     } else {
       // Blog legacy: añadir solo el archivo
-      const relativePath = path.relative(projectRoot, blogPath);
+      const relativePath = path.relative(projectRoot, blogPath).replace(/\\/g, '/');
+      console.log(`📄 Añadiendo archivo legacy: ${relativePath}`);
       await git.add(relativePath);
     }
 
     // Añadir índice actualizado
     const indexPath = path.join(blogsDir, 'index.json');
     if (await fs.pathExists(indexPath)) {
-      const relativeIndexPath = path.relative(projectRoot, indexPath);
+      const relativeIndexPath = path.relative(projectRoot, indexPath).replace(/\\/g, '/');
+      console.log(`📇 Añadiendo índice: ${relativeIndexPath}`);
       await git.add(relativeIndexPath);
     }
 
@@ -881,6 +953,7 @@ app.get('/api/blog/:slug', async (req, res) => {
 // Endpoint para subir imágenes organizadas por blog
 app.post('/api/upload-image', (req, res) => {
   console.log('📨 Petición recibida en /api/upload-image');
+  console.log('📋 Headers:', req.headers);
   
   upload.single('image')(req, res, async (err) => {
     if (err) {
@@ -895,6 +968,7 @@ app.post('/api/upload-image', (req, res) => {
     try {
       if (!req.file) {
         console.log('⚠️ No se recibió ningún archivo');
+        console.log('📋 req.body completo:', req.body);
         return res.status(400).json({
           success: false,
           message: 'No se subió ningún archivo'
@@ -906,13 +980,22 @@ app.post('/api/upload-image', (req, res) => {
       const imageUrl = `/images/blog/${blogSlug}/${filename}`;
 
       console.log(`🖼️ Imagen subida exitosamente: ${filename}`);
-      console.log(`📂 Blog: ${blogSlug}`);
-      console.log(`📂 Ruta del archivo: ${req.file.path}`);
+      console.log(`📂 Blog slug usado: ${blogSlug}`);
+      console.log(`📂 Ruta del archivo físico: ${req.file.path}`);
       console.log(`🔗 URL de la imagen: ${imageUrl}`);
+
+      // Verificar que el archivo realmente se guardó
+      if (await fs.pathExists(req.file.path)) {
+        console.log(`✅ Archivo confirmado en: ${req.file.path}`);
+      } else {
+        console.error(`❌ Archivo NO encontrado en: ${req.file.path}`);
+      }
 
       // Si el blog existe, actualizar su lista de imágenes
       if (blogSlug !== 'temporal') {
         await updateBlogImages(blogSlug, imageUrl, filename);
+      } else {
+        console.log('⚠️ Imagen subida a carpeta temporal porque no se proporcionó blogSlug válido');
       }
 
       res.json({
@@ -921,7 +1004,12 @@ app.post('/api/upload-image', (req, res) => {
         imageUrl: imageUrl,
         filename: filename,
         blogSlug: blogSlug,
-        fullPath: req.file.path
+        fullPath: req.file.path,
+        debug: {
+          originalBlogSlug: req.body.blogSlug,
+          usedBlogSlug: blogSlug,
+          destination: req.file.destination
+        }
       });
 
     } catch (error) {
