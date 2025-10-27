@@ -66,21 +66,59 @@ export default async function handler(req, res) {
     const indexContent = fs.readFileSync(indexPath, 'utf8');
     const index = JSON.parse(indexContent);
     
-    // Cargar todos los blogs del índice
+    // Cargar todos los blogs del índice (tanto legacy como organizados)
     const blogs = [];
-    for (const fileInfo of index.blogFiles) {
-      try {
-        const blogPath = path.join(blogsDir, fileInfo.file);
-        if (fs.existsSync(blogPath)) {
-          const blogContent = fs.readFileSync(blogPath, 'utf8');
-          const blog = JSON.parse(blogContent);
-          blogs.push({
-            ...blog,
-            source: 'json-file'
-          });
+    
+    // Cargar blogs legacy (archivos .json individuales)
+    if (index.blogFiles && Array.isArray(index.blogFiles)) {
+      for (const fileInfo of index.blogFiles) {
+        try {
+          const blogPath = path.join(blogsDir, fileInfo.file);
+          if (fs.existsSync(blogPath)) {
+            const blogContent = fs.readFileSync(blogPath, 'utf8');
+            const blog = JSON.parse(blogContent);
+            blogs.push({
+              ...blog,
+              source: 'json-file-legacy'
+            });
+          }
+        } catch (error) {
+          console.warn(`Error cargando blog legacy ${fileInfo.file}:`, error.message);
         }
-      } catch (error) {
-        console.warn(`Error cargando blog ${fileInfo.file}:`, error.message);
+      }
+    }
+    
+    // Cargar blogs organizados (desde el nuevo sistema)
+    if (index.blogs && Array.isArray(index.blogs)) {
+      for (const blogInfo of index.blogs) {
+        try {
+          // Si es un blog organizado, leer desde su carpeta
+          if (blogInfo.structure === 'organized' && blogInfo.paths && blogInfo.paths.blog) {
+            const blogPath = path.join(process.cwd(), blogInfo.paths.blog);
+            if (fs.existsSync(blogPath)) {
+              const blogContent = fs.readFileSync(blogPath, 'utf8');
+              const blog = JSON.parse(blogContent);
+              blogs.push({
+                ...blog,
+                source: 'json-file-organized'
+              });
+            }
+          }
+          // Si es un blog legacy referenciado en el índice
+          else if (blogInfo.structure === 'legacy') {
+            const blogPath = path.join(blogsDir, `${blogInfo.slug}.json`);
+            if (fs.existsSync(blogPath)) {
+              const blogContent = fs.readFileSync(blogPath, 'utf8');
+              const blog = JSON.parse(blogContent);
+              blogs.push({
+                ...blog,
+                source: 'json-file-legacy-indexed'
+              });
+            }
+          }
+        } catch (error) {
+          console.warn(`Error cargando blog ${blogInfo.slug}:`, error.message);
+        }
       }
     }
 
@@ -89,9 +127,12 @@ export default async function handler(req, res) {
       index: index,
       blogs: blogs,
       stats: {
-        totalFiles: index.blogFiles.length,
+        totalFiles: (index.blogFiles?.length || 0),
+        totalBlogs: (index.blogs?.length || 0),
         loadedBlogs: blogs.length,
-        categories: index.categories
+        organized: blogs.filter(b => b.source === 'json-file-organized').length,
+        legacy: blogs.filter(b => b.source?.includes('legacy')).length,
+        categories: index.categories || {}
       },
       endpoint: '/api/blogs/json-files'
     });
