@@ -71,6 +71,22 @@ class BlogGeneratorApp {
         document.getElementById('clearLogs').addEventListener('click', () => {
             this.clearLogs();
         });
+
+        // Ver blogs guardados
+        document.getElementById('showSavedBlogs').addEventListener('click', () => {
+            this.showSavedBlogsModal();
+        });
+
+        document.getElementById('closeSavedBlogs').addEventListener('click', () => {
+            this.hideSavedBlogsModal();
+        });
+
+        // Cerrar modal al hacer click fuera
+        document.getElementById('savedBlogsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'savedBlogsModal') {
+                this.hideSavedBlogsModal();
+            }
+        });
     }
 
     async loadTopicSuggestions() {
@@ -248,11 +264,17 @@ class BlogGeneratorApp {
     async uploadImage(file) {
         if (!file) return;
 
+        if (!this.currentBlog) {
+            this.showAlert('Primero genera un blog para poder subir imágenes', 'warning');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('blogSlug', this.currentBlog.slug); // Añadir slug del blog
 
         this.showUploadProgress();
-        this.log(`Subiendo imagen: ${file.name}`);
+        this.log(`Subiendo imagen para blog: ${this.currentBlog.slug} - ${file.name}`);
 
         try {
             const response = await fetch('/api/upload-image', {
@@ -263,9 +285,9 @@ class BlogGeneratorApp {
             const data = await response.json();
 
             if (data.success) {
-                this.addImageToBlog(data.imageUrl, file.name);
-                this.log(`Imagen subida: ${file.name}`);
-                this.showAlert('Imagen subida exitosamente', 'success');
+                this.addImageToBlog(data.imageUrl, file.name, data.blogSlug);
+                this.log(`Imagen subida a carpeta organizada: ${data.imageUrl}`);
+                this.showAlert('Imagen subida y organizada exitosamente', 'success');
             } else {
                 throw new Error(data.message);
             }
@@ -304,8 +326,14 @@ class BlogGeneratorApp {
         }
     }
 
-    addImageToBlog(imageUrl, name) {
-        const imageData = { url: imageUrl, name: name, id: Date.now() };
+    addImageToBlog(imageUrl, name, blogSlug = null) {
+        const imageData = { 
+            url: imageUrl, 
+            name: name, 
+            id: Date.now(),
+            blogSlug: blogSlug,
+            isOrganized: blogSlug ? true : false
+        };
         this.blogImages.push(imageData);
         
         // Añadir imagen principal si no existe
@@ -314,7 +342,14 @@ class BlogGeneratorApp {
             this.currentBlog.imagenPrincipal = imageUrl;
         }
 
+        // Actualizar lista de imágenes en el blog
+        if (!this.currentBlog.images) {
+            this.currentBlog.images = [];
+        }
+        this.currentBlog.images.push(imageData);
+
         this.renderBlogImages();
+        this.log(`Imagen añadida al blog ${blogSlug || 'temporal'}: ${name}`);
     }
 
     renderBlogImages() {
@@ -324,7 +359,13 @@ class BlogGeneratorApp {
         this.blogImages.forEach((image, index) => {
             const div = document.createElement('div');
             div.className = 'relative group';
+            
+            const organizedLabel = image.isOrganized ? 
+                '<span class="absolute top-1 left-1 bg-green-500 text-white text-xs px-1 rounded">Organizada</span>' : 
+                '<span class="absolute top-1 left-1 bg-gray-500 text-white text-xs px-1 rounded">Temporal</span>';
+            
             div.innerHTML = `
+                ${organizedLabel}
                 <img src="${image.url}" alt="${image.name}" class="image-preview w-full">
                 <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button onclick="app.removeImage(${image.id})" class="bg-red-500 text-white px-2 py-1 rounded text-sm">
@@ -335,6 +376,7 @@ class BlogGeneratorApp {
                     </button>
                 </div>
                 <div class="text-xs text-gray-500 mt-1 truncate">${image.name}</div>
+                <div class="text-xs text-gray-400">${image.blogSlug || 'temporal'}</div>
             `;
             container.appendChild(div);
         });
@@ -401,10 +443,10 @@ class BlogGeneratorApp {
             return;
         }
 
-        const commitMessage = `📝 Nuevo blog: ${this.currentBlog.title}`;
+        const commitMessage = `📝 Nuevo blog organizado: ${this.currentBlog.title}`;
         
         this.showStatus('Desplegando al repositorio...', true);
-        this.log(`Desplegando blog: ${this.currentBlog.slug}`);
+        this.log(`Desplegando blog organizado: ${this.currentBlog.slug}`);
 
         try {
             const response = await fetch('/api/deploy-blog', {
@@ -421,7 +463,11 @@ class BlogGeneratorApp {
             if (data.success) {
                 this.updateStep(5, true);
                 this.log(`Blog desplegado exitosamente. Commit: ${data.details.commit}`);
-                this.showAlert('¡Blog desplegado exitosamente al sitio web!', 'success');
+                this.log(`Estructura: ${data.details.structure}, Imágenes incluidas: ${data.details.imagesIncluded}`);
+                this.showAlert('¡Blog desplegado exitosamente con estructura organizada!', 'success');
+                
+                // Mostrar resumen de despliegue
+                this.showDeploymentSummary(data.details);
             } else {
                 throw new Error(data.message);
             }
@@ -431,6 +477,17 @@ class BlogGeneratorApp {
         } finally {
             this.hideStatus();
         }
+    }
+
+    showDeploymentSummary(details) {
+        const summary = `
+            📁 Blog: ${details.slug}
+            📝 Título: ${details.title}
+            🏗️ Estructura: ${details.structure}
+            🖼️ Imágenes: ${details.imagesIncluded ? 'Incluidas en carpeta organizada' : 'No incluidas'}
+            🔗 Commit: ${details.commit}
+        `;
+        this.log(summary);
     }
 
     updateStep(stepNumber, completed = false) {
@@ -557,6 +614,200 @@ class BlogGeneratorApp {
     clearLogs() {
         const logContainer = document.getElementById('activityLog');
         logContainer.innerHTML = '<div class="text-gray-500">Logs limpiados...</div>';
+    }
+
+    async showSavedBlogsModal() {
+        this.log('Cargando blogs guardados...');
+        document.getElementById('savedBlogsModal').style.display = 'block';
+        
+        try {
+            const response = await fetch('/api/saved-blogs');
+            const data = await response.json();
+
+            if (data.success) {
+                this.renderSavedBlogsMetadata(data.metadata);
+                this.renderSavedBlogs(data.blogs);
+                this.log(`Cargados ${data.blogs.length} blogs (${data.metadata.organized} organizados, ${data.metadata.legacy} legacy)`);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.log(`Error cargando blogs: ${error.message}`, 'error');
+            this.showAlert(`Error cargando blogs: ${error.message}`, 'error');
+        }
+    }
+
+    hideSavedBlogsModal() {
+        document.getElementById('savedBlogsModal').style.display = 'none';
+    }
+
+    renderSavedBlogsMetadata(metadata) {
+        const container = document.getElementById('savedBlogsMetadata');
+        container.innerHTML = `
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <div class="text-2xl font-bold text-blue-600">${metadata.total}</div>
+                    <div class="text-sm text-gray-600">Total Blogs</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-green-600">${metadata.organized}</div>
+                    <div class="text-sm text-gray-600">Organizados</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-yellow-600">${metadata.legacy}</div>
+                    <div class="text-sm text-gray-600">Legacy</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-600">Actualizado</div>
+                    <div class="text-xs text-gray-500">${new Date(metadata.lastUpdated).toLocaleString()}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderSavedBlogs(blogs) {
+        const container = document.getElementById('savedBlogsList');
+        container.innerHTML = '';
+
+        if (blogs.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-4"></i>
+                    <p>No hay blogs guardados</p>
+                </div>
+            `;
+            return;
+        }
+
+        blogs.forEach(blog => {
+            const blogCard = document.createElement('div');
+            blogCard.className = 'border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors';
+            
+            const structureIcon = blog.structure === 'organized' ? 
+                '<i class="fas fa-folder text-green-500"></i>' : 
+                '<i class="fas fa-file text-yellow-500"></i>';
+            
+            const publishedDate = new Date(blog.publishedAt).toLocaleDateString();
+            const imageCount = blog.images ? blog.images.length : 0;
+
+            blogCard.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            ${structureIcon}
+                            <h3 class="font-semibold text-gray-800">${blog.title}</h3>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${blog.category}</span>
+                        </div>
+                        
+                        <p class="text-sm text-gray-600 mb-2">${blog.excerpt}</p>
+                        
+                        <div class="flex items-center gap-4 text-xs text-gray-500">
+                            <span><i class="fas fa-calendar mr-1"></i>${publishedDate}</span>
+                            <span><i class="fas fa-clock mr-1"></i>${blog.readTime} min</span>
+                            <span><i class="fas fa-images mr-1"></i>${imageCount} imágenes</span>
+                            <span><i class="fas fa-tags mr-1"></i>${blog.tags.length} tags</span>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <div class="text-xs text-gray-400">
+                                Slug: ${blog.slug} | 
+                                Estructura: ${blog.structure || 'legacy'} | 
+                                Fuente: ${blog.source || 'unknown'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2 ml-4">
+                        <button onclick="app.loadBlogForEdit('${blog.slug}')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">
+                            <i class="fas fa-edit mr-1"></i>Editar
+                        </button>
+                        <button onclick="app.deployExistingBlog('${blog.slug}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                            <i class="fas fa-rocket mr-1"></i>Desplegar
+                        </button>
+                        ${blog.structure === 'organized' ? 
+                            `<button onclick="app.openBlogFolder('${blog.slug}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">
+                                <i class="fas fa-folder-open mr-1"></i>Carpeta
+                            </button>` : ''
+                        }
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(blogCard);
+        });
+    }
+
+    async loadBlogForEdit(slug) {
+        this.log(`Cargando blog para edición: ${slug}`);
+        this.hideSavedBlogsModal();
+        
+        try {
+            const response = await fetch(`/api/blog/${slug}`);
+            const data = await response.json();
+
+            if (data.success) {
+                this.currentBlog = data.blog;
+                this.renderBlogPreview();
+                this.showImagePanel();
+                this.enableActionButtons();
+                this.updateStep(3);
+                
+                // Cargar imágenes si las hay
+                if (data.blog.images) {
+                    this.blogImages = data.blog.images.map(img => ({
+                        ...img,
+                        id: Date.now() + Math.random()
+                    }));
+                    this.renderBlogImages();
+                }
+                
+                this.log(`Blog cargado para edición: ${data.blog.title} (${data.structure})`);
+                this.showAlert('Blog cargado para edición', 'success');
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.log(`Error cargando blog: ${error.message}`, 'error');
+            this.showAlert(`Error cargando blog: ${error.message}`, 'error');
+        }
+    }
+
+    async deployExistingBlog(slug) {
+        this.log(`Desplegando blog existente: ${slug}`);
+        this.hideSavedBlogsModal();
+        
+        this.showStatus('Desplegando blog existente...', true);
+        
+        try {
+            const response = await fetch('/api/deploy-blog', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    blogSlug: slug,
+                    commitMessage: `🔄 Redesplegando blog: ${slug}`
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.log(`Blog redesplegado: ${data.details.commit}`);
+                this.showAlert('Blog redesplegado exitosamente', 'success');
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            this.log(`Error redesplegando blog: ${error.message}`, 'error');
+            this.showAlert(`Error redesplegando: ${error.message}`, 'error');
+        } finally {
+            this.hideStatus();
+        }
+    }
+
+    openBlogFolder(slug) {
+        this.log(`Blog organizado en: src/data/blogs/${slug}/`);
+        this.log(`Imágenes en: public/images/blog/${slug}/`);
+        this.showAlert(`Rutas del blog en logs`, 'info');
     }
 }
 

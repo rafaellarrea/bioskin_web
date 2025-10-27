@@ -80,10 +80,10 @@ app.get('/api/topic-suggestions', (req, res) => {
   });
 });
 
-// Generar blog con IA (versión simplificada)
+// Generar blog con IA (versión completa)
 app.post('/api/generate-blog', async (req, res) => {
   try {
-    const { blogType, topic } = req.body;
+    const { blogType = 'medico-estetico', topic } = req.body;
     
     if (!topic) {
       return res.status(400).json({
@@ -97,6 +97,14 @@ app.post('/api/generate-blog', async (req, res) => {
       return res.status(500).json({
         success: false,
         message: 'OPENAI_API_KEY no configurada. Por favor, configura tu API key en el archivo .env'
+      });
+    }
+
+    // Validar que la API key tenga el formato correcto
+    if (!process.env.OPENAI_API_KEY.startsWith('sk-')) {
+      return res.status(500).json({
+        success: false,
+        message: 'API key de OpenAI inválida. Debe comenzar con "sk-"'
       });
     }
 
