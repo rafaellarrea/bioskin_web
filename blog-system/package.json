@@ -1,0 +1,19 @@
+{
+  "name": "bioskin-blog-system",
+  "version": "2.0.0",
+  "description": "Sistema de generación de blogs para BIOSKIN",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "fs-extra": "^11.3.2",
+    "multer": "^2.0.2",
+    "openai": "^6.7.0",
+    "simple-git": "^3.28.0"
+  }
+}
