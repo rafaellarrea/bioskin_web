@@ -180,6 +180,7 @@ public/test-openai.html       # Interface testing avanzada
 - ✅ Nov 03 - Integración Google Calendar completa
 - ✅ Nov 03 - Debugging y página prueba calendario
 - ✅ Nov 03 - Optimización rendimiento: carga paralela eventos mes
+- ✅ Nov 03 - UX mejorada: overlay carga prominente escritorio
 
 **Archivos clave**:
 ```

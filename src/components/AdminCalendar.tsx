@@ -26,6 +26,7 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMonth, setLoadingMonth] = useState(false);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [monthEvents, setMonthEvents] = useState<{[key: string]: CalendarEvent[]}>({});
@@ -121,7 +122,7 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
     const month = date.getMonth();
     const lastDay = new Date(year, month + 1, 0);
     
-    setLoading(true);
+    setLoadingMonth(true);
     setError('');
     const monthEventsMap: {[key: string]: CalendarEvent[]} = {};
     
@@ -179,7 +180,7 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
       console.error('❌ Error general cargando eventos del mes:', err);
       setError('Error al cargar los eventos del mes');
     } finally {
-      setLoading(false);
+      setLoadingMonth(false);
     }
   };
 
@@ -307,7 +308,31 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-6">
+    <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-6 relative">
+      {/* Overlay de carga para escritorio */}
+      {(loading || loadingMonth) && (
+        <div className="absolute inset-0 bg-white bg-opacity-95 flex items-center justify-center z-50 rounded-lg">
+          <div className="text-center">
+            <RefreshCw className="w-12 h-12 text-[#deb887] animate-spin mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              {loadingMonth ? 'Cargando Calendario' : 'Obteniendo Eventos'}
+            </h3>
+            <p className="text-gray-600">
+              {loadingMonth 
+                ? `Obteniendo eventos de ${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}...`
+                : 'Cargando eventos del día seleccionado...'
+              }
+            </p>
+            <div className="mt-4 w-64 bg-gray-200 rounded-full h-2 mx-auto">
+              <div className="bg-[#deb887] h-2 rounded-full animate-pulse transition-all duration-300" 
+                   style={{width: loadingMonth ? '70%' : '40%'}}></div>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              {loadingMonth ? 'Esto puede tomar unos segundos...' : 'Casi listo...'}
+            </p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
@@ -353,11 +378,11 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
               // Recargar todo el mes (esto también actualizará el día seleccionado)
               fetchMonthEvents(selectedDate);
             }}
-            disabled={loading}
+            disabled={loading || loadingMonth}
             className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#d4a574] transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? 'Cargando...' : 'Actualizar'}
+            <RefreshCw className={`w-4 h-4 ${(loading || loadingMonth) ? 'animate-spin' : ''}`} />
+            {(loading || loadingMonth) ? 'Cargando...' : 'Actualizar'}
           </button>
         </div>
       </div>
@@ -365,6 +390,16 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Calendario */}
         <div className="bg-gray-50 rounded-lg p-6">
+          {/* Banner de carga adicional */}
+          {loadingMonth && (
+            <div className="mb-4 p-3 bg-[#deb887] bg-opacity-10 border border-[#deb887] rounded-lg flex items-center justify-center">
+              <RefreshCw className="w-4 h-4 text-[#deb887] animate-spin mr-2" />
+              <span className="text-[#deb887] font-medium">
+                Cargando eventos de {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}...
+              </span>
+            </div>
+          )}
+          
           {/* Navegación de mes/semana */}
           <div className="flex items-center justify-between mb-6">
             <button
@@ -390,7 +425,7 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
               </button>
               {viewMode === 'month' && (
                 <div className="text-xs text-gray-500 mt-1">
-                  {loading 
+                  {loadingMonth 
                     ? '⏳ Cargando eventos del mes...'
                     : `${Object.keys(monthEvents).filter(date => monthEvents[date].length > 0).length} días con citas`
                   }
@@ -423,10 +458,12 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
                 <button
                   key={index}
                   onClick={() => day && setSelectedDate(day)}
-                  disabled={!day}
+                  disabled={!day || loadingMonth}
                   className={`h-12 text-sm font-medium rounded transition-colors relative ${
                     !day 
                       ? 'invisible' 
+                      : loadingMonth
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed animate-pulse'
                       : day.toDateString() === selectedDate.toDateString()
                       ? 'bg-[#deb887] text-white'
                       : day.toDateString() === new Date().toDateString()
@@ -437,13 +474,18 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
                   }`}
                 >
                   {day?.getDate()}
-                  {day && hasEvents(day) && (
+                  {day && !loadingMonth && hasEvents(day) && (
                     <div className="absolute top-1 right-1 flex items-center">
                       <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold" style={{ fontSize: '8px', lineHeight: '1' }}>
                           {getEventCount(day)}
                         </span>
                       </div>
+                    </div>
+                  )}
+                  {day && loadingMonth && (
+                    <div className="absolute top-1 right-1">
+                      <div className="w-3 h-3 bg-gray-300 rounded-full animate-pulse"></div>
                     </div>
                   )}
                 </button>
