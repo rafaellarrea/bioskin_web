@@ -2,7 +2,7 @@
 // Componente para visualizar la agenda desde Google Calendar
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, User, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, RefreshCw, Grid, List } from 'lucide-react';
 
 // Helpers para español
 const daysOfWeek = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -20,11 +20,15 @@ interface AdminCalendarProps {
   onBack: () => void;
 }
 
+type ViewMode = 'month' | 'week';
+
 const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [monthEvents, setMonthEvents] = useState<{[key: string]: CalendarEvent[]}>({});
   
   // Generar días del mes actual
   const getDaysInMonth = (date: Date) => {
@@ -50,7 +54,23 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
     return days;
   };
 
-  const days = getDaysInMonth(selectedDate);
+  // Generar días de la semana actual
+  const getWeekDays = (date: Date) => {
+    const startOfWeek = new Date(date);
+    const day = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate() - day);
+    
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const weekDay = new Date(startOfWeek);
+      weekDay.setDate(startOfWeek.getDate() + i);
+      weekDays.push(weekDay);
+    }
+    
+    return weekDays;
+  };
+
+  const days = viewMode === 'month' ? getDaysInMonth(selectedDate) : getWeekDays(selectedDate);
 
   // Obtener eventos de Google Calendar para el día seleccionado
   const fetchEventsForDate = async (date: Date) => {
@@ -83,15 +103,60 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
     }
   };
 
+  // Obtener eventos de todo el mes para mostrar indicadores
+  const fetchMonthEvents = async (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const monthEventsMap: {[key: string]: CalendarEvent[]} = {};
+    
+    // Obtener eventos día por día (podríamos optimizar esto con una sola llamada al API)
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const currentDate = new Date(year, month, day);
+      const dateString = currentDate.toISOString().split('T')[0];
+      
+      try {
+        const response = await fetch('/api/getEvents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: dateString }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.events && Array.isArray(data.events)) {
+          monthEventsMap[dateString] = data.events;
+        }
+      } catch (err) {
+        console.error(`Error fetching events for ${dateString}:`, err);
+      }
+    }
+    
+    setMonthEvents(monthEventsMap);
+  };
+
   // Cargar eventos cuando cambia la fecha seleccionada
   useEffect(() => {
     fetchEventsForDate(selectedDate);
   }, [selectedDate]);
 
-  // Navegar entre meses
+  // Cargar eventos del mes cuando cambia el mes o el modo de vista
+  useEffect(() => {
+    if (viewMode === 'month') {
+      fetchMonthEvents(selectedDate);
+    }
+  }, [selectedDate.getMonth(), selectedDate.getFullYear(), viewMode]);
+
+  // Navegar entre meses/semanas
   const navigateMonth = (direction: number) => {
     const newDate = new Date(selectedDate);
-    newDate.setMonth(newDate.getMonth() + direction);
+    if (viewMode === 'month') {
+      newDate.setMonth(newDate.getMonth() + direction);
+    } else {
+      newDate.setDate(newDate.getDate() + (direction * 7));
+    }
     setSelectedDate(newDate);
   };
 
@@ -119,8 +184,14 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   const hasEvents = (date: Date) => {
     if (!date) return false;
     const dateString = date.toISOString().split('T')[0];
-    // Esta función podría mejorarse obteniendo un resumen de eventos por mes
-    return false; // Por ahora no implementamos esta funcionalidad
+    return monthEvents[dateString] && monthEvents[dateString].length > 0;
+  };
+
+  // Obtener número de eventos para una fecha
+  const getEventCount = (date: Date) => {
+    if (!date) return 0;
+    const dateString = date.toISOString().split('T')[0];
+    return monthEvents[dateString] ? monthEvents[dateString].length : 0;
   };
 
   // Extraer información del paciente de la descripción del evento
@@ -161,32 +232,62 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
           <div className="h-6 w-px bg-gray-300"></div>
           <h2 className="text-2xl font-bold text-gray-800">Visualizar Agenda</h2>
         </div>
-        <button
-          onClick={() => fetchEventsForDate(selectedDate)}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#d4a574] transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Selector de vista */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('month')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'month' 
+                  ? 'bg-white text-[#deb887] shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <Grid className="w-4 h-4" />
+              Mes
+            </button>
+            <button
+              onClick={() => setViewMode('week')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'week' 
+                  ? 'bg-white text-[#deb887] shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              Semana
+            </button>
+          </div>
+          <button
+            onClick={() => fetchEventsForDate(selectedDate)}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#d4a574] transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Calendario */}
         <div className="bg-gray-50 rounded-lg p-6">
-          {/* Navegación de mes */}
+          {/* Navegación de mes/semana */}
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => navigateMonth(-1)}
               className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 rounded-lg transition-colors border"
             >
               <ChevronLeft className="w-4 h-4" />
-              Anterior
+              {viewMode === 'month' ? 'Mes Anterior' : 'Semana Anterior'}
             </button>
             
             <div className="text-center">
               <h3 className="text-xl font-bold text-gray-800">
-                {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}
+                {viewMode === 'month' 
+                  ? `${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+                  : `Semana del ${getWeekDays(selectedDate)[0].getDate()} - ${getWeekDays(selectedDate)[6].getDate()} ${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+                }
               </h3>
               <button
                 onClick={goToToday}
@@ -200,7 +301,7 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
               onClick={() => navigateMonth(1)}
               className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-gray-100 rounded-lg transition-colors border"
             >
-              Siguiente
+              {viewMode === 'month' ? 'Mes Siguiente' : 'Semana Siguiente'}
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -214,28 +315,74 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((day, index) => (
-              <button
-                key={index}
-                onClick={() => day && setSelectedDate(day)}
-                disabled={!day}
-                className={`h-12 text-sm font-medium rounded transition-colors ${
-                  !day 
-                    ? 'invisible' 
-                    : day.toDateString() === selectedDate.toDateString()
-                    ? 'bg-[#deb887] text-white'
-                    : day.toDateString() === new Date().toDateString()
-                    ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                    : 'bg-white hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                {day?.getDate()}
-                {day && hasEvents(day) && (
-                  <div className="w-2 h-2 bg-red-500 rounded-full mx-auto mt-1"></div>
-                )}
-              </button>
-            ))}
+          <div className={`grid grid-cols-7 gap-1 ${viewMode === 'week' ? 'auto-rows-fr' : ''}`}>
+            {viewMode === 'month' ? (
+              // Vista mensual
+              days.map((day, index) => (
+                <button
+                  key={index}
+                  onClick={() => day && setSelectedDate(day)}
+                  disabled={!day}
+                  className={`h-12 text-sm font-medium rounded transition-colors relative ${
+                    !day 
+                      ? 'invisible' 
+                      : day.toDateString() === selectedDate.toDateString()
+                      ? 'bg-[#deb887] text-white'
+                      : day.toDateString() === new Date().toDateString()
+                      ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      : 'bg-white hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {day?.getDate()}
+                  {day && hasEvents(day) && (
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <span className="text-xs text-gray-600 font-normal">
+                        {getEventCount(day)}
+                      </span>
+                    </div>
+                  )}
+                </button>
+              ))
+            ) : (
+              // Vista semanal
+              days.filter(day => day !== null).map((day, index) => {
+                const dayEvents = monthEvents[day!.toISOString().split('T')[0]] || [];
+                return (
+                  <div
+                    key={index}
+                    className={`border rounded-lg p-2 min-h-[120px] ${
+                      day!.toDateString() === selectedDate.toDateString()
+                        ? 'bg-[#ffcfc4] border-[#fa9271]'
+                        : day!.toDateString() === new Date().toDateString()
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-white border-gray-200'
+                    } cursor-pointer hover:bg-gray-50 transition-colors`}
+                    onClick={() => setSelectedDate(day!)}
+                  >
+                    <div className="text-sm font-semibold text-gray-800 mb-2">
+                      {day!.getDate()}
+                    </div>
+                    <div className="space-y-1">
+                      {dayEvents.slice(0, 3).map((event, eventIndex) => (
+                        <div
+                          key={eventIndex}
+                          className="text-xs bg-[#deb887] text-white rounded px-2 py-1 truncate"
+                          title={event.summary}
+                        >
+                          {formatTime(event.start)} {event.summary}
+                        </div>
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <div className="text-xs text-gray-500">
+                          +{dayEvents.length - 3} más
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
