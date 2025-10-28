@@ -60,7 +60,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       } else {
         // Acceso denegado
         localStorage.clear();
-        setError('Credenciales incorrectas. Solo se acepta admin/b10sk1n');
+        setError('Credenciales incorrectas');
         onLogin(false);
         setCredentials({ username: '', password: '' });
       }
