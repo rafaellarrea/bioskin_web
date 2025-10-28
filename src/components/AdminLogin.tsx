@@ -17,11 +17,14 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Credenciales de acceso seguras
+  // CREDENCIALES ÚNICAS Y EXCLUSIVAS - NO SE ACEPTAN OTRAS
   const ADMIN_CREDENTIALS = {
     username: 'admin',
     password: 'b10sk1n'
   };
+  
+  // VALIDACIÓN: Solo estas credenciales exactas darán acceso
+  console.log('Credenciales configuradas:', ADMIN_CREDENTIALS);
 
   // Limpiar cualquier sesión anterior al cargar el componente
   useEffect(() => {
@@ -36,9 +39,28 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
     // Validación estricta de autenticación
     setTimeout(() => {
+      // Debugging - Vamos a ver exactamente qué está pasando
+      console.log('=== DEBUG LOGIN ===');
+      console.log('Usuario ingresado original:', JSON.stringify(credentials.username));
+      console.log('Usuario procesado:', JSON.stringify(inputUsername));
+      console.log('Usuario esperado:', JSON.stringify(expectedUsername));
+      console.log('Password ingresada:', JSON.stringify(inputPassword));
+      console.log('Password esperada:', JSON.stringify(expectedPassword));
+      console.log('Comparación exacta username:', inputUsername, '===', expectedUsername, '?', inputUsername === expectedUsername);
+      console.log('Comparación exacta password:', inputPassword, '===', expectedPassword, '?', inputPassword === expectedPassword);
+      
       // Validación exacta y estricta
-      const isValidUsername = credentials.username.trim() === ADMIN_CREDENTIALS.username;
-      const isValidPassword = credentials.password === ADMIN_CREDENTIALS.password;
+      const inputUsername = credentials.username.trim().toLowerCase();
+      const inputPassword = credentials.password;
+      const expectedUsername = ADMIN_CREDENTIALS.username.toLowerCase();
+      const expectedPassword = ADMIN_CREDENTIALS.password;
+      
+      const isValidUsername = inputUsername === expectedUsername;
+      const isValidPassword = inputPassword === expectedPassword;
+      
+      console.log('Username válido:', isValidUsername);
+      console.log('Password válido:', isValidPassword);
+      console.log('==================');
       
       if (isValidUsername && isValidPassword) {
         // Limpiar cualquier sesión anterior
@@ -46,8 +68,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
         // Guardar nueva sesión
         localStorage.setItem('bioskin_admin_session', 'authenticated');
         localStorage.setItem('bioskin_admin_timestamp', Date.now().toString());
+        console.log('✅ Login exitoso - credenciales correctas');
         onLogin(true);
       } else {
+        console.log('❌ Login fallido - credenciales incorrectas');
         setError('Credenciales incorrectas. Acceso denegado.');
         onLogin(false);
         // Limpiar campos por seguridad
