@@ -444,130 +444,159 @@ const AdminDashboard: React.FC = () => {
                 <h1 className="text-3xl font-bold text-gray-800">Panel Administrativo</h1>
                 <p className="text-gray-600 mt-1">Gestión y monitoreo de BIOSKIN</p>
               </div>
-              
-              {/* Icono de Notificaciones */}
-              <div className="relative notifications-panel">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
-                >
-                  <Bell className="w-6 h-6 text-gray-600" />
-                  {upcomingAppointments.length > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold animate-pulse">
+            </div>
+            
+            {/* Botón Flotante de Notificaciones */}
+            <div className="fixed bottom-6 right-6 z-50 notifications-panel">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`flex items-center gap-3 text-white px-6 py-4 rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 border-2 border-white notification-float ${
+                  loadingNotifications 
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    : upcomingAppointments.length > 0 
+                    ? 'bg-gradient-to-r from-[#deb887] to-[#d4a574]' 
+                    : 'bg-gradient-to-r from-gray-500 to-gray-600'
+                }`}
+              >
+                <div className="relative">
+                  <Bell className={`w-6 h-6 ${loadingNotifications ? 'animate-pulse' : ''}`} />
+                  {loadingNotifications ? (
+                    <div className="absolute -top-3 -right-3 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold animate-spin border-2 border-white">
+                      <Clock className="w-3 h-3" />
+                    </div>
+                  ) : upcomingAppointments.length > 0 ? (
+                    <div className="absolute -top-3 -right-3 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold animate-bounce border-2 border-white">
                       {upcomingAppointments.length > 9 ? '9+' : upcomingAppointments.length}
                     </div>
+                  ) : null}
+                </div>
+                <span className="font-semibold text-sm">
+                  {loadingNotifications ? (
+                    'Cargando...'
+                  ) : upcomingAppointments.length > 0 ? (
+                    <>
+                      Notificaciones
+                      <span className="ml-1 text-xs opacity-90">
+                        ({upcomingAppointments.length})
+                      </span>
+                    </>
+                  ) : (
+                    'Sin Notificaciones'
                   )}
-                </button>
+                </span>
+              </button>
 
-                {/* Panel de Notificaciones */}
-                {showNotifications && (
-                  <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden">
-                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                      <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                        <CalendarDays className="w-5 h-5 text-[#deb887]" />
-                        Citas Próximas (15 días)
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => fetchUpcomingAppointments()}
-                          disabled={loadingNotifications}
-                          className="p-1 text-gray-500 hover:text-[#deb887] transition-colors"
-                          title="Actualizar notificaciones"
-                        >
-                          <Clock className={`w-4 h-4 ${loadingNotifications ? 'animate-spin' : ''}`} />
-                        </button>
-                        <button
-                          onClick={() => setShowNotifications(false)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="max-h-80 overflow-y-auto">
-                      {loadingNotifications ? (
-                        <div className="p-6 text-center">
-                          <Clock className="w-8 h-8 text-[#deb887] animate-spin mx-auto mb-2" />
-                          <p className="text-gray-600">Cargando citas...</p>
-                        </div>
-                      ) : upcomingAppointments.length === 0 ? (
-                        <div className="p-6 text-center">
-                          <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                          <p className="text-gray-500">No hay citas próximas</p>
-                          <p className="text-sm text-gray-400 mt-1">en los próximos 15 días</p>
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-gray-100">
-                          {upcomingAppointments.slice(0, 10).map((appointment, index) => {
-                            const urgency = getUrgencyMessage(appointment);
-                            const { time, day } = formatAppointmentDateTime(appointment.start);
-                            
-                            return (
-                              <div key={appointment.id} className="p-4 hover:bg-gray-50">
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className={`text-xs px-2 py-1 rounded-full font-bold ${urgency.color}`}>
-                                        {urgency.text}
-                                      </span>
-                                      <span className="text-sm font-medium text-gray-800">
-                                        {time}
-                                      </span>
-                                    </div>
-                                    <h4 className="font-semibold text-gray-800 mb-1">
-                                      {appointment.summary}
-                                    </h4>
-                                    <p className="text-sm text-gray-600 mb-2">
-                                      {day}
-                                    </p>
-                                    {appointment.description && (
-                                      <p className="text-xs text-gray-500 line-clamp-2">
-                                        {appointment.description.split('\n')[0]}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex-shrink-0">
-                                    {appointment.isToday && (
-                                      <AlertCircle className="w-5 h-5 text-red-500" />
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          
-                          {upcomingAppointments.length > 10 && (
-                            <div className="p-4 text-center bg-gray-50">
-                              <p className="text-sm text-gray-600">
-                                +{upcomingAppointments.length - 10} citas más...
-                              </p>
-                              <button
-                                onClick={() => setActiveSection('calendar')}
-                                className="text-[#deb887] hover:text-[#d4a574] font-medium text-sm mt-1"
-                              >
-                                Ver calendario completo
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="p-3 border-t border-gray-200 bg-gray-50">
+              {/* Panel de Notificaciones Reposicionado */}
+              {showNotifications && (
+                <div className="absolute bottom-full right-0 mb-4 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-96 overflow-hidden">
+                  <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-[#deb887] to-[#d4a574] text-white rounded-t-xl">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <CalendarDays className="w-5 h-5" />
+                      Citas Próximas (15 días)
+                    </h3>
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          setShowNotifications(false);
-                          setActiveSection('calendar');
-                        }}
-                        className="w-full text-center text-[#deb887] hover:text-[#d4a574] font-medium text-sm"
+                        onClick={() => fetchUpcomingAppointments()}
+                        disabled={loadingNotifications}
+                        className="p-1 text-white hover:text-gray-200 transition-colors"
+                        title="Actualizar notificaciones"
                       >
-                        Ver Calendario Completo
+                        <Clock className={`w-4 h-4 ${loadingNotifications ? 'animate-spin' : ''}`} />
+                      </button>
+                      <button
+                        onClick={() => setShowNotifications(false)}
+                        className="text-white hover:text-gray-200"
+                      >
+                        <X className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
+                  
+                  <div className="max-h-80 overflow-y-auto">
+                    {loadingNotifications ? (
+                      <div className="p-6 text-center">
+                        <Clock className="w-8 h-8 text-[#deb887] animate-spin mx-auto mb-2" />
+                        <p className="text-gray-600">Cargando citas...</p>
+                      </div>
+                    ) : upcomingAppointments.length === 0 ? (
+                      <div className="p-6 text-center">
+                        <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">No hay citas próximas</p>
+                        <p className="text-sm text-gray-400 mt-1">en los próximos 15 días</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-100">
+                        {upcomingAppointments.slice(0, 10).map((appointment, index) => {
+                          const urgency = getUrgencyMessage(appointment);
+                          const { time, day } = formatAppointmentDateTime(appointment.start);
+                          
+                          return (
+                            <div key={appointment.id} className="p-4 hover:bg-gray-50 transition-colors">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className={`text-xs px-2 py-1 rounded-full font-bold ${urgency.color}`}>
+                                      {urgency.text}
+                                    </span>
+                                    <span className="text-sm font-medium text-gray-800">
+                                      {time}
+                                    </span>
+                                  </div>
+                                  <h4 className="font-semibold text-gray-800 mb-1">
+                                    {appointment.summary}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 mb-2">
+                                    {day}
+                                  </p>
+                                  {appointment.description && (
+                                    <p className="text-xs text-gray-500 line-clamp-2">
+                                      {appointment.description.split('\n')[0]}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex-shrink-0">
+                                  {appointment.isToday && (
+                                    <AlertCircle className="w-5 h-5 text-red-500" />
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {upcomingAppointments.length > 10 && (
+                          <div className="p-4 text-center bg-gray-50">
+                            <p className="text-sm text-gray-600">
+                              +{upcomingAppointments.length - 10} citas más...
+                            </p>
+                            <button
+                              onClick={() => {
+                                setShowNotifications(false);
+                                setActiveSection('calendar');
+                              }}
+                              className="text-[#deb887] hover:text-[#d4a574] font-medium text-sm mt-1"
+                            >
+                              Ver calendario completo
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                    <button
+                      onClick={() => {
+                        setShowNotifications(false);
+                        setActiveSection('calendar');
+                      }}
+                      className="w-full text-center text-[#deb887] hover:text-[#d4a574] font-medium text-sm py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      Ver Calendario Completo
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Acceso directo al generador local */}

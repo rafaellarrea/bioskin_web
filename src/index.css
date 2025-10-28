@@ -21,6 +21,20 @@
     @apply container mx-auto px-4 md:px-8;
   }
 
+  /* Clases para botón flotante de notificaciones */
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  .notification-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-5px) scale(1.02); }
+  }
+
   .section-title {
     @apply text-3xl md:text-4xl font-semibold text-center mb-8 relative;
   }
