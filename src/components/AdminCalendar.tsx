@@ -76,11 +76,21 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   const fetchEventsForDate = async (date: Date) => {
     if (!date) return;
     
+    const dateString = date.toISOString().split('T')[0];
+    
+    // Primero verificar si ya tenemos los datos en monthEvents
+    if (monthEvents[dateString]) {
+      console.log(`📋 Usando eventos cacheados para ${dateString}`);
+      setEvents(monthEvents[dateString]);
+      return;
+    }
+    
+    // Si no están cacheados, cargar individualmente
     setLoading(true);
     setError('');
     
     try {
-      const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      console.log(`🔄 Cargando eventos para ${dateString}...`);
       const response = await fetch('/api/getEvents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,11 +101,13 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
       
       if (data.events && Array.isArray(data.events)) {
         setEvents(data.events);
+        console.log(`✅ ${data.events.length} eventos cargados para ${dateString}`);
       } else {
         setEvents([]);
+        console.log(`ℹ️ No hay eventos para ${dateString}`);
       }
     } catch (err) {
-      console.error('Error fetching events:', err);
+      console.error('❌ Error fetching events:', err);
       setError('Error al cargar los eventos del calendario');
       setEvents([]);
     } finally {
@@ -107,71 +119,130 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   const fetchMonthEvents = async (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
     setLoading(true);
+    setError('');
     const monthEventsMap: {[key: string]: CalendarEvent[]} = {};
     
     try {
-      // Obtener eventos día por día para el mes actual
+      console.log(`🗓️ Cargando eventos para ${months[month]} ${year}...`);
+      
+      // Obtener eventos día por día para el mes completo
+      const promises = [];
       for (let day = 1; day <= lastDay.getDate(); day++) {
         const currentDate = new Date(year, month, day);
         const dateString = currentDate.toISOString().split('T')[0];
         
-        try {
-          const response = await fetch('/api/getEvents', {
+        // Crear promesa para cada día
+        promises.push(
+          fetch('/api/getEvents', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ date: dateString }),
-          });
-          
-          const data = await response.json();
-          
-          if (data.events && Array.isArray(data.events) && data.events.length > 0) {
-            monthEventsMap[dateString] = data.events;
-            console.log(`Eventos encontrados para ${dateString}:`, data.events.length);
-          }
-        } catch (err) {
-          console.error(`Error fetching events for ${dateString}:`, err);
-        }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+              monthEventsMap[dateString] = data.events;
+              return { date: dateString, count: data.events.length };
+            }
+            return null;
+          })
+          .catch(err => {
+            console.error(`❌ Error fetching events for ${dateString}:`, err);
+            return null;
+          })
+        );
       }
       
-      console.log('MonthEvents cargados:', monthEventsMap);
+      // Esperar a que todas las promesas se resuelvan
+      const results = await Promise.all(promises);
+      const validResults = results.filter(result => result !== null);
+      
+      console.log(`✅ Eventos cargados: ${validResults.length} días con citas en ${months[month]} ${year}`);
+      validResults.forEach(result => {
+        console.log(`📅 ${result.date}: ${result.count} eventos`);
+      });
+      
       setMonthEvents(monthEventsMap);
+      
+      // Actualizar eventos del día seleccionado si está en este mes
+      const selectedDateString = selectedDate.toISOString().split('T')[0];
+      if (monthEventsMap[selectedDateString]) {
+        setEvents(monthEventsMap[selectedDateString]);
+      } else if (selectedDate.getMonth() === month && selectedDate.getFullYear() === year) {
+        setEvents([]);
+      }
+      
     } catch (err) {
-      console.error('Error general cargando eventos del mes:', err);
+      console.error('❌ Error general cargando eventos del mes:', err);
+      setError('Error al cargar los eventos del mes');
     } finally {
       setLoading(false);
     }
   };
 
-  // Cargar eventos cuando cambia la fecha seleccionada
-  useEffect(() => {
-    fetchEventsForDate(selectedDate);
-  }, [selectedDate]);
-
   // Cargar eventos del mes cuando cambia el mes o el modo de vista
   useEffect(() => {
-    if (viewMode === 'month') {
-      fetchMonthEvents(selectedDate);
+    console.log(`🔄 Mes/año cambiado: ${months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`);
+    fetchMonthEvents(selectedDate);
+  }, [selectedDate.getMonth(), selectedDate.getFullYear()]);
+
+  // Cargar eventos del día cuando cambia la fecha seleccionada (solo si no están ya cargados)
+  useEffect(() => {
+    const dateString = selectedDate.toISOString().split('T')[0];
+    if (monthEvents[dateString]) {
+      // Si ya tenemos los eventos del mes, usar esos datos
+      console.log(`📋 Eventos ya disponibles para ${dateString}`);
+      setEvents(monthEvents[dateString]);
+    } else {
+      // Si no tenemos los datos del mes aún, cargar individualmente
+      fetchEventsForDate(selectedDate);
     }
-  }, [selectedDate.getMonth(), selectedDate.getFullYear(), viewMode]);
+  }, [selectedDate, monthEvents]);
 
   // Navegar entre meses/semanas
   const navigateMonth = (direction: number) => {
     const newDate = new Date(selectedDate);
+    const oldMonth = newDate.getMonth();
+    const oldYear = newDate.getFullYear();
+    
     if (viewMode === 'month') {
       newDate.setMonth(newDate.getMonth() + direction);
     } else {
       newDate.setDate(newDate.getDate() + (direction * 7));
     }
+    
+    const newMonth = newDate.getMonth();
+    const newYear = newDate.getFullYear();
+    
+    // Si cambiamos de mes/año, limpiar eventos cacheados
+    if (oldMonth !== newMonth || oldYear !== newYear) {
+      console.log(`🗂️ Limpiando cache: ${months[oldMonth]} ${oldYear} → ${months[newMonth]} ${newYear}`);
+      setMonthEvents({});
+      setEvents([]);
+    }
+    
     setSelectedDate(newDate);
   };
 
   // Ir a hoy
   const goToToday = () => {
-    setSelectedDate(new Date());
+    const today = new Date();
+    const currentMonth = selectedDate.getMonth();
+    const currentYear = selectedDate.getFullYear();
+    const todayMonth = today.getMonth();
+    const todayYear = today.getFullYear();
+    
+    // Si cambiamos de mes/año, limpiar cache
+    if (currentMonth !== todayMonth || currentYear !== todayYear) {
+      console.log(`🏠 Ir a hoy: ${months[currentMonth]} ${currentYear} → ${months[todayMonth]} ${todayYear}`);
+      setMonthEvents({});
+      setEvents([]);
+    }
+    
+    setSelectedDate(today);
   };
 
   // Formatear hora
@@ -278,10 +349,9 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
           </div>
           <button
             onClick={() => {
-              fetchEventsForDate(selectedDate);
-              if (viewMode === 'month') {
-                fetchMonthEvents(selectedDate);
-              }
+              console.log('🔄 Actualizando calendario...');
+              // Recargar todo el mes (esto también actualizará el día seleccionado)
+              fetchMonthEvents(selectedDate);
             }}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#d4a574] transition-colors disabled:opacity-50"
@@ -320,7 +390,10 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
               </button>
               {viewMode === 'month' && (
                 <div className="text-xs text-gray-500 mt-1">
-                  {Object.keys(monthEvents).filter(date => monthEvents[date].length > 0).length} días con citas
+                  {loading 
+                    ? '⏳ Cargando eventos del mes...'
+                    : `${Object.keys(monthEvents).filter(date => monthEvents[date].length > 0).length} días con citas`
+                  }
                 </div>
               )}
             </div>
