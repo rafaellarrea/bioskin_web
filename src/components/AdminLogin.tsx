@@ -26,24 +26,16 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     
     // Bloquear específicamente admin/admin
     if (username.trim() === 'admin' && password === 'admin') {
-      console.log('🚫 COMBINACIÓN BLOQUEADA: admin/admin');
       return false;
     }
     
     const isValid = inputCombination === VALID_CREDENTIALS;
-    
-    console.log('Validación de credenciales:');
-    console.log('Input:', inputCombination);
-    console.log('Expected:', VALID_CREDENTIALS);
-    console.log('Valid:', isValid);
-    
     return isValid;
   };
 
   // Limpiar cualquier sesión anterior al cargar el componente
   useEffect(() => {
-    console.log('AdminLogin mounted - clearing all sessions');
-    localStorage.clear(); // Limpiar TUTTO el localStorage
+    localStorage.clear();
     // También limpiar cookies si las hay
     document.cookie.split(";").forEach((c) => {
       document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
@@ -57,24 +49,18 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
     // Validación de credenciales con método robusto
     setTimeout(() => {
-      console.log('=== VALIDACIÓN ROBUSTA ===');
-      
       const isValid = validateCredentials(credentials.username, credentials.password);
       
       if (isValid) {
         // Acceso autorizado
-        console.log('✅ ACCESO AUTORIZADO');
         localStorage.clear();
         localStorage.setItem('bioskin_admin_session', 'authenticated');
         localStorage.setItem('bioskin_admin_timestamp', Date.now().toString());
         onLogin(true);
       } else {
         // Acceso denegado
-        console.log('❌ ACCESO DENEGADO');
-        // Limpiar completamente localStorage
         localStorage.clear();
         setError('Credenciales incorrectas. Solo se acepta admin/b10sk1n');
-        console.log('Calling onLogin(false)...');
         onLogin(false);
         setCredentials({ username: '', password: '' });
       }
