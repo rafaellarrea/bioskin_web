@@ -1,9 +1,45 @@
 {
-  "lastUpdated": "2025-10-27T23:17:19.083Z",
-  "total": 6,
-  "organized": 1,
+  "lastUpdated": "2025-10-28T00:35:37.397Z",
+  "total": 7,
+  "organized": 2,
   "legacy": 5,
   "blogs": [
+    {
+      "id": "blog-1761610703382",
+      "title": "Mesoterapia Facial: Un Tratamiento Estrella para una Piel Radiante",
+      "slug": "mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante",
+      "category": "medico-estetico",
+      "author": "BIOSKIN Médico",
+      "publishedAt": "2025-10-28T00:18:23.382Z",
+      "savedAt": "2025-10-28T00:35:37.379Z",
+      "readTime": 4,
+      "tags": [
+        "medicina estética",
+        "tratamientos",
+        "BIOSKIN",
+        "rejuvenecimiento",
+        "hialurónico",
+        "mesoterapia"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/index.json",
+        "images": "public/images/blog/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/",
+        "metadata": "src/data/blogs/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/mesoterapia-1761611718209.png",
+          "name": "mesoterapia.png",
+          "id": 1761611718252,
+          "blogSlug": "mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
     {
       "id": "blog-1761606960968",
       "title": "Peeling Químico vs Tratamientos Láser: ¿Cuál es la mejor opción para tu piel?",
