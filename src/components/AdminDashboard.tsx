@@ -11,8 +11,12 @@ import {
   Image, 
   Database,
   Monitor,
-  Shield
+  Shield,
+  Eye,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
+import useAnalytics from '../hooks/useAnalytics';
 
 interface AdminOption {
   id: string;
@@ -25,8 +29,26 @@ interface AdminOption {
 
 const AdminDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('dashboard');
+  const { 
+    stats, 
+    dailyStats, 
+    weeklyStats, 
+    monthlyStats, 
+    isLoading, 
+    getBounceRate, 
+    getGrowthRate,
+    getPeakHours 
+  } = useAnalytics();
 
   const adminOptions: AdminOption[] = [
+    {
+      id: 'analytics',
+      title: 'Analíticas Detalladas',
+      description: 'Estadísticas completas de visitas',
+      icon: <BarChart3 className="w-6 h-6" />,
+      color: 'bg-blue-500',
+      available: true
+    },
     {
       id: 'appointments',
       title: 'Gestión de Citas',
@@ -103,6 +125,152 @@ const AdminDashboard: React.FC = () => {
 
   const renderActiveSection = () => {
     switch (activeSection) {
+      case 'analytics':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">Analíticas Detalladas</h2>
+              <button 
+                onClick={() => setActiveSection('dashboard')}
+                className="text-[#deb887] hover:text-[#d4a574] font-medium"
+              >
+                ← Volver al Dashboard
+              </button>
+            </div>
+
+            {/* Estadísticas por período */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Últimos 7 días */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-semibold mb-4">Últimos 7 Días</h3>
+                <div className="space-y-3">
+                  {dailyStats.slice(-7).map((day, index) => (
+                    <div key={day.date} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        {new Date(day.date).toLocaleDateString('es-ES', { 
+                          weekday: 'short', 
+                          day: 'numeric', 
+                          month: 'short' 
+                        })}
+                      </span>
+                      <div className="flex gap-4">
+                        <span className="text-sm font-medium">{day.pageViews}</span>
+                        <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                          <div 
+                            className="bg-[#deb887] h-2 rounded-full" 
+                            style={{ 
+                              width: `${Math.min(100, (day.pageViews / Math.max(...dailyStats.slice(-7).map(d => d.pageViews), 1)) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Últimas 8 semanas */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-semibold mb-4">Últimas 8 Semanas</h3>
+                <div className="space-y-3">
+                  {weeklyStats.slice(-8).map((week, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600 truncate">
+                        Semana {8 - index}
+                      </span>
+                      <div className="flex gap-4">
+                        <span className="text-sm font-medium">{week.pageViews}</span>
+                        <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full" 
+                            style={{ 
+                              width: `${Math.min(100, (week.pageViews / Math.max(...weeklyStats.slice(-8).map(w => w.pageViews), 1)) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Horarios pico */}
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-semibold mb-4">Horarios Pico</h3>
+                <div className="space-y-3">
+                  {!isLoading && getPeakHours().map((peak, index) => (
+                    <div key={peak.hour} className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">{peak.time}</span>
+                      </div>
+                      <div className="flex gap-4">
+                        <span className="text-sm font-medium">{peak.views}</span>
+                        <div className="w-12 bg-gray-200 rounded-full h-2 mt-1">
+                          <div 
+                            className="bg-purple-500 h-2 rounded-full" 
+                            style={{ 
+                              width: `${Math.min(100, (peak.views / Math.max(...getPeakHours().map(p => p.views), 1)) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Métricas adicionales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow text-center">
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Bounce Rate</h4>
+                <p className="text-3xl font-bold text-gray-900">{isLoading ? '...' : getBounceRate()}%</p>
+                <p className="text-xs text-gray-500 mt-1">Tasa de rebote</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow text-center">
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Sesiones Totales</h4>
+                <p className="text-3xl font-bold text-gray-900">{isLoading ? '...' : stats?.total.sessions || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">Visitas únicas</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow text-center">
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Sesiones Hoy</h4>
+                <p className="text-3xl font-bold text-gray-900">{isLoading ? '...' : stats?.today.sessions || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">Visitantes únicos hoy</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow text-center">
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Promedio Páginas/Sesión</h4>
+                <p className="text-3xl font-bold text-gray-900">
+                  {isLoading ? '...' : stats?.total.sessions ? 
+                    Math.round((stats.total.pageViews / stats.total.sessions) * 10) / 10 : 0}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Páginas por visita</p>
+              </div>
+            </div>
+
+            {/* Gráfico mensual simplificado */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-semibold mb-4">Evolución Mensual</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                {monthlyStats.slice(-6).map((month, index) => (
+                  <div key={index} className="text-center">
+                    <div 
+                      className="w-full bg-[#deb887] rounded-lg mb-2"
+                      style={{
+                        height: `${Math.max(20, (month.pageViews / Math.max(...monthlyStats.slice(-6).map(m => m.pageViews), 1)) * 100)}px`
+                      }}
+                    ></div>
+                    <p className="text-xs text-gray-600 mb-1">{month.month.split(' ')[0]}</p>
+                    <p className="text-sm font-medium">{month.pageViews}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
       case 'dashboard':
       default:
         return (
@@ -124,40 +292,68 @@ const AdminDashboard: React.FC = () => {
               <div className="bg-white p-6 rounded-lg shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Sistema Activo</p>
-                    <p className="text-2xl font-bold text-gray-900">✓</p>
-                  </div>
-                  <Monitor className="w-8 h-8 text-blue-500" />
-                </div>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Citas Esta Semana</p>
-                    <p className="text-2xl font-bold text-gray-900">28</p>
-                  </div>
-                  <Calendar className="w-8 h-8 text-green-500" />
-                </div>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Usuarios Activos</p>
-                    <p className="text-2xl font-bold text-gray-900">156</p>
-                  </div>
-                  <Users className="w-8 h-8 text-purple-500" />
-                </div>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow">
-                <div className="flex items-center justify-between">
-                  <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Hoy</p>
-                    <p className="text-2xl font-bold text-gray-900">89</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isLoading ? '...' : stats?.today.pageViews || 0}
+                    </p>
+                    {!isLoading && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getGrowthRate('daily') > 0 ? '+' : ''}{getGrowthRate('daily')}% vs ayer
+                      </p>
+                    )}
                   </div>
-                  <BarChart3 className="w-8 h-8 text-orange-500" />
+                  <Eye className="w-8 h-8 text-blue-500" />
+                </div>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Visitas Esta Semana</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isLoading ? '...' : stats?.thisWeek.pageViews || 0}
+                    </p>
+                    {!isLoading && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getGrowthRate('weekly') > 0 ? '+' : ''}{getGrowthRate('weekly')}% vs sem. pasada
+                      </p>
+                    )}
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-green-500" />
+                </div>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Visitas Este Mes</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isLoading ? '...' : stats?.thisMonth.pageViews || 0}
+                    </p>
+                    {!isLoading && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getGrowthRate('monthly') > 0 ? '+' : ''}{getGrowthRate('monthly')}% vs mes pasado
+                      </p>
+                    )}
+                  </div>
+                  <BarChart3 className="w-8 h-8 text-purple-500" />
+                </div>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Visitas</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {isLoading ? '...' : stats?.total.pageViews || 0}
+                    </p>
+                    {!isLoading && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Bounce Rate: {getBounceRate()}%
+                      </p>
+                    )}
+                  </div>
+                  <Users className="w-8 h-8 text-orange-500" />
                 </div>
               </div>
             </div>
