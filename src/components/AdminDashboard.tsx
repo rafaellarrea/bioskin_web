@@ -1,7 +1,7 @@
 // src/components/AdminDashboard.tsx
 // Panel principal de administración con múltiples opciones
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Users, 
@@ -14,7 +14,11 @@ import {
   Shield,
   Eye,
   TrendingUp,
-  Clock
+  Clock,
+  Bell,
+  X,
+  AlertCircle,
+  CalendarDays
 } from 'lucide-react';
 import useAnalytics from '../hooks/useAnalytics';
 import AdminAppointment from './AdminAppointment';
@@ -29,8 +33,22 @@ interface AdminOption {
   available: boolean;
 }
 
+interface UpcomingAppointment {
+  id: string;
+  summary: string;
+  start: string;
+  end: string;
+  description?: string;
+  daysUntil: number;
+  isToday: boolean;
+  isTomorrow: boolean;
+}
+
 const AdminDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('dashboard');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
   const { 
     stats, 
     dailyStats, 
@@ -41,6 +59,133 @@ const AdminDashboard: React.FC = () => {
     getGrowthRate,
     getPeakHours 
   } = useAnalytics();
+
+  // Función para obtener citas de los próximos 15 días
+  const fetchUpcomingAppointments = async () => {
+    setLoadingNotifications(true);
+    try {
+      console.log('🔔 Cargando notificaciones de citas próximas...');
+      
+      const appointments: UpcomingAppointment[] = [];
+      const today = new Date();
+      
+      // Obtener eventos para los próximos 15 días
+      for (let i = 0; i <= 15; i++) {
+        const currentDate = new Date(today);
+        currentDate.setDate(today.getDate() + i);
+        const dateString = currentDate.toISOString().split('T')[0];
+        
+        try {
+          const response = await fetch('/api/getEvents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: dateString }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.events && Array.isArray(data.events)) {
+            data.events.forEach((event: any) => {
+              appointments.push({
+                id: event.id,
+                summary: event.summary,
+                start: event.start,
+                end: event.end,
+                description: event.description,
+                daysUntil: i,
+                isToday: i === 0,
+                isTomorrow: i === 1
+              });
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching events for ${dateString}:`, err);
+        }
+      }
+      
+      // Ordenar por fecha/hora
+      appointments.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+      
+      console.log(`✅ ${appointments.length} citas próximas encontradas`);
+      setUpcomingAppointments(appointments);
+      
+    } catch (err) {
+      console.error('Error cargando notificaciones:', err);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  // Cargar notificaciones al entrar al dashboard
+  useEffect(() => {
+    fetchUpcomingAppointments();
+  }, []);
+
+  // Cerrar notificaciones al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showNotifications && !target.closest('.notifications-panel')) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifications]);
+
+  // Función para formatear la fecha/hora de la cita
+  const formatAppointmentDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const time = date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+    const day = date.toLocaleDateString('es-ES', { 
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+    return { time, day };
+  };
+
+  // Obtener mensaje de urgencia para la cita
+  const getUrgencyMessage = (appointment: UpcomingAppointment) => {
+    if (appointment.isToday) {
+      return { 
+        text: 'HOY', 
+        color: 'bg-red-500 text-white',
+        priority: 1 
+      };
+    }
+    if (appointment.isTomorrow) {
+      return { 
+        text: 'MAÑANA', 
+        color: 'bg-orange-500 text-white',
+        priority: 2 
+      };
+    }
+    if (appointment.daysUntil <= 3) {
+      return { 
+        text: `${appointment.daysUntil} días`, 
+        color: 'bg-yellow-500 text-white',
+        priority: 3 
+      };
+    }
+    if (appointment.daysUntil <= 7) {
+      return { 
+        text: `${appointment.daysUntil} días`, 
+        color: 'bg-blue-500 text-white',
+        priority: 4 
+      };
+    }
+    return { 
+      text: `${appointment.daysUntil} días`, 
+      color: 'bg-gray-500 text-white',
+      priority: 5 
+    };
+  };
 
   const adminOptions: AdminOption[] = [
     {
@@ -293,6 +438,138 @@ const AdminDashboard: React.FC = () => {
       default:
         return (
           <div className="space-y-6">
+            {/* Header del Dashboard con Notificaciones */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">Panel Administrativo</h1>
+                <p className="text-gray-600 mt-1">Gestión y monitoreo de BIOSKIN</p>
+              </div>
+              
+              {/* Icono de Notificaciones */}
+              <div className="relative notifications-panel">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
+                >
+                  <Bell className="w-6 h-6 text-gray-600" />
+                  {upcomingAppointments.length > 0 && (
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold animate-pulse">
+                      {upcomingAppointments.length > 9 ? '9+' : upcomingAppointments.length}
+                    </div>
+                  )}
+                </button>
+
+                {/* Panel de Notificaciones */}
+                {showNotifications && (
+                  <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden">
+                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                      <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <CalendarDays className="w-5 h-5 text-[#deb887]" />
+                        Citas Próximas (15 días)
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => fetchUpcomingAppointments()}
+                          disabled={loadingNotifications}
+                          className="p-1 text-gray-500 hover:text-[#deb887] transition-colors"
+                          title="Actualizar notificaciones"
+                        >
+                          <Clock className={`w-4 h-4 ${loadingNotifications ? 'animate-spin' : ''}`} />
+                        </button>
+                        <button
+                          onClick={() => setShowNotifications(false)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="max-h-80 overflow-y-auto">
+                      {loadingNotifications ? (
+                        <div className="p-6 text-center">
+                          <Clock className="w-8 h-8 text-[#deb887] animate-spin mx-auto mb-2" />
+                          <p className="text-gray-600">Cargando citas...</p>
+                        </div>
+                      ) : upcomingAppointments.length === 0 ? (
+                        <div className="p-6 text-center">
+                          <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500">No hay citas próximas</p>
+                          <p className="text-sm text-gray-400 mt-1">en los próximos 15 días</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-100">
+                          {upcomingAppointments.slice(0, 10).map((appointment, index) => {
+                            const urgency = getUrgencyMessage(appointment);
+                            const { time, day } = formatAppointmentDateTime(appointment.start);
+                            
+                            return (
+                              <div key={appointment.id} className="p-4 hover:bg-gray-50">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className={`text-xs px-2 py-1 rounded-full font-bold ${urgency.color}`}>
+                                        {urgency.text}
+                                      </span>
+                                      <span className="text-sm font-medium text-gray-800">
+                                        {time}
+                                      </span>
+                                    </div>
+                                    <h4 className="font-semibold text-gray-800 mb-1">
+                                      {appointment.summary}
+                                    </h4>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                      {day}
+                                    </p>
+                                    {appointment.description && (
+                                      <p className="text-xs text-gray-500 line-clamp-2">
+                                        {appointment.description.split('\n')[0]}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex-shrink-0">
+                                    {appointment.isToday && (
+                                      <AlertCircle className="w-5 h-5 text-red-500" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                          {upcomingAppointments.length > 10 && (
+                            <div className="p-4 text-center bg-gray-50">
+                              <p className="text-sm text-gray-600">
+                                +{upcomingAppointments.length - 10} citas más...
+                              </p>
+                              <button
+                                onClick={() => setActiveSection('calendar')}
+                                className="text-[#deb887] hover:text-[#d4a574] font-medium text-sm mt-1"
+                              >
+                                Ver calendario completo
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-3 border-t border-gray-200 bg-gray-50">
+                      <button
+                        onClick={() => {
+                          setShowNotifications(false);
+                          setActiveSection('calendar');
+                        }}
+                        className="w-full text-center text-[#deb887] hover:text-[#d4a574] font-medium text-sm"
+                      >
+                        Ver Calendario Completo
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
             {/* Acceso directo al generador local */}
             <div className="bg-gradient-to-r from-[#deb887] to-[#d4a574] p-6 rounded-lg text-white mb-6">
               <h3 className="text-xl font-bold mb-2">Generador de Blogs Local</h3>

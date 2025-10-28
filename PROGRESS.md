@@ -181,6 +181,7 @@ public/test-openai.html       # Interface testing avanzada
 - ✅ Nov 03 - Debugging y página prueba calendario
 - ✅ Nov 03 - Optimización rendimiento: carga paralela eventos mes
 - ✅ Nov 03 - UX mejorada: overlay carga prominente escritorio
+- ✅ Nov 03 - Sistema notificaciones: citas próximas 15 días
 
 **Archivos clave**:
 ```
