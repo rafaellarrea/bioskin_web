@@ -17,6 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import useAnalytics from '../hooks/useAnalytics';
+import AdminAppointment from './AdminAppointment';
 
 interface AdminOption {
   id: string;
@@ -55,7 +56,7 @@ const AdminDashboard: React.FC = () => {
       description: 'Administrar citas y horarios',
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-green-500',
-      available: false
+      available: true
     },
     {
       id: 'users',
@@ -125,6 +126,10 @@ const AdminDashboard: React.FC = () => {
 
   const renderActiveSection = () => {
     switch (activeSection) {
+      case 'appointments':
+        return (
+          <AdminAppointment onBack={() => setActiveSection('dashboard')} />
+        );
       case 'analytics':
         return (
           <div className="space-y-6">
