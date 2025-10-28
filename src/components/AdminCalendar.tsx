@@ -110,31 +110,40 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
+    setLoading(true);
     const monthEventsMap: {[key: string]: CalendarEvent[]} = {};
     
-    // Obtener eventos día por día (podríamos optimizar esto con una sola llamada al API)
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-      const currentDate = new Date(year, month, day);
-      const dateString = currentDate.toISOString().split('T')[0];
-      
-      try {
-        const response = await fetch('/api/getEvents', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: dateString }),
-        });
+    try {
+      // Obtener eventos día por día para el mes actual
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const currentDate = new Date(year, month, day);
+        const dateString = currentDate.toISOString().split('T')[0];
         
-        const data = await response.json();
-        
-        if (data.events && Array.isArray(data.events)) {
-          monthEventsMap[dateString] = data.events;
+        try {
+          const response = await fetch('/api/getEvents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: dateString }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+            monthEventsMap[dateString] = data.events;
+            console.log(`Eventos encontrados para ${dateString}:`, data.events.length);
+          }
+        } catch (err) {
+          console.error(`Error fetching events for ${dateString}:`, err);
         }
-      } catch (err) {
-        console.error(`Error fetching events for ${dateString}:`, err);
       }
+      
+      console.log('MonthEvents cargados:', monthEventsMap);
+      setMonthEvents(monthEventsMap);
+    } catch (err) {
+      console.error('Error general cargando eventos del mes:', err);
+    } finally {
+      setLoading(false);
     }
-    
-    setMonthEvents(monthEventsMap);
   };
 
   // Cargar eventos cuando cambia la fecha seleccionada
@@ -184,14 +193,23 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
   const hasEvents = (date: Date) => {
     if (!date) return false;
     const dateString = date.toISOString().split('T')[0];
-    return monthEvents[dateString] && monthEvents[dateString].length > 0;
+    const events = monthEvents[dateString];
+    const hasEventsResult = events && events.length > 0;
+    
+    // Debug: log para verificar
+    if (hasEventsResult) {
+      console.log(`Día ${dateString} tiene ${events.length} eventos:`, events);
+    }
+    
+    return hasEventsResult;
   };
 
   // Obtener número de eventos para una fecha
   const getEventCount = (date: Date) => {
     if (!date) return 0;
     const dateString = date.toISOString().split('T')[0];
-    return monthEvents[dateString] ? monthEvents[dateString].length : 0;
+    const events = monthEvents[dateString];
+    return events ? events.length : 0;
   };
 
   // Extraer información del paciente de la descripción del evento
@@ -259,12 +277,17 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
             </button>
           </div>
           <button
-            onClick={() => fetchEventsForDate(selectedDate)}
+            onClick={() => {
+              fetchEventsForDate(selectedDate);
+              if (viewMode === 'month') {
+                fetchMonthEvents(selectedDate);
+              }
+            }}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#d4a574] transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
+            {loading ? 'Cargando...' : 'Actualizar'}
           </button>
         </div>
       </div>
@@ -295,6 +318,11 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
               >
                 Ir a hoy
               </button>
+              {viewMode === 'month' && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {Object.keys(monthEvents).filter(date => monthEvents[date].length > 0).length} días con citas
+                </div>
+              )}
             </div>
             
             <button
@@ -330,16 +358,19 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
                       ? 'bg-[#deb887] text-white'
                       : day.toDateString() === new Date().toDateString()
                       ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      : hasEvents(day)
+                      ? 'bg-red-50 hover:bg-red-100 text-gray-700 border-2 border-red-300'
                       : 'bg-white hover:bg-gray-100 text-gray-700'
                   }`}
                 >
                   {day?.getDate()}
                   {day && hasEvents(day) && (
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex items-center gap-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <span className="text-xs text-gray-600 font-normal">
-                        {getEventCount(day)}
-                      </span>
+                    <div className="absolute top-1 right-1 flex items-center">
+                      <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold" style={{ fontSize: '8px', lineHeight: '1' }}>
+                          {getEventCount(day)}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </button>

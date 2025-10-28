@@ -176,8 +176,9 @@ public/test-openai.html       # Interface testing avanzada
 - ✅ Nov 03 - Panel administrativo seguro con auth
 - ✅ Nov 03 - Sistema analíticas tiempo real Vercel + localStorage  
 - ✅ Nov 03 - Calendario administrativo con vistas mensual/semanal
-- ✅ Nov 03 - Indicadores visuales días con citas
+- ✅ Nov 03 - Indicadores visuales días con citas mejorados
 - ✅ Nov 03 - Integración Google Calendar completa
+- ✅ Nov 03 - Debugging y página prueba calendario
 
 **Archivos clave**:
 ```

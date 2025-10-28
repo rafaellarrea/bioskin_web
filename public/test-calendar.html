@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Calendar API - BIOSKIN</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #deb887;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #deb887;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #d4a574;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #deb887;
+        }
+        .event-card {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .event-time {
+            font-weight: bold;
+            color: #deb887;
+        }
+        .event-title {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        .event-description {
+            color: #666;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        .error {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #d32f2f;
+        }
+        .success {
+            color: #2e7d32;
+            background-color: #e8f5e8;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #2e7d32;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+        .calendar-day.has-events {
+            background-color: #ffebee;
+            border-color: #d32f2f;
+        }
+        .calendar-day.selected {
+            background-color: #deb887;
+            color: white;
+        }
+        .event-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: #d32f2f;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗓️ Prueba de API de Calendario - BIOSKIN</h1>
+        
+        <div class="test-section">
+            <h3>📅 Prueba de Fecha Específica</h3>
+            <div>
+                <label>Fecha (YYYY-MM-DD):</label>
+                <input type="date" id="dateInput" value="2024-11-30">
+                <button onclick="testSingleDate()">Probar Fecha</button>
+                <button onclick="testToday()">Probar Hoy</button>
+            </div>
+            <div id="singleDateResults" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📅 Prueba de Mes Completo</h3>
+            <div>
+                <label>Mes:</label>
+                <input type="month" id="monthInput" value="2024-11">
+                <button onclick="testMonth()">Probar Mes</button>
+                <button onclick="testCurrentMonth()">Probar Mes Actual</button>
+            </div>
+            <div id="monthResults" class="results" style="display: none;"></div>
+            <div id="calendarView"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Estado de la API</h3>
+            <button onclick="testAPIStatus()">Verificar Estado de API</button>
+            <div id="statusResults" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentMonthEvents = {};
+
+        async function testSingleDate() {
+            const date = document.getElementById('dateInput').value;
+            if (!date) {
+                alert('Por favor selecciona una fecha');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('singleDateResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">🔄 Cargando eventos...</div>';
+
+            try {
+                const response = await fetch('/api/getEvents', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ date: date })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displaySingleDateResults(data, date);
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">❌ Error: ${data.error || 'Error desconocido'}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error de conexión: ${error.message}</div>`;
+            }
+        }
+
+        async function testToday() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateInput').value = today;
+            await testSingleDate();
+        }
+
+        function displaySingleDateResults(data, date) {
+            const resultsDiv = document.getElementById('singleDateResults');
+            
+            if (data.events && data.events.length > 0) {
+                let html = `<div class="success">✅ Se encontraron ${data.events.length} evento(s) para ${date}:</div>`;
+                
+                data.events.forEach((event, index) => {
+                    const startTime = new Date(event.start).toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    const endTime = new Date(event.end).toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    
+                    html += `
+                        <div class="event-card">
+                            <div class="event-time">${startTime} - ${endTime}</div>
+                            <div class="event-title">${event.summary || 'Sin título'}</div>
+                            ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = `<div class="success">✅ No hay eventos programados para ${date}</div>`;
+            }
+        }
+
+        async function testMonth() {
+            const monthInput = document.getElementById('monthInput').value;
+            if (!monthInput) {
+                alert('Por favor selecciona un mes');
+                return;
+            }
+
+            const [year, month] = monthInput.split('-');
+            await loadMonthEvents(parseInt(year), parseInt(month) - 1);
+        }
+
+        async function testCurrentMonth() {
+            const now = new Date();
+            const monthString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+            document.getElementById('monthInput').value = monthString;
+            await loadMonthEvents(now.getFullYear(), now.getMonth());
+        }
+
+        async function loadMonthEvents(year, month) {
+            const resultsDiv = document.getElementById('monthResults');
+            const calendarView = document.getElementById('calendarView');
+            
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">🔄 Cargando eventos del mes...</div>';
+            
+            currentMonthEvents = {};
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let totalEvents = 0;
+            let daysWithEvents = 0;
+
+            try {
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dateString = date.toISOString().split('T')[0];
+                    
+                    const response = await fetch('/api/getEvents', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ date: dateString })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.events && data.events.length > 0) {
+                            currentMonthEvents[dateString] = data.events;
+                            totalEvents += data.events.length;
+                            daysWithEvents++;
+                        }
+                    }
+                }
+
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Mes cargado: ${daysWithEvents} días con eventos, ${totalEvents} eventos totales
+                    </div>
+                `;
+
+                displayCalendar(year, month);
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error cargando mes: ${error.message}</div>`;
+            }
+        }
+
+        function displayCalendar(year, month) {
+            const calendarView = document.getElementById('calendarView');
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startingDayOfWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+
+            let html = `
+                <h4>📅 ${monthNames[month]} ${year}</h4>
+                <div class="calendar-grid">
+                    <div style="font-weight: bold;">Dom</div>
+                    <div style="font-weight: bold;">Lun</div>
+                    <div style="font-weight: bold;">Mar</div>
+                    <div style="font-weight: bold;">Mié</div>
+                    <div style="font-weight: bold;">Jue</div>
+                    <div style="font-weight: bold;">Vie</div>
+                    <div style="font-weight: bold;">Sáb</div>
+            `;
+
+            // Días vacíos al inicio
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                html += '<div></div>';
+            }
+
+            // Días del mes
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateString = date.toISOString().split('T')[0];
+                const events = currentMonthEvents[dateString] || [];
+                const hasEvents = events.length > 0;
+
+                html += `
+                    <div class="calendar-day ${hasEvents ? 'has-events' : ''}" 
+                         onclick="showDayEvents('${dateString}')"
+                         title="${hasEvents ? `${events.length} evento(s)` : 'Sin eventos'}">
+                        ${day}
+                        ${hasEvents ? `<div class="event-indicator">${events.length}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            calendarView.innerHTML = html;
+        }
+
+        function showDayEvents(dateString) {
+            const events = currentMonthEvents[dateString] || [];
+            if (events.length === 0) {
+                alert(`No hay eventos para ${dateString}`);
+                return;
+            }
+
+            let message = `Eventos para ${dateString}:\n\n`;
+            events.forEach((event, index) => {
+                const startTime = new Date(event.start).toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                message += `${index + 1}. ${startTime} - ${event.summary || 'Sin título'}\n`;
+            });
+
+            alert(message);
+        }
+
+        async function testAPIStatus() {
+            const resultsDiv = document.getElementById('statusResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="loading">🔄 Verificando estado de API...</div>';
+
+            try {
+                // Probar con fecha de hoy
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch('/api/getEvents', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ date: today })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            ✅ API funcionando correctamente<br>
+                            📊 Estructura de respuesta: ${JSON.stringify(Object.keys(data), null, 2)}<br>
+                            📅 Eventos hoy: ${data.events ? data.events.length : 0}
+                        </div>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Error de API (${response.status}): ${errorData.error || 'Error desconocido'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error de conexión: ${error.message}<br>
+                        Verifica que el servidor esté ejecutándose y las credenciales de Google estén configuradas.
+                    </div>
+                `;
+            }
+        }
+
+        // Cargar pruebas automáticas al cargar la página
+        window.onload = function() {
+            // Establecer fecha de hoy por defecto
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateInput').value = today;
+            
+            // Establecer mes actual por defecto
+            const now = new Date();
+            const monthString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+            document.getElementById('monthInput').value = monthString;
+        };
+    </script>
+</body>
+</html>
