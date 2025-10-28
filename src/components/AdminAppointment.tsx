@@ -279,32 +279,21 @@ const AdminAppointment: React.FC<AdminAppointmentProps> = ({ onBack }) => {
           
           {/* Grid de días */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3 mb-8">
-            {days.map(d => {
-              // Solo bloquear días ANTERIORES al día actual, no el día actual
-              const today = new Date();
-              const dayDate = new Date(d.iso);
-              const isPast = dayDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-              
-              return (
-                <button
-                  key={d.iso}
-                  onClick={() => !isPast && setSelectedDay(d.iso)}
-                  disabled={isPast}
-                  className={`text-center rounded-xl border-2 p-4 transition-all duration-200 min-h-[100px]
-                    ${selectedDay === d.iso 
-                      ? 'bg-[#ffcfc4] text-[#0d5c6c] border-[#fa9271] shadow-lg scale-105' 
-                      : isPast 
-                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50'
-                        : 'bg-white text-[#0d5c6c] border-[#dde7eb] hover:bg-[#ffe2db]'}
-                  `}
-                >
-                  <span className="block font-semibold italic text-sm">{d.dayName}</span>
-                  <span className="block text-2xl font-bold mt-1">{d.dateNum}</span>
-                  <span className="block text-xs">{d.month}</span>
-                  {isPast && <span className="block text-xs mt-1">Pasado</span>}
-                </button>
-              );
-            })}
+            {days.map(d => (
+              <button
+                key={d.iso}
+                onClick={() => setSelectedDay(d.iso)}
+                className={`text-center rounded-xl border-2 p-4 transition-all duration-200 min-h-[100px]
+                  ${selectedDay === d.iso 
+                    ? 'bg-[#ffcfc4] text-[#0d5c6c] border-[#fa9271] shadow-lg scale-105' 
+                    : 'bg-white text-[#0d5c6c] border-[#dde7eb] hover:bg-[#ffe2db]'}
+                `}
+              >
+                <span className="block font-semibold italic text-sm">{d.dayName}</span>
+                <span className="block text-2xl font-bold mt-1">{d.dateNum}</span>
+                <span className="block text-xs">{d.month}</span>
+              </button>
+            ))}
           </div>
           
           <div className="flex justify-end">
