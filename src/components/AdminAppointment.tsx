@@ -43,6 +43,35 @@ function isHourOccupied2h(selectedDay: string, hour: string, events: EventType[]
   });
 }
 
+// Función para verificar si una hora ya pasó en el día actual
+function isHourPast(selectedDay: string, hour: string): boolean {
+  if (!selectedDay || !hour) return false;
+  
+  const today = new Date();
+  const selectedDate = new Date(selectedDay + 'T00:00:00');
+  
+  // Normalizar fechas para comparación (solo día, mes, año)
+  const todayString = today.toISOString().split('T')[0];
+  const selectedString = selectedDate.toISOString().split('T')[0];
+  
+  // Si no es el día de hoy, no está en el pasado
+  if (todayString !== selectedString) {
+    return false;
+  }
+  
+  // Si es hoy, verificar si la hora ya pasó
+  const [hourNum, minuteNum] = hour.split(':').map(Number);
+  
+  // Crear tiempo de la cita
+  const appointmentTime = new Date();
+  appointmentTime.setHours(hourNum, minuteNum || 0, 0, 0);
+  
+  // Crear tiempo actual
+  const currentTime = new Date();
+  
+  return appointmentTime <= currentTime;
+}
+
 const formatTimeLabel = (time24: string) => {
   const parts = time24.split(':');
   const hour = parseInt(parts[0], 10);
@@ -251,7 +280,11 @@ const AdminAppointment: React.FC<AdminAppointmentProps> = ({ onBack }) => {
           {/* Grid de días */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3 mb-8">
             {days.map(d => {
-              const isPast = new Date(d.iso) < new Date(new Date().toDateString());
+              // Solo bloquear días ANTERIORES al día actual, no el día actual
+              const today = new Date();
+              const dayDate = new Date(d.iso);
+              const isPast = dayDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              
               return (
                 <button
                   key={d.iso}
@@ -301,25 +334,30 @@ const AdminAppointment: React.FC<AdminAppointmentProps> = ({ onBack }) => {
             {loadingHours ? (
               <div className="text-center col-span-full w-full">Cargando horarios...</div>
             ) : (
-              allTimes.map(h => (
-                <button
-                  key={h}
-                  disabled={isHourOccupied2h(selectedDay, h, events)}
-                  onClick={() => setSelectedHour(h)}
-                  className={`rounded-xl p-4 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150
-                    ${selectedHour === h 
-                      ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' 
-                      : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
-                    ${isHourOccupied2h(selectedDay, h, events) ? 'opacity-30 cursor-not-allowed' : ''}
-                  `}
-                >
-                  <Clock className="w-5 h-5 mb-2" />
-                  <span className="text-lg font-semibold">{formatTimeLabel(h)}</span>
-                  {isHourOccupied2h(selectedDay, h, events) && (
-                    <span className="text-xs text-red-500 mt-1">Ocupado</span>
-                  )}
-                </button>
-              ))
+              allTimes.map(h => {
+                const isOccupied = isHourOccupied2h(selectedDay, h, events);
+                const isPast = isHourPast(selectedDay, h);
+                const isDisabled = isOccupied || isPast;
+                
+                return (
+                  <button
+                    key={h}
+                    disabled={isDisabled}
+                    onClick={() => setSelectedHour(h)}
+                    className={`rounded-xl p-4 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150
+                      ${selectedHour === h 
+                        ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' 
+                        : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
+                      ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}
+                    `}
+                  >
+                    <Clock className="w-5 h-5 mb-2" />
+                    <span className="text-lg font-semibold">{formatTimeLabel(h)}</span>
+                    {isOccupied && <span className="text-xs text-red-500 mt-1">Ocupado</span>}
+                    {isPast && !isOccupied && <span className="text-xs text-gray-500 mt-1">Pasado</span>}
+                  </button>
+                );
+              })
             )}
           </div>
           
