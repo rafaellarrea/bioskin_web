@@ -17,14 +17,28 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // CREDENCIALES ÚNICAS Y EXCLUSIVAS - NO SE ACEPTAN OTRAS
-  const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'b10sk1n'
-  };
+  // CONFIGURACIÓN DE CREDENCIALES SEGURAS - ÚNICO ACCESO VÁLIDO
+  const VALID_CREDENTIALS = 'admin:b10sk1n';
   
-  // VALIDACIÓN: Solo estas credenciales exactas darán acceso
-  console.log('Credenciales configuradas:', ADMIN_CREDENTIALS);
+  // Función de validación robusta
+  const validateCredentials = (username: string, password: string): boolean => {
+    const inputCombination = `${username.trim()}:${password}`;
+    
+    // Bloquear específicamente admin/admin
+    if (username.trim() === 'admin' && password === 'admin') {
+      console.log('🚫 COMBINACIÓN BLOQUEADA: admin/admin');
+      return false;
+    }
+    
+    const isValid = inputCombination === VALID_CREDENTIALS;
+    
+    console.log('Validación de credenciales:');
+    console.log('Input:', inputCombination);
+    console.log('Expected:', VALID_CREDENTIALS);
+    console.log('Valid:', isValid);
+    
+    return isValid;
+  };
 
   // Limpiar cualquier sesión anterior al cargar el componente
   useEffect(() => {
@@ -37,44 +51,24 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     setIsLoading(true);
     setError('');
 
-    // Validación estricta de autenticación
+    // Validación de credenciales con método robusto
     setTimeout(() => {
-      // Debugging - Vamos a ver exactamente qué está pasando
-      console.log('=== DEBUG LOGIN ===');
-      console.log('Usuario ingresado original:', JSON.stringify(credentials.username));
-      console.log('Usuario procesado:', JSON.stringify(inputUsername));
-      console.log('Usuario esperado:', JSON.stringify(expectedUsername));
-      console.log('Password ingresada:', JSON.stringify(inputPassword));
-      console.log('Password esperada:', JSON.stringify(expectedPassword));
-      console.log('Comparación exacta username:', inputUsername, '===', expectedUsername, '?', inputUsername === expectedUsername);
-      console.log('Comparación exacta password:', inputPassword, '===', expectedPassword, '?', inputPassword === expectedPassword);
+      console.log('=== VALIDACIÓN ROBUSTA ===');
       
-      // Validación exacta y estricta
-      const inputUsername = credentials.username.trim().toLowerCase();
-      const inputPassword = credentials.password;
-      const expectedUsername = ADMIN_CREDENTIALS.username.toLowerCase();
-      const expectedPassword = ADMIN_CREDENTIALS.password;
+      const isValid = validateCredentials(credentials.username, credentials.password);
       
-      const isValidUsername = inputUsername === expectedUsername;
-      const isValidPassword = inputPassword === expectedPassword;
-      
-      console.log('Username válido:', isValidUsername);
-      console.log('Password válido:', isValidPassword);
-      console.log('==================');
-      
-      if (isValidUsername && isValidPassword) {
-        // Limpiar cualquier sesión anterior
+      if (isValid) {
+        // Acceso autorizado
+        console.log('✅ ACCESO AUTORIZADO');
         localStorage.clear();
-        // Guardar nueva sesión
         localStorage.setItem('bioskin_admin_session', 'authenticated');
         localStorage.setItem('bioskin_admin_timestamp', Date.now().toString());
-        console.log('✅ Login exitoso - credenciales correctas');
         onLogin(true);
       } else {
-        console.log('❌ Login fallido - credenciales incorrectas');
-        setError('Credenciales incorrectas. Acceso denegado.');
+        // Acceso denegado
+        console.log('❌ ACCESO DENEGADO');
+        setError('Credenciales incorrectas. Solo se acepta admin/b10sk1n');
         onLogin(false);
-        // Limpiar campos por seguridad
         setCredentials({ username: '', password: '' });
       }
       setIsLoading(false);
