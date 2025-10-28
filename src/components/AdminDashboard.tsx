@@ -112,7 +112,7 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-xl font-bold mb-2">Generador de Blogs Local</h3>
               <p className="mb-4 opacity-90">Accede al sistema de generación de blogs con IA</p>
               <button
-                onClick={() => window.open('http://localhost:3000', '_blank')}
+                onClick={() => window.open('http://localhost:3336', '_blank')}
                 className="bg-white text-[#deb887] px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
                 Abrir Generador de Blogs

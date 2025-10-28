@@ -48,8 +48,21 @@ const useAuth = () => {
   };
 
   const logout = () => {
+    // Limpiar completamente localStorage relacionado con admin
     localStorage.removeItem('bioskin_admin_session');
     localStorage.removeItem('bioskin_admin_timestamp');
+    // Limpiar cualquier otra clave relacionada
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('bioskin') || key.includes('admin')) {
+        localStorage.removeItem(key);
+      }
+    });
+    setAuthState({ isAuthenticated: false, isLoading: false });
+  };
+
+  const forceLogout = () => {
+    // Función para forzar logout completo
+    localStorage.clear();
     setAuthState({ isAuthenticated: false, isLoading: false });
   };
 
@@ -58,6 +71,7 @@ const useAuth = () => {
     isLoading: authState.isLoading,
     login,
     logout,
+    forceLogout,
     checkAuthentication
   };
 };

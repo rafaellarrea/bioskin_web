@@ -1,7 +1,7 @@
 // src/components/AdminLogin.tsx
 // Componente de login para acceso administrativo
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 
 interface AdminLoginProps {
@@ -23,24 +23,35 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     password: 'b10sk1n'
   };
 
+  // Limpiar cualquier sesión anterior al cargar el componente
+  useEffect(() => {
+    localStorage.removeItem('bioskin_admin_session');
+    localStorage.removeItem('bioskin_admin_timestamp');
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simular autenticación
+    // Validación estricta de autenticación
     setTimeout(() => {
-      if (
-        credentials.username === ADMIN_CREDENTIALS.username &&
-        credentials.password === ADMIN_CREDENTIALS.password
-      ) {
-        // Guardar sesión en localStorage
+      // Validación exacta y estricta
+      const isValidUsername = credentials.username.trim() === ADMIN_CREDENTIALS.username;
+      const isValidPassword = credentials.password === ADMIN_CREDENTIALS.password;
+      
+      if (isValidUsername && isValidPassword) {
+        // Limpiar cualquier sesión anterior
+        localStorage.clear();
+        // Guardar nueva sesión
         localStorage.setItem('bioskin_admin_session', 'authenticated');
         localStorage.setItem('bioskin_admin_timestamp', Date.now().toString());
         onLogin(true);
       } else {
-        setError('Credenciales incorrectas');
+        setError('Credenciales incorrectas. Acceso denegado.');
         onLogin(false);
+        // Limpiar campos por seguridad
+        setCredentials({ username: '', password: '' });
       }
       setIsLoading(false);
     }, 800);
@@ -54,6 +65,13 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       [field]: e.target.value
     }));
     if (error) setError('');
+  };
+
+  const clearAllSessions = () => {
+    localStorage.clear();
+    setError('');
+    setCredentials({ username: '', password: '' });
+    window.location.reload();
   };
 
   return (
@@ -84,6 +102,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                   id="username"
                   type="text"
                   required
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   value={credentials.username}
                   onChange={handleInputChange('username')}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#deb887] focus:border-transparent"
@@ -105,6 +127,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   value={credentials.password}
                   onChange={handleInputChange('password')}
                   className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#deb887] focus:border-transparent"
@@ -154,9 +180,16 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
           {/* Info */}
           <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mb-3">
               Acceso exclusivo para personal autorizado
             </p>
+            <button
+              type="button"
+              onClick={clearAllSessions}
+              className="text-xs text-red-500 hover:text-red-700 underline"
+            >
+              Limpiar todas las sesiones
+            </button>
           </div>
         </div>
 
