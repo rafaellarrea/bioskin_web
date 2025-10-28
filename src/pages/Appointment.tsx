@@ -26,9 +26,27 @@ function getNextDays(count = 8) {
   return days;
 }
 
-const allTimes = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
+const allTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
 
 type EventType = { start: string; end: string };
+
+// Función para verificar si una hora ya pasó en el día actual
+function isHourPast(selectedDay: string, hour: string): boolean {
+  const today = new Date();
+  const selectedDate = new Date(selectedDay);
+  
+  // Si no es el día de hoy, no está en el pasado
+  if (selectedDate.toDateString() !== today.toDateString()) {
+    return false;
+  }
+  
+  // Si es hoy, verificar si la hora ya pasó
+  const [hourNum] = hour.split(':').map(Number);
+  const currentHour = today.getHours();
+  
+  return hourNum <= currentHour;
+}
+
 function isHourOccupied2h(selectedDay: string, hour: string, events: EventType[]): boolean {
   if (!selectedDay) return true;
   const startTime = new Date(selectedDay + 'T' + hour + ':00');
@@ -222,24 +240,32 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
         {step === 2 && (
           <>
             <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">2. Selecciona la hora (2 horas de cita)</h4>
-            <div className="flex flex-wrap gap-4 justify-center mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-8">
               {loadingHours ? (
                 <div className="text-center col-span-3 w-full">Cargando horarios...</div>
               ) : (
-                allTimes.map(h => (
-                  <button
-                    key={h}
-                    disabled={isHourOccupied2h(selectedDay, h, events)}
-                    onClick={() => setSelectedHour(h)}
-                    className={`w-28 rounded-xl p-4 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150
-                      ${selectedHour === h ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
-                      ${isHourOccupied2h(selectedDay, h, events) ? 'opacity-30 cursor-not-allowed' : ''}
-                    `}
-                  >
-                    <span className="text-lg font-semibold mb-1">Turno</span>
-                    <span className="text-2xl font-bold">{formatTimeLabel(h)}</span>
-                  </button>
-                ))
+                allTimes.map(h => {
+                  const isOccupied = isHourOccupied2h(selectedDay, h, events);
+                  const isPast = isHourPast(selectedDay, h);
+                  const isDisabled = isOccupied || isPast;
+                  
+                  return (
+                    <button
+                      key={h}
+                      disabled={isDisabled}
+                      onClick={() => setSelectedHour(h)}
+                      className={`w-full rounded-xl p-3 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150 min-h-[90px]
+                        ${selectedHour === h ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
+                        ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}
+                      `}
+                    >
+                      <span className="text-lg font-semibold mb-1">Turno</span>
+                      <span className="text-2xl font-bold">{formatTimeLabel(h)}</span>
+                      {isOccupied && <span className="text-xs text-red-500 mt-1">Ocupado</span>}
+                      {isPast && !isOccupied && <span className="text-xs text-gray-500 mt-1">Pasado</span>}
+                    </button>
+                  );
+                })
               )}
             </div>
             <div className="flex justify-between">
