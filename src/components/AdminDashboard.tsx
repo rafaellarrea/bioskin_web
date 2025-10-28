@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import { 
-  FileText, 
   Settings, 
   Users, 
   Calendar, 
@@ -14,10 +13,6 @@ import {
   Monitor,
   Shield
 } from 'lucide-react';
-
-// Importar componentes de gestión
-import BlogAdmin from './BlogAdmin';
-import BlogManagement from './BlogManagement';
 
 interface AdminOption {
   id: string;
@@ -32,22 +27,6 @@ const AdminDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('dashboard');
 
   const adminOptions: AdminOption[] = [
-    {
-      id: 'blogs',
-      title: 'Generar Blogs IA',
-      description: 'Crear artículos automáticamente con IA',
-      icon: <FileText className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      available: true
-    },
-    {
-      id: 'blog-management',
-      title: 'Gestión de Blogs',
-      description: 'Administrar, editar y eliminar blogs',
-      icon: <Database className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      available: true
-    },
     {
       id: 'appointments',
       title: 'Gestión de Citas',
@@ -124,23 +103,31 @@ const AdminDashboard: React.FC = () => {
 
   const renderActiveSection = () => {
     switch (activeSection) {
-      case 'blogs':
-        return <BlogAdmin />;
-      case 'blog-management':
-        return <BlogManagement />;
       case 'dashboard':
       default:
         return (
           <div className="space-y-6">
+            {/* Acceso directo al generador local */}
+            <div className="bg-gradient-to-r from-[#deb887] to-[#d4a574] p-6 rounded-lg text-white mb-6">
+              <h3 className="text-xl font-bold mb-2">Generador de Blogs Local</h3>
+              <p className="mb-4 opacity-90">Accede al sistema de generación de blogs con IA</p>
+              <button
+                onClick={() => window.open('http://localhost:3000', '_blank')}
+                className="bg-white text-[#deb887] px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              >
+                Abrir Generador de Blogs
+              </button>
+            </div>
+
             {/* Resumen de estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Blogs Generados</p>
-                    <p className="text-2xl font-bold text-gray-900">12</p>
+                    <p className="text-sm font-medium text-gray-600">Sistema Activo</p>
+                    <p className="text-2xl font-bold text-gray-900">✓</p>
                   </div>
-                  <FileText className="w-8 h-8 text-blue-500" />
+                  <Monitor className="w-8 h-8 text-blue-500" />
                 </div>
               </div>
               
@@ -214,10 +201,10 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Actividad Reciente</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <FileText className="w-5 h-5 text-blue-500" />
+                  <Monitor className="w-5 h-5 text-blue-500" />
                   <div>
-                    <p className="text-sm font-medium">Nuevo blog generado: "Beneficios del HIFU"</p>
-                    <p className="text-xs text-gray-500">Hace 2 horas</p>
+                    <p className="text-sm font-medium">Sistema funcionando correctamente</p>
+                    <p className="text-xs text-gray-500">Hace 5 minutos</p>
                   </div>
                 </div>
                 

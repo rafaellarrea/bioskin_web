@@ -17,10 +17,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Credenciales simples (en producción, esto debería estar en backend)
+  // Credenciales de acceso seguras
   const ADMIN_CREDENTIALS = {
-    username: 'bioskin_admin',
-    password: 'BioSkin2025!'
+    username: 'admin',
+    password: 'b10sk1n'
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +43,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
         onLogin(false);
       }
       setIsLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   const handleInputChange = (field: 'username' | 'password') => (
