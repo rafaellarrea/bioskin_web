@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import useAnalytics from '../hooks/useAnalytics';
 import AdminAppointment from './AdminAppointment';
+import AdminCalendar from './AdminCalendar';
 
 interface AdminOption {
   id: string;
@@ -53,9 +54,17 @@ const AdminDashboard: React.FC = () => {
     {
       id: 'appointments',
       title: 'Gestión de Citas',
-      description: 'Administrar citas y horarios',
+      description: 'Agendar nuevas citas y horarios',
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-green-500',
+      available: true
+    },
+    {
+      id: 'calendar',
+      title: 'Visualizar Agenda',
+      description: 'Ver citas programadas del calendario',
+      icon: <Calendar className="w-6 h-6" />,
+      color: 'bg-blue-500',
       available: true
     },
     {
@@ -129,6 +138,10 @@ const AdminDashboard: React.FC = () => {
       case 'appointments':
         return (
           <AdminAppointment onBack={() => setActiveSection('dashboard')} />
+        );
+      case 'calendar':
+        return (
+          <AdminCalendar onBack={() => setActiveSection('dashboard')} />
         );
       case 'analytics':
         return (

@@ -37,5 +37,18 @@ export default async function handler(req, res) {
     end: e.end.dateTime,
   }));
 
-  res.status(200).json({ occupiedTimes: occupied });
+  // También incluir los eventos completos para el visualizador de agenda
+  const fullEvents = events.data.items.map((e) => ({
+    id: e.id,
+    summary: e.summary,
+    description: e.description,
+    start: e.start.dateTime,
+    end: e.end.dateTime,
+    location: e.location,
+  }));
+
+  res.status(200).json({ 
+    occupiedTimes: occupied,
+    events: fullEvents 
+  });
 }
