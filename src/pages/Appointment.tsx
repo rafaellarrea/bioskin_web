@@ -32,11 +32,24 @@ type EventType = { start: string; end: string };
 
 // Función para verificar si una hora ya pasó en el día actual
 function isHourPast(selectedDay: string, hour: string): boolean {
+  if (!selectedDay || !hour) return false;
+  
   const today = new Date();
-  const selectedDate = new Date(selectedDay);
+  const selectedDate = new Date(selectedDay + 'T00:00:00');
+  
+  // Normalizar fechas para comparación (solo día, mes, año)
+  const todayString = today.toISOString().split('T')[0];
+  const selectedString = selectedDate.toISOString().split('T')[0];
+  
+  // Debug: mostrar las fechas que se están comparando
+  console.log('Comparando fechas:', { 
+    hoy: todayString, 
+    seleccionado: selectedString, 
+    esHoy: todayString === selectedString 
+  });
   
   // Si no es el día de hoy, no está en el pasado
-  if (selectedDate.toDateString() !== today.toDateString()) {
+  if (todayString !== selectedString) {
     return false;
   }
   
@@ -45,19 +58,25 @@ function isHourPast(selectedDay: string, hour: string): boolean {
   const currentHour = today.getHours();
   const currentMinute = today.getMinutes();
   
-  // Crear objetos Date para comparación precisa
-  const appointmentTime = new Date(today);
-  appointmentTime.setHours(hourNum, minuteNum, 0, 0);
+  // Crear tiempo de la cita
+  const appointmentTime = new Date();
+  appointmentTime.setHours(hourNum, minuteNum || 0, 0, 0);
   
-  const currentTime = new Date(today);
-  currentTime.setSeconds(0, 0); // Ignorar segundos para la comparación
+  // Crear tiempo actual
+  const currentTime = new Date();
   
   const isPast = appointmentTime <= currentTime;
   
-  // Debug temporal - se puede remover en producción
-  if (selectedDate.toDateString() === today.toDateString()) {
-    console.log(`Hora ${hour}: ${isPast ? 'BLOQUEADA (pasada)' : 'disponible'} - Actual: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
-  }
+  // Debug detallado
+  console.log(`⏰ Hora ${hour}:`, {
+    horaActual: `${currentHour}:${currentMinute.toString().padStart(2, '0')}`,
+    horaCita: `${hourNum}:${(minuteNum || 0).toString().padStart(2, '0')}`,
+    estado: isPast ? '❌ BLOQUEADA (pasada)' : '✅ disponible',
+    timeComparison: {
+      appointmentTime: appointmentTime.toTimeString().slice(0, 8),
+      currentTime: currentTime.toTimeString().slice(0, 8)
+    }
+  });
   
   return isPast;
 }
@@ -264,11 +283,24 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                   const isPast = isHourPast(selectedDay, h);
                   const isDisabled = isOccupied || isPast;
                   
+                  // Debug del renderizado
+                  console.log(`🔄 Renderizando hora ${h}:`, {
+                    ocupado: isOccupied,
+                    pasado: isPast,
+                    deshabilitado: isDisabled,
+                    diaSeleccionado: selectedDay
+                  });
+                  
                   return (
                     <button
                       key={h}
                       disabled={isDisabled}
-                      onClick={() => setSelectedHour(h)}
+                      onClick={() => {
+                        console.log(`🖱️ Click en hora ${h} - ¿Debería estar deshabilitado?`, { isDisabled, isPast, isOccupied });
+                        if (!isDisabled) {
+                          setSelectedHour(h);
+                        }
+                      }}
                       className={`w-full rounded-xl p-3 border-2 text-[#0d5c6c] flex flex-col items-center transition-all duration-150 min-h-[90px]
                         ${selectedHour === h ? 'bg-[#ffcfc4] border-[#fa9271] font-bold shadow-lg scale-105' : 'bg-white border-[#dde7eb] hover:bg-[#ffe2db]'}
                         ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}
@@ -278,6 +310,8 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                       <span className="text-2xl font-bold">{formatTimeLabel(h)}</span>
                       {isOccupied && <span className="text-xs text-red-500 mt-1">Ocupado</span>}
                       {isPast && !isOccupied && <span className="text-xs text-gray-500 mt-1">Pasado</span>}
+                      {/* Debug visual */}
+                      {isPast && <span className="text-xs text-orange-500 mt-1">🚫 PASADO</span>}
                     </button>
                   );
                 })
