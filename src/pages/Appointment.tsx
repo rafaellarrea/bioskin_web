@@ -41,10 +41,25 @@ function isHourPast(selectedDay: string, hour: string): boolean {
   }
   
   // Si es hoy, verificar si la hora ya pasó
-  const [hourNum] = hour.split(':').map(Number);
+  const [hourNum, minuteNum] = hour.split(':').map(Number);
   const currentHour = today.getHours();
+  const currentMinute = today.getMinutes();
   
-  return hourNum <= currentHour;
+  // Crear objetos Date para comparación precisa
+  const appointmentTime = new Date(today);
+  appointmentTime.setHours(hourNum, minuteNum, 0, 0);
+  
+  const currentTime = new Date(today);
+  currentTime.setSeconds(0, 0); // Ignorar segundos para la comparación
+  
+  const isPast = appointmentTime <= currentTime;
+  
+  // Debug temporal - se puede remover en producción
+  if (selectedDate.toDateString() === today.toDateString()) {
+    console.log(`Hora ${hour}: ${isPast ? 'BLOQUEADA (pasada)' : 'disponible'} - Actual: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
+  }
+  
+  return isPast;
 }
 
 function isHourOccupied2h(selectedDay: string, hour: string, events: EventType[]): boolean {
