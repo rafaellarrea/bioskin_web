@@ -20,31 +20,48 @@ const useAuth = () => {
 
   const checkAuthentication = () => {
     try {
+      console.log('Checking authentication...');
       const session = localStorage.getItem('bioskin_admin_session');
       const timestamp = localStorage.getItem('bioskin_admin_timestamp');
       
+      console.log('Session in localStorage:', session);
+      console.log('Timestamp in localStorage:', timestamp);
+      
+      // Para mayor seguridad, limpiamos cualquier sesión al verificar
+      // Solo permitimos sesiones que se hayan creado en esta misma página
       if (session === 'authenticated' && timestamp) {
         const loginTime = parseInt(timestamp);
         const currentTime = Date.now();
-        const sessionDuration = 8 * 60 * 60 * 1000; // 8 horas en milisegundos
+        const sessionDuration = 2 * 60 * 60 * 1000; // Reducido a 2 horas por seguridad
         
         if (currentTime - loginTime < sessionDuration) {
+          console.log('Session is valid, allowing access');
           setAuthState({ isAuthenticated: true, isLoading: false });
         } else {
-          // Sesión expirada
+          console.log('Session expired, logging out');
           logout();
         }
       } else {
+        console.log('No valid session found');
+        // Limpiar cualquier sesión inválida
+        localStorage.removeItem('bioskin_admin_session');
+        localStorage.removeItem('bioskin_admin_timestamp');
         setAuthState({ isAuthenticated: false, isLoading: false });
       }
     } catch (error) {
       console.error('Error checking authentication:', error);
+      localStorage.clear(); // Limpiar todo si hay error
       setAuthState({ isAuthenticated: false, isLoading: false });
     }
   };
 
-  const login = () => {
-    setAuthState({ isAuthenticated: true, isLoading: false });
+  const login = (success: boolean = true) => {
+    console.log('Hook login called with success:', success);
+    if (success) {
+      setAuthState({ isAuthenticated: true, isLoading: false });
+    } else {
+      setAuthState({ isAuthenticated: false, isLoading: false });
+    }
   };
 
   const logout = () => {

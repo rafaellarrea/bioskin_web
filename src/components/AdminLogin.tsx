@@ -42,8 +42,12 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
   // Limpiar cualquier sesión anterior al cargar el componente
   useEffect(() => {
-    localStorage.removeItem('bioskin_admin_session');
-    localStorage.removeItem('bioskin_admin_timestamp');
+    console.log('AdminLogin mounted - clearing all sessions');
+    localStorage.clear(); // Limpiar TUTTO el localStorage
+    // También limpiar cookies si las hay
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +71,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       } else {
         // Acceso denegado
         console.log('❌ ACCESO DENEGADO');
+        // Limpiar completamente localStorage
+        localStorage.clear();
         setError('Credenciales incorrectas. Solo se acepta admin/b10sk1n');
+        console.log('Calling onLogin(false)...');
         onLogin(false);
         setCredentials({ username: '', password: '' });
       }
