@@ -2,7 +2,7 @@
 // Hook personalizado para analytics del sitio web
 
 import { useState, useEffect } from 'react';
-import customAnalyticsService from '../../lib/custom-analytics.js';
+import hybridAnalyticsService from '../../lib/hybrid-analytics.js';
 
 interface AnalyticsStats {
   total: {
@@ -59,21 +59,21 @@ const useAnalytics = () => {
       setIsLoading(true);
       
       // Obtener estadísticas principales (ahora de nuestro sistema personalizado)
-      const totalStats = await customAnalyticsService.getTotalStats();
+      const totalStats = await hybridAnalyticsService.getTotalStats();
       setStats(totalStats);
       
       // Obtener estadísticas por período
-      const daily = await customAnalyticsService.getDailyStats(30); // Últimos 30 días
+      const daily = await hybridAnalyticsService.getDailyStats(30); // Últimos 30 días
       setDailyStats(daily);
       
-      const weekly = await customAnalyticsService.getWeeklyStats(8); // Últimas 8 semanas
+      const weekly = await hybridAnalyticsService.getWeeklyStats(8); // Últimas 8 semanas
       setWeeklyStats(weekly);
       
-      const monthly = await customAnalyticsService.getMonthlyStats(12); // Últimos 12 meses
+      const monthly = await hybridAnalyticsService.getMonthlyStats(12); // Últimos 12 meses
       setMonthlyStats(monthly);
       
       // Obtener distribución horaria
-      const hourly = await customAnalyticsService.getHourlyDistribution();
+      const hourly = await hybridAnalyticsService.getHourlyDistribution();
       setHourlyDistribution(hourly);
       
     } catch (error) {
@@ -95,18 +95,18 @@ const useAnalytics = () => {
 
   const recordEvent = (eventType: string, data: any = {}) => {
     // Los eventos ahora se envían a nuestro sistema personalizado
-    customAnalyticsService.trackEvent(eventType, data);
+    hybridAnalyticsService.trackEvent(eventType, data);
     // Recargar stats después de un evento importante
     setTimeout(loadAnalytics, 100);
   };
 
   const exportData = () => {
-    return customAnalyticsService.exportData();
+    return hybridAnalyticsService.exportData();
   };
 
   const getTopPages = async () => {
     try {
-      const stats = await customAnalyticsService.getStats();
+      const stats = await hybridAnalyticsService.getStats();
       return stats.topPages || [];
     } catch (error) {
       console.error('Error getting top pages:', error);
