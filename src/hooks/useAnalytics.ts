@@ -53,6 +53,13 @@ const useAnalytics = () => {
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
   const [hourlyDistribution, setHourlyDistribution] = useState<Record<number, number>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [analyticsStatus, setAnalyticsStatus] = useState<{
+    isGlobalData: boolean;
+    status: 'connected' | 'disconnected';
+    source: string;
+    note: string;
+    errorMessage?: string;
+  } | null>(null);
 
   const loadAnalytics = async () => {
     try {
@@ -61,6 +68,16 @@ const useAnalytics = () => {
       // Obtener estadísticas principales (ahora de nuestro sistema personalizado)
       const totalStats = await hybridAnalyticsService.getTotalStats();
       setStats(totalStats);
+      
+      // Obtener información completa para el estado del sistema
+      const fullStats = await hybridAnalyticsService.getStats();
+      setAnalyticsStatus({
+        isGlobalData: fullStats.isGlobalData || false,
+        status: fullStats.status || 'disconnected',
+        source: fullStats.source || 'unknown',
+        note: fullStats.note || '',
+        errorMessage: fullStats.errorMessage
+      });
       
       // Obtener estadísticas por período
       const daily = await hybridAnalyticsService.getDailyStats(30); // Últimos 30 días
@@ -78,6 +95,13 @@ const useAnalytics = () => {
       
     } catch (error) {
       console.error('Error loading analytics:', error);
+      setAnalyticsStatus({
+        isGlobalData: false,
+        status: 'disconnected',
+        source: 'error',
+        note: 'Error al cargar datos de analytics',
+        errorMessage: error instanceof Error ? error.message : 'Error desconocido'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +188,7 @@ const useAnalytics = () => {
     monthlyStats,
     hourlyDistribution,
     isLoading,
+    analyticsStatus,
     
     // Funciones
     recordEvent,
