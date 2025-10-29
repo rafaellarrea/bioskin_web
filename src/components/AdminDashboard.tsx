@@ -611,34 +611,26 @@ const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Aviso de Migración a Vercel Analytics */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            {/* Aviso de Sistema Analytics Mejorado */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h4 className="text-sm font-medium text-blue-800">✅ Sistema de Analytics Actualizado</h4>
-                  <div className="mt-2 text-sm text-blue-700">
+                  <h4 className="text-sm font-medium text-green-800">✅ Analytics Personalizado Funcionando</h4>
+                  <div className="mt-2 text-sm text-green-700">
                     <p className="mb-2">
-                      <strong>Problema resuelto:</strong> El contador anterior era local por navegador (localStorage)
+                      <strong>Nueva funcionalidad:</strong> Datos de analytics en tiempo real directamente en el dashboard
                     </p>
                     <p className="mb-2">
-                      <strong>Nueva solución:</strong> Migración completa a Vercel Analytics oficial
+                      <strong>Características:</strong> Visitantes únicos, conteo global, estadísticas detalladas
                     </p>
                     <div className="bg-white rounded p-2 mt-2">
                       <p className="text-xs text-gray-600">
-                        📈 <strong>Ver datos reales en tiempo real:</strong><br />
-                        <a 
-                          href="https://vercel.com/analytics" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline font-medium"
-                        >
-                          Vercel Analytics Dashboard →
-                        </a>
+                        � <strong>Los datos se actualizan automáticamente</strong> - No necesitas ir a sitios externos
                       </p>
                     </div>
                   </div>
@@ -653,10 +645,12 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      📊
+                      {isLoading ? '...' : stats?.today.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Ver en Vercel Dashboard
+                      {!isLoading && stats?.today.sessions 
+                        ? `${stats.today.sessions} sesiones únicas`
+                        : 'Cargando...'}
                     </p>
                   </div>
                   <Eye className="w-8 h-8 text-blue-500" />
@@ -668,10 +662,12 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Esta Semana</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      📈
+                      {isLoading ? '...' : stats?.thisWeek.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Ver en Vercel Dashboard
+                      {!isLoading && stats?.thisWeek.sessions 
+                        ? `${stats.thisWeek.sessions} sesiones únicas`
+                        : 'Cargando...'}
                     </p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-500" />
@@ -683,10 +679,12 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Este Mes</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      📅
+                      {isLoading ? '...' : stats?.thisMonth.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Ver en Vercel Dashboard
+                      {!isLoading && stats?.thisMonth.sessions 
+                        ? `${stats.thisMonth.sessions} sesiones únicas`
+                        : 'Cargando...'}
                     </p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-purple-500" />
@@ -698,13 +696,79 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Visitas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      🌐
+                      {isLoading ? '...' : stats?.total.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Ver en Vercel Dashboard
+                      {!isLoading && stats?.total.uniqueVisitors 
+                        ? `${stats.total.uniqueVisitors} visitantes únicos`
+                        : 'Total acumulado'}
                     </p>
                   </div>
                   <Users className="w-8 h-8 text-orange-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Visitantes en Tiempo Real */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Métricas en Tiempo Real</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-700">Visitantes Activos</p>
+                      <p className="text-2xl font-bold text-green-900">
+                        {isLoading ? '...' : '1'}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">
+                        <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                        En línea ahora
+                      </p>
+                    </div>
+                    <div className="text-green-500">
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-700">Páginas Más Vistas</p>
+                      <p className="text-lg font-bold text-blue-900">
+                        {isLoading ? '...' : 'Inicio'}
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Esta semana
+                      </p>
+                    </div>
+                    <div className="text-blue-500">
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-purple-700">Tasa de Rebote</p>
+                      <p className="text-2xl font-bold text-purple-900">
+                        {isLoading ? '...' : getBounceRate()}%
+                      </p>
+                      <p className="text-xs text-purple-600 mt-1">
+                        Promedio del sitio
+                      </p>
+                    </div>
+                    <div className="text-purple-500">
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

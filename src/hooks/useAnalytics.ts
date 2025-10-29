@@ -2,12 +2,13 @@
 // Hook personalizado para analytics del sitio web
 
 import { useState, useEffect } from 'react';
-import vercelAnalyticsService from '../../lib/vercel-analytics.js';
+import customAnalyticsService from '../../lib/custom-analytics.js';
 
 interface AnalyticsStats {
   total: {
     pageViews: number;
     sessions: number;
+    uniqueVisitors?: number;
   };
   today: {
     pageViews: number;
@@ -53,26 +54,26 @@ const useAnalytics = () => {
   const [hourlyDistribution, setHourlyDistribution] = useState<Record<number, number>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadAnalytics = () => {
+  const loadAnalytics = async () => {
     try {
       setIsLoading(true);
       
-      // Obtener estadísticas principales (ahora de Vercel Analytics)
-      const totalStats = vercelAnalyticsService.getTotalStats();
+      // Obtener estadísticas principales (ahora de nuestro sistema personalizado)
+      const totalStats = await customAnalyticsService.getTotalStats();
       setStats(totalStats);
       
       // Obtener estadísticas por período
-      const daily = vercelAnalyticsService.getDailyStats(30); // Últimos 30 días
+      const daily = await customAnalyticsService.getDailyStats(30); // Últimos 30 días
       setDailyStats(daily);
       
-      const weekly = vercelAnalyticsService.getWeeklyStats(8); // Últimas 8 semanas
+      const weekly = await customAnalyticsService.getWeeklyStats(8); // Últimas 8 semanas
       setWeeklyStats(weekly);
       
-      const monthly = vercelAnalyticsService.getMonthlyStats(12); // Últimos 12 meses
+      const monthly = await customAnalyticsService.getMonthlyStats(12); // Últimos 12 meses
       setMonthlyStats(monthly);
       
       // Obtener distribución horaria
-      const hourly = vercelAnalyticsService.getHourlyDistribution();
+      const hourly = await customAnalyticsService.getHourlyDistribution();
       setHourlyDistribution(hourly);
       
     } catch (error) {
@@ -93,31 +94,30 @@ const useAnalytics = () => {
   }, []);
 
   const recordEvent = (eventType: string, data: any = {}) => {
-    // Los eventos ahora se envían a Vercel Analytics automáticamente
-    console.log('Event tracked:', eventType, data);
+    // Los eventos ahora se envían a nuestro sistema personalizado
+    customAnalyticsService.trackEvent(eventType, data);
     // Recargar stats después de un evento importante
     setTimeout(loadAnalytics, 100);
   };
 
   const exportData = () => {
-    return vercelAnalyticsService.exportData();
+    return customAnalyticsService.exportData();
   };
 
-  const getTopPages = () => {
-    // Analizar eventos para encontrar páginas más visitadas
-    const data = vercelAnalyticsService.exportData();
-    // Por ahora retornamos páginas mock hasta que migremos completamente
-    return [
-      { path: '/admin', views: 0 },
-      { path: '/appointment', views: 0 },
-      { path: '/products', views: 0 }
-    ];
+  const getTopPages = async () => {
+    try {
+      const stats = await customAnalyticsService.getStats();
+      return stats.topPages || [];
+    } catch (error) {
+      console.error('Error getting top pages:', error);
+      return [];
+    }
   };
 
   const getBounceRate = () => {
-    // Por ahora retornamos un bounce rate estimado
-    // Los datos reales están en Vercel Analytics Dashboard
-    return 45; // Promedio típico para sitios médicos
+    // Calcular bounce rate basado en datos reales cuando estén disponibles
+    // Por ahora retornamos un promedio estimado para sitios médicos
+    return 45;
   };
 
   const getGrowthRate = (period: 'daily' | 'weekly' | 'monthly' = 'daily') => {

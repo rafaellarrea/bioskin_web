@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Analytics Personalizado - BIOSKIN</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-card {
+            background: #f1f5f9;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #deb887;
+        }
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+        }
+        .error {
+            color: #dc2626;
+            background: #fef2f2;
+            border-left-color: #dc2626;
+        }
+        .success {
+            color: #059669;
+            background: #f0fdf4;
+            border-left-color: #059669;
+        }
+        button {
+            background: #deb887;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: #d4a574;
+        }
+        .real-time {
+            background: linear-gradient(45deg, #f0fdf4, #dcfce7);
+            border-left-color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Analytics Personalizado BIOSKIN</h1>
+        <p>Esta página prueba el nuevo sistema de analytics personalizado que muestra datos reales en el dashboard.</p>
+
+        <div class="stat-card">
+            <h3>📊 Estado del Sistema</h3>
+            <div id="system-status" class="loading">Inicializando...</div>
+        </div>
+
+        <div class="stat-card real-time">
+            <h3>⚡ Estadísticas en Tiempo Real</h3>
+            <div id="real-time-stats" class="loading">Cargando datos...</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>📈 Datos Detallados</h3>
+            <div id="detailed-stats" class="loading">Obteniendo estadísticas...</div>
+        </div>
+
+        <div class="stat-card">
+            <h3>🎯 Acciones de Prueba</h3>
+            <button onclick="trackPageView()">Simular Visita de Página</button>
+            <button onclick="trackAdminAccess()">Simular Acceso Admin</button>
+            <button onclick="trackAppointment()">Simular Cita</button>
+            <button onclick="refreshStats()">Actualizar Estadísticas</button>
+        </div>
+
+        <div class="stat-card">
+            <h3>🔧 Log de Eventos</h3>
+            <div id="event-log" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                Esperando eventos...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let visitorId = localStorage.getItem('bioskin_visitor_id');
+        if (!visitorId) {
+            visitorId = `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem('bioskin_visitor_id', visitorId);
+        }
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('event-log');
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        async function trackEvent(type, data = {}) {
+            try {
+                const response = await fetch('/api/analytics', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type,
+                        data: {
+                            ...data,
+                            visitorId,
+                            page: window.location.pathname,
+                            timestamp: new Date().toISOString()
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    log(`✅ Evento "${type}" registrado correctamente`);
+                    await refreshStats();
+                } else {
+                    log(`❌ Error registrando evento "${type}": ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Error de red: ${error.message}`);
+            }
+        }
+
+        async function getStats() {
+            try {
+                const response = await fetch('/api/analytics');
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Error obteniendo estadísticas: ${error.message}`);
+                return null;
+            }
+        }
+
+        async function refreshStats() {
+            const stats = await getStats();
+            
+            if (stats) {
+                document.getElementById('system-status').innerHTML = `
+                    <div class="success">
+                        ✅ Sistema funcionando correctamente<br>
+                        <small>Última actualización: ${new Date(stats.lastUpdated).toLocaleTimeString()}</small>
+                    </div>
+                `;
+
+                document.getElementById('real-time-stats').innerHTML = `
+                    <strong>Visitantes activos:</strong> ${stats.realtimeVisitors || 0}<br>
+                    <strong>Visitantes únicos totales:</strong> ${stats.total.uniqueVisitors || 0}<br>
+                    <strong>Tu ID de visitante:</strong> <code>${visitorId}</code>
+                `;
+
+                document.getElementById('detailed-stats').innerHTML = `
+                    <strong>📊 Visitas totales:</strong> ${stats.total.pageViews}<br>
+                    <strong>👥 Sesiones totales:</strong> ${stats.total.sessions}<br>
+                    <strong>📅 Visitas hoy:</strong> ${stats.today.pageViews} (${stats.today.sessions} sesiones)<br>
+                    <strong>🗓️ Visitas esta semana:</strong> ${stats.thisWeek.pageViews}<br>
+                    <strong>📆 Visitas este mes:</strong> ${stats.thisMonth.pageViews}<br>
+                    ${stats.topPages.length > 0 ? `<strong>🏆 Páginas más visitadas:</strong><br>${stats.topPages.map(p => `&nbsp;&nbsp;• ${p.page}: ${p.views} visitas`).join('<br>')}` : ''}
+                `;
+
+                log(`📊 Estadísticas actualizadas: ${stats.total.pageViews} visitas totales`);
+            } else {
+                document.getElementById('system-status').innerHTML = `
+                    <div class="error">❌ Error conectando con el sistema de analytics</div>
+                `;
+            }
+        }
+
+        // Funciones de prueba
+        function trackPageView() {
+            trackEvent('page_view', { page: '/test-analytics' });
+        }
+
+        function trackAdminAccess() {
+            trackEvent('admin_access', { page: '/admin' });
+        }
+
+        function trackAppointment() {
+            trackEvent('appointment_click', { element: 'Test Button' });
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🚀 Iniciando test de analytics...');
+            
+            // Registrar visita automáticamente
+            await trackEvent('page_view', { page: '/test-analytics' });
+            
+            // Actualizar estadísticas cada 10 segundos
+            setInterval(refreshStats, 10000);
+        });
+    </script>
+</body>
+</html>
