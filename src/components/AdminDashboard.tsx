@@ -23,6 +23,7 @@ import {
 import useAnalytics from '../hooks/useAnalytics';
 import AdminAppointment from './AdminAppointment';
 import AdminCalendar from './AdminCalendar';
+import hybridAnalyticsService from '../../lib/hybrid-analytics';
 
 interface AdminOption {
   id: string;
@@ -49,6 +50,8 @@ const AdminDashboard: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [analyticsStats, setAnalyticsStats] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const { 
     stats, 
     dailyStats, 
@@ -65,6 +68,11 @@ const AdminDashboard: React.FC = () => {
     setLoadingNotifications(true);
     try {
       console.log('🔔 Cargando notificaciones de citas próximas...');
+      
+      // Track access to notifications
+      hybridAnalyticsService.trackEvent('admin_notifications_view', {
+        timestamp: new Date().toISOString()
+      });
       
       const appointments: UpcomingAppointment[] = [];
       const today = new Date();
@@ -119,6 +127,26 @@ const AdminDashboard: React.FC = () => {
   // Cargar notificaciones al entrar al dashboard
   useEffect(() => {
     fetchUpcomingAppointments();
+    
+    // Track admin dashboard access
+    hybridAnalyticsService.trackPageView('/admin/dashboard');
+  }, []);
+
+  // Cargar estadísticas de analytics híbridas
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      setLoadingAnalytics(true);
+      try {
+        const stats = await hybridAnalyticsService.getStats();
+        setAnalyticsStats(stats);
+      } catch (error) {
+        console.error('Error cargando analytics híbridas:', error);
+      } finally {
+        setLoadingAnalytics(false);
+      }
+    };
+
+    loadAnalytics();
   }, []);
 
   // Cerrar notificaciones al hacer click fuera
@@ -611,47 +639,77 @@ const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Aviso de Sistema Analytics Mejorado */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            {/* Sistema Analytics Híbrido - Actualizado */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-6">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
+                  <BarChart3 className="h-5 w-5 text-green-500" />
                 </div>
                 <div className="ml-3">
-                  <h4 className="text-sm font-medium text-green-800">✅ Analytics Personalizado Funcionando</h4>
+                  <h4 className="text-sm font-medium text-green-800">📊 Analytics Híbrido (Actualizado 2025)</h4>
                   <div className="mt-2 text-sm text-green-700">
                     <p className="mb-2">
-                      <strong>Nueva funcionalidad:</strong> Datos de analytics en tiempo real directamente en el dashboard
+                      <strong>Solución para Plan Hobby:</strong> Sistema híbrido con Vercel Analytics oficial
                     </p>
-                    <p className="mb-2">
-                      <strong>Características:</strong> Visitantes únicos, conteo global, estadísticas detalladas
-                    </p>
-                    <div className="bg-white rounded p-2 mt-2">
-                      <p className="text-xs text-gray-600">
-                        � <strong>Los datos se actualizan automáticamente</strong> - No necesitas ir a sitios externos
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                      <div className="bg-white rounded p-3">
+                        <p className="text-xs font-medium text-gray-700 mb-1">✅ DATOS DEMO (LOCALES)</p>
+                        <p className="text-xs text-gray-600">
+                          • Estadísticas para UI del dashboard<br />
+                          • Contadores locales por sesión<br />
+                          • Demo visual de métricas
+                        </p>
+                      </div>
+                      <div className="bg-white rounded p-3">
+                        <p className="text-xs font-medium text-gray-700 mb-1">� DATOS REALES</p>
+                        <p className="text-xs text-gray-600">
+                          • Vercel Analytics oficial<br />
+                          • Tracking automático de visitas<br />
+                          • Dashboard profesional
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                      <p className="text-xs text-yellow-700">
+                        <strong>Nota:</strong> Los datos mostrados aquí son para demostración de UI. 
+                        Para estadísticas reales de visitantes, utiliza el dashboard de Vercel Analytics.
                       </p>
+                      <a 
+                        href={analyticsStats?.realDataUrl || 'https://vercel.com/analytics'} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center mt-2 text-xs text-blue-600 hover:text-blue-800"
+                      >
+                        Ver Analytics Reales 
+                        <svg className="ml-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </a>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Resumen de estadísticas */}
+            {/* Resumen de estadísticas híbridas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.today.pageViews || 0}
+                      {loadingAnalytics ? '...' : analyticsStats?.today.pageViews || stats?.today.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {!isLoading && stats?.today.sessions 
+                      {!loadingAnalytics && analyticsStats?.today.sessions 
+                        ? `${analyticsStats.today.sessions} sesiones únicas`
+                        : !isLoading && stats?.today.sessions 
                         ? `${stats.today.sessions} sesiones únicas`
                         : 'Cargando...'}
                     </p>
+                    {analyticsStats && (
+                      <p className="text-xs text-blue-500 mt-1">📊 Demo local</p>
+                    )}
                   </div>
                   <Eye className="w-8 h-8 text-blue-500" />
                 </div>
@@ -662,13 +720,18 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Esta Semana</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.thisWeek.pageViews || 0}
+                      {loadingAnalytics ? '...' : analyticsStats?.thisWeek.pageViews || stats?.thisWeek.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {!isLoading && stats?.thisWeek.sessions 
+                      {!loadingAnalytics && analyticsStats?.thisWeek.sessions 
+                        ? `${analyticsStats.thisWeek.sessions} sesiones únicas`
+                        : !isLoading && stats?.thisWeek.sessions 
                         ? `${stats.thisWeek.sessions} sesiones únicas`
                         : 'Cargando...'}
                     </p>
+                    {analyticsStats && (
+                      <p className="text-xs text-blue-500 mt-1">📊 Demo local</p>
+                    )}
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-500" />
                 </div>
@@ -679,13 +742,18 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Este Mes</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.thisMonth.pageViews || 0}
+                      {loadingAnalytics ? '...' : analyticsStats?.thisMonth.pageViews || stats?.thisMonth.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {!isLoading && stats?.thisMonth.sessions 
+                      {!loadingAnalytics && analyticsStats?.thisMonth.sessions 
+                        ? `${analyticsStats.thisMonth.sessions} sesiones únicas`
+                        : !isLoading && stats?.thisMonth.sessions 
                         ? `${stats.thisMonth.sessions} sesiones únicas`
                         : 'Cargando...'}
                     </p>
+                    {analyticsStats && (
+                      <p className="text-xs text-blue-500 mt-1">📊 Demo local</p>
+                    )}
                   </div>
                   <BarChart3 className="w-8 h-8 text-purple-500" />
                 </div>
@@ -696,13 +764,18 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Visitas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.total.pageViews || 0}
+                      {loadingAnalytics ? '...' : analyticsStats?.total.pageViews || stats?.total.pageViews || 0}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {!isLoading && stats?.total.uniqueVisitors 
+                      {!loadingAnalytics && analyticsStats?.total.uniqueVisitors 
+                        ? `${analyticsStats.total.uniqueVisitors} visitantes únicos`
+                        : !isLoading && stats?.total.uniqueVisitors 
                         ? `${stats.total.uniqueVisitors} visitantes únicos`
                         : 'Total acumulado'}
                     </p>
+                    {analyticsStats && (
+                      <p className="text-xs text-blue-500 mt-1">📊 Demo local</p>
+                    )}
                   </div>
                   <Users className="w-8 h-8 text-orange-500" />
                 </div>
@@ -715,6 +788,19 @@ const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-700">Visitantes Activos</p>
+                      <p className="text-2xl font-bold text-green-800">
+                        {loadingAnalytics ? '...' : analyticsStats?.realtimeVisitors || '1'}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">En los últimos 5 min</p>
+                      {analyticsStats && (
+                        <p className="text-xs text-blue-500 mt-1">📊 Demo simulado</p>
+                      )}
+                    </div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
                     <div>
                       <p className="text-sm font-medium text-green-700">Visitantes Activos</p>
                       <p className="text-2xl font-bold text-green-900">

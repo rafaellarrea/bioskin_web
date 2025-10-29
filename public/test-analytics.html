@@ -109,7 +109,7 @@
 
         async function trackEvent(type, data = {}) {
             try {
-                const response = await fetch('/api/analytics', {
+                const response = await fetch('/api/analytics-kv', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -136,7 +136,7 @@
 
         async function getStats() {
             try {
-                const response = await fetch('/api/analytics');
+                const response = await fetch('/api/analytics-kv');
                 if (response.ok) {
                     return await response.json();
                 } else {

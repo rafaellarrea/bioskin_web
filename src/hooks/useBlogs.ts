@@ -1,6 +1,7 @@
 // src/hooks/useBlogs.ts
 
 import { useState, useEffect } from 'react';
+import hybridAnalyticsService from '../../lib/hybrid-analytics';
 
 // @ts-ignore
 import { getAllBlogsWithLocalStorage, getBlogBySlugWithLocalStorage } from '../../lib/frontend-blog-sync.js';
@@ -66,6 +67,9 @@ export function useBlogs(options: {
       setLoading(true);
       setError(null);
 
+      // Track page view para analytics
+      hybridAnalyticsService.trackPageView('/blogs');
+
       // Usar el nuevo sistema de sincronización que combina backend + localStorage
       const response = await getAllBlogsWithLocalStorage();
       
@@ -106,6 +110,14 @@ export function useBlogs(options: {
           hasNext: endIndex < filteredBlogs.length,
           hasPrev: page > 1
         });
+
+        // Track successful blog load
+        hybridAnalyticsService.trackEvent('blogs_loaded', {
+          source: 'api',
+          count: paginatedBlogs.length,
+          category: options.category || 'all',
+          search: options.search || null
+        });
       } else {
         throw new Error('Error cargando blogs');
       }
@@ -113,6 +125,11 @@ export function useBlogs(options: {
       console.error('Error en fetchBlogs:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       setBlogs([]);
+      
+      // Track error
+      hybridAnalyticsService.trackEvent('blogs_error', {
+        error: err instanceof Error ? err.message : 'Unknown error'
+      });
     } finally {
       setLoading(false);
     }
@@ -143,17 +160,33 @@ export function useBlog(slug: string) {
       setLoading(true);
       setError(null);
 
+      // Track page view para analytics
+      hybridAnalyticsService.trackPageView(`/blog/${slug}`);
+
       // Usar el nuevo sistema de sincronización
       const response = await getBlogBySlugWithLocalStorage(slug);
 
       if (response.success && response.blog) {
         setBlog(response.blog);
+        
+        // Track blog view
+        hybridAnalyticsService.trackEvent('blog_view', {
+          slug,
+          title: response.blog.title,
+          category: response.blog.category
+        });
       } else {
         throw new Error('Blog no encontrado');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
       setBlog(null);
+      
+      // Track error
+      hybridAnalyticsService.trackEvent('blog_not_found', {
+        slug,
+        error: err instanceof Error ? err.message : 'Unknown error'
+      });
     } finally {
       setLoading(false);
     }
