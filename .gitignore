@@ -7,10 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnpm-lock.yaml
+
+# Build outputs
 dist
 dist-ssr
-*.local
+build
+
+# Environment files
+.env
+.env.local
+.env*.local
 
 # Editor directories and files
 .vscode/*
@@ -22,7 +31,28 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
 
+# OS generated files
+Thumbs.db
+
+# Deployment
 .vercel
-.env*.local
+
+# Backup files
+*backup*
+*.bak
+*.tmp
+
+# Test files
+test-*.html
+*.test.js
+*.test.ts
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.cache
+.parcel-cache

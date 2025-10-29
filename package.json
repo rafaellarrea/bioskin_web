@@ -1,7 +1,7 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "bioskin-website",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,8 +16,6 @@
     "dotenv": "^17.2.3",
     "googleapis": "^149.0.0",
     "lucide-react": "^0.344.0",
-    "multer": "^2.0.2",
-    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "openai": "^6.3.0",
     "react": "^18.3.1",
