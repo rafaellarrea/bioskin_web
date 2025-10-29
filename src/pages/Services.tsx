@@ -19,7 +19,7 @@ const Services = () => {
     {
       title: "Tratamiento Antimanchas",
       description: "Unifica el tono de tu piel con un protocolo profesional que combina ácidos despigmentantes y aparatología avanzada. Resultados visibles desde la primera sesión.",
-      price: 25,
+      price: 30,
       image: "/images/services/manchas/antimanchas.jpg"
     },
     {
@@ -90,8 +90,8 @@ const Services = () => {
           <div className="card mx-auto max-w-md p-6 border-2 border-[#deb887] mb-12">
             <h4 className="text-xl font-semibold mb-2">Hollywood Peel + Hidratación Profunda</h4>
             <p className="text-gray-500 text-sm mb-4">Unifica tono, revitaliza y nutre tu piel profundamente en una sola sesión.</p>
-            <p className="text-3xl font-bold text-[#deb887] mb-4">$55 USD</p>
-            <p className="text-green-600 font-medium mb-4">Precio especial solo por mayo</p>
+            <p className="text-3xl font-bold text-[#deb887] mb-4">$50 USD</p>
+            <p className="text-green-600 font-medium mb-4">Precio especial</p>
             <a href="#appointment" className="btn-primary block text-center">Agendar Promo</a>
           </div>
         </div>
@@ -102,25 +102,25 @@ const Services = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
             <div className="card p-6 border-2 border-[#deb887]">
               <h4 className="text-xl font-semibold mb-2">Pack Rejuvenecimiento</h4>
-              <p className="text-gray-500 text-sm mb-4">3 sesiones de Antiaging + 1 Hollywood Peel</p>
-              <p className="text-3xl font-bold text-[#deb887] mb-4">$220 USD</p>
-              <p className="text-green-600 font-medium mb-4">Ahorra $65 USD</p>
+              <p className="text-gray-500 text-sm mb-4">1 DIAGNÓSTICO FACIAL COMPUTARIZADO + 1 SESIÓN HIFU 7D + LIMPIEZA FACIAL PROFUNDA</p>
+              <p className="text-3xl font-bold text-[#deb887] mb-4">$100 USD</p>
+              <p className="text-green-600 font-medium mb-4">Ahorra $20 USD</p>
               <a href="#appointment" className="btn-primary block text-center">Agendar Ahora</a>
             </div>
 
             <div className="card p-6 border-2 border-[#deb887]">
               <h4 className="text-xl font-semibold mb-2">Pack Luminosidad</h4>
-              <p className="text-gray-500 text-sm mb-4">3 sesiones Antimanchas + 2 Hidrataciones</p>
-              <p className="text-3xl font-bold text-[#deb887] mb-4">$260 USD</p>
-              <p className="text-green-600 font-medium mb-4">Ahorra $50 USD</p>
+              <p className="text-gray-500 text-sm mb-4">1 Hollywood Peel + 1 Hidratación Profunda con Dermapen + 1 Sesión Exosomas</p>
+              <p className="text-3xl font-bold text-[#deb887] mb-4">$170 USD</p>
+              <p className="text-green-600 font-medium mb-4">Ahorra $20 USD</p>
               <a href="#appointment" className="btn-primary block text-center">Agendar Ahora</a>
             </div>
 
             <div className="card p-6 border-2 border-[#deb887]">
               <h4 className="text-xl font-semibold mb-2">Pack Completo</h4>
               <p className="text-gray-500 text-sm mb-4">Diagnóstico + Limpieza + 2 sesiones personalizadas</p>
-              <p className="text-3xl font-bold text-[#deb887] mb-4">$180 USD</p>
-              <p className="text-green-600 font-medium mb-4">Ahorra $40 USD</p>
+              <p className="text-3xl font-bold text-[#deb887] mb-4">$90 USD</p>
+              <p className="text-green-600 font-medium mb-4">Ahorra $15 USD</p>
               <a href="#appointment" className="btn-primary block text-center">Agendar Ahora</a>
             </div>
           </div>
