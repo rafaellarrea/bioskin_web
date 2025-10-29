@@ -611,6 +611,41 @@ const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
+            {/* Aviso de Migración a Vercel Analytics */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h4 className="text-sm font-medium text-blue-800">✅ Sistema de Analytics Actualizado</h4>
+                  <div className="mt-2 text-sm text-blue-700">
+                    <p className="mb-2">
+                      <strong>Problema resuelto:</strong> El contador anterior era local por navegador (localStorage)
+                    </p>
+                    <p className="mb-2">
+                      <strong>Nueva solución:</strong> Migración completa a Vercel Analytics oficial
+                    </p>
+                    <div className="bg-white rounded p-2 mt-2">
+                      <p className="text-xs text-gray-600">
+                        📈 <strong>Ver datos reales en tiempo real:</strong><br />
+                        <a 
+                          href="https://vercel.com/analytics" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline font-medium"
+                        >
+                          Vercel Analytics Dashboard →
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Resumen de estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-white p-6 rounded-lg shadow">
@@ -618,13 +653,11 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Hoy</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.today.pageViews || 0}
+                      📊
                     </p>
-                    {!isLoading && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {getGrowthRate('daily') > 0 ? '+' : ''}{getGrowthRate('daily')}% vs ayer
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ver en Vercel Dashboard
+                    </p>
                   </div>
                   <Eye className="w-8 h-8 text-blue-500" />
                 </div>
@@ -635,13 +668,11 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Esta Semana</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.thisWeek.pageViews || 0}
+                      📈
                     </p>
-                    {!isLoading && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {getGrowthRate('weekly') > 0 ? '+' : ''}{getGrowthRate('weekly')}% vs sem. pasada
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ver en Vercel Dashboard
+                    </p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-green-500" />
                 </div>
@@ -652,13 +683,11 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Visitas Este Mes</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.thisMonth.pageViews || 0}
+                      📅
                     </p>
-                    {!isLoading && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {getGrowthRate('monthly') > 0 ? '+' : ''}{getGrowthRate('monthly')}% vs mes pasado
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ver en Vercel Dashboard
+                    </p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-purple-500" />
                 </div>
@@ -669,13 +698,11 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Visitas</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {isLoading ? '...' : stats?.total.pageViews || 0}
+                      🌐
                     </p>
-                    {!isLoading && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Bounce Rate: {getBounceRate()}%
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ver en Vercel Dashboard
+                    </p>
                   </div>
                   <Users className="w-8 h-8 text-orange-500" />
                 </div>
