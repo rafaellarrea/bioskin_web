@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'ID del evento requerido' });
     }
 
-    // Configurar Google Calendar API
+    // Configurar Google Calendar API (igual que getEvents.js)
     const credentialsBase64 = process.env.GOOGLE_CREDENTIALS_BASE64;
     if (!credentialsBase64) {
       throw new Error('Google credentials not found');
@@ -23,7 +23,10 @@ export default async function handler(req, res) {
     );
 
     const auth = new google.auth.GoogleAuth({
-      credentials,
+      credentials: {
+        client_email: credentials.client_email,
+        private_key: credentials.private_key,
+      },
       scopes: ['https://www.googleapis.com/auth/calendar'],
     });
 
@@ -34,7 +37,7 @@ export default async function handler(req, res) {
     // Primero verificar que el evento existe
     try {
       const eventToDelete = await calendar.events.get({
-        calendarId: 'primary',
+        calendarId: credentials.calendar_id,
         eventId: eventId,
       });
 
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
 
     // Eliminar el evento
     await calendar.events.delete({
-      calendarId: 'primary',
+      calendarId: credentials.calendar_id,
       eventId: eventId,
     });
 

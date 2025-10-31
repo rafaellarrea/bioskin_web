@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'Fecha requerida' });
     }
 
-    // Configurar Google Calendar API
+    // Configurar Google Calendar API (igual que getEvents.js)
     const credentialsBase64 = process.env.GOOGLE_CREDENTIALS_BASE64;
     if (!credentialsBase64) {
       throw new Error('Google credentials not found');
@@ -23,24 +23,27 @@ export default async function handler(req, res) {
     );
 
     const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/calendar'],
+      credentials: {
+        client_email: credentials.client_email,
+        private_key: credentials.private_key,
+      },
+      scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
     });
 
     const calendar = google.calendar({ version: 'v3', auth });
 
-    // Calcular rango de tiempo para el día específico
-    const startOfDay = new Date(date + 'T00:00:00-05:00'); // Timezone Ecuador
-    const endOfDay = new Date(date + 'T23:59:59-05:00');
+    // Calcular rango de tiempo para el día específico (igual que getEvents.js)
+    const start = `${date}T00:00:00-05:00`;
+    const end = `${date}T23:59:59-05:00`;
 
     console.log(`🔍 Buscando eventos para el día ${date}`);
-    console.log(`📅 Rango: ${startOfDay.toISOString()} - ${endOfDay.toISOString()}`);
+    console.log(`📅 Rango: ${start} - ${end}`);
 
-    // Obtener eventos del día
+    // Obtener eventos del día (usando mismo calendar_id que getEvents.js)
     const response = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: startOfDay.toISOString(),
-      timeMax: endOfDay.toISOString(),
+      calendarId: credentials.calendar_id,
+      timeMin: start,
+      timeMax: end,
       singleEvents: true,
       orderBy: 'startTime',
     });
@@ -68,7 +71,10 @@ export default async function handler(req, res) {
         eventType: isBlockEvent ? 'block' : 'appointment',
         isBlockEvent,
         created: event.created,
-        updated: event.updated
+        updated: event.updated,
+        // Agregar información de tiempo formateada
+        startDateTime: event.start.dateTime || event.start.date,
+        endDateTime: event.end.dateTime || event.end.date
       };
     });
 

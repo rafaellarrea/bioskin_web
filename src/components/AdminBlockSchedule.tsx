@@ -148,6 +148,8 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
       return;
     }
     setLoadingHours(true);
+    console.log(`🔍 Cargando eventos ocupados para: ${selectedDay}`);
+    
     fetch('/api/getEvents', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -155,9 +157,14 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
     })
       .then(res => res.json())
       .then(data => {
+        console.log('📋 Respuesta getEvents:', data);
         setEvents(Array.isArray(data.occupiedTimes) ? data.occupiedTimes : []);
+        console.log(`✅ ${data.occupiedTimes?.length || 0} horarios ocupados encontrados`);
       })
-      .catch(() => setEvents([]))
+      .catch((error) => {
+        console.error('❌ Error cargando eventos ocupados:', error);
+        setEvents([]);
+      })
       .finally(() => setLoadingHours(false));
   }, [selectedDay]);
 
@@ -174,6 +181,8 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
     
     setLoadingDayEvents(true);
     try {
+      console.log(`🔍 Cargando eventos detallados para: ${date}`);
+      
       const response = await fetch('/api/getDayEvents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -181,14 +190,17 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
       });
       
       const data = await response.json();
+      console.log('📋 Respuesta getDayEvents:', data);
+      
       if (data.success) {
         setDayEvents(data.events || []);
+        console.log(`✅ ${data.events?.length || 0} eventos cargados para vista detallada`);
       } else {
-        console.error('Error loading day events:', data.message);
+        console.error('❌ Error loading day events:', data.message);
         setDayEvents([]);
       }
     } catch (error) {
-      console.error('Error loading day events:', error);
+      console.error('❌ Error loading day events:', error);
       setDayEvents([]);
     } finally {
       setLoadingDayEvents(false);
