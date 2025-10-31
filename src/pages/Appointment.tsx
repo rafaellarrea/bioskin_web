@@ -370,6 +370,11 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                   >
                     <option value="">Selecciona un servicio</option>
                     <option value="OTRO">OTRO</option>
+                    <option value="Consulta + Escáner Facial">Consulta + Escáner Facial</option>
+                    <option value="Tratamiento con Microneedling">Tratamiento con Microneedling</option>
+                    <option value="HIFU 7D">HIFU 7D</option>
+                    <option value="Laser CO2">Laser CO2</option>
+                    <option value="Tratamiento para Acné">Tratamiento para Acné</option>
                     <option value="Limpieza Facial Profunda">Limpieza Facial Profunda</option>
                     <option value="Tratamiento Antiaging">Tratamiento Antiaging</option>
                     <option value="Tratamiento Antimanchas">Tratamiento Antimanchas</option>
