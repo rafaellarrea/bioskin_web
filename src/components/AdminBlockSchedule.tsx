@@ -121,6 +121,9 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
   const [existingBlocks, setExistingBlocks] = useState<BlockedEvent[]>([]);
   const [showExisting, setShowExisting] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [dayEvents, setDayEvents] = useState<any[]>([]);
+  const [loadingDayEvents, setLoadingDayEvents] = useState(false);
+  const [showDayEvents, setShowDayEvents] = useState(false);
 
   const days = getNextDays(30); // 30 días para admin
 
@@ -160,8 +163,94 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
 
   // Limpiar horas seleccionadas cuando cambia el día
   useEffect(() => { 
-    setSelectedHours([]); 
+    setSelectedHours([]);
+    setShowDayEvents(false);
+    setDayEvents([]);
   }, [selectedDay]);
+
+  // Cargar eventos detallados del día seleccionado
+  const loadDayEvents = async (date: string) => {
+    if (!date) return;
+    
+    setLoadingDayEvents(true);
+    try {
+      const response = await fetch('/api/getDayEvents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setDayEvents(data.events || []);
+      } else {
+        console.error('Error loading day events:', data.message);
+        setDayEvents([]);
+      }
+    } catch (error) {
+      console.error('Error loading day events:', error);
+      setDayEvents([]);
+    } finally {
+      setLoadingDayEvents(false);
+    }
+  };
+
+  // Eliminar evento individual (cita o bloqueo)
+  const handleDeleteEvent = async (eventId: string, eventType: 'appointment' | 'block', eventTitle: string) => {
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de eliminar este ${eventType === 'appointment' ? 'cita' : 'bloqueo'}?\n\n"${eventTitle}"`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch('/api/deleteEvent', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          eventType,
+          date: selectedDay
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage(`✅ ${eventType === 'appointment' ? 'Cita cancelada' : 'Bloqueo eliminado'} exitosamente`);
+        setMessageType('success');
+        
+        // Recargar eventos del día y eventos ocupados
+        loadDayEvents(selectedDay);
+        
+        // Recargar eventos ocupados para la validación de horas
+        const eventsResponse = await fetch('/api/getEvents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: selectedDay }),
+        });
+        const eventsData = await eventsResponse.json();
+        setEvents(Array.isArray(eventsData.occupiedTimes) ? eventsData.occupiedTimes : []);
+        
+      } else {
+        throw new Error(data.message || 'Error al eliminar evento');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error deleting event:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMessage(`❌ Error: ${errorMessage}`);
+      setMessageType('error');
+    }
+  };
+
+  // Toggle mostrar eventos del día
+  const toggleShowDayEvents = () => {
+    if (!showDayEvents && selectedDay) {
+      loadDayEvents(selectedDay);
+    }
+    setShowDayEvents(!showDayEvents);
+  };
 
   // Toggle selección de hora
   const toggleHour = (hour: string) => {
@@ -435,6 +524,109 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
               {step === 2 && (
                 <>
                   <h4 className="text-lg font-semibold mb-5 text-[#0d5c6c] text-center">2. Selecciona las horas a bloquear</h4>
+                  
+                  {/* Botón para ver eventos del día */}
+                  <div className="flex justify-center mb-4">
+                    <button
+                      onClick={toggleShowDayEvents}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      {showDayEvents ? 'Ocultar eventos del día' : 'Ver eventos del día'}
+                    </button>
+                  </div>
+
+                  {/* Panel de eventos del día */}
+                  {showDayEvents && (
+                    <div className="mb-6 bg-gray-50 rounded-lg p-4">
+                      <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Eventos en {selectedDay && (() => {
+                          const [year, month, day] = selectedDay.split('-').map(Number);
+                          const dateObj = new Date(year, month - 1, day);
+                          return `${daysOfWeek[dateObj.getDay()]} ${day} de ${months[month - 1]}`;
+                        })()}
+                      </h5>
+                      
+                      {loadingDayEvents ? (
+                        <div className="text-center py-4">
+                          <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="mt-2 text-sm text-gray-600">Cargando eventos...</p>
+                        </div>
+                      ) : dayEvents.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500">
+                          <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No hay eventos programados para este día</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {dayEvents.map((event, index) => {
+                            const startTime = new Date(event.start.dateTime || event.start.date);
+                            const endTime = new Date(event.end.dateTime || event.end.date);
+                            const isBlockEvent = event.summary?.includes('BIOSKIN - BLOQUEO');
+                            
+                            return (
+                              <div key={index} className={`border rounded-lg p-3 ${
+                                isBlockEvent ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'
+                              }`}>
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      {isBlockEvent ? (
+                                        <Ban className="w-4 h-4 text-red-600" />
+                                      ) : (
+                                        <Clock className="w-4 h-4 text-blue-600" />
+                                      )}
+                                      <span className={`font-medium ${
+                                        isBlockEvent ? 'text-red-800' : 'text-blue-800'
+                                      }`}>
+                                        {startTime.toLocaleTimeString('es-ES', { 
+                                          hour: '2-digit', 
+                                          minute: '2-digit',
+                                          hour12: true 
+                                        })} - {endTime.toLocaleTimeString('es-ES', { 
+                                          hour: '2-digit', 
+                                          minute: '2-digit',
+                                          hour12: true 
+                                        })}
+                                      </span>
+                                    </div>
+                                    <p className={`text-sm font-medium ${
+                                      isBlockEvent ? 'text-red-700' : 'text-blue-700'
+                                    }`}>
+                                      {isBlockEvent ? 'HORARIO BLOQUEADO' : 'CITA PROGRAMADA'}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {event.summary}
+                                    </p>
+                                    {event.description && (
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        {event.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => handleDeleteEvent(
+                                      event.id, 
+                                      isBlockEvent ? 'block' : 'appointment',
+                                      event.summary
+                                    )}
+                                    className={`text-red-500 hover:text-red-700 p-2 hover:bg-red-100 rounded-lg transition-colors ml-2 ${
+                                      isBlockEvent ? 'hover:bg-red-200' : 'hover:bg-red-100'
+                                    }`}
+                                    title={isBlockEvent ? 'Eliminar bloqueo' : 'Cancelar cita'}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-8">
                     {loadingHours ? (
                       <div className="text-center col-span-6 w-full">Cargando horarios...</div>
