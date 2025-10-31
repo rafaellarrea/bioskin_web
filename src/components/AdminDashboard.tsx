@@ -18,11 +18,13 @@ import {
   Bell,
   X,
   AlertCircle,
-  CalendarDays
+  CalendarDays,
+  Ban
 } from 'lucide-react';
 import useAnalytics from '../hooks/useAnalytics';
 import AdminAppointment from './AdminAppointment';
 import AdminCalendar from './AdminCalendar';
+import AdminBlockSchedule from './AdminBlockSchedule';
 
 interface AdminOption {
   id: string;
@@ -214,6 +216,14 @@ const AdminDashboard: React.FC = () => {
       available: true
     },
     {
+      id: 'block-schedule',
+      title: 'Bloquear Horarios',
+      description: 'Reservar horarios para reuniones o mantenimiento',
+      icon: <Ban className="w-6 h-6" />,
+      color: 'bg-red-500',
+      available: true
+    },
+    {
       id: 'users',
       title: 'Gestión de Usuarios',
       description: 'Administrar pacientes y personal',
@@ -288,6 +298,10 @@ const AdminDashboard: React.FC = () => {
       case 'calendar':
         return (
           <AdminCalendar onBack={() => setActiveSection('dashboard')} />
+        );
+      case 'block-schedule':
+        return (
+          <AdminBlockSchedule onBack={() => setActiveSection('dashboard')} />
         );
       case 'analytics':
         return (
