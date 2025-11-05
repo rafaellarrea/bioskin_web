@@ -37,6 +37,18 @@ module.exports = async function handler(req, res) {
       Buffer.from(credentialsBase64, 'base64').toString('utf8')
     );
 
+    // Verificar que las credenciales tienen los campos necesarios
+    if (!credentials.client_email || !credentials.private_key || !credentials.calendar_id) {
+      console.error('❌ Credenciales incompletas:', {
+        hasClientEmail: !!credentials.client_email,
+        hasPrivateKey: !!credentials.private_key,
+        hasCalendarId: !!credentials.calendar_id
+      });
+      throw new Error('Credenciales de Google incompletas');
+    }
+
+    console.log('✅ Credenciales Google cargadas correctamente');
+
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: credentials.client_email,
@@ -56,6 +68,15 @@ module.exports = async function handler(req, res) {
 
   try {
     switch (action) {
+      // Health check para debugging
+      case 'health':
+        return res.status(200).json({
+          success: true,
+          message: 'API Calendar funcionando correctamente',
+          timestamp: new Date().toISOString(),
+          hasCredentials: !!process.env.GOOGLE_CREDENTIALS_BASE64
+        });
+
       // Obtener eventos ocupados para validación de horas
       case 'getEvents':
         return await getEvents(req, res, calendar, credentials);
@@ -96,7 +117,7 @@ module.exports = async function handler(req, res) {
       default:
         return res.status(400).json({
           success: false,
-          message: 'Acción no válida. Acciones disponibles: getEvents, getDayEvents, getCalendarEvents, blockSchedule, getBlockedSchedules, deleteBlockedSchedule, deleteEvent'
+          message: 'Acción no válida. Acciones disponibles: health, getEvents, getDayEvents, getCalendarEvents, blockSchedule, getBlockedSchedules, deleteBlockedSchedule, deleteEvent'
         });
     }
   } catch (error) {
