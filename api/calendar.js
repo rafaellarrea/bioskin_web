@@ -109,16 +109,16 @@ export default async function handler(req, res) {
       case 'getBlockedSchedules':
         return await getBlockedSchedules(req, res, calendar, credentials);
       
-      // Eliminar bloqueo específico
+      // Eliminar bloqueos específicos
       case 'deleteBlockedSchedule':
-        if (method !== 'DELETE') {
+        if (method !== 'POST') {
           return res.status(405).json({ success: false, message: 'Método no permitido' });
         }
         return await deleteBlockedSchedule(req, res, calendar, credentials);
       
       // Eliminar evento individual
       case 'deleteEvent':
-        if (method !== 'DELETE') {
+        if (method !== 'POST') {
           return res.status(405).json({ success: false, message: 'Método no permitido' });
         }
         return await deleteEvent(req, res, calendar, credentials);
