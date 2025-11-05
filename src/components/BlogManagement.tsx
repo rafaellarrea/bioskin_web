@@ -97,7 +97,7 @@ const BlogManagement: React.FC = () => {
         ...(searchTerm && { search: searchTerm })
       });
 
-      const response = await fetch(`/api/blogs/manage?${params}`);
+      const response = await fetch(`/api/blogs?${params}`);
       const data = await response.json();
       
       // Obtener blogs adicionales de localStorage
@@ -196,10 +196,10 @@ const BlogManagement: React.FC = () => {
         return;
       }
 
-      const response = await fetch('/api/blogs/migrate-all', {
+      const response = await fetch('/api/blogs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blogs: localStorageBlogs })
+        body: JSON.stringify({ action: 'migrate-all', blogs: localStorageBlogs })
       });
 
       const data = await response.json();
@@ -407,10 +407,10 @@ const BlogManagement: React.FC = () => {
           
           // También enviar al servidor
           try {
-            await fetch('/api/blogs/manage', {
+            await fetch('/api/blogs', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ blog: importedBlog })
+              body: JSON.stringify({ action: 'manage', blog: importedBlog })
             });
           } catch (serverError) {
             console.warn('Error enviando al servidor, pero guardado en localStorage:', serverError);
@@ -463,10 +463,10 @@ const BlogManagement: React.FC = () => {
       };
 
       console.log('🧪 Probando CREATE...');
-      const createResponse = await fetch('/api/blogs/manage', {
+      const createResponse = await fetch('/api/blogs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testBlog)
+        body: JSON.stringify({ action: 'manage', ...testBlog })
       });
       const createResult = await createResponse.json();
       testResults.create = createResult.success;
@@ -491,10 +491,10 @@ const BlogManagement: React.FC = () => {
             content: foundBlog.content + ' - CONTENIDO ACTUALIZADO'
           };
           
-          const updateResponse = await fetch('/api/blogs/manage', {
+          const updateResponse = await fetch('/api/blogs', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedBlog)
+            body: JSON.stringify({ action: 'manage', ...updatedBlog })
           });
           const updateResult = await updateResponse.json();
           testResults.update = updateResult.success;
@@ -502,10 +502,10 @@ const BlogManagement: React.FC = () => {
           
           // Test DELETE
           console.log('🧪 Probando DELETE...');
-          const deleteResponse = await fetch('/api/blogs/manage', {
+          const deleteResponse = await fetch('/api/blogs', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: createdId })
+            body: JSON.stringify({ action: 'manage', id: createdId })
           });
           const deleteResult = await deleteResponse.json();
           testResults.delete = deleteResult.success;
@@ -599,7 +599,7 @@ const BlogManagement: React.FC = () => {
 
       // Diagnóstico del servidor
       try {
-        const serverResponse = await fetch('/api/blogs/manage?action=health');
+        const serverResponse = await fetch('/api/blogs?action=health');
         const serverData = await serverResponse.json();
         diagnostics.server = {
           accessible: true,
@@ -689,10 +689,10 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
 
       console.log(`🚀 Iniciando migración forzada de ${localStorageBlogs.length} blogs...`);
 
-      const response = await fetch('/api/blogs/migrate-all', {
+      const response = await fetch('/api/blogs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blogs: localStorageBlogs })
+        body: JSON.stringify({ action: 'migrate-all', blogs: localStorageBlogs })
       });
 
       const data = await response.json();
@@ -737,9 +737,7 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
     try {
       setIsSaving(true);
       
-      const url = isUpdate 
-        ? `/api/blogs/manage?slug=${blogData.slug}`
-        : '/api/blogs/manage';
+      const url = '/api/blogs';
       
       const method = isUpdate ? 'PUT' : 'POST';
       
@@ -762,7 +760,11 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blog: blogData })
+        body: JSON.stringify({ 
+          action: 'manage', 
+          blog: blogData,
+          ...(isUpdate && { slug: blogData.slug })
+        })
       });
 
       const result = await response.json();
@@ -827,8 +829,10 @@ ${diagnostics.recommendations.map(r => '• ' + r).join('\n')}
     }
 
     try {
-      const response = await fetch(`/api/blogs/manage?slug=${slug}`, {
-        method: 'DELETE'
+      const response = await fetch('/api/blogs', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'manage', slug })
       });
 
       const result = await response.json();

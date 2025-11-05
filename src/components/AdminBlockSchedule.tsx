@@ -150,10 +150,10 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
     setLoadingHours(true);
     console.log(`🔍 Cargando eventos ocupados para: ${selectedDay}`);
     
-    fetch('/api/getEvents', {
+    fetch('/api/calendar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date: selectedDay }),
+      body: JSON.stringify({ action: 'getEvents', date: selectedDay }),
     })
       .then(res => res.json())
       .then(data => {
@@ -183,10 +183,10 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
     try {
       console.log(`🔍 Cargando eventos detallados para: ${date}`);
       
-      const response = await fetch('/api/getDayEvents', {
+      const response = await fetch('/api/calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date }),
+        body: JSON.stringify({ action: 'getDayEvents', date }),
       });
       
       const data = await response.json();
@@ -216,10 +216,11 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch('/api/deleteEvent', {
+      const response = await fetch('/api/calendar', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'deleteEvent',
           eventId,
           eventType,
           date: selectedDay
@@ -236,10 +237,10 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
         loadDayEvents(selectedDay);
         
         // Recargar eventos ocupados para la validación de horas
-        const eventsResponse = await fetch('/api/getEvents', {
+        const eventsResponse = await fetch('/api/calendar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: selectedDay }),
+          body: JSON.stringify({ action: 'getEvents', date: selectedDay }),
         });
         const eventsData = await eventsResponse.json();
         setEvents(Array.isArray(eventsData.occupiedTimes) ? eventsData.occupiedTimes : []);
@@ -276,7 +277,11 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
   // Cargar bloqueos existentes
   const loadExistingBlocks = async () => {
     try {
-      const response = await fetch('/api/getBlockedSchedules');
+      const response = await fetch('/api/calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getBlockedSchedules' }),
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -309,10 +314,11 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
 
     try {
       // Crear bloqueo en Google Calendar
-      const response = await fetch('/api/blockSchedule', {
+      const response = await fetch('/api/calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'blockSchedule',
           date: selectedDay,
           hours: selectedHours,
           reason: reason.trim(),
@@ -386,10 +392,11 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
     try {
       const eventIds = block.events.map(event => event.id);
       
-      const response = await fetch('/api/deleteBlockedSchedule', {
+      const response = await fetch('/api/calendar', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'deleteBlockedSchedule',
           eventIds,
           date: block.date,
           reason: block.reason

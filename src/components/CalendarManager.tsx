@@ -67,10 +67,11 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ onBack }) => {
     try {
       console.log(`🔍 Cargando eventos del calendario para los próximos ${dateRange} días...`);
       
-      const response = await fetch('/api/getCalendarEvents', {
+      const response = await fetch('/api/calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
+          action: 'getCalendarEvents',
           days: dateRange
         }),
       });
@@ -110,10 +111,11 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ onBack }) => {
     setDeletingEvents(prev => new Set(prev).add(event.id));
 
     try {
-      const response = await fetch('/api/deleteEvent', {
+      const response = await fetch('/api/calendar', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'deleteEvent',
           eventId: event.id,
           eventType: event.eventType,
           date: event.start.dateTime?.split('T')[0] || event.start.date

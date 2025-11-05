@@ -132,10 +132,10 @@ const Appointment = () => {
       return;
     }
     setLoadingHours(true);
-    fetch('/api/getEvents', {
+    fetch('/api/calendar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date: selectedDay }),
+      body: JSON.stringify({ action: 'getEvents', date: selectedDay }),
     })
       .then(res => res.json())
       .then(data => {
