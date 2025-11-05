@@ -25,6 +25,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import AdminAppointment from './AdminAppointment';
 import AdminCalendar from './AdminCalendar';
 import AdminBlockSchedule from './AdminBlockSchedule';
+import CalendarManager from './CalendarManager';
 
 interface AdminOption {
   id: string;
@@ -224,6 +225,14 @@ const AdminDashboard: React.FC = () => {
       available: true
     },
     {
+      id: 'calendar-manager',
+      title: 'Gestión Completa del Calendario',
+      description: 'Ver, gestionar y eliminar todos los eventos del calendario',
+      icon: <CalendarDays className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      available: true
+    },
+    {
       id: 'users',
       title: 'Gestión de Usuarios',
       description: 'Administrar pacientes y personal',
@@ -302,6 +311,10 @@ const AdminDashboard: React.FC = () => {
       case 'block-schedule':
         return (
           <AdminBlockSchedule onBack={() => setActiveSection('dashboard')} />
+        );
+      case 'calendar-manager':
+        return (
+          <CalendarManager onBack={() => setActiveSection('dashboard')} />
         );
       case 'analytics':
         return (

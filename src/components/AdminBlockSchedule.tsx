@@ -573,8 +573,23 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
                       ) : (
                         <div className="space-y-2">
                           {dayEvents.map((event, index) => {
-                            const startTime = new Date(event.start.dateTime || event.start.date);
-                            const endTime = new Date(event.end.dateTime || event.end.date);
+                            // Arreglar zona horaria - forzar interpretación en zona horaria de Ecuador
+                            const startDateTime = event.start.dateTime || event.start.date;
+                            const endDateTime = event.end.dateTime || event.end.date;
+                            
+                            // Si es dateTime, ya tiene zona horaria; si es date, agregar zona horaria de Ecuador
+                            const startTime = new Date(startDateTime);
+                            const endTime = new Date(endDateTime);
+                            
+                            // Ajustar para zona horaria de Ecuador si es necesario
+                            if (!startDateTime.includes('T')) {
+                              // Es solo fecha, ajustar a medianoche Ecuador
+                              startTime.setHours(startTime.getHours() + 5); // UTC-5 -> UTC
+                            }
+                            if (!endDateTime.includes('T')) {
+                              endTime.setHours(endTime.getHours() + 5);
+                            }
+                            
                             const isBlockEvent = event.summary?.includes('BIOSKIN - BLOQUEO');
                             
                             return (

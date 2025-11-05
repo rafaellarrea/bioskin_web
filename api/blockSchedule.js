@@ -65,17 +65,13 @@ export default async function handler(req, res) {
       try {
         const [h, m] = hour.split(':').map(Number);
         
-        // Hora de inicio
-        const startTime = new Date(date);
-        startTime.setHours(h, m, 0, 0);
+        // Crear fechas en zona horaria de Ecuador (UTC-5)
+        // Usar formato ISO string para asegurar zona horaria correcta
+        const startDateTime = `${date}T${hour.padStart(5, '0')}:00-05:00`;
+        const endHour = h + 1; // Bloqueo de 1 hora
+        const endDateTime = `${date}T${endHour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00-05:00`;
         
-        // Hora de fin (1 hora después)
-        const endTime = new Date(startTime);
-        endTime.setHours(h + 1, m, 0, 0);
-
-        // Formatear para Google Calendar (ISO con timezone Ecuador)
-        const startTimeISO = startTime.toISOString().replace('Z', '-05:00');
-        const endTimeISO = endTime.toISOString().replace('Z', '-05:00');
+        console.log(`🕐 Creando bloqueo: ${startDateTime} - ${endDateTime}`);
 
         // Crear evento en Google Calendar
         const response = await calendar.events.insert({
@@ -88,11 +84,11 @@ export default async function handler(req, res) {
                         `Fecha de bloqueo: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
                         `Este horario no está disponible para citas de pacientes.`,
             start: { 
-              dateTime: startTimeISO, 
+              dateTime: startDateTime, 
               timeZone: "America/Guayaquil" 
             },
             end: { 
-              dateTime: endTimeISO, 
+              dateTime: endDateTime, 
               timeZone: "America/Guayaquil" 
             },
             status: 'confirmed',
