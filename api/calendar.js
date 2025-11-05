@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import sendEmailHandler from './sendEmail.js';
 
 // Función consolidada para todas las operaciones de calendario
 export default async function handler(req, res) {
@@ -492,12 +493,6 @@ async function deleteBlockedSchedule(req, res, calendar, credentials) {
     try {
       console.log(`📧 Iniciando envío de notificación para ${deletedEvents.length} bloqueos eliminados`);
       
-      const emailUrl = process.env.VERCEL_URL ? 
-        `https://${process.env.VERCEL_URL}/api/sendEmail` : 
-        'http://localhost:3000/api/sendEmail';
-        
-      console.log(`📧 URL de email a usar: ${emailUrl}`);
-      
       const emailBody = {
         name: 'Sistema BIOSKIN - Bloqueos Eliminados',
         email: 'admin@bioskin.com',
@@ -514,20 +509,26 @@ async function deleteBlockedSchedule(req, res, calendar, credentials) {
       
       console.log(`📧 Enviando email con body:`, JSON.stringify(emailBody, null, 2));
         
-      const emailResponse = await fetch(emailUrl, {
+      // Crear objetos mock de request y response para llamar al sendEmail handler directamente
+      const mockReq = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailBody),
-      });
+        body: emailBody
+      };
       
-      const emailResult = await emailResponse.json();
-      console.log(`📧 Respuesta del email API:`, emailResponse.status, emailResult);
+      const mockRes = {
+        status: (code) => ({
+          json: (data) => {
+            console.log(`📧 SendEmail handler respondió con status ${code}:`, data);
+            return data;
+          }
+        }),
+        setHeader: () => {}
+      };
+
+      // Llamar directamente al handler de sendEmail
+      await sendEmailHandler(mockReq, mockRes);
+      console.log('📧 Notificación de eliminación de bloqueos enviada exitosamente via handler directo');
       
-      if (emailResponse.ok) {
-        console.log('📧 Notificación de eliminación de bloqueos enviada exitosamente');
-      } else {
-        console.error(`⚠️ Error en respuesta del email: ${emailResponse.status}`, emailResult);
-      }
     } catch (emailError) {
       console.error('⚠️ Error enviando notificación de eliminación de bloqueos:', emailError);
       console.error(`⚠️ Stack trace:`, emailError.stack);
@@ -581,12 +582,6 @@ async function deleteEvent(req, res, calendar, credentials) {
   // Enviar notificación por email
   try {
     console.log(`📧 Iniciando envío de notificación para evento: ${eventId}, tipo: ${eventType}`);
-    
-    const emailUrl = process.env.VERCEL_URL ? 
-      `https://${process.env.VERCEL_URL}/api/sendEmail` : 
-      'http://localhost:3000/api/sendEmail';
-
-    console.log(`📧 URL de email a usar: ${emailUrl}`);
 
     // Extraer información relevante del evento
     const eventTitle = eventDetails?.summary || 'Sin título';
@@ -637,20 +632,26 @@ async function deleteEvent(req, res, calendar, credentials) {
     
     console.log(`📧 Enviando email con body:`, JSON.stringify(emailBody, null, 2));
       
-    const emailResponse = await fetch(emailUrl, {
+    // Crear objetos mock de request y response para llamar al sendEmail handler directamente
+    const mockReq = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(emailBody),
-    });
+      body: emailBody
+    };
     
-    const emailResult = await emailResponse.json();
-    console.log(`📧 Respuesta del email API:`, emailResponse.status, emailResult);
+    const mockRes = {
+      status: (code) => ({
+        json: (data) => {
+          console.log(`📧 SendEmail handler respondió con status ${code}:`, data);
+          return data;
+        }
+      }),
+      setHeader: () => {}
+    };
+
+    // Llamar directamente al handler de sendEmail
+    await sendEmailHandler(mockReq, mockRes);
+    console.log(`📧 Notificación de ${actionText} enviada exitosamente via handler directo`);
     
-    if (emailResponse.ok) {
-      console.log(`📧 Notificación de ${actionText} enviada exitosamente`);
-    } else {
-      console.error(`⚠️ Error en respuesta del email: ${emailResponse.status}`, emailResult);
-    }
   } catch (emailError) {
     console.error(`⚠️ Error enviando notificación de ${eventType === 'appointment' ? 'cancelación' : 'eliminación'}:`, emailError);
     console.error(`⚠️ Stack trace:`, emailError.stack);
