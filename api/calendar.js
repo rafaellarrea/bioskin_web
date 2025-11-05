@@ -2,20 +2,28 @@ import { google } from 'googleapis';
 
 // Función consolidada para todas las operaciones de calendario
 export default async function handler(req, res) {
+  console.log(`🚀 API Calendar llamado - Método: ${req.method}, URL: ${req.url}`);
+  console.log(`📋 Body recibido:`, req.body);
+  console.log(`📋 Query recibido:`, req.query);
+  
   // Configurar headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
+    console.log('✅ Respondiendo a OPTIONS request');
     return res.status(200).end();
   }
 
   const { method } = req;
   const { action } = req.body || req.query;
+  
+  console.log(`🔍 Método extraído: ${method}, Acción extraída: ${action}`);
 
   // Validar que se proporcione una acción
   if (!action) {
+    console.log('❌ No se proporcionó acción');
     return res.status(400).json({
       success: false,
       message: 'Acción requerida. Acciones disponibles: getEvents, getDayEvents, getCalendarEvents, blockSchedule, getBlockedSchedules, deleteBlockedSchedule, deleteEvent'
@@ -23,6 +31,7 @@ export default async function handler(req, res) {
   }
 
   // Configurar Google Calendar API (común para todas las operaciones)
+  // Timestamp para force refresh: 2025-01-27 15:30
   let calendar, credentials;
   try {
     console.log(`🔍 API Calendar: Procesando acción "${action}" con método ${method}`);
