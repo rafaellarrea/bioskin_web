@@ -92,10 +92,13 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
     
     try {
       console.log(`🔄 Cargando eventos para ${dateString}...`);
-      const response = await fetch('/api/getEvents', {
+      const response = await fetch('/api/calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: dateString }),
+        body: JSON.stringify({ 
+          action: 'getEvents',
+          date: dateString 
+        }),
       });
       
       const data = await response.json();
@@ -137,10 +140,13 @@ const AdminCalendar: React.FC<AdminCalendarProps> = ({ onBack }) => {
         
         // Crear promesa para cada día
         promises.push(
-          fetch('/api/getEvents', {
+          fetch('/api/calendar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ date: dateString }),
+            body: JSON.stringify({ 
+              action: 'getEvents',
+              date: dateString 
+            }),
           })
           .then(response => response.json())
           .then(data => {

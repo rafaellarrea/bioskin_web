@@ -80,10 +80,13 @@ const AdminDashboard: React.FC = () => {
         const dateString = currentDate.toISOString().split('T')[0];
         
         try {
-          const response = await fetch('/api/getEvents', {
+          const response = await fetch('/api/calendar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ date: dateString }),
+            body: JSON.stringify({ 
+              action: 'getEvents',
+              date: dateString 
+            }),
           });
           
           const data = await response.json();

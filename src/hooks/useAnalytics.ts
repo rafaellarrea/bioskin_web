@@ -2,7 +2,44 @@
 // Hook personalizado para analytics del sitio web
 
 import { useState, useEffect } from 'react';
-import hybridAnalyticsService from '../../lib/hybrid-analytics.js';
+
+// Importar el servicio de analytics de manera que funcione con ES modules
+let hybridAnalyticsService: any;
+
+// Lazy loading del servicio de analytics
+const loadAnalyticsService = async () => {
+  if (!hybridAnalyticsService) {
+    try {
+      const module = await import('../../lib/hybrid-analytics.js');
+      hybridAnalyticsService = module.default || module;
+    } catch (error) {
+      console.warn('Analytics service no disponible:', error);
+      // Fallback mock service
+      hybridAnalyticsService = {
+        getTotalStats: () => Promise.resolve({
+          total: { pageViews: 0, sessions: 0 },
+          today: { pageViews: 0, sessions: 0 },
+          yesterday: { pageViews: 0, sessions: 0 },
+          thisWeek: { pageViews: 0, sessions: 0 },
+          thisMonth: { pageViews: 0, sessions: 0 }
+        }),
+        getStats: () => Promise.resolve({
+          isGlobalData: false,
+          status: 'disconnected',
+          source: 'fallback',
+          note: 'Usando datos de fallback'
+        }),
+        getDailyStats: () => Promise.resolve([]),
+        getWeeklyStats: () => Promise.resolve([]),
+        getMonthlyStats: () => Promise.resolve([]),
+        getHourlyDistribution: () => Promise.resolve({}),
+        trackEvent: () => {},
+        exportData: () => Promise.resolve({})
+      };
+    }
+  }
+  return hybridAnalyticsService;
+};
 
 interface AnalyticsStats {
   total: {
@@ -65,12 +102,15 @@ const useAnalytics = () => {
     try {
       setIsLoading(true);
       
+      // Cargar el servicio de analytics de manera lazy
+      const service = await loadAnalyticsService();
+      
       // Obtener estadísticas principales (ahora de nuestro sistema personalizado)
-      const totalStats = await hybridAnalyticsService.getTotalStats();
+      const totalStats = await service.getTotalStats();
       setStats(totalStats);
       
       // Obtener información completa para el estado del sistema
-      const fullStats = await hybridAnalyticsService.getStats();
+      const fullStats = await service.getStats();
       setAnalyticsStatus({
         isGlobalData: fullStats.isGlobalData || false,
         status: fullStats.status || 'disconnected',
@@ -80,17 +120,17 @@ const useAnalytics = () => {
       });
       
       // Obtener estadísticas por período
-      const daily = await hybridAnalyticsService.getDailyStats(30); // Últimos 30 días
+      const daily = await service.getDailyStats(30); // Últimos 30 días
       setDailyStats(daily);
       
-      const weekly = await hybridAnalyticsService.getWeeklyStats(8); // Últimas 8 semanas
+      const weekly = await service.getWeeklyStats(8); // Últimas 8 semanas
       setWeeklyStats(weekly);
       
-      const monthly = await hybridAnalyticsService.getMonthlyStats(12); // Últimos 12 meses
+      const monthly = await service.getMonthlyStats(12); // Últimos 12 meses
       setMonthlyStats(monthly);
       
       // Obtener distribución horaria
-      const hourly = await hybridAnalyticsService.getHourlyDistribution();
+      const hourly = await service.getHourlyDistribution();
       setHourlyDistribution(hourly);
       
     } catch (error) {
@@ -117,20 +157,23 @@ const useAnalytics = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const recordEvent = (eventType: string, data: any = {}) => {
+  const recordEvent = async (eventType: string, data: any = {}) => {
     // Los eventos ahora se envían a nuestro sistema personalizado
-    hybridAnalyticsService.trackEvent(eventType, data);
+    const service = await loadAnalyticsService();
+    service.trackEvent(eventType, data);
     // Recargar stats después de un evento importante
     setTimeout(loadAnalytics, 100);
   };
 
-  const exportData = () => {
-    return hybridAnalyticsService.exportData();
+  const exportData = async () => {
+    const service = await loadAnalyticsService();
+    return service.exportData();
   };
 
   const getTopPages = async () => {
     try {
-      const stats = await hybridAnalyticsService.getStats();
+      const service = await loadAnalyticsService();
+      const stats = await service.getStats();
       return stats.topPages || [];
     } catch (error) {
       console.error('Error getting top pages:', error);

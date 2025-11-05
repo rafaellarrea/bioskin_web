@@ -248,8 +248,15 @@ ANALYTICS-HYBRID-IMPLEMENTATION.md           # Documentación completa
 **Mejoras técnicas**:
 - Sistema de tracking dual: localStorage + Vercel Analytics
 - Compatibilidad total con hooks existentes
-- Transparencia sobre datos demo vs reales
-- Solución escalable para upgrade futuro del plan
+- ✅ Transparencia sobre datos demo vs reales
+- ✅ Solución escalable para upgrade futuro del plan
+
+#### **Debugging AdminDashboard (27 Oct 2025)**
+- ✅ Corrección imports useAnalytics hook (lazy loading ES modules)
+- ✅ Actualización APIs AdminDashboard (/api/getEvents → /api/calendar)
+- ✅ Actualización APIs AdminAppointment y AdminCalendar
+- ✅ Test page AdminDashboard con Live Preview
+- ✅ Build exitoso sin errores críticos
 
 ---
 
@@ -290,5 +297,5 @@ Deployment:   Vercel SPA
 
 ---
 
-**Última actualización**: 27 Octubre 2025 - Sistema de Blogs Organizados implementado
+**Última actualización**: 27 Octubre 2025 - Sistema de Blogs Organizados implementado + AdminDashboard debugging completado
 **Próxima revisión**: Después implementación UI final blogs
