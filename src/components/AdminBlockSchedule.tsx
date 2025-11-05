@@ -217,7 +217,7 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
 
     try {
       const response = await fetch('/api/calendar', {
-        method: 'DELETE',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'deleteEvent',
@@ -393,7 +393,7 @@ const AdminBlockSchedule: React.FC<BlockScheduleProps> = ({ onBack }) => {
       const eventIds = block.events.map(event => event.id);
       
       const response = await fetch('/api/calendar', {
-        method: 'DELETE',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'deleteBlockedSchedule',
