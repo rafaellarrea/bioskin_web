@@ -112,7 +112,7 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ onBack }) => {
 
     try {
       const response = await fetch('/api/calendar', {
-        method: 'DELETE',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'deleteEvent',

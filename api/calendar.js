@@ -481,30 +481,47 @@ async function deleteBlockedSchedule(req, res, calendar, credentials) {
   // Enviar notificación por email si se eliminaron bloqueos
   if (deletedEvents.length > 0) {
     try {
+      console.log(`📧 Iniciando envío de notificación para ${deletedEvents.length} bloqueos eliminados`);
+      
       const emailUrl = process.env.VERCEL_URL ? 
         `https://${process.env.VERCEL_URL}/api/sendEmail` : 
         'http://localhost:3000/api/sendEmail';
         
-      await fetch(emailUrl, {
+      console.log(`📧 URL de email a usar: ${emailUrl}`);
+      
+      const emailBody = {
+        name: 'Sistema BIOSKIN - Bloqueos Eliminados',
+        email: 'admin@bioskin.com',
+        message: `NOTIFICACIÓN: BLOQUEOS DE HORARIO ELIMINADOS\n\n` +
+                `Se han eliminado ${deletedEvents.length} bloqueo(s) de horario desde el panel de administración.\n\n` +
+                `Fecha: ${date}\n` +
+                `Motivo: ${reason || 'No especificado'}\n` +
+                `IDs eliminados: ${deletedEvents.join(', ')}\n` +
+                `Eliminados: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
+                `Los bloqueos han sido removidos de Google Calendar y el horario está nuevamente disponible.\n\n` +
+                `${errors.length > 0 ? `Errores encontrados: ${errors.length}\n` : ''}` +
+                `Este es un mensaje automático del sistema de gestión BIOSKIN.`,
+      };
+      
+      console.log(`📧 Enviando email con body:`, JSON.stringify(emailBody, null, 2));
+        
+      const emailResponse = await fetch(emailUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Sistema BIOSKIN - Bloqueos Eliminados',
-          email: 'admin@bioskin.com',
-          message: `NOTIFICACIÓN: BLOQUEOS DE HORARIO ELIMINADOS\n\n` +
-                  `Se han eliminado ${deletedEvents.length} bloqueo(s) de horario desde el panel de administración.\n\n` +
-                  `Fecha: ${date}\n` +
-                  `Motivo: ${reason || 'No especificado'}\n` +
-                  `IDs eliminados: ${deletedEvents.join(', ')}\n` +
-                  `Eliminados: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
-                  `Los bloqueos han sido removidos de Google Calendar y el horario está nuevamente disponible.\n\n` +
-                  `${errors.length > 0 ? `Errores encontrados: ${errors.length}\n` : ''}` +
-                  `Este es un mensaje automático del sistema de gestión BIOSKIN.`,
-        }),
+        body: JSON.stringify(emailBody),
       });
-      console.log('📧 Notificación de eliminación de bloqueos enviada');
+      
+      const emailResult = await emailResponse.json();
+      console.log(`📧 Respuesta del email API:`, emailResponse.status, emailResult);
+      
+      if (emailResponse.ok) {
+        console.log('📧 Notificación de eliminación de bloqueos enviada exitosamente');
+      } else {
+        console.error(`⚠️ Error en respuesta del email: ${emailResponse.status}`, emailResult);
+      }
     } catch (emailError) {
       console.error('⚠️ Error enviando notificación de eliminación de bloqueos:', emailError);
+      console.error(`⚠️ Stack trace:`, emailError.stack);
     }
   }
 
@@ -554,9 +571,13 @@ async function deleteEvent(req, res, calendar, credentials) {
 
   // Enviar notificación por email
   try {
+    console.log(`📧 Iniciando envío de notificación para evento: ${eventId}, tipo: ${eventType}`);
+    
     const emailUrl = process.env.VERCEL_URL ? 
       `https://${process.env.VERCEL_URL}/api/sendEmail` : 
       'http://localhost:3000/api/sendEmail';
+
+    console.log(`📧 URL de email a usar: ${emailUrl}`);
 
     // Extraer información relevante del evento
     const eventTitle = eventDetails?.summary || 'Sin título';
@@ -564,6 +585,8 @@ async function deleteEvent(req, res, calendar, credentials) {
     const eventEnd = eventDetails?.end?.dateTime || eventDetails?.end?.date || '';
     const eventLocation = eventDetails?.location || '';
     const eventDescription = eventDetails?.description || '';
+    
+    console.log(`📧 Detalles del evento: ${eventTitle} - ${eventStart} to ${eventEnd}`);
     
     // Formatear fechas para mostrar
     const formatDate = (dateStr) => {
@@ -584,31 +607,44 @@ async function deleteEvent(req, res, calendar, credentials) {
 
     const notificationType = eventType === 'appointment' ? 'CITA CANCELADA' : 'BLOQUEO ELIMINADO';
     const actionText = eventType === 'appointment' ? 'cancelada' : 'eliminado';
+    
+    const emailBody = {
+      name: `Sistema BIOSKIN - ${notificationType}`,
+      email: 'admin@bioskin.com',
+      message: `NOTIFICACIÓN: ${notificationType}\n\n` +
+              `Un evento ha sido ${actionText} desde el panel de administración.\n\n` +
+              `DETALLES DEL EVENTO:\n` +
+              `Título: ${eventTitle}\n` +
+              `Inicio: ${formatDate(eventStart)}\n` +
+              `Fin: ${formatDate(eventEnd)}\n` +
+              `${eventLocation ? `Ubicación: ${eventLocation}\n` : ''}` +
+              `${eventDescription ? `Descripción: ${eventDescription}\n` : ''}` +
+              `ID del evento: ${eventId}\n` +
+              `Tipo: ${eventType}\n` +
+              `${actionText === 'cancelada' ? 'Cancelada' : 'Eliminado'}: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
+              `El evento ha sido eliminado de Google Calendar.\n\n` +
+              `Este es un mensaje automático del sistema de gestión BIOSKIN.`,
+    };
+    
+    console.log(`📧 Enviando email con body:`, JSON.stringify(emailBody, null, 2));
       
-    await fetch(emailUrl, {
+    const emailResponse = await fetch(emailUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: `Sistema BIOSKIN - ${notificationType}`,
-        email: 'admin@bioskin.com',
-        message: `NOTIFICACIÓN: ${notificationType}\n\n` +
-                `Un evento ha sido ${actionText} desde el panel de administración.\n\n` +
-                `DETALLES DEL EVENTO:\n` +
-                `Título: ${eventTitle}\n` +
-                `Inicio: ${formatDate(eventStart)}\n` +
-                `Fin: ${formatDate(eventEnd)}\n` +
-                `${eventLocation ? `Ubicación: ${eventLocation}\n` : ''}` +
-                `${eventDescription ? `Descripción: ${eventDescription}\n` : ''}` +
-                `ID del evento: ${eventId}\n` +
-                `Tipo: ${eventType}\n` +
-                `${actionText === 'cancelada' ? 'Cancelada' : 'Eliminado'}: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
-                `El evento ha sido eliminado de Google Calendar.\n\n` +
-                `Este es un mensaje automático del sistema de gestión BIOSKIN.`,
-      }),
+      body: JSON.stringify(emailBody),
     });
-    console.log(`📧 Notificación de ${actionText} enviada`);
+    
+    const emailResult = await emailResponse.json();
+    console.log(`📧 Respuesta del email API:`, emailResponse.status, emailResult);
+    
+    if (emailResponse.ok) {
+      console.log(`📧 Notificación de ${actionText} enviada exitosamente`);
+    } else {
+      console.error(`⚠️ Error en respuesta del email: ${emailResponse.status}`, emailResult);
+    }
   } catch (emailError) {
     console.error(`⚠️ Error enviando notificación de ${eventType === 'appointment' ? 'cancelación' : 'eliminación'}:`, emailError);
+    console.error(`⚠️ Stack trace:`, emailError.stack);
   }
 
   return res.status(200).json({
