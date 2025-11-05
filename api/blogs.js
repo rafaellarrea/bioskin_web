@@ -2,9 +2,26 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  // Configurar headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const { method } = req;
   const { action } = req.body || req.query;
+
+  // Validar que se proporcione una acción
+  if (!action) {
+    return res.status(400).json({
+      success: false,
+      message: 'Acción requerida. Acciones disponibles: json-files, manage, migrate-all, organized'
+    });
+  }
 
   try {
     switch (action) {

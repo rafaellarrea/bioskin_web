@@ -1,15 +1,35 @@
 const { google } = require('googleapis');
 
 // Función consolidada para todas las operaciones de calendario
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  // Configurar headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const { method } = req;
   const { action } = req.body || req.query;
+
+  // Validar que se proporcione una acción
+  if (!action) {
+    return res.status(400).json({
+      success: false,
+      message: 'Acción requerida. Acciones disponibles: getEvents, getDayEvents, getCalendarEvents, blockSchedule, getBlockedSchedules, deleteBlockedSchedule, deleteEvent'
+    });
+  }
 
   // Configurar Google Calendar API (común para todas las operaciones)
   let calendar, credentials;
   try {
+    console.log(`🔍 API Calendar: Procesando acción "${action}" con método ${method}`);
+    
     const credentialsBase64 = process.env.GOOGLE_CREDENTIALS_BASE64;
     if (!credentialsBase64) {
+      console.error('❌ GOOGLE_CREDENTIALS_BASE64 no encontrada');
       throw new Error('Google credentials not found');
     }
 
