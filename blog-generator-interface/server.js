@@ -165,13 +165,42 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No se recibió archivo' });
     }
 
-    const imageUrl = `/images/blog/${req.file.filename}`;
+    const { blogSlug } = req.body;
+    
+    if (!blogSlug) {
+      return res.status(400).json({ error: 'blogSlug requerido' });
+    }
+
+    // ✅ CORREGIDO: Usar estructura correcta /images/blog/[slug]/[filename]
+    const blogImagesDir = path.join(process.cwd(), 'public', 'images', 'blog', blogSlug);
+    
+    // Crear directorio si no existe
+    if (!fs.existsSync(blogImagesDir)) {
+      fs.mkdirSync(blogImagesDir, { recursive: true });
+    }
+    
+    // Generar nombre único para la imagen
+    const timestamp = Date.now();
+    const extension = path.extname(req.file.originalname);
+    const baseName = path.basename(req.file.originalname, extension).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const newFileName = `${baseName}-${timestamp}${extension}`;
+    
+    // Mover archivo a la ubicación correcta
+    const finalPath = path.join(blogImagesDir, newFileName);
+    fs.renameSync(req.file.path, finalPath);
+    
+    // URL final de la imagen
+    const imageUrl = `/images/blog/${blogSlug}/${newFileName}`;
+    
+    console.log(`📸 Imagen guardada: ${imageUrl}`);
     
     res.json({
       success: true,
       imageUrl,
-      filename: req.file.filename,
-      path: req.file.path
+      filename: newFileName,
+      blogSlug,
+      path: finalPath,
+      id: timestamp
     });
 
   } catch (error) {
@@ -182,6 +211,115 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     });
   }
 });
+
+// ✅ NUEVO: API para generar sugerencias de temas con IA
+app.post('/api/suggest-topics', async (req, res) => {
+  console.log('💡 Generando sugerencias de temas con IA...');
+  
+  try {
+    const { category = 'medico-estetico' } = req.body;
+    
+    // Temas existentes para entrenamiento de la IA
+    const existingTopics = [
+      'Radiofrecuencia Bipolar: Remodelación Facial de Alta Eficacia en BIOSKIN',
+      'Mesoterapia Facial: Un Tratamiento Estrella para una Piel Radiante', 
+      'Peeling Químico vs Tratamientos Láser: ¿Cuál es la mejor opción para tu piel?'
+    ];
+    
+    // Llamar a la API de IA de Vercel para generar sugerencias
+    const apiUrls = [
+      'https://saludbioskin.vercel.app/api/ai-blog/generate',
+      'https://saludbioskin.vercel.app/api/ai-blog/generate-production'
+    ];
+    
+    const payload = {
+      category,
+      generateSuggestions: true,
+      existingTopics,
+      requestType: 'topic_suggestions'
+    };
+    
+    let lastError = null;
+    
+    for (const apiUrl of apiUrls) {
+      try {
+        console.log(`🎯 Probando sugerencias en: ${apiUrl}`);
+        
+        const fetch = (await import('node-fetch')).default;
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.suggestions) {
+            console.log('✅ Sugerencias generadas exitosamente');
+            return res.json({
+              success: true,
+              suggestions: result.suggestions,
+              category,
+              source: apiUrl
+            });
+          }
+        } else {
+          lastError = `HTTP ${response.status}`;
+        }
+        
+      } catch (error) {
+        console.error(`❌ Error en ${apiUrl}:`, error);
+        lastError = error.message;
+      }
+    }
+    
+    // Fallback: generar sugerencias locales
+    console.log('🔄 Generando sugerencias locales como fallback');
+    
+    const localSuggestions = generateLocalSuggestions(category);
+    
+    res.json({
+      success: true,
+      suggestions: localSuggestions,
+      category,
+      source: 'local-fallback',
+      note: 'Sugerencias generadas localmente debido a error en IA'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error generando sugerencias:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Función para generar sugerencias locales como fallback
+function generateLocalSuggestions(category) {
+  const medicoEsteticoSuggestions = [
+    'HydraFacial: Limpieza Profunda y Hidratación Instantánea',
+    'Microagujas con PRP: Regeneración Natural de la Piel',
+    'Carboxiterapia Facial: Oxigenación y Rejuvenecimiento',
+    'Ultrasonido Focalizados HIFU: Lifting Sin Cirugía',
+    'Plasma Rico en Plaquetas: Medicina Regenerativa Avanzada'
+  ];
+  
+  const tecnicoSuggestions = [
+    'Tecnología IPL vs Láser Diodo: Análisis Comparativo',
+    'Sistemas de Radiofrecuencia Multipolar: Innovación Técnica',
+    'Crioterapia Controlada: Principios Físicos y Aplicaciones',
+    'Cavitación Ultrasónica: Fundamentos y Protocolos',
+    'Diatermia Capacitiva: Técnica y Parámetros Óptimos'
+  ];
+  
+  const suggestions = category === 'tecnico' ? tecnicoSuggestions : medicoEsteticoSuggestions;
+  
+  // Mezclar y seleccionar 5 sugerencias aleatorias
+  const shuffled = suggestions.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 5);
+}
 
 // API: Guardar blog y hacer deploy
 app.post('/api/save-and-deploy', async (req, res) => {

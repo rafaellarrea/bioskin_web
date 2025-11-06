@@ -38,11 +38,20 @@ export default async function handler(req, res) {
 
     const { 
       category = 'medico-estetico', 
-      customTopic = 'Tratamientos de medicina estética'
+      customTopic = 'Tratamientos de medicina estética',
+      generateSuggestions = false,
+      existingTopics = [],
+      requestType = 'blog_generation'
     } = req.body || {};
 
     console.log(`📂 Categoría: ${category}`);
     console.log(`🎯 Tema: ${customTopic}`);
+    console.log(`💡 Generar sugerencias: ${generateSuggestions}`);
+    
+    // ✅ NUEVO: Manejar sugerencias de temas
+    if (generateSuggestions || requestType === 'topic_suggestions') {
+      return await handleTopicSuggestions(req, res, category, existingTopics);
+    }
 
     // Configurar OpenAI
     const openai = new OpenAI({
@@ -217,6 +226,95 @@ INCLUIR: Datos específicos, parámetros, protocolos detallados`;
         message: error.message,
         name: error.name,
         details: error.stack
+      },
+      endpoint: '/api/ai-blog/generate'
+    });
+  }
+}
+
+// ✅ NUEVA FUNCIÓN: Generar sugerencias de temas con IA
+async function handleTopicSuggestions(req, res, category, existingTopics) {
+  try {
+    console.log('💡 Generando sugerencias de temas con IA');
+    
+    // Configurar OpenAI (ya está configurado arriba)
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+
+    // Prompt especializado para sugerencias de temas
+    const suggestionPrompt = `Eres un especialista en medicina estética de BIOSKIN que debe sugerir temas innovadores y atractivos para blogs.
+
+TEMAS EXISTENTES EN BIOSKIN (para evitar duplicados y mantener coherencia):
+${existingTopics.map(topic => `- ${topic}`).join('\n')}
+
+INSTRUCCIONES:
+- Sugiere exactamente 5 temas nuevos y únicos para blogs de categoría "${category}"
+- Los temas deben ser diferentes a los existentes pero mantener coherencia con BIOSKIN
+- Enfócate en tratamientos, tecnologías y procedimientos reales de medicina estética
+- Cada tema debe ser específico, atractivo y profesional
+- Incluye palabras clave relevantes para SEO médico
+- Menciona BIOSKIN en algunos títulos cuando sea natural
+- Los temas deben ser actuales y demandados por pacientes
+
+CATEGORÍA: ${category === 'medico-estetico' ? 'MÉDICO ESTÉTICO (tratamientos, procedimientos, cuidados)' : 'TÉCNICO (equipos, tecnologías, innovaciones)'}
+
+Responde SOLO con una lista numerada de exactamente 5 títulos de blog, sin explicaciones adicionales:
+
+1. [Título específico y atractivo]
+2. [Título específico y atractivo]  
+3. [Título específico y atractivo]
+4. [Título específico y atractivo]
+5. [Título específico y atractivo]`;
+
+    console.log('📤 Enviando prompt de sugerencias a OpenAI...');
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "user", content: suggestionPrompt }
+      ],
+      max_tokens: 300,
+      temperature: 0.8 // Más creatividad para sugerencias variadas
+    });
+
+    console.log('✅ Sugerencias recibidas de OpenAI');
+
+    const suggestionsText = completion.choices[0].message.content;
+    
+    // Procesar y limpiar las sugerencias
+    const suggestions = suggestionsText
+      .split('\n')
+      .filter(line => line.trim() && /^\d+\./.test(line.trim()))
+      .map(line => line.replace(/^\d+\.\s*/, '').trim())
+      .filter(suggestion => suggestion.length > 0)
+      .slice(0, 5); // Asegurar máximo 5 sugerencias
+
+    console.log(`✅ ${suggestions.length} sugerencias procesadas`);
+    console.log('📋 Sugerencias:', suggestions);
+
+    return res.status(200).json({
+      success: true,
+      suggestions,
+      category,
+      total: suggestions.length,
+      meta: {
+        hasOpenAI: true,
+        endpoint: '/api/ai-blog/generate',
+        timestamp: new Date().toISOString(),
+        existingTopicsCount: existingTopics.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error generando sugerencias:', error);
+    
+    return res.status(500).json({
+      success: false,
+      message: 'Error generando sugerencias con IA',
+      error: {
+        message: error.message,
+        name: error.name
       },
       endpoint: '/api/ai-blog/generate'
     });

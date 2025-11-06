@@ -142,6 +142,202 @@
             font-size: 0.8rem;
             margin: 2px;
         }
+
+        /* ✅ NUEVOS ESTILOS PARA EDICIÓN */
+        .edit-section {
+            display: none;
+            border: 2px solid #f39c12;
+            border-radius: 10px;
+            padding: 2rem;
+            background: #fefefe;
+            margin-top: 2rem;
+        }
+
+        .tab-container {
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: #f39c12;
+            border-bottom-color: #f39c12;
+        }
+
+        .tab-btn:hover {
+            color: #f39c12;
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+            padding-top: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h3 {
+            color: #2c3e50;
+            margin: 1.5rem 0 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .tab-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .upload-zone {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .upload-zone:hover {
+            border-color: #f39c12;
+            background: #fff3cd;
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone p {
+            margin: 0.5rem 0;
+            color: #6c757d;
+        }
+
+        .upload-zone .small {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin: 1rem 0;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 0.5rem;
+            transform: scale(1.2);
+        }
+
+        .action-buttons {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .current-image {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        #imagePreview {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        #imagePreview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        #imageUpload {
+            display: none;
+        }
+
+        /* ✅ ESTILOS PARA SUGERENCIAS DE TEMAS */
+        .suggestions-container {
+            display: grid;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .suggestion-item {
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .suggestion-item:hover {
+            background: #e67e22;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(230, 126, 34, 0.3);
+        }
+
+        .suggestion-text {
+            flex: 1;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .suggestion-use {
+            padding: 4px 8px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .suggestion-item:hover .suggestion-use {
+            opacity: 1;
+        }
+
+        .suggestions-loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .suggestions-loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -162,8 +358,22 @@
             </select>
 
             <label>Tema Personalizado (Opcional):</label>
-            <input type="text" id="customTopic" class="form-control" 
-                   placeholder="Ej: Tratamiento de arrugas con toxina botulínica">
+            <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                <input type="text" id="customTopic" class="form-control" 
+                       placeholder="Ej: Tratamiento de arrugas con toxina botulínica" style="flex: 1;">
+                <button class="btn" onclick="suggestTopics()" id="suggestBtn" 
+                        style="background: #e67e22; color: white; white-space: nowrap;">
+                    <i class="fas fa-lightbulb"></i> Sugerir Temas
+                </button>
+            </div>
+            
+            <!-- ✅ NUEVA SECCIÓN: Sugerencias de temas -->
+            <div id="suggestionsSection" style="display: none; margin-top: 1rem;">
+                <label><i class="fas fa-magic"></i> Temas Sugeridos por IA:</label>
+                <div id="suggestionsList" class="suggestions-container">
+                    <!-- Las sugerencias se cargarán aquí -->
+                </div>
+            </div>
 
             <button class="btn btn-primary" onclick="testConnection()">
                 <i class="fas fa-network-wired"></i> Test Conexión
@@ -199,6 +409,105 @@
             <button class="btn btn-success" onclick="saveBlog()" id="saveBtn" disabled>
                 <i class="fas fa-save"></i> Guardar y Desplegar Blog
             </button>
+        </div>
+
+        <!-- ✅ NUEVA SECCIÓN: Editar Blog -->
+        <div id="editSection" class="card edit-section" style="display: none;">
+            <h2><i class="fas fa-edit"></i> Revisar y Editar Blog</h2>
+            
+            <!-- Tabs para diferentes secciones de edición -->
+            <div class="tab-container">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('content')">
+                        <i class="fas fa-file-text"></i> Contenido
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('image')">
+                        <i class="fas fa-image"></i> Imagen
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('metadata')">
+                        <i class="fas fa-tags"></i> Metadatos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab: Editar Contenido -->
+            <div id="contentTab" class="tab-content active">
+                <h3>Editar Título</h3>
+                <input type="text" id="editTitle" class="form-control" placeholder="Título del blog">
+                
+                <h3>Editar Extracto</h3>
+                <textarea id="editExcerpt" class="form-control" rows="3" placeholder="Extracto del blog"></textarea>
+                
+                <h3>Editar Contenido</h3>
+                <textarea id="editContent" class="form-control" rows="15" placeholder="Contenido completo del blog"></textarea>
+                
+                <button class="btn btn-primary" onclick="previewChanges()">
+                    <i class="fas fa-eye"></i> Vista Previa Cambios
+                </button>
+            </div>
+
+            <!-- Tab: Añadir Imagen -->
+            <div id="imageTab" class="tab-content">
+                <h3>Imagen Principal del Blog</h3>
+                
+                <div class="image-upload-area">
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <div class="upload-zone" onclick="document.getElementById('imageUpload').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Haz clic para subir una imagen</p>
+                        <p class="small">JPG, PNG, WebP (máx. 5MB)</p>
+                    </div>
+                </div>
+
+                <div id="imagePreview" style="display: none;">
+                    <h4>Vista Previa:</h4>
+                    <img id="previewImg" style="max-width: 100%; height: auto; border-radius: 8px;">
+                    <button class="btn btn-danger" onclick="removeImage()">
+                        <i class="fas fa-trash"></i> Quitar Imagen
+                    </button>
+                </div>
+
+                <div class="current-image" id="currentImage">
+                    <h4>Imagen Actual:</h4>
+                    <p>No hay imagen asignada</p>
+                </div>
+            </div>
+
+            <!-- Tab: Editar Metadatos -->
+            <div id="metadataTab" class="tab-content">
+                <h3>Categoría</h3>
+                <select id="editCategory" class="form-control">
+                    <option value="medico-estetico">Médico Estético</option>
+                    <option value="tecnico">Técnico</option>
+                    <option value="general">General</option>
+                </select>
+
+                <h3>Tags</h3>
+                <input type="text" id="editTags" class="form-control" placeholder="Separados por comas: tag1, tag2, tag3">
+                
+                <h3>Autor</h3>
+                <input type="text" id="editAuthor" class="form-control" placeholder="Autor del blog">
+
+                <h3>¿Artículo Destacado?</h3>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="editFeatured">
+                    <span class="checkmark"></span>
+                    Marcar como artículo destacado
+                </label>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="resetChanges()">
+                    <i class="fas fa-undo"></i> Descartar Cambios
+                </button>
+                <button class="btn btn-primary" onclick="applyChanges()">
+                    <i class="fas fa-check"></i> Aplicar Cambios
+                </button>
+                <button class="btn btn-success" onclick="saveBlogWithEdits()" id="saveFinalBtn">
+                    <i class="fas fa-save"></i> Guardar Blog Final
+                </button>
+            </div>
         </div>
 
         <!-- Área de mensajes -->
@@ -406,7 +715,13 @@
             `;
 
             previewContainer.classList.add('active');
+            
+            // ✅ NUEVO: Mostrar botones de edición y cargar datos
+            document.getElementById('editSection').style.display = 'block';
             document.getElementById('saveBtn').disabled = false;
+            
+            // Cargar datos para edición
+            loadBlogForEditing();
         }
 
         // Función para guardar blog
@@ -489,12 +804,427 @@
             }
         }
 
+        // ✅ NUEVAS FUNCIONES PARA EDICIÓN DE BLOGS
+
+        // Función para cambiar entre tabs
+        function switchTab(tabName) {
+            console.log(`🔄 Cambiando a tab: ${tabName}`);
+            
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Ocultar todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar el tab seleccionado
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        }
+
+        // Función para cargar datos del blog en los campos de edición
+        function loadBlogForEditing() {
+            if (!currentBlog) return;
+            
+            console.log('📝 Cargando blog para edición');
+            
+            // Cargar datos básicos
+            document.getElementById('editTitle').value = currentBlog.title || '';
+            document.getElementById('editExcerpt').value = currentBlog.excerpt || '';
+            document.getElementById('editContent').value = currentBlog.content || '';
+            document.getElementById('editCategory').value = currentBlog.category || 'medico-estetico';
+            document.getElementById('editAuthor').value = currentBlog.author || 'BIOSKIN IA';
+            document.getElementById('editFeatured').checked = currentBlog.featured || false;
+            
+            // Cargar tags
+            if (currentBlog.tags && Array.isArray(currentBlog.tags)) {
+                document.getElementById('editTags').value = currentBlog.tags.join(', ');
+            }
+            
+            // Mostrar imagen actual si existe
+            updateCurrentImageDisplay();
+        }
+
+        // Función para actualizar la vista de imagen actual
+        function updateCurrentImageDisplay() {
+            const currentImageDiv = document.getElementById('currentImage');
+            const hasImage = currentBlog.image && currentBlog.image !== '/images/logo/logo-bioskin.png';
+            
+            if (hasImage) {
+                currentImageDiv.innerHTML = `
+                    <h4>Imagen Actual:</h4>
+                    <img src="${currentBlog.image}" style="max-width: 200px; height: auto; border-radius: 8px;">
+                    <p>${currentBlog.image}</p>
+                `;
+            } else {
+                currentImageDiv.innerHTML = `
+                    <h4>Imagen Actual:</h4>
+                    <p>No hay imagen asignada (se usará logo BIOSKIN por defecto)</p>
+                `;
+            }
+        }
+
+        // Función para manejar subida de imagen
+        function handleImageUpload(event) {
+            console.log('📸 Procesando subida de imagen');
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validar tipo de archivo
+            if (!file.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
+                showAlert('Por favor selecciona una imagen válida (JPG, PNG, WebP)', 'error');
+                return;
+            }
+            
+            // Validar tamaño (5MB máx)
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('La imagen es muy grande. Máximo 5MB', 'error');
+                return;
+            }
+            
+            // Mostrar vista previa
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewDiv = document.getElementById('imagePreview');
+                const previewImg = document.getElementById('previewImg');
+                
+                previewImg.src = e.target.result;
+                previewDiv.style.display = 'block';
+                
+                showAlert('Imagen cargada. Recuerda aplicar cambios', 'success');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        // Función para quitar imagen
+        function removeImage() {
+            console.log('🗑️ Quitando imagen');
+            
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            
+            showAlert('Imagen removida', 'success');
+        }
+
+        // Función para vista previa de cambios
+        function previewChanges() {
+            console.log('👀 Generando vista previa de cambios');
+            
+            if (!currentBlog) {
+                showAlert('No hay blog para previsualizar', 'error');
+                return;
+            }
+            
+            // Crear blog temporal con los cambios
+            const tempBlog = {
+                ...currentBlog,
+                title: document.getElementById('editTitle').value || currentBlog.title,
+                excerpt: document.getElementById('editExcerpt').value || currentBlog.excerpt,
+                content: document.getElementById('editContent').value || currentBlog.content,
+                category: document.getElementById('editCategory').value || currentBlog.category,
+                author: document.getElementById('editAuthor').value || currentBlog.author,
+                featured: document.getElementById('editFeatured').checked
+            };
+            
+            // Actualizar tags
+            const tagsInput = document.getElementById('editTags').value;
+            if (tagsInput.trim()) {
+                tempBlog.tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            }
+            
+            // Mostrar vista previa actualizada
+            displayBlogPreview(tempBlog);
+            showAlert('Vista previa actualizada con tus cambios', 'success');
+        }
+
+        // Función para aplicar cambios
+        function applyChanges() {
+            console.log('✅ Aplicando cambios al blog');
+            
+            if (!currentBlog) {
+                showAlert('No hay blog para editar', 'error');
+                return;
+            }
+            
+            // Aplicar cambios al blog actual
+            currentBlog.title = document.getElementById('editTitle').value || currentBlog.title;
+            currentBlog.excerpt = document.getElementById('editExcerpt').value || currentBlog.excerpt;
+            currentBlog.content = document.getElementById('editContent').value || currentBlog.content;
+            currentBlog.category = document.getElementById('editCategory').value || currentBlog.category;
+            currentBlog.author = document.getElementById('editAuthor').value || currentBlog.author;
+            currentBlog.featured = document.getElementById('editFeatured').checked;
+            
+            // Actualizar tags
+            const tagsInput = document.getElementById('editTags').value;
+            if (tagsInput.trim()) {
+                currentBlog.tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            }
+            
+            // Regenerar slug si cambió el título
+            if (currentBlog.title !== currentBlog.originalTitle) {
+                currentBlog.slug = currentBlog.title.toLowerCase()
+                    .replace(/[áàäâ]/g, 'a')
+                    .replace(/[éèëê]/g, 'e')
+                    .replace(/[íìïî]/g, 'i')
+                    .replace(/[óòöô]/g, 'o')
+                    .replace(/[úùüû]/g, 'u')
+                    .replace(/ñ/g, 'n')
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/--+/g, '-')
+                    .trim('-') + '-' + Date.now();
+            }
+            
+            // Marcar como editado
+            currentBlog.edited = true;
+            currentBlog.editedAt = new Date().toISOString();
+            
+            // Actualizar vista previa
+            displayBlogPreview(currentBlog);
+            
+            showAlert('Cambios aplicados exitosamente', 'success');
+        }
+
+        // Función para descartar cambios
+        function resetChanges() {
+            console.log('🔄 Descartando cambios');
+            
+            if (!currentBlog) return;
+            
+            // Recargar datos originales
+            loadBlogForEditing();
+            
+            // Limpiar imagen
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            
+            showAlert('Cambios descartados', 'success');
+        }
+
+        // Función mejorada para guardar blog con ediciones
+        async function saveBlogWithEdits() {
+            console.log('💾 GUARDANDO BLOG CON EDICIONES');
+            
+            if (!currentBlog) {
+                showAlert('No hay blog para guardar', 'error');
+                return;
+            }
+            
+            const saveFinalBtn = document.getElementById('saveFinalBtn');
+            saveFinalBtn.disabled = true;
+            saveFinalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            
+            try {
+                // Manejar subida de imagen si hay una nueva
+                let imageData = [];
+                const imageFile = document.getElementById('imageUpload').files[0];
+                
+                if (imageFile) {
+                    console.log('📤 Subiendo imagen nueva');
+                    showAlert('Subiendo imagen...', 'success');
+                    
+                    const formData = new FormData();
+                    formData.append('image', imageFile);
+                    formData.append('blogSlug', currentBlog.slug);
+                    
+                    const imageResponse = await fetch('/api/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const imageResult = await imageResponse.json();
+                    
+                    if (imageResult.success) {
+                        currentBlog.image = imageResult.imageUrl;
+                        currentBlog.imagenPrincipal = imageResult.imageUrl;
+                        imageData = [imageResult];
+                        showAlert('Imagen subida exitosamente', 'success');
+                    } else {
+                        throw new Error(imageResult.error || 'Error subiendo imagen');
+                    }
+                }
+                
+                showAlert('Guardando blog final...', 'success');
+                
+                // Guardar blog completo
+                const response = await fetch('/api/save-and-deploy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        blogData: currentBlog,
+                        images: imageData
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('✅ Blog guardado:', result);
+                
+                if (result.success) {
+                    showAlert(`Blog "${currentBlog.title}" guardado y desplegado exitosamente`, 'success');
+                    
+                    // Reset después de 3 segundos
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    throw new Error(result.error || 'Error guardando blog');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error guardando blog final:', error);
+                showAlert(`Error: ${error.message}`, 'error');
+            } finally {
+                saveFinalBtn.disabled = false;
+                saveFinalBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Blog Final';
+            }
+        }
+
+        // ✅ NUEVA FUNCIÓN: Sugerir temas con IA
+        async function suggestTopics() {
+            console.log('💡 INICIANDO SUGERENCIA DE TEMAS CON IA');
+            
+            const category = document.getElementById('category').value;
+            
+            if (!category) {
+                showAlert('Por favor selecciona una categoría primero', 'error');
+                return;
+            }
+            
+            const suggestBtn = document.getElementById('suggestBtn');
+            const suggestionsSection = document.getElementById('suggestionsSection');
+            const suggestionsList = document.getElementById('suggestionsList');
+            
+            // Mostrar loading
+            suggestBtn.disabled = true;
+            suggestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            
+            suggestionsSection.style.display = 'block';
+            suggestionsList.innerHTML = `
+                <div class="suggestions-loading">
+                    <i class="fas fa-magic"></i>
+                    <p>Generando sugerencias personalizadas con IA...</p>
+                    <small>Basado en categoría: <strong>${category === 'medico-estetico' ? 'Médico Estético' : 'Técnico'}</strong></small>
+                </div>
+            `;
+            
+            showAlert('Generando sugerencias de temas con IA...', 'success');
+            
+            try {
+                const response = await fetch('/api/suggest-topics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: category
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📋 Sugerencias recibidas:', result);
+
+                if (result.success && result.suggestions && result.suggestions.length > 0) {
+                    displaySuggestions(result.suggestions, result.source);
+                    showAlert(`${result.suggestions.length} temas sugeridos generados`, 'success');
+                } else {
+                    throw new Error(result.error || 'No se pudieron generar sugerencias');
+                }
+
+            } catch (error) {
+                console.error('❌ Error generando sugerencias:', error);
+                showAlert(`Error: ${error.message}`, 'error');
+                
+                // Mostrar mensaje de error en la sección
+                suggestionsList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #dc3545;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error generando sugerencias: ${error.message}</p>
+                        <button class="btn btn-secondary" onclick="suggestTopics()">
+                            <i class="fas fa-redo"></i> Reintentar
+                        </button>
+                    </div>
+                `;
+                
+            } finally {
+                suggestBtn.disabled = false;
+                suggestBtn.innerHTML = '<i class="fas fa-lightbulb"></i> Sugerir Temas';
+            }
+        }
+
+        // Función para mostrar las sugerencias
+        function displaySuggestions(suggestions, source) {
+            console.log('📋 Mostrando sugerencias:', suggestions);
+            
+            const suggestionsList = document.getElementById('suggestionsList');
+            
+            let suggestionsHtml = suggestions.map((suggestion, index) => `
+                <div class="suggestion-item" onclick="useSuggestion('${suggestion.replace(/'/g, "\\'")}')">
+                    <div class="suggestion-text">
+                        <strong>${index + 1}.</strong> ${suggestion}
+                    </div>
+                    <button class="suggestion-use" onclick="event.stopPropagation(); useSuggestion('${suggestion.replace(/'/g, "\\'")}')">
+                        Usar
+                    </button>
+                </div>
+            `).join('');
+            
+            suggestionsHtml += `
+                <div style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="suggestTopics()">
+                        <i class="fas fa-sync"></i> Generar Nuevas Sugerencias
+                    </button>
+                    <small style="display: block; margin-top: 0.5rem; color: #6c757d;">
+                        <i class="fas fa-robot"></i> Generado por: ${source === 'local-fallback' ? 'Sistema Local' : 'IA de BIOSKIN'}
+                    </small>
+                </div>
+            `;
+            
+            suggestionsList.innerHTML = suggestionsHtml;
+        }
+
+        // Función para usar una sugerencia
+        function useSuggestion(suggestion) {
+            console.log(`✅ Usando sugerencia: ${suggestion}`);
+            
+            document.getElementById('customTopic').value = suggestion;
+            showAlert('Tema aplicado. ¡Ahora puedes generar el blog!', 'success');
+            
+            // Opcional: scroll al campo de tema para que el usuario vea el cambio
+            document.getElementById('customTopic').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+            
+            // Highlight temporal del campo
+            const topicInput = document.getElementById('customTopic');
+            topicInput.style.background = '#fff3cd';
+            topicInput.style.borderColor = '#ffeaa7';
+            
+            setTimeout(() => {
+                topicInput.style.background = '';
+                topicInput.style.borderColor = '';
+            }, 2000);
+        }
+
         console.log('✅ Aplicación lista');
         console.log('🔍 Funciones disponibles:', {
             testConnection: typeof testConnection,
             generateBlog: typeof generateBlog,
             saveBlog: typeof saveBlog,
-            diagnoseVercel: typeof diagnoseVercel
+            diagnoseVercel: typeof diagnoseVercel,
+            switchTab: typeof switchTab,
+            previewChanges: typeof previewChanges,
+            applyChanges: typeof applyChanges,
+            saveBlogWithEdits: typeof saveBlogWithEdits,
+            suggestTopics: typeof suggestTopics,
+            useSuggestion: typeof useSuggestion
         });
         
         // Mostrar mensaje de bienvenida
