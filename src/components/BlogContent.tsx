@@ -11,8 +11,15 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
   
   // Función para procesar y formatear el contenido
   const formatContent = (text: string) => {
+    // Limpiar contenido problemático primero
+    const cleanText = text
+      .replace(/# # /g, '## ')  // Corregir títulos duplicados
+      .replace(/# -+/g, '## ')  // Corregir títulos con guiones
+      .replace(/\n-{30}\n/g, '\n')  // Eliminar líneas de guiones
+      .replace(/\n={50}\n/g, '\n');  // Eliminar líneas de equals
+
     // Dividir el contenido en líneas
-    const lines = text.split('\n');
+    const lines = cleanText.split('\n');
     const formattedElements: JSX.Element[] = [];
     let currentKey = 0;
 
@@ -22,6 +29,42 @@ const BlogContent: React.FC<BlogContentProps> = ({ content }) => {
       if (!line) {
         // Línea vacía - agregar espacio
         formattedElements.push(<div key={currentKey++} className="h-4" />);
+        continue;
+      }
+
+      // ✅ PROCESAR IMÁGENES EN MARKDOWN: ![alt text](url)
+      const imageMatch = line.match(/!\[(.*?)\]\((.*?)\)/);
+      if (imageMatch) {
+        const [, altText, imageUrl] = imageMatch;
+        
+        // Verificar si la línea siguiente es texto descriptivo (empieza con *)
+        const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
+        const isDescriptive = nextLine.startsWith('*') && nextLine.endsWith('*');
+        
+        formattedElements.push(
+          <div key={currentKey++} className="my-8">
+            <img
+              src={imageUrl}
+              alt={altText}
+              className="w-full h-64 md:h-80 object-cover rounded-lg shadow-lg"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                console.log('❌ Error cargando imagen del contenido:', imageUrl);
+                img.src = '/images/logo/logo1.jpg';
+              }}
+            />
+            {isDescriptive && (
+              <p className="text-center text-gray-500 text-sm mt-2 italic">
+                {nextLine.replace(/^\*/, '').replace(/\*$/, '')}
+              </p>
+            )}
+          </div>
+        );
+        
+        // Si hay texto descriptivo, saltar la siguiente línea
+        if (isDescriptive) {
+          i++; // Saltar la línea de descripción
+        }
         continue;
       }
 

@@ -400,7 +400,11 @@ app.post('/api/save-and-deploy', async (req, res) => {
       title: blogData.title,
       slug: blogData.slug,
       excerpt: blogData.excerpt,
-      content: blogData.content,
+      content: blogData.content
+        .replace(/# # /g, '## ')  // Corregir títulos duplicados
+        .replace(/# -+/g, '## ')  // Corregir títulos con guiones
+        .replace(/\n-{30}\n/g, '\n')  // Eliminar líneas de guiones
+        .replace(/\n={50}\n/g, '\n'),  // Eliminar líneas de equals
       category: blogData.category,
       author: blogData.author || 'BIOSKIN Médico',
       publishedAt: currentDate,
@@ -526,6 +530,32 @@ app.post('/api/save-and-deploy', async (req, res) => {
           
           structuredBlog.content = contentSections.join('\n## ');
         }
+      }
+
+      // ✅ COPIAR IMÁGENES AL PROYECTO PRINCIPAL
+      console.log('📦 Copiando imágenes al proyecto principal...');
+      const mainProjectImagesDir = path.join(__dirname, '..', 'public', 'images', 'blog', blogData.slug);
+      
+      try {
+        // Crear directorio en el proyecto principal
+        await fsPromises.mkdir(mainProjectImagesDir, { recursive: true });
+        
+        // Copiar todas las imágenes del blog-generator-interface al proyecto principal
+        for (const imageData of structuredBlog.images) {
+          const sourceImagePath = path.join(publicImagesDir, path.basename(imageData.url));
+          const destImagePath = path.join(mainProjectImagesDir, path.basename(imageData.url));
+          
+          if (fs.existsSync(sourceImagePath)) {
+            await fsPromises.copyFile(sourceImagePath, destImagePath);
+            console.log(`📸 Imagen copiada: ${path.basename(imageData.url)} → proyecto principal`);
+          } else {
+            console.log(`⚠️ Imagen no encontrada para copiar: ${sourceImagePath}`);
+          }
+        }
+        
+        console.log(`✅ ${structuredBlog.images.length} imágenes copiadas al proyecto principal`);
+      } catch (copyError) {
+        console.error('❌ Error copiando imágenes al proyecto principal:', copyError.message);
       }
     }
 
