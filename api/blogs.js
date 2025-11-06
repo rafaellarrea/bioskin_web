@@ -53,7 +53,7 @@ export default async function handler(req, res) {
   }
 }
 
-// Función para obtener archivos JSON (original json-files.js)
+// Función para obtener blogs desde el sistema organizado (lee index.json + carpetas)
 async function getJsonFiles(req, res) {
   try {
     const blogsDir = path.join(process.cwd(), 'src', 'data', 'blogs');
@@ -63,49 +63,90 @@ async function getJsonFiles(req, res) {
     } catch {
       return res.status(200).json({
         success: true,
-        files: [],
+        blogs: [],
         message: 'Directorio de blogs no existe aún'
       });
     }
 
-    const files = await fs.readdir(blogsDir);
-    const jsonFiles = files.filter(file => file.endsWith('.json'));
+    // 1. Intentar leer el index.json primero (sistema organizado)
+    const indexPath = path.join(blogsDir, 'index.json');
+    let indexBlogs = [];
     
-    const fileDetails = await Promise.all(
-      jsonFiles.map(async (file) => {
-        try {
-          const filePath = path.join(blogsDir, file);
-          const content = await fs.readFile(filePath, 'utf8');
-          const blogData = JSON.parse(content);
-          
-          return {
-            filename: file,
-            title: blogData.title || 'Sin título',
-            category: blogData.category || 'general',
-            created: blogData.created || new Date().toISOString(),
-            slug: blogData.slug || file.replace('.json', ''),
-            size: content.length
-          };
-        } catch (error) {
-          return {
-            filename: file,
-            error: 'Error leyendo archivo',
-            size: 0
-          };
-        }
-      })
-    );
+    try {
+      const indexContent = await fs.readFile(indexPath, 'utf8');
+      const indexData = JSON.parse(indexContent);
+      
+      if (indexData.blogs && Array.isArray(indexData.blogs)) {
+        // Cargar el contenido completo de cada blog desde su carpeta
+        const blogsWithContent = await Promise.all(
+          indexData.blogs.map(async (blogMeta) => {
+            try {
+              if (blogMeta.paths && blogMeta.paths.blog) {
+                const blogPath = path.join(process.cwd(), blogMeta.paths.blog);
+                const blogContent = await fs.readFile(blogPath, 'utf8');
+                const fullBlog = JSON.parse(blogContent);
+                
+                return {
+                  ...fullBlog,
+                  id: blogMeta.id,
+                  slug: blogMeta.slug,
+                  source: 'organized-json',
+                  images: blogMeta.images || [],
+                  status: blogMeta.status || 'published'
+                };
+              }
+              return null;
+            } catch (error) {
+              console.warn(`Error cargando blog ${blogMeta.slug}:`, error);
+              return null;
+            }
+          })
+        );
+        
+        indexBlogs = blogsWithContent.filter(blog => blog !== null);
+      }
+    } catch (indexError) {
+      console.warn('No se pudo leer index.json:', indexError.message);
+    }
+
+    // 2. Fallback: buscar archivos JSON individuales en la raíz
+    if (indexBlogs.length === 0) {
+      const files = await fs.readdir(blogsDir);
+      const jsonFiles = files.filter(file => file.endsWith('.json') && file !== 'index.json');
+      
+      const directBlogs = await Promise.all(
+        jsonFiles.map(async (file) => {
+          try {
+            const filePath = path.join(blogsDir, file);
+            const content = await fs.readFile(filePath, 'utf8');
+            const blogData = JSON.parse(content);
+            
+            return {
+              ...blogData,
+              source: 'direct-json',
+              slug: blogData.slug || file.replace('.json', '')
+            };
+          } catch (error) {
+            console.warn(`Error leyendo ${file}:`, error);
+            return null;
+          }
+        })
+      );
+      
+      indexBlogs = directBlogs.filter(blog => blog !== null);
+    }
 
     return res.status(200).json({
       success: true,
-      files: fileDetails,
-      total: fileDetails.length,
-      message: `${fileDetails.length} archivos de blog encontrados`
+      blogs: indexBlogs,
+      total: indexBlogs.length,
+      message: `${indexBlogs.length} blogs cargados desde sistema organizado`
     });
   } catch (error) {
+    console.error('Error cargando blogs organizados:', error);
     return res.status(500).json({
       success: false,
-      message: 'Error obteniendo archivos de blogs',
+      message: 'Error interno del servidor',
       error: error.message
     });
   }
