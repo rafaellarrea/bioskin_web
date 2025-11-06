@@ -1,9 +1,44 @@
 {
-  "lastUpdated": "2025-11-06T22:36:02.211Z",
-  "total": 10,
-  "organized": 10,
+  "lastUpdated": "2025-11-06T23:58:58.282Z",
+  "total": 11,
+  "organized": 11,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762473538282",
+      "title": "Cuidado de la Piel Post-Tratamiento: Cómo Maximizar Resultados en BIOSKIN",
+      "slug": "cuidado-1762473538084",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T23:58:58.282Z",
+      "savedAt": "2025-11-06T23:58:58.282Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/cuidado-1762473538084/index.json",
+        "images": "public/images/blog/cuidado-1762473538084/",
+        "metadata": "src/data/blogs/cuidado-1762473538084/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/cuidado-1762473538084/img-1762473538250.png",
+          "name": "476be7ab-4b96-43c4-b604-d9d0c7e0de7d.png",
+          "id": 1762473538288,
+          "blogSlug": "cuidado-1762473538084",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
     {
       "id": "blog-1762468562211",
       "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
