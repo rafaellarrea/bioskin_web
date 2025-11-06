@@ -10,6 +10,34 @@ const execAsync = promisify(exec);
 const app = express();
 const PORT = 3335;
 
+// ✅ NUEVA FUNCIÓN: Acortar slugs largos para evitar errores de Git en Windows
+function shortenSlug(slug, maxLength = 60) {
+  if (slug.length <= maxLength) return slug;
+  
+  // Extraer partes importantes
+  const parts = slug.split('-');
+  const timestamp = parts[parts.length - 1]; // Último elemento (timestamp)
+  const titleParts = parts.slice(0, -1); // Todo excepto timestamp
+  
+  // Crear slug corto manteniendo palabras clave
+  let shortTitle = titleParts.slice(0, 3).join('-'); // Primeras 3 palabras
+  let result = `${shortTitle}-${timestamp}`;
+  
+  // Si aún es muy largo, acortar más
+  if (result.length > maxLength) {
+    shortTitle = titleParts[0] + '-' + titleParts[1]; // Solo 2 palabras
+    result = `${shortTitle}-${timestamp}`;
+  }
+  
+  // Si aún es muy largo, usar solo primera palabra
+  if (result.length > maxLength) {
+    result = `${titleParts[0]}-${timestamp}`;
+  }
+  
+  console.log(`📏 Slug acortado: ${slug} → ${result}`);
+  return result;
+}
+
 // Configuración de multer para subida de imágenes
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
@@ -200,7 +228,8 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       imageUrl,
       filename: newFileName,
       blogSlug,
-      path: finalPath,
+      path: `/images/blog/${blogSlug}/${newFileName}`,
+      originalName: req.file.originalname,
       id: timestamp
     });
 
@@ -334,8 +363,13 @@ app.post('/api/save-and-deploy', async (req, res) => {
       return res.status(400).json({ error: 'Datos de blog inválidos' });
     }
 
+    // ✅ Acortar slug si es muy largo para evitar errores de Git
+    const originalSlug = blogData.slug;
+    blogData.slug = shortenSlug(blogData.slug);
+
     console.log(`📁 Creando blog: ${blogData.title}`);
-    console.log(`📂 Slug: ${blogData.slug}`);
+    console.log(`📂 Slug original: ${originalSlug}`);
+    console.log(`📂 Slug final: ${blogData.slug}`);
 
     // 1. Crear directorio del blog
     const blogDir = path.join(__dirname, '..', 'src', 'data', 'blogs', blogData.slug);
@@ -378,35 +412,53 @@ app.post('/api/save-and-deploy', async (req, res) => {
       console.log('🖼️  Directorio de imágenes:', publicImagesDir);
       await fsPromises.mkdir(publicImagesDir, { recursive: true });
 
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        const sourcePath = path.join(__dirname, '..', 'public', image.path);
-        const destPath = path.join(publicImagesDir, image.filename);
+      // Si el slug cambió, necesitamos mover las imágenes existentes
+      if (originalSlug !== blogData.slug) {
+        console.log('📁 Slug cambió, moviendo imágenes...');
+        const oldImagesDir = path.join(__dirname, '..', 'public', 'images', 'blog', originalSlug);
         
         try {
-          await fsPromises.copyFile(sourcePath, destPath);
-          
-          const imageUrl = `/images/blog/${blogData.slug}/${image.filename}`;
-          const imageData = {
-            url: imageUrl,
-            name: image.originalName || image.filename,
-            id: Date.now() + i,
-            blogSlug: blogData.slug,
-            isOrganized: true
-          };
-          
-          structuredBlog.images.push(imageData);
-          
-          // La primera imagen es la principal
-          if (i === 0) {
-            structuredBlog.image = imageUrl;
-            structuredBlog.imagenPrincipal = imageUrl;
+          if (fs.existsSync(oldImagesDir)) {
+            // Mover todas las imágenes del directorio antiguo al nuevo
+            const files = fs.readdirSync(oldImagesDir);
+            for (const file of files) {
+              const oldPath = path.join(oldImagesDir, file);
+              const newPath = path.join(publicImagesDir, file);
+              fs.renameSync(oldPath, newPath);
+              console.log(`📦 Movido: ${file}`);
+            }
+            
+            // Eliminar directorio viejo si está vacío
+            fs.rmdirSync(oldImagesDir);
+            console.log('🗑️  Directorio anterior eliminado');
           }
-          
-          console.log(`✅ Imagen copiada: ${image.filename}`);
-        } catch (copyError) {
-          console.log(`⚠️  No se pudo copiar imagen ${image.filename}:`, copyError.message);
+        } catch (moveError) {
+          console.log('⚠️  Error moviendo imágenes:', moveError.message);
         }
+      }
+
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        
+        // Actualizar la ruta de la imagen para usar el nuevo slug
+        const imageUrl = `/images/blog/${blogData.slug}/${image.filename}`;
+        const imageData = {
+          url: imageUrl,
+          name: image.originalName || image.filename,
+          id: Date.now() + i,
+          blogSlug: blogData.slug,
+          isOrganized: true
+        };
+        
+        structuredBlog.images.push(imageData);
+        
+        // La primera imagen es la principal
+        if (i === 0) {
+          structuredBlog.image = imageUrl;
+          structuredBlog.imagenPrincipal = imageUrl;
+        }
+        
+        console.log(`✅ Imagen referenciada: ${imageUrl}`);
       }
     }
 
