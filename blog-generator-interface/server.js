@@ -404,7 +404,12 @@ app.post('/api/save-and-deploy', async (req, res) => {
         .replace(/# # /g, '## ')  // Corregir títulos duplicados
         .replace(/# -+/g, '## ')  // Corregir títulos con guiones
         .replace(/\n-{30}\n/g, '\n')  // Eliminar líneas de guiones
-        .replace(/\n={50}\n/g, '\n'),  // Eliminar líneas de equals
+        .replace(/\n={50}\n/g, '\n')  // Eliminar líneas de equals
+        .replace(/\*\*(.*?)\*\*/g, '$1')  // Eliminar ** de texto en negrita
+        .replace(/\*(.*?)\*/g, '$1')  // Eliminar * de texto en cursiva
+        .replace(/^- \*\*(.*?)\*\*:/gm, '- $1:')  // Limpiar listas con **
+        .replace(/^- \*(.*?)\*:/gm, '- $1:')  // Limpiar listas con *
+        .replace(/\n\n\n+/g, '\n\n'),  // Reducir múltiples saltos de línea
       category: blogData.category,
       author: blogData.author || 'BIOSKIN Médico',
       publishedAt: currentDate,
@@ -484,21 +489,23 @@ app.post('/api/save-and-deploy', async (req, res) => {
         console.log(`✅ Imagen referenciada: ${imageUrl}`);
       }
 
-      // ✅ INSERTAR IMÁGENES EN EL CONTENIDO
+      // ✅ INSERTAR IMÁGENES EN EL CONTENIDO (solo si no hay imagen principal para evitar duplicación)
       if (imageUrls.length > 0) {
-        console.log('🖼️  Insertando imágenes en el contenido del blog...');
+        console.log('🖼️  Verificando inserción de imágenes en contenido...');
         
-        // Insertar la primera imagen después del primer párrafo
-        if (imageUrls[0]) {
+        // Si hay imagen principal, NO insertar la primera imagen en el contenido para evitar duplicación
+        const shouldInsertFirstImage = !structuredBlog.imagenPrincipal;
+        
+        if (shouldInsertFirstImage && imageUrls[0]) {
+          console.log('📸 Insertando primera imagen en contenido (no hay imagen principal)...');
           const imagenPrincipalHTML = `\n\n![Imagen principal del tratamiento](${imageUrls[0]})\n*Imagen: Ejemplo del tratamiento en BIOSKIN*\n\n`;
           
-          // Buscar el final del primer párrafo (después del primer ## o primer párrafo largo)
+          // Buscar el final del primer párrafo
           const contentLines = structuredBlog.content.split('\n');
           let insertIndex = -1;
           
           for (let i = 0; i < contentLines.length; i++) {
             const line = contentLines[i].trim();
-            // Insertar después del primer heading grande o después de las primeras 3-4 líneas
             if (line.startsWith('##') && i > 2) {
               insertIndex = i;
               break;
@@ -512,19 +519,26 @@ app.post('/api/save-and-deploy', async (req, res) => {
           
           contentLines.splice(insertIndex, 0, imagenPrincipalHTML);
           structuredBlog.content = contentLines.join('\n');
-          console.log(`📸 Imagen principal insertada en línea ${insertIndex}`);
+          console.log(`📸 Primera imagen insertada en línea ${insertIndex}`);
+        } else {
+          console.log('⏭️ Saltando inserción de primera imagen (ya existe imagenPrincipal)');
         }
 
-        // Insertar imágenes adicionales en el medio y final del contenido
+        // Insertar imágenes adicionales solo si hay más de una imagen
         if (imageUrls.length > 1) {
+          console.log('📸 Insertando imágenes adicionales...');
           const contentSections = structuredBlog.content.split('\n## ');
           
-          for (let i = 1; i < imageUrls.length && i < 3; i++) {
+          // Empezar desde la segunda imagen si hay imagen principal, o desde la primera si no la hay
+          const startIndex = shouldInsertFirstImage ? 1 : 0;
+          
+          for (let i = startIndex; i < imageUrls.length && i < 3; i++) {
             const imageHTML = `\n![Imagen ${i + 1} del tratamiento](${imageUrls[i]})\n*Imagen: Detalles del procedimiento*\n`;
             
-            if (contentSections.length > i + 1) {
-              contentSections[i + 1] = imageHTML + '\n## ' + contentSections[i + 1];
-              console.log(`📸 Imagen ${i + 1} insertada en sección ${i + 1}`);
+            const sectionIndex = i + (shouldInsertFirstImage ? 0 : 1);
+            if (contentSections.length > sectionIndex) {
+              contentSections[sectionIndex] = imageHTML + '\n## ' + contentSections[sectionIndex];
+              console.log(`📸 Imagen ${i + 1} insertada en sección ${sectionIndex}`);
             }
           }
           
