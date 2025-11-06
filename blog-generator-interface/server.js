@@ -526,20 +526,29 @@ app.post('/api/save-and-deploy', async (req, res) => {
     console.log('🚀 Iniciando deploy automático...');
     try {
       const projectRoot = path.join(__dirname, '..');
+      console.log('📁 Directorio del proyecto:', projectRoot);
       
       console.log('📋 Ejecutando git add...');
-      await execAsync('git add .', { cwd: projectRoot });
+      const addResult = await execAsync('git add .', { cwd: projectRoot });
+      console.log('✅ Git add completado:', addResult.stdout || 'Sin salida');
       
       console.log('📝 Ejecutando git commit...');
-      await execAsync(`git commit -m "Nuevo blog: ${blogData.title}"`, { cwd: projectRoot });
+      const commitResult = await execAsync(`git commit -m "Nuevo blog: ${blogData.title}"`, { cwd: projectRoot });
+      console.log('✅ Git commit completado:', commitResult.stdout);
       
       console.log('🚀 Ejecutando git push...');
-      await execAsync('git push origin main', { cwd: projectRoot });
+      const pushResult = await execAsync('git push origin main', { cwd: projectRoot });
+      console.log('✅ Git push completado:', pushResult.stdout);
       
-      console.log('✅ Deploy automático completado exitosamente');
+      console.log('🎉 Deploy automático completado exitosamente');
     } catch (gitError) {
-      console.error('⚠️  Error en git (blog guardado correctamente):', gitError.message);
-      // No fallar si git falla, el blog se guardó correctamente
+      console.error('❌ Error detallado en git:', {
+        message: gitError.message,
+        stdout: gitError.stdout,
+        stderr: gitError.stderr,
+        code: gitError.code
+      });
+      console.log('💾 Blog guardado correctamente (error solo en git)');
     }
 
     res.json({

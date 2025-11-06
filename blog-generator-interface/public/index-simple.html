@@ -680,6 +680,39 @@
             }
         }
 
+        // ✅ NUEVA FUNCIÓN: Limpiar contenido Markdown para el editor
+        function cleanMarkdownForEditor(content) {
+            if (!content) return '';
+            
+            return content
+                // Convertir headers # a texto plano con formato
+                .replace(/#{1}\s*(.*)/g, '$1\n' + '='.repeat(50))
+                .replace(/#{2}\s*(.*)/g, '\n$1\n' + '-'.repeat(30))
+                .replace(/#{3}\s*(.*)/g, '\n$1\n')
+                // Limpiar negritas pero mantener énfasis
+                .replace(/\*\*(.*?)\*\*/g, '>>> $1 <<<')
+                // Limpiar cursivas
+                .replace(/\*(.*?)\*/g, '$1')
+                // Mejorar espaciado
+                .replace(/\n\n/g, '\n\n')
+                .trim();
+        }
+
+        // ✅ NUEVA FUNCIÓN: Convertir contenido del editor de vuelta a Markdown
+        function convertEditorToMarkdown(content) {
+            if (!content) return '';
+            
+            return content
+                // Convertir títulos con = de vuelta a #
+                .replace(/^(.*)\n={50}$/gm, '# $1')
+                .replace(/^(.*)\n-{30}$/gm, '## $1')
+                // Convertir énfasis de vuelta a negritas
+                .replace(/>>> (.*?) <<</g, '**$1**')
+                // Asegurar espaciado adecuado
+                .replace(/\n\n\n+/g, '\n\n')
+                .trim();
+        }
+
         // Función para mostrar vista previa
         function displayBlogPreview(blog) {
             console.log('👀 Mostrando vista previa del blog');
@@ -838,7 +871,8 @@
             // Cargar datos básicos
             document.getElementById('editTitle').value = currentBlog.title || '';
             document.getElementById('editExcerpt').value = currentBlog.excerpt || '';
-            document.getElementById('editContent').value = currentBlog.content || '';
+            // ✅ Limpiar contenido Markdown para mejor visualización en editor
+            document.getElementById('editContent').value = cleanMarkdownForEditor(currentBlog.content) || '';
             document.getElementById('editCategory').value = currentBlog.category || 'medico-estetico';
             document.getElementById('editAuthor').value = currentBlog.author || 'BIOSKIN IA';
             document.getElementById('editFeatured').checked = currentBlog.featured || false;
@@ -958,7 +992,8 @@
             // Aplicar cambios al blog actual
             currentBlog.title = document.getElementById('editTitle').value || currentBlog.title;
             currentBlog.excerpt = document.getElementById('editExcerpt').value || currentBlog.excerpt;
-            currentBlog.content = document.getElementById('editContent').value || currentBlog.content;
+            // ✅ Convertir contenido del editor de vuelta a Markdown
+            currentBlog.content = convertEditorToMarkdown(document.getElementById('editContent').value) || currentBlog.content;
             currentBlog.category = document.getElementById('editCategory').value || currentBlog.category;
             currentBlog.author = document.getElementById('editAuthor').value || currentBlog.author;
             currentBlog.featured = document.getElementById('editFeatured').checked;
@@ -1024,6 +1059,9 @@
             saveFinalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
             
             try {
+                // ✅ Aplicar cambios automáticamente antes de guardar
+                applyChanges();
+                
                 // Manejar subida de imagen si hay una nueva
                 let imageData = [];
                 const imageFile = document.getElementById('imageUpload').files[0];
