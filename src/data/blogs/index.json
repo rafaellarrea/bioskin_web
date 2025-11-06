@@ -1,9 +1,203 @@
 {
-  "lastUpdated": "2025-11-06T20:52:56.264Z",
-  "total": 3,
-  "organized": 3,
+  "lastUpdated": "2025-11-06T22:24:59.396Z",
+  "total": 9,
+  "organized": 9,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762467899396",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-1762467899258",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:24:59.396Z",
+      "savedAt": "2025-11-06T22:24:59.396Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/hilos-1762467899258/index.json",
+        "images": "public/images/blog/hilos-1762467899258/",
+        "metadata": "src/data/blogs/hilos-1762467899258/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-1762467899258/img-1762467899333.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762467899397,
+          "blogSlug": "hilos-1762467899258",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762467046157",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-1762467045563",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:10:46.157Z",
+      "savedAt": "2025-11-06T22:10:46.157Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/hilos-tensores-la-1762467045563/index.json",
+        "images": "public/images/blog/hilos-tensores-la-1762467045563/",
+        "metadata": "src/data/blogs/hilos-tensores-la-1762467045563/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-tensores-la-1762467045563/img-1762467045993.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762467046158,
+          "blogSlug": "hilos-tensores-la-1762467045563",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762466476184",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-1762466476116",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:01:16.184Z",
+      "savedAt": "2025-11-06T22:01:16.184Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/hilos-tensores-la-1762466476116/index.json",
+        "images": "public/images/blog/hilos-tensores-la-1762466476116/",
+        "metadata": "src/data/blogs/hilos-tensores-la-1762466476116/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-tensores-la-1762466476116/2b7a349adece49e9b566be38b41dc445-1762466476161.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762466476186,
+          "blogSlug": "hilos-tensores-la-1762466476116",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762465864847",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-1762465853576",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T21:51:04.847Z",
+      "savedAt": "2025-11-06T21:51:04.847Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/hilos-tensores-la-1762465853576/index.json",
+        "images": "public/images/blog/hilos-tensores-la-1762465853576/",
+        "metadata": "src/data/blogs/hilos-tensores-la-1762465853576/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-tensores-la-1762465853576/2b7a349adece49e9b566be38b41dc445-1762465864834.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762465864848,
+          "blogSlug": "hilos-tensores-la-1762465853576",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762465076471",
+      "title": "Hilos Tensores: La Solución Efectiva para la Flacidez Facial",
+      "slug": "hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T21:37:56.471Z",
+      "savedAt": "2025-11-06T21:37:56.471Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739/index.json",
+        "images": "public/images/blog/hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739/",
+        "metadata": "src/data/blogs/hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762464842315",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T21:34:02.315Z",
+      "savedAt": "2025-11-06T21:34:02.315Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285/index.json",
+        "images": "public/images/blog/hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285/",
+        "metadata": "src/data/blogs/hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
     {
       "id": "blog-1762462376264",
       "title": "Radiofrecuencia Bipolar: Remodelación Facial de Alta Eficacia en BIOSKIN",

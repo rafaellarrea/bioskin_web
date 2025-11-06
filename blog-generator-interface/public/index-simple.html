@@ -522,7 +522,10 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h3><i class="fas fa-list"></i> Registro de Actividad</h3>
                 <div>
-                    <button class="btn btn-secondary" onclick="clearLogs()" style="margin-right: 1rem;">
+                    <button class="btn btn-warning" onclick="cleanupFiles()" style="margin-right: 0.5rem;">
+                        <i class="fas fa-broom"></i> Limpiar Sistema
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearLogs()" style="margin-right: 0.5rem;">
                         <i class="fas fa-trash"></i> Limpiar Logs
                     </button>
                     <button class="btn btn-primary" onclick="refreshPage()">
@@ -591,6 +594,38 @@ Sistema iniciado - Listo para generar blogs...
             setTimeout(() => {
                 location.reload();
             }, 500);
+        }
+
+        // ✅ NUEVA: Función para limpiar archivos problemáticos
+        async function cleanupFiles() {
+            addLog('🧹 Iniciando limpieza de archivos problemáticos...');
+            
+            try {
+                const response = await fetch('/api/cleanup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog(`✅ ${result.message}`);
+                    showAlert(result.message, 'success');
+                } else {
+                    throw new Error(result.error || 'Error en limpieza');
+                }
+
+            } catch (error) {
+                console.error('❌ Error en limpieza:', error);
+                addLog(`❌ Error en limpieza: ${error.message}`);
+                showAlert(`Error en limpieza: ${error.message}`, 'error');
+            }
         }
 
         // Función de prueba de conexión

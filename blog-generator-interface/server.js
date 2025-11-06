@@ -10,31 +10,29 @@ const execAsync = promisify(exec);
 const app = express();
 const PORT = 3335;
 
-// ✅ NUEVA FUNCIÓN: Acortar slugs largos para evitar errores de Git en Windows
-function shortenSlug(slug, maxLength = 60) {
-  if (slug.length <= maxLength) return slug;
-  
+// ✅ FUNCIÓN AGRESIVA: Acortar slugs para evitar errores de Git en Windows
+function shortenSlug(slug, maxLength = 30) {  // Reducido de 60 a 30
   // Extraer partes importantes
   const parts = slug.split('-');
   const timestamp = parts[parts.length - 1]; // Último elemento (timestamp)
   const titleParts = parts.slice(0, -1); // Todo excepto timestamp
   
-  // Crear slug corto manteniendo palabras clave
-  let shortTitle = titleParts.slice(0, 3).join('-'); // Primeras 3 palabras
-  let result = `${shortTitle}-${timestamp}`;
-  
-  // Si aún es muy largo, acortar más
-  if (result.length > maxLength) {
-    shortTitle = titleParts[0] + '-' + titleParts[1]; // Solo 2 palabras
-    result = `${shortTitle}-${timestamp}`;
+  // Estrategia ultra-agresiva: usar solo primera palabra + timestamp
+  let result;
+  if (titleParts.length > 0) {
+    // Tomar solo la primera palabra y acortarla si es necesario
+    const firstWord = titleParts[0].substring(0, 12); // Máximo 12 caracteres
+    result = `${firstWord}-${timestamp}`;
+  } else {
+    result = `blog-${timestamp}`;
   }
   
-  // Si aún es muy largo, usar solo primera palabra
+  // Si aún es muy largo (caso extremo), usar solo timestamp
   if (result.length > maxLength) {
-    result = `${titleParts[0]}-${timestamp}`;
+    result = `blog-${timestamp}`;
   }
   
-  console.log(`📏 Slug acortado: ${slug} → ${result}`);
+  console.log(`📏 Slug ultra-acortado: ${slug} → ${result}`);
   return result;
 }
 
@@ -361,6 +359,23 @@ app.post('/api/save-and-deploy', async (req, res) => {
     
     if (!blogData || !blogData.slug) {
       return res.status(400).json({ error: 'Datos de blog inválidos' });
+    }
+
+    // ✅ LIMPIEZA PREVENTIVA: Eliminar directorios problemáticos
+    console.log('🧹 Limpiando directorios de imágenes problemáticos...');
+    try {
+      const blogImagesRoot = path.join(__dirname, '..', 'public', 'images', 'blog');
+      const entries = await fsPromises.readdir(blogImagesRoot, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        if (entry.isDirectory() && entry.name.length > 30) {
+          const problemDir = path.join(blogImagesRoot, entry.name);
+          await fsPromises.rm(problemDir, { recursive: true, force: true });
+          console.log(`🗑️  Eliminado directorio problemático: ${entry.name.substring(0, 30)}...`);
+        }
+      }
+    } catch (cleanupError) {
+      console.log('⚠️  Error en limpieza (continuando):', cleanupError.message);
     }
 
     // ✅ Acortar slug si es muy largo para evitar errores de Git
@@ -803,6 +818,40 @@ function getWeekNumber(date) {
   return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 }
 
+// ✅ NUEVO ENDPOINT: Limpiar archivos problemáticos
+app.post('/api/cleanup', async (req, res) => {
+  try {
+    console.log('🧹 Iniciando limpieza completa...');
+    
+    const blogImagesRoot = path.join(__dirname, '..', 'public', 'images', 'blog');
+    const entries = await fsPromises.readdir(blogImagesRoot, { withFileTypes: true });
+    
+    let cleaned = 0;
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name.length > 30) {
+        const problemDir = path.join(blogImagesRoot, entry.name);
+        await fsPromises.rm(problemDir, { recursive: true, force: true });
+        console.log(`🗑️  Eliminado: ${entry.name.substring(0, 30)}...`);
+        cleaned++;
+      }
+    }
+    
+    console.log(`✅ Limpieza completada: ${cleaned} directorios eliminados`);
+    res.json({ 
+      success: true, 
+      message: `Limpieza completada: ${cleaned} directorios problemáticos eliminados`,
+      cleaned: cleaned
+    });
+    
+  } catch (error) {
+    console.error('❌ Error en limpieza:', error);
+    res.status(500).json({ 
+      error: 'Error en limpieza', 
+      details: error.message 
+    });
+  }
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`
@@ -825,6 +874,7 @@ app.listen(PORT, () => {
      POST /api/generate-blog   - Generar blog con IA
      POST /api/upload-image    - Subir imagen
      POST /api/save-and-deploy - Guardar y desplegar
+     POST /api/cleanup         - Limpiar archivos problemáticos
      GET  /api/blogs           - Obtener blogs
   
   🔍 LOGS ACTIVADOS - Verás todas las peticiones aquí
