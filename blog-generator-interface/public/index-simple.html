@@ -47,6 +47,7 @@
         .btn-primary { background: #3498db; }
         .btn-success { background: #27ae60; }
         .btn-warning { background: #f39c12; }
+        .btn-info { background: #17a2b8; }
         
         .form-control {
             width: 100%;
@@ -501,11 +502,14 @@
                 <button class="btn btn-secondary" onclick="resetChanges()">
                     <i class="fas fa-undo"></i> Descartar Cambios
                 </button>
+                <button class="btn btn-info" onclick="switchTab('image'); document.getElementById('imageUpload').click();">
+                    <i class="fas fa-image"></i> Cargar Imagen
+                </button>
                 <button class="btn btn-primary" onclick="applyChanges()">
                     <i class="fas fa-check"></i> Aplicar Cambios
                 </button>
                 <button class="btn btn-success" onclick="saveBlogWithEdits()" id="saveFinalBtn">
-                    <i class="fas fa-save"></i> Guardar Blog Final
+                    <i class="fas fa-save"></i> Guardar & Desplegar
                 </button>
             </div>
         </div>
@@ -1082,7 +1086,7 @@
                 showAlert(`Error: ${error.message}`, 'error');
             } finally {
                 saveFinalBtn.disabled = false;
-                saveFinalBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Blog Final';
+                saveFinalBtn.innerHTML = '<i class="fas fa-save"></i> Guardar & Desplegar';
             }
         }
 

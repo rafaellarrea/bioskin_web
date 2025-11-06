@@ -1,7 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsPromises = require('fs').promises;
 const { exec } = require('child_process');
 const { promisify } = require('util');
 
@@ -14,7 +15,7 @@ const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     const uploadPath = path.join(__dirname, '..', 'public', 'images', 'blog');
     try {
-      await fs.mkdir(uploadPath, { recursive: true });
+      await fsPromises.mkdir(uploadPath, { recursive: true });
       cb(null, uploadPath);
     } catch (error) {
       cb(error);
@@ -339,7 +340,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
     // 1. Crear directorio del blog
     const blogDir = path.join(__dirname, '..', 'src', 'data', 'blogs', blogData.slug);
     console.log('📁 Directorio del blog:', blogDir);
-    await fs.mkdir(blogDir, { recursive: true });
+    await fsPromises.mkdir(blogDir, { recursive: true });
 
     // 2. Crear estructura del blog siguiendo el patrón existente
     const blogId = `blog-${Date.now()}`;
@@ -375,7 +376,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
     if (images && images.length > 0) {
       const publicImagesDir = path.join(__dirname, '..', 'public', 'images', 'blog', blogData.slug);
       console.log('🖼️  Directorio de imágenes:', publicImagesDir);
-      await fs.mkdir(publicImagesDir, { recursive: true });
+      await fsPromises.mkdir(publicImagesDir, { recursive: true });
 
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
@@ -383,7 +384,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
         const destPath = path.join(publicImagesDir, image.filename);
         
         try {
-          await fs.copyFile(sourcePath, destPath);
+          await fsPromises.copyFile(sourcePath, destPath);
           
           const imageUrl = `/images/blog/${blogData.slug}/${image.filename}`;
           const imageData = {
@@ -411,7 +412,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
 
     // 4. Guardar archivo index.json del blog
     const blogJsonPath = path.join(blogDir, 'index.json');
-    await fs.writeFile(blogJsonPath, JSON.stringify(structuredBlog, null, 2));
+    await fsPromises.writeFile(blogJsonPath, JSON.stringify(structuredBlog, null, 2));
     console.log('✅ Blog guardado en:', blogJsonPath);
 
     // 5. Crear metadata.json
@@ -422,7 +423,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
       version: "1.0",
       structure: "organized"
     };
-    await fs.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+    await fsPromises.writeFile(metadataPath, JSON.stringify(metadata, null, 2));
 
     // 6. Actualizar index.json principal
     const indexPath = path.join(__dirname, '..', 'src', 'data', 'blogs', 'index.json');
@@ -435,7 +436,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
     };
     
     try {
-      const indexContent = await fs.readFile(indexPath, 'utf-8');
+      const indexContent = await fsPromises.readFile(indexPath, 'utf-8');
       indexData = JSON.parse(indexContent);
     } catch (error) {
       console.log('📝 Creando nuevo index.json');
@@ -466,7 +467,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
     indexData.organized = indexData.blogs.filter(blog => blog.structure === "organized").length;
     indexData.lastUpdated = currentDate;
 
-    await fs.writeFile(indexPath, JSON.stringify(indexData, null, 2));
+    await fsPromises.writeFile(indexPath, JSON.stringify(indexData, null, 2));
     console.log('✅ Index.json actualizado');
 
     // 7. Git add, commit y push
@@ -516,7 +517,7 @@ app.get('/api/blogs', async (req, res) => {
     const indexPath = path.join(__dirname, '..', 'src', 'data', 'blogs', 'index.json');
     
     try {
-      const indexContent = await fs.readFile(indexPath, 'utf-8');
+      const indexContent = await fsPromises.readFile(indexPath, 'utf-8');
       const indexData = JSON.parse(indexContent);
       res.json(indexData);
     } catch (error) {
