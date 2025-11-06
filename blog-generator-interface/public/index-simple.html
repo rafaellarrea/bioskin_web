@@ -514,8 +514,27 @@
             </div>
         </div>
 
-        <!-- Área de mensajes -->
+        <!-- Área de mensajes temporales (para compatibilidad) -->
         <div id="messages"></div>
+        
+        <!-- ✅ NUEVO: Área de logs permanente -->
+        <div class="logs-section" style="margin-top: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3><i class="fas fa-list"></i> Registro de Actividad</h3>
+                <div>
+                    <button class="btn btn-secondary" onclick="clearLogs()" style="margin-right: 1rem;">
+                        <i class="fas fa-trash"></i> Limpiar Logs
+                    </button>
+                    <button class="btn btn-primary" onclick="refreshPage()">
+                        <i class="fas fa-sync-alt"></i> Refrescar Página
+                    </button>
+                </div>
+            </div>
+            <textarea id="logsBox" class="form-control" rows="10" readonly 
+                style="background: #f8f9fa; font-family: 'Courier New', monospace; font-size: 12px;">
+Sistema iniciado - Listo para generar blogs...
+            </textarea>
+        </div>
     </div>
 
     <script>
@@ -523,10 +542,27 @@
         
         let currentBlog = null;
 
-        // Función para mostrar alertas
-        function showAlert(message, type = 'success') {
-            console.log(`📢 Alerta: ${message} (${type})`);
+        // ✅ NUEVA: Función para agregar logs permanentes
+        function addLog(message, type = 'info') {
+            console.log(`📢 Log: ${message} (${type})`);
             
+            const logsBox = document.getElementById('logsBox');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            const logEntry = `[${timestamp}] ${icon} ${message}\n`;
+            logsBox.value += logEntry;
+            
+            // Auto-scroll to bottom
+            logsBox.scrollTop = logsBox.scrollHeight;
+        }
+
+        // ✅ Función para mostrar alertas (mantener compatibilidad + agregar a logs)
+        function showAlert(message, type = 'success') {
+            // Agregar al sistema de logs permanente
+            addLog(message, type);
+            
+            // Mantener alerta temporal para feedback inmediato
             const messagesDiv = document.getElementById('messages');
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
@@ -539,7 +575,22 @@
             
             setTimeout(() => {
                 alert.remove();
-            }, 5000);
+            }, 3000); // Reducido a 3 segundos
+        }
+
+        // ✅ NUEVA: Función para limpiar logs
+        function clearLogs() {
+            const logsBox = document.getElementById('logsBox');
+            logsBox.value = 'Sistema reiniciado - Logs limpiados...\n';
+            addLog('Logs limpiados por el usuario');
+        }
+
+        // ✅ NUEVA: Función para refrescar página manualmente
+        function refreshPage() {
+            addLog('Refrescando página por solicitud del usuario...');
+            setTimeout(() => {
+                location.reload();
+            }, 500);
         }
 
         // Función de prueba de conexión
@@ -621,6 +672,7 @@
         // Función para generar blog con IA real
         async function generateBlog() {
             console.log('🚀 BOTÓN GENERAR BLOG CON IA CLICKEADO');
+            addLog('🚀 Iniciando generación de blog con IA...');
             
             const category = document.getElementById('category').value;
             const customTopic = document.getElementById('customTopic').value.trim();
@@ -630,6 +682,9 @@
                 return;
             }
 
+            addLog(`📝 Categoría seleccionada: ${category}`);
+            addLog(`🎯 Tema: ${customTopic || 'Tema generado automáticamente'}`);
+            
             console.log('📝 Categoría:', category);
             console.log('🎯 Tema:', customTopic);
 
@@ -638,6 +693,8 @@
 
             generateBtn.disabled = true;
             loading.classList.add('active');
+            addLog('⏳ Conectando con IA de OpenAI...');
+            addLog('🤖 Generando contenido - esto puede tomar 30-60 segundos');
             showAlert('Generando blog con IA (esto puede tomar 30-60 segundos)...', 'success');
 
             try {
@@ -665,6 +722,9 @@
 
                 if (result.success && result.blog) {
                     currentBlog = result.blog;
+                    addLog(`✅ Blog generado exitosamente: "${result.blog.title}"`);
+                    addLog(`📄 Palabras: ${result.meta?.wordCount || 'N/A'} | Tiempo de lectura: ${result.blog.readTime}min`);
+                    addLog('📝 Blog listo para edición y guardado');
                     displayBlogPreview(result.blog);
                     showAlert('Blog generado exitosamente con IA', 'success');
                 } else {
@@ -1110,11 +1170,10 @@
                 
                 if (result.success) {
                     showAlert(`Blog "${currentBlog.title}" guardado y desplegado exitosamente`, 'success');
+                    addLog('✨ Blog guardado correctamente - Listo para crear otro blog');
+                    addLog('💡 Tip: Usa el botón "Refrescar Página" si necesitas empezar de nuevo');
                     
-                    // Reset después de 3 segundos
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
+                    // ✅ NO auto-refresh - El usuario decide cuándo refrescar
                 } else {
                     throw new Error(result.error || 'Error guardando blog');
                 }

@@ -208,11 +208,11 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       fs.mkdirSync(blogImagesDir, { recursive: true });
     }
     
-    // Generar nombre único para la imagen
+    // ✅ Generar nombre corto para evitar errores de Git en Windows
     const timestamp = Date.now();
     const extension = path.extname(req.file.originalname);
-    const baseName = path.basename(req.file.originalname, extension).toLowerCase().replace(/[^a-z0-9]/g, '');
-    const newFileName = `${baseName}-${timestamp}${extension}`;
+    // Usar solo 'img' + timestamp para nombres ultra-cortos
+    const newFileName = `img-${timestamp}${extension}`;
     
     // Mover archivo a la ubicación correcta
     const finalPath = path.join(blogImagesDir, newFileName);
