@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIOSKIN - Generador de Blogs con IA</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            color: white;
+        }
+
+        .btn-primary { background: #3498db; }
+        .btn-success { background: #27ae60; }
+        .btn-warning { background: #f39c12; }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .alert-success {
+            background: rgba(39, 174, 96, 0.1);
+            border: 1px solid #27ae60;
+            color: #27ae60;
+        }
+
+        .alert-error {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .blog-preview {
+            display: none;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 2rem;
+            background: #f8f9fa;
+        }
+
+        .blog-preview.active {
+            display: block;
+        }
+
+        .blog-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .blog-content {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .blog-content h1, .blog-content h2, .blog-content h3 {
+            margin: 1.5rem 0 1rem;
+            color: #2c3e50;
+        }
+
+        .blog-content p {
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1><i class="fas fa-brain"></i> BIOSKIN - Generador de Blogs con IA</h1>
+            <p>Sistema Simplificado para Generar Contenido Médico Estético</p>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-cog"></i> Configuración del Blog</h2>
+            
+            <label>Categoría del Blog:</label>
+            <select id="category" class="form-control">
+                <option value="">Selecciona una categoría</option>
+                <option value="medico-estetico">Médico Estético</option>
+                <option value="tecnico">Técnico/Equipos</option>
+            </select>
+
+            <label>Tema Personalizado (Opcional):</label>
+            <input type="text" id="customTopic" class="form-control" 
+                   placeholder="Ej: Tratamiento de arrugas con toxina botulínica">
+
+            <button class="btn btn-primary" onclick="testConnection()">
+                <i class="fas fa-network-wired"></i> Test Conexión
+            </button>
+
+            <button class="btn" style="background: #9b59b6; color: white;" onclick="diagnoseVercel()">
+                <i class="fas fa-stethoscope"></i> Diagnosticar APIs Vercel
+            </button>
+
+            <button class="btn btn-warning" onclick="generateBlogMock()">
+                <i class="fas fa-vial"></i> Generar Blog de Prueba
+            </button>
+            
+            <button class="btn btn-primary" onclick="generateBlog()">
+                <i class="fas fa-magic"></i> Generar Blog con IA
+            </button>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Generando contenido con IA...</p>
+            </div>
+        </div>
+
+        <!-- Vista Previa del Blog -->
+        <div id="blogPreview" class="card blog-preview">
+            <h2><i class="fas fa-eye"></i> Vista Previa del Blog</h2>
+            
+            <div id="previewContent">
+                <!-- El contenido se cargará aquí -->
+            </div>
+
+            <button class="btn btn-success" onclick="saveBlog()" id="saveBtn" disabled>
+                <i class="fas fa-save"></i> Guardar y Desplegar Blog
+            </button>
+        </div>
+
+        <!-- Área de mensajes -->
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        console.log('🚀 Iniciando aplicación...');
+        
+        let currentBlog = null;
+
+        // Función para mostrar alertas
+        function showAlert(message, type = 'success') {
+            console.log(`📢 Alerta: ${message} (${type})`);
+            
+            const messagesDiv = document.getElementById('messages');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+            `;
+            
+            messagesDiv.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Función de prueba de conexión
+        async function testConnection() {
+            console.log('🧪 BOTÓN TEST CONEXIÓN CLICKEADO');
+            showAlert('Probando conexión...', 'success');
+            
+            try {
+                const response = await fetch('/api/test');
+                const result = await response.json();
+                console.log('✅ Test exitoso:', result);
+                showAlert(`Conexión OK: ${result.message}`, 'success');
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showAlert(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Función para generar blog de prueba (local)
+        async function generateBlogMock() {
+            console.log('🎭 BOTÓN GENERAR BLOG DE PRUEBA CLICKEADO');
+            
+            const category = document.getElementById('category').value;
+            const customTopic = document.getElementById('customTopic').value.trim();
+
+            if (!category) {
+                showAlert('Por favor selecciona una categoría', 'error');
+                return;
+            }
+
+            console.log('📝 Categoría:', category);
+            console.log('🎯 Tema:', customTopic);
+
+            const loading = document.getElementById('loading');
+            const generateBtn = event.target;
+
+            generateBtn.disabled = true;
+            loading.classList.add('active');
+            showAlert('Generando blog de prueba...', 'success');
+
+            try {
+                const response = await fetch('/api/generate-blog-mock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: category,
+                        customTopic: customTopic || undefined
+                    })
+                });
+
+                console.log('📥 Respuesta:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Resultado:', result);
+
+                if (result.success && result.blog) {
+                    currentBlog = result.blog;
+                    displayBlogPreview(result.blog);
+                    showAlert('Blog de prueba generado exitosamente', 'success');
+                } else {
+                    throw new Error(result.error || 'Error generando blog de prueba');
+                }
+
+            } catch (error) {
+                console.error('❌ Error generando blog de prueba:', error);
+                showAlert(`Error: ${error.message}`, 'error');
+            } finally {
+                generateBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+
+        // Función para generar blog con IA real
+        async function generateBlog() {
+            console.log('🚀 BOTÓN GENERAR BLOG CON IA CLICKEADO');
+            
+            const category = document.getElementById('category').value;
+            const customTopic = document.getElementById('customTopic').value.trim();
+
+            if (!category) {
+                showAlert('Por favor selecciona una categoría', 'error');
+                return;
+            }
+
+            console.log('📝 Categoría:', category);
+            console.log('🎯 Tema:', customTopic);
+
+            const loading = document.getElementById('loading');
+            const generateBtn = event.target;
+
+            generateBtn.disabled = true;
+            loading.classList.add('active');
+            showAlert('Generando blog con IA (esto puede tomar 30-60 segundos)...', 'success');
+
+            try {
+                const response = await fetch('/api/generate-blog', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: category,
+                        customTopic: customTopic || undefined
+                    })
+                });
+
+                console.log('📥 Respuesta:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Error del servidor:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ Resultado:', result);
+
+                if (result.success && result.blog) {
+                    currentBlog = result.blog;
+                    displayBlogPreview(result.blog);
+                    showAlert('Blog generado exitosamente con IA', 'success');
+                } else {
+                    throw new Error(result.error || 'Error generando blog con IA');
+                }
+
+            } catch (error) {
+                console.error('❌ Error generando blog con IA:', error);
+                showAlert(`Error con IA: ${error.message}. Prueba el botón de "Blog de Prueba" para verificar el sistema.`, 'error');
+            } finally {
+                generateBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+
+        // Función para mostrar vista previa
+        function displayBlogPreview(blog) {
+            console.log('👀 Mostrando vista previa del blog');
+            
+            const previewContainer = document.getElementById('blogPreview');
+            const contentContainer = document.getElementById('previewContent');
+
+            // Convertir markdown básico a HTML
+            const htmlContent = blog.content
+                .replace(/#{3}\s(.*)/g, '<h3>$1</h3>')
+                .replace(/#{2}\s(.*)/g, '<h2>$1</h2>')
+                .replace(/#{1}\s(.*)/g, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^(.)/g, '<p>$1')
+                .replace(/(.)$/g, '$1</p>');
+
+            contentContainer.innerHTML = `
+                <div class="blog-title">${blog.title}</div>
+                <div style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">
+                    <span><i class="fas fa-calendar"></i> ${blog.published_at}</span> |
+                    <span><i class="fas fa-clock"></i> ${blog.readTime} min lectura</span> |
+                    <span><i class="fas fa-tag"></i> ${blog.category}</span>
+                </div>
+                <div class="blog-content">
+                    ${htmlContent}
+                </div>
+                <div style="margin-top: 1rem;">
+                    <strong>Excerpt:</strong>
+                    <p style="font-style: italic; color: #666;">${blog.excerpt}</p>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <strong>Tags:</strong>
+                    ${blog.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+            `;
+
+            previewContainer.classList.add('active');
+            document.getElementById('saveBtn').disabled = false;
+        }
+
+        // Función para guardar blog
+        async function saveBlog() {
+            console.log('💾 BOTÓN GUARDAR CLICKEADO');
+            
+            if (!currentBlog) {
+                showAlert('No hay blog para guardar', 'error');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            
+            showAlert('Guardando y desplegando blog...', 'success');
+
+            try {
+                const response = await fetch('/api/save-and-deploy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        blogData: currentBlog,
+                        images: [] // Por ahora sin imágenes
+                    })
+                });
+
+                const result = await response.json();
+                console.log('✅ Guardado:', result);
+
+                if (result.success) {
+                    showAlert(`Blog "${currentBlog.title}" guardado y desplegado exitosamente`, 'success');
+                    
+                    // Reset después de 3 segundos
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    throw new Error(result.error || 'Error guardando blog');
+                }
+
+            } catch (error) {
+                console.error('❌ Error guardando:', error);
+                showAlert(`Error guardando: ${error.message}`, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar y Desplegar Blog';
+            }
+        }
+
+        // Función para diagnosticar Vercel APIs
+        async function diagnoseVercel() {
+            console.log('🔍 DIAGNÓSTICO DE VERCEL INICIADO');
+            showAlert('Diagnosticando conexión con Vercel...', 'success');
+            
+            try {
+                const response = await fetch('/api/diagnose-vercel', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+                console.log('📊 Resultado del diagnóstico:', result);
+
+                if (result.success) {
+                    showAlert('Diagnóstico completado. Ver consola para detalles.', 'success');
+                    console.log('✅ URLs funcionales:', result.workingUrls);
+                    console.log('❌ URLs con errores:', result.errorUrls);
+                } else {
+                    throw new Error(result.error || 'Error en diagnóstico');
+                }
+
+            } catch (error) {
+                console.error('❌ Error en diagnóstico:', error);
+                showAlert(`Error en diagnóstico: ${error.message}`, 'error');
+            }
+        }
+
+        console.log('✅ Aplicación lista');
+        console.log('🔍 Funciones disponibles:', {
+            testConnection: typeof testConnection,
+            generateBlog: typeof generateBlog,
+            saveBlog: typeof saveBlog,
+            diagnoseVercel: typeof diagnoseVercel
+        });
+        
+        // Mostrar mensaje de bienvenida
+        setTimeout(() => {
+            showAlert('Sistema iniciado correctamente. Selecciona una categoría y genera tu blog.', 'success');
+        }, 1000);
+    </script>
+</body>
+</html>

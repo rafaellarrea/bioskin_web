@@ -1,9 +1,36 @@
 {
-  "lastUpdated": "2025-10-28T00:35:37.397Z",
-  "total": 2,
-  "organized": 2,
+  "lastUpdated": "2025-11-06T20:52:56.264Z",
+  "total": 3,
+  "organized": 3,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762462376264",
+      "title": "Radiofrecuencia Bipolar: Remodelación Facial de Alta Eficacia en BIOSKIN",
+      "slug": "radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T20:52:56.264Z",
+      "savedAt": "2025-11-06T20:52:56.264Z",
+      "readTime": 5,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702/index.json",
+        "images": "public/images/blog/radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702/",
+        "metadata": "src/data/blogs/radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
     {
       "id": "blog-1761610703382",
       "title": "Mesoterapia Facial: Un Tratamiento Estrella para una Piel Radiante",
