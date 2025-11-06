@@ -452,6 +452,9 @@ app.post('/api/save-and-deploy', async (req, res) => {
         }
       }
 
+      // Array para almacenar las URLs de las imágenes para insertar en el contenido
+      const imageUrls = [];
+
       for (let i = 0; i < images.length; i++) {
         const image = images[i];
         
@@ -466,6 +469,7 @@ app.post('/api/save-and-deploy', async (req, res) => {
         };
         
         structuredBlog.images.push(imageData);
+        imageUrls.push(imageUrl);
         
         // La primera imagen es la principal
         if (i === 0) {
@@ -474,6 +478,54 @@ app.post('/api/save-and-deploy', async (req, res) => {
         }
         
         console.log(`✅ Imagen referenciada: ${imageUrl}`);
+      }
+
+      // ✅ INSERTAR IMÁGENES EN EL CONTENIDO
+      if (imageUrls.length > 0) {
+        console.log('🖼️  Insertando imágenes en el contenido del blog...');
+        
+        // Insertar la primera imagen después del primer párrafo
+        if (imageUrls[0]) {
+          const imagenPrincipalHTML = `\n\n![Imagen principal del tratamiento](${imageUrls[0]})\n*Imagen: Ejemplo del tratamiento en BIOSKIN*\n\n`;
+          
+          // Buscar el final del primer párrafo (después del primer ## o primer párrafo largo)
+          const contentLines = structuredBlog.content.split('\n');
+          let insertIndex = -1;
+          
+          for (let i = 0; i < contentLines.length; i++) {
+            const line = contentLines[i].trim();
+            // Insertar después del primer heading grande o después de las primeras 3-4 líneas
+            if (line.startsWith('##') && i > 2) {
+              insertIndex = i;
+              break;
+            } else if (i === 3 && line.length > 50) {
+              insertIndex = i + 1;
+              break;
+            }
+          }
+          
+          if (insertIndex === -1) insertIndex = Math.min(4, Math.floor(contentLines.length / 3));
+          
+          contentLines.splice(insertIndex, 0, imagenPrincipalHTML);
+          structuredBlog.content = contentLines.join('\n');
+          console.log(`📸 Imagen principal insertada en línea ${insertIndex}`);
+        }
+
+        // Insertar imágenes adicionales en el medio y final del contenido
+        if (imageUrls.length > 1) {
+          const contentSections = structuredBlog.content.split('\n## ');
+          
+          for (let i = 1; i < imageUrls.length && i < 3; i++) {
+            const imageHTML = `\n![Imagen ${i + 1} del tratamiento](${imageUrls[i]})\n*Imagen: Detalles del procedimiento*\n`;
+            
+            if (contentSections.length > i + 1) {
+              contentSections[i + 1] = imageHTML + '\n## ' + contentSections[i + 1];
+              console.log(`📸 Imagen ${i + 1} insertada en sección ${i + 1}`);
+            }
+          }
+          
+          structuredBlog.content = contentSections.join('\n## ');
+        }
       }
     }
 
