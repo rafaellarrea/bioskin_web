@@ -94,22 +94,50 @@ FORMATO: Solo lista numerada con títulos específicos y atractivos.`;
         const numberedLines = allLines.filter(line => line.match(/^\d+\./));
         console.log('🔢 Líneas que empiezan con número:', numberedLines.length, numberedLines);
         
-        const suggestions = numberedLines
+        let suggestions = numberedLines
           .map(line => line.replace(/^\d+\.\s*/, '').trim())  // Remover numeración
           .filter(suggestion => suggestion.length > 10);  // Filtrar líneas muy cortas
           
-        console.log('✅ Sugerencias finales procesadas:', suggestions.length, suggestions);
+        console.log('✅ Sugerencias procesadas inicial:', suggestions.length, suggestions);
+        
+        // ✅ GARANTIZAR 8 SUGERENCIAS: Si hay menos de 8, generar las faltantes
+        if (suggestions.length < 8) {
+          console.log(`⚠️ Solo se generaron ${suggestions.length} sugerencias, agregando más...`);
+          
+          const fallbackSuggestions = [
+            `Tendencias 2024 en ${category}: Lo que Debes Saber en BIOSKIN`,
+            `Tecnologías Emergentes para ${category} en BIOSKIN`,
+            `Casos de Éxito: Transformaciones Reales en ${category} en BIOSKIN`,
+            `Guía Completa de ${category}: Procedimientos Paso a Paso en BIOSKIN`,
+            `Mitos vs Realidades en ${category}: La Verdad Según BIOSKIN`,
+            `Seguridad Primero: Protocolos de ${category} en BIOSKIN`,
+            `El Futuro de ${category}: Innovaciones que Llegan a BIOSKIN`,
+            `Personalización en ${category}: Tratamientos a Medida en BIOSKIN`
+          ];
+          
+          // Agregar sugerencias faltantes hasta completar 8
+          while (suggestions.length < 8 && fallbackSuggestions.length > 0) {
+            const randomIndex = Math.floor(Math.random() * fallbackSuggestions.length);
+            const fallback = fallbackSuggestions.splice(randomIndex, 1)[0];
+            suggestions.push(fallback);
+          }
+        }
+        
+        // Asegurar exactamente 8 sugerencias
+        suggestions = suggestions.slice(0, 8);
+        console.log('🎯 Sugerencias finales (8 garantizadas):', suggestions.length, suggestions);
 
         return res.status(200).json({
           success: true,
-          suggestions: suggestions.slice(0, 8),  // Máximo 8 sugerencias
+          suggestions: suggestions,  // Ya garantizamos 8 sugerencias
           category: category || blogType,
           source: 'openai-gpt4',
           generated_at: new Date().toISOString(),
           endpoint: '/api/ai-blog/generate-production',
           debug: {
             rawResponse: suggestionsText,
-            processedCount: suggestions.length
+            processedCount: suggestions.length,
+            guaranteedEight: true
           }
         });
 
