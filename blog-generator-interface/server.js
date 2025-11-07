@@ -294,43 +294,38 @@ app.post('/api/suggest-topics', async (req, res) => {
       generateSuggestions: true,
       requestType: 'topic_suggestions_only',
       // ✅ PROMPT ESPECÍFICO PARA IA: Generar sugerencias originales
-      customPrompt: `INSTRUCCIÓN CRÍTICA: Genera EXACTAMENTE 8 sugerencias de temas para blogs de ${category} en medicina estética.
+      customPrompt: `TAREA: Lista exactamente 8 títulos para blog de ${category}
 
-FORMATO OBLIGATORIO:
-1. [Título específico]
-2. [Título específico]
-3. [Título específico]
-4. [Título específico]
-5. [Título específico]
-6. [Título específico]
-7. [Título específico]
-8. [Título específico]
+FORMATO REQUERIDO (OBLIGATORIO):
+1. [título]
+2. [título]
+3. [título]
+4. [título]
+5. [título]
+6. [título]
+7. [título]
+8. [título]
 
-CRITERIOS PARA CADA TÍTULO:
-- Innovador y específico para BIOSKIN
-- Incluye tendencias 2024-2025
-- Combina diferentes enfoques: preventivos, correctivos, regenerativos
-- Dirigido a diferentes edades (25-60 años)
-- Aspectos de seguridad y regulación
-- Temas que generen curiosidad e interés
+TEMAS para ${category}:
+${category === 'medico-estetico' ? 
+`- Rejuvenecimiento facial avanzado
+- Contorno corporal no invasivo  
+- Medicina regenerativa
+- Bioestimuladores modernos
+- Tecnologías láser 2024
+- Tratamientos preventivos
+- Medicina estética íntima
+- Combinación de procedimientos` : 
+`- Equipos médicos estéticos 2024
+- Inteligencia artificial médica
+- Calibración y mantenimiento
+- Normativas internacionales
+- Bioingeniería aplicada
+- Nanotecnología médica
+- Realidad aumentada
+- Física de tratamientos`}
 
-${category === 'medico-estetico' ? `
-MEDICINA ESTÉTICA - ENFOQUE:
-- Tratamientos faciales, corporales e íntimos
-- Medicina regenerativa y bioestimuladores
-- Tecnologías no invasivas
-- Mitos vs realidades
-- Casos especiales por tipo de piel/edad
-` : `
-TÉCNICO - ENFOQUE:
-- Equipos y tecnologías médicas avanzadas
-- IA y machine learning en estética
-- Bioingeniería y nanotecnología
-- Normativas y calibración
-- Futuro tecnológico en medicina estética
-`}
-
-RESPUESTA: Solo la lista numerada del 1 al 8, sin texto adicional:`
+Responde SOLO con la lista numerada 1-8:`
 1. [Título innovador y específico]
 2. [Título innovador y específico]
 ...

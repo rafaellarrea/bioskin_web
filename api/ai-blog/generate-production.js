@@ -71,15 +71,15 @@ FORMATO: Solo lista numerada con títulos específicos y atractivos.`;
           messages: [
             {
               role: "system",
-              content: "Eres un experto en medicina estética que genera ideas de contenido originales e innovadoras."
+              content: "Eres un experto en medicina estética. SIEMPRE generas EXACTAMENTE 8 sugerencias numeradas del 1 al 8. No devuelvas más ni menos de 8 elementos. Cada sugerencia debe ser un título específico e innovador."
             },
             {
               role: "user",
               content: suggestionsPrompt
             }
           ],
-          max_tokens: 800,
-          temperature: 0.8  // Más creatividad para sugerencias
+          max_tokens: 1200,  // ✅ Aumentado para asegurar 8 sugerencias completas
+          temperature: 0.7   // ✅ Reducido para más consistencia
         });
 
         const suggestionsText = completion.choices[0].message.content;
