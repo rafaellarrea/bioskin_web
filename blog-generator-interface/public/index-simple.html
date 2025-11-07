@@ -775,36 +775,59 @@ Sistema iniciado - Listo para generar blogs...
             }
         }
 
-        // ✅ NUEVA FUNCIÓN: Limpiar contenido Markdown para el editor
+        // ✅ FUNCIÓN CORREGIDA: Limpiar contenido Markdown para el editor
         function cleanMarkdownForEditor(content) {
             if (!content) return '';
             
             return content
-                // Convertir headers # a texto plano con formato
-                .replace(/#{1}\s*(.*)/g, '$1\n' + '='.repeat(50))
-                .replace(/#{2}\s*(.*)/g, '\n$1\n' + '-'.repeat(30))
-                .replace(/#{3}\s*(.*)/g, '\n$1\n')
-                // Limpiar negritas pero mantener énfasis
-                .replace(/\*\*(.*?)\*\*/g, '>>> $1 <<<')
-                // Limpiar cursivas
-                .replace(/\*(.*?)\*/g, '$1')
-                // Mejorar espaciado
-                .replace(/\n\n/g, '\n\n')
+                // Eliminar símbolos problemáticos ANTES de mostrar en editor
+                .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // Convertir >>> xxx <<< a **xxx**
+                .replace(/<<<\s*(.*?)\s*>>>/g, '**$1**')  // Convertir <<< xxx >>> a **xxx**
+                .replace(/={20,}/g, '')  // Eliminar líneas largas de equals
+                .replace(/-{20,}/g, '')  // Eliminar líneas largas de guiones
+                
+                // Limpiar títulos mal formateados
+                .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
+                .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
+                .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
+                
+                // Limpiar espacios y saltos excesivos
+                .replace(/\n\n\n+/g, '\n\n')  // Múltiples saltos → doble salto
+                .replace(/[ ]+$/gm, '')  // Espacios al final de líneas
+                .replace(/^\s+$/gm, '')  // Líneas solo con espacios
+                
+                // Mantener formato markdown válido
+                .replace(/\*{3,}/g, '**')  // *** o más → **
+                .replace(/\*\*\s*\*\*/g, '')  // ** ** vacíos
+                
                 .trim();
         }
 
-        // ✅ NUEVA FUNCIÓN: Convertir contenido del editor de vuelta a Markdown
+        // ✅ FUNCIÓN CORREGIDA: Convertir contenido del editor de vuelta a Markdown limpio
         function convertEditorToMarkdown(content) {
             if (!content) return '';
             
             return content
-                // Convertir títulos con = de vuelta a #
-                .replace(/^(.*)\n={50}$/gm, '# $1')
-                .replace(/^(.*)\n-{30}$/gm, '## $1')
-                // Convertir énfasis de vuelta a negritas
-                .replace(/>>> (.*?) <<</g, '**$1**')
-                // Asegurar espaciado adecuado
-                .replace(/\n\n\n+/g, '\n\n')
+                // Limpiar símbolos problemáticos que puedan haberse introducido
+                .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // >>> texto <<< → **texto**
+                .replace(/<<<\s*(.*?)\s*>>>/g, '**$1**')  // <<< texto >>> → **texto**
+                .replace(/={20,}/g, '')  // Eliminar líneas de equals
+                .replace(/-{20,}/g, '')  // Eliminar líneas de guiones
+                
+                // Asegurar formato de títulos correcto
+                .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
+                .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
+                .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
+                
+                // Limpiar espaciado
+                .replace(/\n\n\n+/g, '\n\n')  // Múltiples saltos → doble salto
+                .replace(/[ ]+$/gm, '')  // Espacios al final de líneas
+                .replace(/^\s+$/gm, '')  // Líneas solo con espacios
+                
+                // Mantener formato markdown correcto
+                .replace(/\*{3,}/g, '**')  // *** o más → **
+                .replace(/\*\*\s*\*\*/g, '')  // ** ** vacíos
+                
                 .trim();
         }
 
@@ -1058,7 +1081,8 @@ Sistema iniciado - Listo para generar blogs...
                 ...currentBlog,
                 title: document.getElementById('editTitle').value || currentBlog.title,
                 excerpt: document.getElementById('editExcerpt').value || currentBlog.excerpt,
-                content: document.getElementById('editContent').value || currentBlog.content,
+                // ✅ IMPORTANTE: Limpiar contenido antes de previsualizar
+                content: convertEditorToMarkdown(document.getElementById('editContent').value) || currentBlog.content,
                 category: document.getElementById('editCategory').value || currentBlog.category,
                 author: document.getElementById('editAuthor').value || currentBlog.author,
                 featured: document.getElementById('editFeatured').checked
