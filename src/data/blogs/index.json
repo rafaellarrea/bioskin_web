@@ -1,9 +1,44 @@
 {
-  "lastUpdated": "2025-11-06T23:58:58.282Z",
-  "total": 11,
-  "organized": 11,
+  "lastUpdated": "2025-11-07T00:11:47.606Z",
+  "total": 12,
+  "organized": 12,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762474307606",
+      "title": "Plasma Rico en Plaquetas (PRP): La Terapia Regenerativa que Transforma la Piel",
+      "slug": "plasma-1762474307525",
+      "category": "tecnico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-07T00:11:47.606Z",
+      "savedAt": "2025-11-07T00:11:47.606Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tecnología médica",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/plasma-1762474307525/index.json",
+        "images": "public/images/blog/plasma-1762474307525/",
+        "metadata": "src/data/blogs/plasma-1762474307525/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/plasma-1762474307525/img-1762474307572.png",
+          "name": "4993aea9-107f-471e-ab01-2d77ed3c2588.png",
+          "id": 1762474307609,
+          "blogSlug": "plasma-1762474307525",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
     {
       "id": "blog-1762473538282",
       "title": "Cuidado de la Piel Post-Tratamiento: Cómo Maximizar Resultados en BIOSKIN",
