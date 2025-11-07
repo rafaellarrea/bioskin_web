@@ -294,35 +294,43 @@ app.post('/api/suggest-topics', async (req, res) => {
       generateSuggestions: true,
       requestType: 'topic_suggestions_only',
       // ✅ PROMPT ESPECÍFICO PARA IA: Generar sugerencias originales
-      customPrompt: `Genera EXACTAMENTE 8 sugerencias de temas ORIGINALES e INNOVADORES para blogs de ${category} en medicina estética.
+      customPrompt: `INSTRUCCIÓN CRÍTICA: Genera EXACTAMENTE 8 sugerencias de temas para blogs de ${category} en medicina estética.
 
-CRITERIOS OBLIGATORIOS:
-- Temas 100% ORIGINALES, evita lo obvio y común
-- Incluye tendencias 2024-2025 y tecnologías emergentes
-- Mezcla diferentes enfoques: preventivos, correctivos, regenerativos
-- Aborda problemas específicos de diferentes edades (25-60 años)
-- Incluye comparativas entre tecnologías modernas
-- Considera aspectos de seguridad, regulación y ética
-- Temas que generen interés y curiosidad
+FORMATO OBLIGATORIO:
+1. [Título específico]
+2. [Título específico]
+3. [Título específico]
+4. [Título específico]
+5. [Título específico]
+6. [Título específico]
+7. [Título específico]
+8. [Título específico]
+
+CRITERIOS PARA CADA TÍTULO:
+- Innovador y específico para BIOSKIN
+- Incluye tendencias 2024-2025
+- Combina diferentes enfoques: preventivos, correctivos, regenerativos
+- Dirigido a diferentes edades (25-60 años)
+- Aspectos de seguridad y regulación
+- Temas que generen curiosidad e interés
 
 ${category === 'medico-estetico' ? `
-PARA MEDICINA ESTÉTICA:
-- Combina facial, corporal, íntimo, preventivo
-- Incluye medicina regenerativa, bioestimuladores, tecnologías no invasivas
-- Aborda mitos, realidades, casos especiales
-- Considera diferentes tipos de piel, edades, géneros
+MEDICINA ESTÉTICA - ENFOQUE:
+- Tratamientos faciales, corporales e íntimos
+- Medicina regenerativa y bioestimuladores
+- Tecnologías no invasivas
+- Mitos vs realidades
+- Casos especiales por tipo de piel/edad
 ` : `
-PARA TÉCNICO:
-- Comparativas de equipos y tecnologías 2024-2025
-- Innovaciones en IA, machine learning, realidad aumentada
-- Física aplicada, bioingeniería, nanotecnología
-- Seguridad, calibración, normativas internacionales
-- Futuro de la medicina estética tecnológica
+TÉCNICO - ENFOQUE:
+- Equipos y tecnologías médicas avanzadas
+- IA y machine learning en estética
+- Bioingeniería y nanotecnología
+- Normativas y calibración
+- Futuro tecnológico en medicina estética
 `}
 
-FORMATO REQUERIDO: Solo devolver una lista numerada con 8 títulos atractivos y específicos, nada más.
-
-Ejemplo:
+RESPUESTA: Solo la lista numerada del 1 al 8, sin texto adicional:`
 1. [Título innovador y específico]
 2. [Título innovador y específico]
 ...

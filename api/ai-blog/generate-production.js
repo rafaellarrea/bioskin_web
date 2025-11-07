@@ -84,12 +84,21 @@ FORMATO: Solo lista numerada con títulos específicos y atractivos.`;
 
         const suggestionsText = completion.choices[0].message.content;
         
+        // Debug: Log de la respuesta completa de OpenAI
+        console.log('🔍 Respuesta completa de OpenAI:', suggestionsText);
+        
         // Parsear las sugerencias de la respuesta
-        const suggestions = suggestionsText
-          .split('\n')
-          .filter(line => line.match(/^\d+\./))  // Solo líneas que empiecen con número
+        const allLines = suggestionsText.split('\n');
+        console.log('📋 Total de líneas recibidas:', allLines.length);
+        
+        const numberedLines = allLines.filter(line => line.match(/^\d+\./));
+        console.log('🔢 Líneas que empiezan con número:', numberedLines.length, numberedLines);
+        
+        const suggestions = numberedLines
           .map(line => line.replace(/^\d+\.\s*/, '').trim())  // Remover numeración
           .filter(suggestion => suggestion.length > 10);  // Filtrar líneas muy cortas
+          
+        console.log('✅ Sugerencias finales procesadas:', suggestions.length, suggestions);
 
         return res.status(200).json({
           success: true,
@@ -97,7 +106,11 @@ FORMATO: Solo lista numerada con títulos específicos y atractivos.`;
           category: category || blogType,
           source: 'openai-gpt4',
           generated_at: new Date().toISOString(),
-          endpoint: '/api/ai-blog/generate-production'
+          endpoint: '/api/ai-blog/generate-production',
+          debug: {
+            rawResponse: suggestionsText,
+            processedCount: suggestions.length
+          }
         });
 
       } catch (error) {
