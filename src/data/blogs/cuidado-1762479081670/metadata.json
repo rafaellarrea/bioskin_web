@@ -1,6 +1,32 @@
 {
+  "blogId": "blog-1762479081757",
+  "slug": "cuidado-1762479081670",
   "createdAt": "2025-11-07T01:31:21.757Z",
   "updatedAt": "2025-11-07T01:31:21.757Z",
-  "version": "1.0",
-  "structure": "organized"
+  "status": "published",
+  "version": "1.0.0",
+  "structure": "organized",
+  "seoMetadata": {
+    "title": "Cuidado Personalizado con IA en Medicina Estética | BIOSKIN",
+    "description": "Descubre cómo la inteligencia artificial está revolucionando los tratamientos estéticos personalizados en BIOSKIN. Tecnología avanzada para resultados óptimos.",
+    "keywords": "inteligencia artificial, medicina estética, tratamientos personalizados, tecnología médica, BIOSKIN",
+    "canonicalUrl": "/blog/cuidado-1762479081670"
+  },
+  "socialMedia": {
+    "ogTitle": "Inteligencia Artificial en Medicina Estética | BIOSKIN",
+    "ogDescription": "La IA está transformando los tratamientos estéticos con diagnósticos precisos y cuidado personalizado. Conoce más en BIOSKIN.",
+    "ogImage": "/images/blog/cuidado-1762479081670/img-1762479081694.png",
+    "twitterCard": "summary_large_image"
+  },
+  "analytics": {
+    "estimatedViews": 0,
+    "shareCount": 0,
+    "readingTime": 6
+  },
+  "relatedTopics": [
+    "diagnóstico digital",
+    "tecnología médica avanzada",
+    "tratamientos personalizados",
+    "medicina estética moderna"
+  ]
 }

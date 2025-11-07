@@ -1,6 +1,32 @@
 {
+  "blogId": "blog-1762473538282",
+  "slug": "cuidado-1762473538084",
   "createdAt": "2025-11-06T23:58:58.282Z",
   "updatedAt": "2025-11-06T23:58:58.282Z",
-  "version": "1.0",
-  "structure": "organized"
+  "status": "published",
+  "version": "1.0.0",
+  "structure": "organized",
+  "seoMetadata": {
+    "title": "Cuidado Post-Tratamiento: Maximizar Resultados Estéticos | BIOSKIN",
+    "description": "Aprende cómo maximizar los resultados de tus tratamientos estéticos con los mejores cuidados post-tratamiento en BIOSKIN. Guía completa de recuperación.",
+    "keywords": "cuidado post-tratamiento, medicina estética, recuperación de piel, protocolo de cuidados, BIOSKIN",
+    "canonicalUrl": "/blog/cuidado-1762473538084"
+  },
+  "socialMedia": {
+    "ogTitle": "Cuidado Post-Tratamiento para Maximizar Resultados | BIOSKIN",
+    "ogDescription": "Descubre cómo cuidar tu piel después de un tratamiento estético para obtener los mejores resultados posibles.",
+    "ogImage": "/images/blog/cuidado-1762473538084/img-1762473538250.png",
+    "twitterCard": "summary_large_image"
+  },
+  "analytics": {
+    "estimatedViews": 0,
+    "shareCount": 0,
+    "readingTime": 5
+  },
+  "relatedTopics": [
+    "cuidados post-procedimiento",
+    "recuperación estética",
+    "protocolos de cuidado",
+    "maximizar resultados tratamientos"
+  ]
 }
