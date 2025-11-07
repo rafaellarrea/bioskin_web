@@ -1,9 +1,44 @@
 {
-  "lastUpdated": "2025-11-07T00:11:47.606Z",
-  "total": 12,
-  "organized": 12,
+  "lastUpdated": "2025-11-07T01:31:21.757Z",
+  "total": 13,
+  "organized": 13,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762479081757",
+      "title": "Cuidado Personalizado: Cómo la Inteligencia Artificial Está Transformando los Tratamientos Estéticos",
+      "slug": "cuidado-1762479081670",
+      "category": "tecnico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-07T01:31:21.757Z",
+      "savedAt": "2025-11-07T01:31:21.757Z",
+      "readTime": 5,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tecnología médica",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/cuidado-1762479081670/index.json",
+        "images": "public/images/blog/cuidado-1762479081670/",
+        "metadata": "src/data/blogs/cuidado-1762479081670/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/cuidado-1762479081670/img-1762479081694.png",
+          "name": "6302de44-ee52-4c5b-aeb8-bbc5d2a3a924.png",
+          "id": 1762479081759,
+          "blogSlug": "cuidado-1762479081670",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
     {
       "id": "blog-1762474307606",
       "title": "Plasma Rico en Plaquetas (PRP): La Terapia Regenerativa que Transforma la Piel",

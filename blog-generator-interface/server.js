@@ -326,10 +326,6 @@ ${category === 'medico-estetico' ?
 - Física de tratamientos`}
 
 Responde SOLO con la lista numerada 1-8:`
-1. [Título innovador y específico]
-2. [Título innovador y específico]
-...
-8. [Título innovador y específico]`
     };
     
     let lastError = null;
