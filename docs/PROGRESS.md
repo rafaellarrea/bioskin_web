@@ -109,6 +109,9 @@ api/sendEmail.js             # Emails + WhatsApp
 - ✅ Oct 16 Integración OpenAI para generación automática contenido
 - ✅ Oct 16 Base datos SQLite blogs con múltiples fuentes datos
 - ✅ Oct 20 Gestión completa blogs todas las fuentes (localStorage + servidor)
+- ✅ Nov 6 Sistema de formateo automático del contenido generado
+- ✅ Nov 6 Mejora en gestión de imágenes y copia al proyecto principal
+- ✅ Nov 6 Post-procesamiento del contenido de IA para formato correcto
 
 **Archivos clave**:
 ```

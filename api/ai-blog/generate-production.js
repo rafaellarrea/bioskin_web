@@ -184,11 +184,24 @@ ESTRUCTURA REQUERIDA (SEGUIR EXACTAMENTE):
 
 **¿Interesado en conocer más sobre nuestros tratamientos [nombre del tratamiento]? Agenda tu consulta de evaluación sin costo.**
 
+FORMATO DE RESPUESTA REQUERIDO:
+Devuelve contenido en Markdown limpio y bien estructurado:
+
+- Usar exactamente la estructura con títulos ## y ###
+- NO incluir líneas de separación como === o ---
+- NO usar símbolos >>> <<< o similares  
+- Usar **negritas** para términos importantes
+- Usar listas con - para viñetas
+- Párrafos separados con doble salto de línea
+- Call to action al final con formato destacado
+
 LONGITUD: Exactamente 800-1200 palabras
 TONO: Profesional, técnico pero accesible, educativo
 INCLUIR: Datos específicos, porcentajes, parámetros técnicos, protocolos detallados
 IMPORTANTE: Seguir EXACTAMENTE la estructura con subtítulos y formato de listas
-FORMATO: Usar **negritas** para términos clave y listas con viñetas para detalles`
+FORMATO: Usar **negritas** para términos clave y listas con viñetas para detalles
+
+ENTREGAR CONTENIDO LIMPIO Y LISTO PARA PUBLICAR - Sin símbolos extraños ni formato problemático.`
       },
       
       'tecnico': {
@@ -324,11 +337,24 @@ ESTRUCTURA REQUERIDA (SEGUIR EXACTAMENTE):
 
 **¿Listo para experimentar [beneficio principal de la tecnología]? Agenda tu consulta especializada y descubre cómo esta tecnología avanzada puede [beneficio específico].**
 
+FORMATO DE RESPUESTA REQUERIDO:
+Devuelve contenido en Markdown limpio y bien estructurado:
+
+- Usar exactamente la estructura con títulos ## y ###
+- NO incluir líneas de separación como === o ---
+- NO usar símbolos >>> <<< o similares  
+- Usar **negritas** para términos importantes
+- Usar listas con - para viñetas
+- Párrafos separados con doble salto de línea
+- Call to action al final con formato destacado
+
 LONGITUD: Exactamente 1000-1400 palabras
 TONO: Técnico profesional, detallado, científico pero accesible
 INCLUIR: Especificaciones técnicas exactas, parámetros numéricos, protocolos detallados, métricas de eficacia
 IMPORTANTE: Seguir EXACTAMENTE la estructura con subtítulos técnicos específicos
-FORMATO: Usar **negritas** para términos técnicos clave y especificaciones numéricas`
+FORMATO: Usar **negritas** para términos técnicos clave y especificaciones numéricas
+
+ENTREGAR CONTENIDO LIMPIO Y LISTO PARA PUBLICAR - Sin símbolos extraños ni formato problemático.`
       }
     };
 
@@ -357,24 +383,58 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
 
     const content = completion.choices[0].message.content;
     
-    // ✅ NUEVO: Extraer tanto descripción visual como tags generados por IA
+    // ✅ NUEVA FUNCIÓN: Post-procesamiento del contenido generado por IA
+    function postProcessAIContent(content) {
+      return content
+        // Limpiar metadatos de la respuesta
+        .replace(/IMAGEN_BUSQUEDA:\s*.+$/m, '')
+        .replace(/TAGS_BLOG:\s*.+$/m, '')
+        
+        // Corregir títulos mal formateados
+        .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
+        .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
+        .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
+        
+        // Eliminar símbolos problemáticos sin tocar markdown válido
+        .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // >>> texto <<< → **texto**
+        .replace(/<<<\s*(.*?)\s*>>>/g, '**$1**')  // <<< texto >>> → **texto**
+        .replace(/={20,}/g, '')  // Líneas largas de equals
+        .replace(/-{20,}/g, '')  // Líneas largas de guiones
+        
+        // Preservar markdown válido
+        .replace(/\*{3,}/g, '**')  // *** o más → **
+        .replace(/\*\*\s*\*\*/g, '')  // ** ** vacíos
+        
+        // Limpiar espacios y saltos
+        .replace(/\n\n\n+/g, '\n\n')  // Múltiples saltos → doble salto
+        .replace(/[ ]+$/gm, '')  // Espacios al final de líneas
+        .replace(/^\s+$/gm, '')  // Líneas solo con espacios
+        
+        // Asegurar formato correcto de listas y negritas
+        .replace(/^- \*\*(.*?)\*\*\s*:/gm, '- **$1**:')  // Formato de listas
+        .replace(/^• /gm, '- ')  // Bullet points → guiones
+        .replace(/^→ /gm, '- ')  // Flechas → guiones
+        
+        .trim();
+    }
+    
+    // ✅ EXTRAER METADATOS Y LIMPIAR CONTENIDO
+    // ✅ EXTRAER METADATOS Y LIMPIAR CONTENIDO
     let visualDescription = '';
     let aiGeneratedTags = [];
-    let cleanContent = content;
+    let cleanContent = postProcessAIContent(content);  // ✅ Usar función de post-procesamiento
     
-    // Extraer descripción visual para imagen
+    // Extraer descripción visual para imagen (antes del post-procesamiento)
     const imageMatch = content.match(/IMAGEN_BUSQUEDA:\s*(.+)$/m);
     if (imageMatch) {
       visualDescription = imageMatch[1].trim();
-      cleanContent = cleanContent.replace(/IMAGEN_BUSQUEDA:\s*.+$/m, '').trim();
     }
     
-    // ✅ NUEVO: Extraer tags generados por IA
+    // ✅ EXTRAER TAGS GENERADOS POR IA (antes del post-procesamiento)
     const tagsMatch = content.match(/TAGS_BLOG:\s*(.+)$/m);
     if (tagsMatch) {
       const tagsString = tagsMatch[1].trim();
       aiGeneratedTags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-      cleanContent = cleanContent.replace(/TAGS_BLOG:\s*.+$/m, '').trim();
     }
     
     // Si no se generó descripción visual, crear una basada en el tema

@@ -39,18 +39,42 @@ function shortenSlug(slug, maxLength = 30) {  // Reducido de 60 a 30
 // Configuración de multer para subida de imágenes
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '..', 'public', 'images', 'blog');
+    // ✅ MEJORAR: Crear directorio específico del blog si se proporciona blogSlug
+    const { blogSlug } = req.body || {};
+    
+    let uploadPath;
+    if (blogSlug) {
+      // Crear directorio específico para el blog
+      uploadPath = path.join(__dirname, 'public', 'images', 'blog', blogSlug);
+    } else {
+      // Fallback al directorio general
+      uploadPath = path.join(__dirname, 'public', 'images', 'blog');
+    }
+    
     try {
       await fsPromises.mkdir(uploadPath, { recursive: true });
+      console.log('📁 Directorio de imágenes creado:', uploadPath);
       cb(null, uploadPath);
     } catch (error) {
+      console.error('❌ Error creando directorio:', error);
       cb(error);
     }
   },
   filename: (req, file, cb) => {
     const timestamp = Date.now();
-    const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '-');
-    cb(null, `blog-${timestamp}-${cleanName}`);
+    const extension = path.extname(file.originalname).toLowerCase();
+    
+    // ✅ MEJORAR: Generar nombre más descriptivo y compatible
+    const baseName = file.originalname
+      .replace(extension, '')
+      .replace(/[^a-zA-Z0-9]/g, '-')
+      .toLowerCase()
+      .substring(0, 20);
+    
+    const finalName = `img-${timestamp}${extension}`;
+    console.log('📸 Nombre de imagen generado:', finalName);
+    
+    cb(null, finalName);
   }
 });
 
@@ -198,37 +222,49 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'blogSlug requerido' });
     }
 
-    // ✅ CORREGIDO: Usar estructura correcta /images/blog/[slug]/[filename]
-    const blogImagesDir = path.join(process.cwd(), 'public', 'images', 'blog', blogSlug);
+    console.log('📸 Imagen subida:', {
+      originalName: req.file.originalname,
+      filename: req.file.filename,
+      path: req.file.path,
+      size: req.file.size,
+      blogSlug: blogSlug
+    });
+
+    // ✅ VERIFICAR: La imagen ya debería estar en el lugar correcto
+    const finalPath = req.file.path;
+    const imageFilename = req.file.filename;
     
-    // Crear directorio si no existe
-    if (!fs.existsSync(blogImagesDir)) {
-      fs.mkdirSync(blogImagesDir, { recursive: true });
+    // URL final de la imagen relativa al proyecto
+    const imageUrl = `/images/blog/${blogSlug}/${imageFilename}`;
+    
+    console.log(`📸 Imagen guardada en: ${finalPath}`);
+    console.log(`🔗 URL de la imagen: ${imageUrl}`);
+    
+    // ✅ COPIAR INMEDIATAMENTE AL PROYECTO PRINCIPAL
+    try {
+      const mainProjectImageDir = path.join(__dirname, '..', 'public', 'images', 'blog', blogSlug);
+      await fsPromises.mkdir(mainProjectImageDir, { recursive: true });
+      
+      const mainProjectImagePath = path.join(mainProjectImageDir, imageFilename);
+      await fsPromises.copyFile(finalPath, mainProjectImagePath);
+      
+      console.log(`📦 Imagen copiada al proyecto principal: ${mainProjectImagePath}`);
+    } catch (copyError) {
+      console.error('⚠️ Error copiando al proyecto principal:', copyError.message);
+      // No fallar la subida por esto
     }
-    
-    // ✅ Generar nombre corto para evitar errores de Git en Windows
-    const timestamp = Date.now();
-    const extension = path.extname(req.file.originalname);
-    // Usar solo 'img' + timestamp para nombres ultra-cortos
-    const newFileName = `img-${timestamp}${extension}`;
-    
-    // Mover archivo a la ubicación correcta
-    const finalPath = path.join(blogImagesDir, newFileName);
-    fs.renameSync(req.file.path, finalPath);
-    
-    // URL final de la imagen
-    const imageUrl = `/images/blog/${blogSlug}/${newFileName}`;
-    
-    console.log(`📸 Imagen guardada: ${imageUrl}`);
     
     res.json({
       success: true,
       imageUrl,
-      filename: newFileName,
+      filename: imageFilename,
       blogSlug,
-      path: `/images/blog/${blogSlug}/${newFileName}`,
+      path: imageUrl,
       originalName: req.file.originalname,
-      id: timestamp
+      id: Date.now(),
+      size: req.file.size,
+      uploadPath: finalPath,
+      copiedToMain: true
     });
 
   } catch (error) {
@@ -395,21 +431,42 @@ app.post('/api/save-and-deploy', async (req, res) => {
     const blogId = `blog-${Date.now()}`;
     const currentDate = new Date().toISOString();
     
+    // ✅ NUEVA FUNCIÓN: Formatear contenido correctamente
+    function formatBlogContent(content) {
+      return content
+        // Corregir títulos mal formateados
+        .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
+        .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
+        .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
+        
+        // Limpiar líneas de separación problemáticas
+        .replace(/\n-{20,}\n/g, '\n\n')  // Líneas de guiones excesivas
+        .replace(/\n={20,}\n/g, '\n\n')  // Líneas de equals excesivas
+        .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // Convertir >>> texto <<< a **texto**
+        
+        // Mantener formato markdown correcto (NO eliminar asteriscos importantes)
+        .replace(/\*{3,}/g, '**')  // Convertir *** o más a **
+        .replace(/\*\*\s*\*\*/g, '')  // Eliminar ** ** vacíos
+        
+        // Limpiar espacios y saltos de línea excesivos
+        .replace(/\n\n\n+/g, '\n\n')  // Reducir múltiples saltos
+        .replace(/[ ]+$/gm, '')  // Eliminar espacios al final de líneas
+        .replace(/^[ ]+/gm, '')  // Eliminar espacios al inicio de líneas (excepto listas)
+        .replace(/^[\t]+/gm, '')  // Eliminar tabs al inicio
+        
+        // Asegurar formato correcto de listas
+        .replace(/^- \*\*(.*?)\*\*:/gm, '- **$1**:')  // Mantener formato de listas con negritas
+        .replace(/^• \*\*(.*?)\*\*:/gm, '- **$1**:')  // Convertir • a -
+        
+        .trim();
+    }
+    
     const structuredBlog = {
       id: blogId,
       title: blogData.title,
       slug: blogData.slug,
       excerpt: blogData.excerpt,
-      content: blogData.content
-        .replace(/# # /g, '## ')  // Corregir títulos duplicados
-        .replace(/# -+/g, '## ')  // Corregir títulos con guiones
-        .replace(/\n-{30}\n/g, '\n')  // Eliminar líneas de guiones
-        .replace(/\n={50}\n/g, '\n')  // Eliminar líneas de equals
-        .replace(/\*\*(.*?)\*\*/g, '$1')  // Eliminar ** de texto en negrita
-        .replace(/\*(.*?)\*/g, '$1')  // Eliminar * de texto en cursiva
-        .replace(/^- \*\*(.*?)\*\*:/gm, '- $1:')  // Limpiar listas con **
-        .replace(/^- \*(.*?)\*:/gm, '- $1:')  // Limpiar listas con *
-        .replace(/\n\n\n+/g, '\n\n'),  // Reducir múltiples saltos de línea
+      content: formatBlogContent(blogData.content), // ✅ Usar nueva función de formateo
       category: blogData.category,
       author: blogData.author || 'BIOSKIN Médico',
       publishedAt: currentDate,
@@ -554,20 +611,59 @@ app.post('/api/save-and-deploy', async (req, res) => {
         // Crear directorio en el proyecto principal
         await fsPromises.mkdir(mainProjectImagesDir, { recursive: true });
         
-        // Copiar todas las imágenes del blog-generator-interface al proyecto principal
-        for (const imageData of structuredBlog.images) {
-          const sourceImagePath = path.join(publicImagesDir, path.basename(imageData.url));
-          const destImagePath = path.join(mainProjectImagesDir, path.basename(imageData.url));
-          
-          if (fs.existsSync(sourceImagePath)) {
-            await fsPromises.copyFile(sourceImagePath, destImagePath);
-            console.log(`📸 Imagen copiada: ${path.basename(imageData.url)} → proyecto principal`);
-          } else {
-            console.log(`⚠️ Imagen no encontrada para copiar: ${sourceImagePath}`);
+        // Verificar directorio del generador
+        const generatorImagesDir = path.join(__dirname, 'public', 'images', 'blog');
+        console.log('📁 Buscando imágenes en directorio del generador:', generatorImagesDir);
+        
+        // Buscar directorio del blog en el generador (puede tener nombre completo o slug corto)
+        let sourceImageDir = null;
+        try {
+          const dirs = fs.readdirSync(generatorImagesDir);
+          for (const dir of dirs) {
+            if (dir.includes(blogData.slug) || blogData.slug.includes(dir.split('-')[0])) {
+              sourceImageDir = path.join(generatorImagesDir, dir);
+              console.log(`📂 Directorio fuente encontrado: ${dir}`);
+              break;
+            }
+          }
+        } catch (dirError) {
+          console.log('⚠️ Error explorando directorios del generador:', dirError.message);
+        }
+        
+        if (sourceImageDir && fs.existsSync(sourceImageDir)) {
+          // Copiar todas las imágenes del directorio fuente
+          const imageFiles = fs.readdirSync(sourceImageDir);
+          for (const file of imageFiles) {
+            if (file.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+              const sourcePath = path.join(sourceImageDir, file);
+              const destPath = path.join(mainProjectImagesDir, file);
+              
+              await fsPromises.copyFile(sourcePath, destPath);
+              console.log(`📸 Imagen copiada: ${file} → proyecto principal`);
+            }
+          }
+        } else {
+          // Fallback: copiar imágenes individuales si existen referencias específicas
+          for (const imageData of structuredBlog.images) {
+            const filename = path.basename(imageData.url);
+            const possibleSources = [
+              path.join(publicImagesDir, filename),
+              path.join(__dirname, 'public', 'images', 'blog', filename),
+              path.join(__dirname, '..', 'public', 'images', 'blog', filename)
+            ];
+            
+            for (const sourcePath of possibleSources) {
+              if (fs.existsSync(sourcePath)) {
+                const destPath = path.join(mainProjectImagesDir, filename);
+                await fsPromises.copyFile(sourcePath, destPath);
+                console.log(`📸 Imagen individual copiada: ${filename} → proyecto principal`);
+                break;
+              }
+            }
           }
         }
         
-        console.log(`✅ ${structuredBlog.images.length} imágenes copiadas al proyecto principal`);
+        console.log(`✅ Proceso de copia de imágenes completado`);
       } catch (copyError) {
         console.error('❌ Error copiando imágenes al proyecto principal:', copyError.message);
       }
