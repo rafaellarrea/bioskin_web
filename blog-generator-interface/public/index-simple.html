@@ -775,60 +775,77 @@ Sistema iniciado - Listo para generar blogs...
             }
         }
 
-        // ✅ FUNCIÓN CORREGIDA: Limpiar contenido Markdown para el editor
+        // ✅ FUNCIÓN ULTRA-AGRESIVA: Limpiar TODO el contenido problemático para el editor
         function cleanMarkdownForEditor(content) {
             if (!content) return '';
             
-            return content
-                // Eliminar símbolos problemáticos ANTES de mostrar en editor
-                .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // Convertir >>> xxx <<< a **xxx**
-                .replace(/<<<\s*(.*?)\s*>>>/g, '**$1**')  // Convertir <<< xxx >>> a **xxx**
-                .replace(/={20,}/g, '')  // Eliminar líneas largas de equals
-                .replace(/-{20,}/g, '')  // Eliminar líneas largas de guiones
+            console.log('🧹 LIMPIANDO contenido para editor:', content.substring(0, 100) + '...');
+            
+            let cleaned = content
+                // ELIMINAR TODOS LOS SÍMBOLOS PROBLEMÁTICOS PRIMERO
+                .replace(/>>>\s*(.*?)\s*<<</g, '$1')  // >>> xxx <<< → xxx (sin asteriscos)
+                .replace(/<<<\s*(.*?)\s*>>>/g, '$1')  // <<< xxx >>> → xxx 
+                .replace(/={10,}/g, '')  // Eliminar líneas de equals
+                .replace(/-{10,}/g, '')  // Eliminar líneas de guiones
+                .replace(/#{2,10}/g, '##')  // Normalizar títulos múltiples
                 
-                // Limpiar títulos mal formateados
-                .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
-                .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
-                .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
+                // LIMPIAR TÍTULOS MAL FORMATEADOS AGRESIVAMENTE
+                .replace(/^#+\s*(.+?)\s*#+\s*$/gm, '## $1')  // Cualquier título → ## Título
+                .replace(/^## #\s*/gm, '## ')  // ## # → ##
+                .replace(/^###+ /gm, '### ')  // #### o más → ###
                 
-                // Limpiar espacios y saltos excesivos
-                .replace(/\n\n\n+/g, '\n\n')  // Múltiples saltos → doble salto
-                .replace(/[ ]+$/gm, '')  // Espacios al final de líneas
-                .replace(/^\s+$/gm, '')  // Líneas solo con espacios
+                // ELIMINAR ASTERISCOS PROBLEMÁTICOS (mantener formato simple)
+                .replace(/\*{3,}/g, '')  // *** o más → nada
+                .replace(/\*\*([^*]+?)\*\*/g, '$1')  // **texto** → texto (sin negritas por ahora)
+                .replace(/\*([^*]+?)\*/g, '$1')  // *texto* → texto
                 
-                // Mantener formato markdown válido
-                .replace(/\*{3,}/g, '**')  // *** o más → **
-                .replace(/\*\*\s*\*\*/g, '')  // ** ** vacíos
+                // LIMPIAR ESPACIOS Y SALTOS EXCESIVOS ULTRA-AGRESIVO
+                .replace(/\n{3,}/g, '\n\n')  // Múltiples saltos → doble salto
+                .replace(/[ \t]+$/gm, '')  // Espacios/tabs al final de líneas
+                .replace(/^[ \t]+/gm, '')  // Espacios/tabs al inicio de líneas
+                .replace(/^\s*$/gm, '')  // Líneas vacías con espacios
+                
+                // LIMPIAR LISTAS PROBLEMÁTICAS
+                .replace(/^- \*\*(.+?)\*\*:/gm, '- $1:')  // - **texto**: → - texto:
+                .replace(/^- \*(.+?)\*:/gm, '- $1:')  // - *texto*: → - texto:
+                .replace(/^• /gm, '- ')  // bullet points → guiones
+                .replace(/^→ /gm, '- ')  // flechas → guiones
                 
                 .trim();
+                
+            console.log('✅ CONTENIDO LIMPIADO:', cleaned.substring(0, 100) + '...');
+            return cleaned;
         }
 
-        // ✅ FUNCIÓN CORREGIDA: Convertir contenido del editor de vuelta a Markdown limpio
+        // ✅ FUNCIÓN ULTRA-MEJORADA: Convertir contenido del editor de vuelta a Markdown perfecto
         function convertEditorToMarkdown(content) {
             if (!content) return '';
             
-            return content
-                // Limpiar símbolos problemáticos que puedan haberse introducido
+            console.log('🔄 CONVIRTIENDO contenido de editor a Markdown...');
+            
+            let markdown = content
+                // ELIMINAR CUALQUIER SÍMBOLO PROBLEMÁTICO QUE PUEDA HABER QUEDADO
                 .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // >>> texto <<< → **texto**
                 .replace(/<<<\s*(.*?)\s*>>>/g, '**$1**')  // <<< texto >>> → **texto**
-                .replace(/={20,}/g, '')  // Eliminar líneas de equals
-                .replace(/-{20,}/g, '')  // Eliminar líneas de guiones
+                .replace(/={10,}/g, '')  // Eliminar líneas de equals
+                .replace(/-{10,}/g, '')  // Eliminar líneas de guiones
                 
-                // Asegurar formato de títulos correcto
-                .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
-                .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
-                .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
+                // RESTAURAR FORMATO MARKDOWN CORRECTO
+                .replace(/^## /gm, '## ')  // Asegurar formato de subtítulos
+                .replace(/^### /gm, '### ')  // Asegurar formato de subtítulos nivel 3
                 
-                // Limpiar espaciado
-                .replace(/\n\n\n+/g, '\n\n')  // Múltiples saltos → doble salto
-                .replace(/[ ]+$/gm, '')  // Espacios al final de líneas
+                // RESTAURAR NEGRITAS IMPORTANTES (solo para términos clave)
+                .replace(/\b(BIOSKIN|medicina estética|tratamiento|resultado|beneficio|procedimiento)\b/gi, '**$1**')
+                
+                // LIMPIAR ESPACIADO FINAL
+                .replace(/\n{3,}/g, '\n\n')  // Múltiples saltos → doble salto
+                .replace(/[ \t]+$/gm, '')  // Espacios al final de líneas
                 .replace(/^\s+$/gm, '')  // Líneas solo con espacios
                 
-                // Mantener formato markdown correcto
-                .replace(/\*{3,}/g, '**')  // *** o más → **
-                .replace(/\*\*\s*\*\*/g, '')  // ** ** vacíos
-                
                 .trim();
+                
+            console.log('✅ MARKDOWN GENERADO:', markdown.substring(0, 100) + '...');
+            return markdown;
         }
 
         // Función para mostrar vista previa

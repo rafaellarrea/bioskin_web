@@ -276,21 +276,14 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
   }
 });
 
-// ✅ NUEVO: API para generar sugerencias de temas con IA
+// ✅ NUEVO: API para generar sugerencias de temas CON IA ÚNICAMENTE
 app.post('/api/suggest-topics', async (req, res) => {
-  console.log('💡 Generando sugerencias de temas con IA...');
+  console.log('💡 Generando sugerencias de temas CON IA...');
   
   try {
     const { category = 'medico-estetico' } = req.body;
     
-    // Temas existentes para entrenamiento de la IA
-    const existingTopics = [
-      'Radiofrecuencia Bipolar: Remodelación Facial de Alta Eficacia en BIOSKIN',
-      'Mesoterapia Facial: Un Tratamiento Estrella para una Piel Radiante', 
-      'Peeling Químico vs Tratamientos Láser: ¿Cuál es la mejor opción para tu piel?'
-    ];
-    
-    // Llamar a la API de IA de Vercel para generar sugerencias
+    // ✅ LLAMAR DIRECTAMENTE A LA API DE IA DE VERCEL (sin fallback local)
     const apiUrls = [
       'https://saludbioskin.vercel.app/api/ai-blog/generate',
       'https://saludbioskin.vercel.app/api/ai-blog/generate-production'
@@ -299,15 +292,48 @@ app.post('/api/suggest-topics', async (req, res) => {
     const payload = {
       category,
       generateSuggestions: true,
-      existingTopics,
-      requestType: 'topic_suggestions'
+      requestType: 'topic_suggestions_only',
+      // ✅ PROMPT ESPECÍFICO PARA IA: Generar sugerencias originales
+      customPrompt: `Genera EXACTAMENTE 8 sugerencias de temas ORIGINALES e INNOVADORES para blogs de ${category} en medicina estética.
+
+CRITERIOS OBLIGATORIOS:
+- Temas 100% ORIGINALES, evita lo obvio y común
+- Incluye tendencias 2024-2025 y tecnologías emergentes
+- Mezcla diferentes enfoques: preventivos, correctivos, regenerativos
+- Aborda problemas específicos de diferentes edades (25-60 años)
+- Incluye comparativas entre tecnologías modernas
+- Considera aspectos de seguridad, regulación y ética
+- Temas que generen interés y curiosidad
+
+${category === 'medico-estetico' ? `
+PARA MEDICINA ESTÉTICA:
+- Combina facial, corporal, íntimo, preventivo
+- Incluye medicina regenerativa, bioestimuladores, tecnologías no invasivas
+- Aborda mitos, realidades, casos especiales
+- Considera diferentes tipos de piel, edades, géneros
+` : `
+PARA TÉCNICO:
+- Comparativas de equipos y tecnologías 2024-2025
+- Innovaciones en IA, machine learning, realidad aumentada
+- Física aplicada, bioingeniería, nanotecnología
+- Seguridad, calibración, normativas internacionales
+- Futuro de la medicina estética tecnológica
+`}
+
+FORMATO REQUERIDO: Solo devolver una lista numerada con 8 títulos atractivos y específicos, nada más.
+
+Ejemplo:
+1. [Título innovador y específico]
+2. [Título innovador y específico]
+...
+8. [Título innovador y específico]`
     };
     
     let lastError = null;
     
     for (const apiUrl of apiUrls) {
       try {
-        console.log(`🎯 Probando sugerencias en: ${apiUrl}`);
+        console.log(`🎯 Probando sugerencias IA en: ${apiUrl}`);
         
         const fetch = (await import('node-fetch')).default;
         
@@ -320,12 +346,13 @@ app.post('/api/suggest-topics', async (req, res) => {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.suggestions) {
-            console.log('✅ Sugerencias generadas exitosamente');
+            console.log('✅ Sugerencias IA generadas exitosamente');
             return res.json({
               success: true,
               suggestions: result.suggestions,
               category,
-              source: apiUrl
+              source: 'pure-ai',
+              note: 'Sugerencias 100% generadas por IA'
             });
           }
         } else {
@@ -338,52 +365,22 @@ app.post('/api/suggest-topics', async (req, res) => {
       }
     }
     
-    // Fallback: generar sugerencias locales
-    console.log('🔄 Generando sugerencias locales como fallback');
-    
-    const localSuggestions = generateLocalSuggestions(category);
-    
-    res.json({
-      success: true,
-      suggestions: localSuggestions,
-      category,
-      source: 'local-fallback',
-      note: 'Sugerencias generadas localmente debido a error en IA'
-    });
+    // ✅ SI FALLA LA IA, DEVOLVER ERROR (NO FALLBACK LOCAL)
+    throw new Error(`IA no disponible actualmente. Último error: ${lastError}`);
     
   } catch (error) {
-    console.error('❌ Error generando sugerencias:', error);
+    console.error('❌ Error generando sugerencias con IA:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Sugerencias de IA no disponibles en este momento',
+      details: error.message,
+      note: 'Intenta más tarde cuando la IA esté disponible'
     });
   }
 });
 
-// Función para generar sugerencias locales como fallback
-function generateLocalSuggestions(category) {
-  const medicoEsteticoSuggestions = [
-    'HydraFacial: Limpieza Profunda y Hidratación Instantánea',
-    'Microagujas con PRP: Regeneración Natural de la Piel',
-    'Carboxiterapia Facial: Oxigenación y Rejuvenecimiento',
-    'Ultrasonido Focalizados HIFU: Lifting Sin Cirugía',
-    'Plasma Rico en Plaquetas: Medicina Regenerativa Avanzada'
-  ];
-  
-  const tecnicoSuggestions = [
-    'Tecnología IPL vs Láser Diodo: Análisis Comparativo',
-    'Sistemas de Radiofrecuencia Multipolar: Innovación Técnica',
-    'Crioterapia Controlada: Principios Físicos y Aplicaciones',
-    'Cavitación Ultrasónica: Fundamentos y Protocolos',
-    'Diatermia Capacitiva: Técnica y Parámetros Óptimos'
-  ];
-  
-  const suggestions = category === 'tecnico' ? tecnicoSuggestions : medicoEsteticoSuggestions;
-  
-  // Mezclar y seleccionar 5 sugerencias aleatorias
-  const shuffled = suggestions.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, 5);
-}
+// ✅ FUNCIÓN ELIMINADA: No más sugerencias locales predefinidas
+// Las sugerencias ahora son 100% generadas por IA
 
 // API: Guardar blog y hacer deploy
 app.post('/api/save-and-deploy', async (req, res) => {

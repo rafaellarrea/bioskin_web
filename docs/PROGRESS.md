@@ -112,6 +112,7 @@ api/sendEmail.js             # Emails + WhatsApp
 - ✅ Nov 6 Sistema de formateo automático del contenido generado
 - ✅ Nov 6 Mejora en gestión de imágenes y copia al proyecto principal
 - ✅ Nov 6 Post-procesamiento del contenido de IA para formato correcto
+- ✅ Nov 6 Corrección del editor de contenido para mostrar texto limpio
 
 **Archivos clave**:
 ```

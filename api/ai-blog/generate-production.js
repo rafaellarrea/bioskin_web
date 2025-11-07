@@ -39,9 +39,76 @@ export default async function handler(req, res) {
 
     const { 
       blogType = 'medico-estetico', 
+      category = 'medico-estetico',
       topic = 'Tratamientos de medicina estética',
-      manual = false 
+      manual = false,
+      // ✅ NUEVO: Manejar solicitudes de sugerencias de temas
+      requestType,
+      generateSuggestions = false,
+      customPrompt
     } = req.body || {};
+
+    // ✅ NUEVO: Si se solicitan sugerencias de temas, usar IA para generarlas
+    if (requestType === 'topic_suggestions_only' || generateSuggestions) {
+      console.log('🎯 Generando sugerencias de temas con IA...');
+      
+      const suggestionsPrompt = customPrompt || `Genera exactamente 8 sugerencias de temas originales e innovadores para blogs de ${category || blogType} en medicina estética.
+
+CRITERIOS:
+- Temas 100% originales y actuales (2024-2025)
+- Evita lo obvio y común
+- Incluye tecnologías emergentes
+- Mezcla enfoques: preventivos, correctivos, regenerativos
+- Diferentes edades y tipos de piel
+- Comparativas técnicas modernas
+- Aspectos de seguridad y regulación
+
+FORMATO: Solo lista numerada con títulos específicos y atractivos.`;
+
+      try {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: "Eres un experto en medicina estética que genera ideas de contenido originales e innovadoras."
+            },
+            {
+              role: "user",
+              content: suggestionsPrompt
+            }
+          ],
+          max_tokens: 800,
+          temperature: 0.8  // Más creatividad para sugerencias
+        });
+
+        const suggestionsText = completion.choices[0].message.content;
+        
+        // Parsear las sugerencias de la respuesta
+        const suggestions = suggestionsText
+          .split('\n')
+          .filter(line => line.match(/^\d+\./))  // Solo líneas que empiecen con número
+          .map(line => line.replace(/^\d+\.\s*/, '').trim())  // Remover numeración
+          .filter(suggestion => suggestion.length > 10);  // Filtrar líneas muy cortas
+
+        return res.status(200).json({
+          success: true,
+          suggestions: suggestions.slice(0, 8),  // Máximo 8 sugerencias
+          category: category || blogType,
+          source: 'openai-gpt4',
+          generated_at: new Date().toISOString(),
+          endpoint: '/api/ai-blog/generate-production'
+        });
+
+      } catch (error) {
+        console.error('❌ Error generando sugerencias:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Error generando sugerencias con IA',
+          error: error.message
+        });
+      }
+    }
 
     // Validar tipo de blog
     if (!['medico-estetico', 'tecnico'].includes(blogType)) {
