@@ -427,33 +427,61 @@ app.post('/api/save-and-deploy', async (req, res) => {
     const blogId = `blog-${Date.now()}`;
     const currentDate = new Date().toISOString();
     
-    // ✅ NUEVA FUNCIÓN: Formatear contenido correctamente
+    // ✅ FUNCIÓN MEJORADA: Formatear contenido correctamente
     function formatBlogContent(content) {
+      console.log('🔧 Iniciando limpieza de contenido...');
+      
       return content
-        // Corregir títulos mal formateados
+        // 1. ELIMINAR SÍMBOLOS PROBLEMÁTICOS COMPLETAMENTE
+        .replace(/>>>/g, '')  // Eliminar >>> 
+        .replace(/<<</g, '')  // Eliminar <<<
+        .replace(/===/g, '')  // Eliminar ===
+        .replace(/---/g, '')  // Eliminar ---
+        .replace(/\^\^\^/g, '')  // Eliminar ^^^
+        .replace(/\$\$\$/g, '')  // Eliminar $$$
+        .replace(/###/g, '##')  // Convertir ### a ##
+        
+        // 2. CORREGIR TÍTULOS MAL FORMATEADOS
         .replace(/^#\s+(.+?)\s*##?\s*$/gm, '# $1')  // Títulos principales
         .replace(/^##\s+(.+?)\s*##?\s*$/gm, '## $1') // Subtítulos nivel 2
         .replace(/^###\s+(.+?)\s*##?\s*$/gm, '### $1') // Subtítulos nivel 3
         
-        // Limpiar líneas de separación problemáticas
-        .replace(/\n-{20,}\n/g, '\n\n')  // Líneas de guiones excesivas
-        .replace(/\n={20,}\n/g, '\n\n')  // Líneas de equals excesivas
+        // 3. LIMPIAR LÍNEAS DE SEPARACIÓN PROBLEMÁTICAS
+        .replace(/\n-{3,}\n/g, '\n\n')  // Líneas de guiones excesivas
+        .replace(/\n={3,}\n/g, '\n\n')  // Líneas de equals excesivas
+        .replace(/\n\*{3,}\n/g, '\n\n')  // Líneas de asteriscos excesivas
+        
+        // 4. CORREGIR FORMATO DE TEXTO RESALTADO
         .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // Convertir >>> texto <<< a **texto**
-        
-        // Mantener formato markdown correcto (NO eliminar asteriscos importantes)
-        .replace(/\*{3,}/g, '**')  // Convertir *** o más a **
+        .replace(/\*{4,}/g, '**')  // Convertir **** o más a **
         .replace(/\*\*\s*\*\*/g, '')  // Eliminar ** ** vacíos
+        .replace(/\*\s*\*/g, '')  // Eliminar * * vacíos
         
-        // Limpiar espacios y saltos de línea excesivos
+        // 5. LIMPIAR ESPACIOS Y SALTOS DE LÍNEA EXCESIVOS
         .replace(/\n\n\n+/g, '\n\n')  // Reducir múltiples saltos
         .replace(/[ ]+$/gm, '')  // Eliminar espacios al final de líneas
-        .replace(/^[ ]+/gm, '')  // Eliminar espacios al inicio de líneas (excepto listas)
+        .replace(/^[ ]+(?=[a-zA-Z#\-\*])/gm, '')  // Eliminar espacios al inicio (excepto indentación válida)
         .replace(/^[\t]+/gm, '')  // Eliminar tabs al inicio
         
-        // Asegurar formato correcto de listas
+        // 6. CORREGIR FORMATO DE LISTAS
         .replace(/^- \*\*(.*?)\*\*:/gm, '- **$1**:')  // Mantener formato de listas con negritas
         .replace(/^• \*\*(.*?)\*\*:/gm, '- **$1**:')  // Convertir • a -
+        .replace(/^\* /gm, '- ')  // Convertir * a -
+        .replace(/^[\+] /gm, '- ')  // Convertir + a -
         
+        // 7. CORREGIR PÁRRAFOS ROTOS
+        .replace(/([a-z,.])\n([A-Z])/g, '$1 $2')  // Unir líneas rotas sin doble salto
+        .replace(/([a-z])\n\n([a-z])/g, '$1 $2')  // Unir párrafos mal separados
+        
+        // 8. LIMPIAR CARACTERES ESPECIALES RESIDUALES
+        .replace(/[¿¡]/g, '')  // Eliminar signos de interrogación/exclamación mal colocados
+        .replace(/[""]/g, '"')  // Normalizar comillas
+        .replace(/['']/g, "'")  // Normalizar apostrofes
+        .replace(/…/g, '...')  // Normalizar puntos suspensivos
+        
+        // 9. LIMPIEZA FINAL
+        .replace(/\n\s*\n\s*\n/g, '\n\n')  // Reducir saltos múltiples finales
+        .replace(/^\s+|\s+$/g, '')  // Trim espacios inicio/final
         .trim();
     }
     
@@ -599,69 +627,112 @@ app.post('/api/save-and-deploy', async (req, res) => {
         }
       }
 
-      // ✅ COPIAR IMÁGENES AL PROYECTO PRINCIPAL
-      console.log('📦 Copiando imágenes al proyecto principal...');
-      const mainProjectImagesDir = path.join(__dirname, '..', 'public', 'images', 'blog', blogData.slug);
+      // ✅ COPIAR IMÁGENES AL PROYECTO PRINCIPAL - VERSIÓN MEJORADA
+      console.log('� === INICIANDO COPIA DE IMÁGENES AL PROYECTO PRINCIPAL ===');
       
       try {
-        // Crear directorio en el proyecto principal
+        // 1. Directorio destino en el proyecto principal
+        const mainProjectImagesDir = path.join(__dirname, '..', 'public', 'images', 'blog', blogData.slug);
+        console.log('🎯 Directorio destino:', mainProjectImagesDir);
         await fsPromises.mkdir(mainProjectImagesDir, { recursive: true });
         
-        // Verificar directorio del generador
+        // 2. Buscar directorio fuente en el blog generator
         const generatorImagesDir = path.join(__dirname, 'public', 'images', 'blog');
-        console.log('📁 Buscando imágenes en directorio del generador:', generatorImagesDir);
+        console.log('� Directorio generador:', generatorImagesDir);
         
-        // Buscar directorio del blog en el generador (puede tener nombre completo o slug corto)
+        let imagesCopied = 0;
         let sourceImageDir = null;
-        try {
-          const dirs = fs.readdirSync(generatorImagesDir);
-          for (const dir of dirs) {
-            if (dir.includes(blogData.slug) || blogData.slug.includes(dir.split('-')[0])) {
-              sourceImageDir = path.join(generatorImagesDir, dir);
-              console.log(`📂 Directorio fuente encontrado: ${dir}`);
-              break;
-            }
-          }
-        } catch (dirError) {
-          console.log('⚠️ Error explorando directorios del generador:', dirError.message);
-        }
         
-        if (sourceImageDir && fs.existsSync(sourceImageDir)) {
-          // Copiar todas las imágenes del directorio fuente
-          const imageFiles = fs.readdirSync(sourceImageDir);
-          for (const file of imageFiles) {
-            if (file.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
-              const sourcePath = path.join(sourceImageDir, file);
-              const destPath = path.join(mainProjectImagesDir, file);
-              
-              await fsPromises.copyFile(sourcePath, destPath);
-              console.log(`📸 Imagen copiada: ${file} → proyecto principal`);
+        if (fs.existsSync(generatorImagesDir)) {
+          const dirs = fs.readdirSync(generatorImagesDir);
+          console.log('📁 Directorios encontrados en generador:', dirs);
+          
+          // Buscar directorio que coincida con el slug actual
+          for (const dir of dirs) {
+            const fullPath = path.join(generatorImagesDir, dir);
+            if (fs.statSync(fullPath).isDirectory()) {
+              // Verificar si el directorio contiene el slug o viceversa
+              if (dir === blogData.slug || 
+                  dir.includes(blogData.slug) || 
+                  blogData.slug.includes(dir.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10))) {
+                sourceImageDir = fullPath;
+                console.log(`✅ Directorio fuente encontrado: ${dir}`);
+                break;
+              }
             }
           }
-        } else {
-          // Fallback: copiar imágenes individuales si existen referencias específicas
-          for (const imageData of structuredBlog.images) {
-            const filename = path.basename(imageData.url);
-            const possibleSources = [
-              path.join(publicImagesDir, filename),
-              path.join(__dirname, 'public', 'images', 'blog', filename),
-              path.join(__dirname, '..', 'public', 'images', 'blog', filename)
-            ];
-            
-            for (const sourcePath of possibleSources) {
-              if (fs.existsSync(sourcePath)) {
-                const destPath = path.join(mainProjectImagesDir, filename);
-                await fsPromises.copyFile(sourcePath, destPath);
-                console.log(`📸 Imagen individual copiada: ${filename} → proyecto principal`);
+          
+          // Si no se encuentra, buscar por el slug original
+          if (!sourceImageDir && originalSlug !== blogData.slug) {
+            for (const dir of dirs) {
+              if (dir.includes(originalSlug) || originalSlug.includes(dir)) {
+                sourceImageDir = path.join(generatorImagesDir, dir);
+                console.log(`✅ Directorio fuente encontrado por slug original: ${dir}`);
                 break;
+              }
+            }
+          }
+          
+          // 3. Copiar imágenes si se encontró el directorio fuente
+          if (sourceImageDir && fs.existsSync(sourceImageDir)) {
+            const imageFiles = fs.readdirSync(sourceImageDir);
+            console.log(`📸 Imágenes encontradas: ${imageFiles.length}`);
+            
+            for (const file of imageFiles) {
+              if (file.match(/\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i)) {
+                const sourcePath = path.join(sourceImageDir, file);
+                const destPath = path.join(mainProjectImagesDir, file);
+                
+                try {
+                  await fsPromises.copyFile(sourcePath, destPath);
+                  imagesCopied++;
+                  console.log(`✅ Copiado: ${file}`);
+                } catch (fileError) {
+                  console.error(`❌ Error copiando ${file}:`, fileError.message);
+                }
+              }
+            }
+          } else {
+            console.log('⚠️ No se encontró directorio fuente específico, intentando copia individual...');
+            
+            // 4. Fallback: copiar imágenes usando las referencias del blog
+            for (const imageData of structuredBlog.images) {
+              const filename = path.basename(imageData.url);
+              const possibleSources = [
+                path.join(__dirname, 'public', 'images', 'blog', originalSlug, filename),
+                path.join(__dirname, 'public', 'images', 'blog', blogData.slug, filename),
+                path.join(__dirname, 'public', 'images', 'blog', filename),
+                path.join(__dirname, 'uploads', filename)
+              ];
+              
+              for (const sourcePath of possibleSources) {
+                if (fs.existsSync(sourcePath)) {
+                  const destPath = path.join(mainProjectImagesDir, filename);
+                  try {
+                    await fsPromises.copyFile(sourcePath, destPath);
+                    imagesCopied++;
+                    console.log(`✅ Copia individual exitosa: ${filename}`);
+                    break;
+                  } catch (fileError) {
+                    console.error(`❌ Error en copia individual ${filename}:`, fileError.message);
+                  }
+                }
               }
             }
           }
         }
         
-        console.log(`✅ Proceso de copia de imágenes completado`);
+        console.log(`🎯 === RESUMEN COPIA DE IMÁGENES ===`);
+        console.log(`📊 Total imágenes copiadas: ${imagesCopied}`);
+        console.log(`📁 Destino: ${mainProjectImagesDir}`);
+        
+        if (imagesCopied === 0) {
+          console.log('⚠️ ALERTA: No se copiaron imágenes. Verificar rutas manualment.');
+        }
+        
       } catch (copyError) {
-        console.error('❌ Error copiando imágenes al proyecto principal:', copyError.message);
+        console.error('❌ ERROR CRÍTICO en copia de imágenes:', copyError.message);
+        console.error('📍 Stack:', copyError.stack);
       }
     }
 
@@ -727,6 +798,50 @@ app.post('/api/save-and-deploy', async (req, res) => {
 
     // 7. Git add, commit y push
     console.log('🚀 Iniciando deploy automático...');
+    
+    // ✅ VERIFICACIÓN FINAL: Asegurar que las imágenes estén en el proyecto principal antes del deploy
+    if (structuredBlog.images.length > 0) {
+      console.log('🔍 === VERIFICACIÓN FINAL DE IMÁGENES ===');
+      const finalImageCheck = path.join(__dirname, '..', 'public', 'images', 'blog', blogData.slug);
+      
+      try {
+        if (fs.existsSync(finalImageCheck)) {
+          const finalImages = fs.readdirSync(finalImageCheck);
+          console.log(`✅ Verificación exitosa: ${finalImages.length} imágenes en proyecto principal`);
+          console.log('📸 Imágenes encontradas:', finalImages);
+        } else {
+          console.log('⚠️ ALERTA: Directorio de imágenes no existe en proyecto principal');
+          console.log('🔧 Intentando crear directorio y copiar imágenes nuevamente...');
+          
+          await fsPromises.mkdir(finalImageCheck, { recursive: true });
+          
+          // Último intento de copia desde el generador
+          const lastResortSource = path.join(__dirname, 'public', 'images', 'blog');
+          if (fs.existsSync(lastResortSource)) {
+            const sourceDirs = fs.readdirSync(lastResortSource);
+            for (const dir of sourceDirs) {
+              if (dir.includes(blogData.slug.substring(0, 10))) {
+                const sourceDir = path.join(lastResortSource, dir);
+                const files = fs.readdirSync(sourceDir);
+                
+                for (const file of files) {
+                  if (file.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                    const src = path.join(sourceDir, file);
+                    const dest = path.join(finalImageCheck, file);
+                    await fsPromises.copyFile(src, dest);
+                    console.log(`🚑 Copia de emergencia: ${file}`);
+                  }
+                }
+                break;
+              }
+            }
+          }
+        }
+      } catch (verifyError) {
+        console.error('❌ Error en verificación final:', verifyError.message);
+      }
+    }
+    
     try {
       const projectRoot = path.join(__dirname, '..');
       console.log('📁 Directorio del proyecto:', projectRoot);

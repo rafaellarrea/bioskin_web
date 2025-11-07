@@ -782,34 +782,46 @@ Sistema iniciado - Listo para generar blogs...
             console.log('🧹 LIMPIANDO contenido para editor:', content.substring(0, 100) + '...');
             
             let cleaned = content
-                // ELIMINAR TODOS LOS SÍMBOLOS PROBLEMÁTICOS PRIMERO
-                .replace(/>>>\s*(.*?)\s*<<</g, '$1')  // >>> xxx <<< → xxx (sin asteriscos)
-                .replace(/<<<\s*(.*?)\s*>>>/g, '$1')  // <<< xxx >>> → xxx 
-                .replace(/={10,}/g, '')  // Eliminar líneas de equals
-                .replace(/-{10,}/g, '')  // Eliminar líneas de guiones
-                .replace(/#{2,10}/g, '##')  // Normalizar títulos múltiples
+                // 1. ELIMINAR TODOS LOS SÍMBOLOS PROBLEMÁTICOS COMPLETAMENTE
+                .replace(/>>>/g, '')  // Eliminar >>> completamente
+                .replace(/<<</g, '')  // Eliminar <<< completamente
+                .replace(/===/g, '')  // Eliminar === completamente
+                .replace(/---/g, '')  // Eliminar --- completamente
+                .replace(/\^\^\^/g, '')  // Eliminar ^^^ completamente
+                .replace(/\$\$\$/g, '')  // Eliminar $$$ completamente
                 
-                // LIMPIAR TÍTULOS MAL FORMATEADOS AGRESIVAMENTE
+                // 2. LIMPIAR LÍNEAS DE SEPARACIÓN EXCESIVAS
+                .replace(/={3,}/g, '')  // Eliminar líneas de equals
+                .replace(/-{3,}/g, '')  // Eliminar líneas de guiones
+                .replace(/\*{3,}/g, '')  // Eliminar líneas de asteriscos
+                .replace(/\#{3,}/g, '##')  // Normalizar títulos múltiples
+                
+                // 3. CORREGIR TÍTULOS MAL FORMATEADOS
                 .replace(/^#+\s*(.+?)\s*#+\s*$/gm, '## $1')  // Cualquier título → ## Título
                 .replace(/^## #\s*/gm, '## ')  // ## # → ##
                 .replace(/^###+ /gm, '### ')  // #### o más → ###
                 
-                // ELIMINAR ASTERISCOS PROBLEMÁTICOS (mantener formato simple)
-                .replace(/\*{3,}/g, '')  // *** o más → nada
-                .replace(/\*\*([^*]+?)\*\*/g, '$1')  // **texto** → texto (sin negritas por ahora)
-                .replace(/\*([^*]+?)\*/g, '$1')  // *texto* → texto
+                // 4. ELIMINAR FORMATO MARKDOWN PROBLEMÁTICO (para edición limpia)
+                .replace(/\*{2,}/g, '')  // Eliminar ** o más
+                .replace(/\*([^*\n]+?)\*/g, '$1')  // *texto* → texto
+                .replace(/__(.+?)__/g, '$1')  // __texto__ → texto
                 
-                // LIMPIAR ESPACIOS Y SALTOS EXCESIVOS ULTRA-AGRESIVO
+                // 5. LIMPIAR ESPACIOS Y SALTOS EXCESIVOS
                 .replace(/\n{3,}/g, '\n\n')  // Múltiples saltos → doble salto
                 .replace(/[ \t]+$/gm, '')  // Espacios/tabs al final de líneas
-                .replace(/^[ \t]+/gm, '')  // Espacios/tabs al inicio de líneas
-                .replace(/^\s*$/gm, '')  // Líneas vacías con espacios
+                .replace(/^[ \t]+(?![*\-])/gm, '')  // Espacios/tabs al inicio (excepto listas)
+                .replace(/^\s*\n/gm, '\n')  // Líneas vacías con espacios
                 
-                // LIMPIAR LISTAS PROBLEMÁTICAS
+                // 6. CORREGIR LISTAS
                 .replace(/^- \*\*(.+?)\*\*:/gm, '- $1:')  // - **texto**: → - texto:
                 .replace(/^- \*(.+?)\*:/gm, '- $1:')  // - *texto*: → - texto:
                 .replace(/^• /gm, '- ')  // bullet points → guiones
                 .replace(/^→ /gm, '- ')  // flechas → guiones
+                .replace(/^\* /gm, '- ')  // asteriscos → guiones
+                .replace(/^\+ /gm, '- ')  // plus → guiones
+                
+                // 7. LIMPIEZA FINAL
+                .replace(/\n\s*\n\s*\n/g, '\n\n')  // Reducir múltiples saltos
                 
                 .trim();
                 
@@ -824,23 +836,36 @@ Sistema iniciado - Listo para generar blogs...
             console.log('🔄 CONVIRTIENDO contenido de editor a Markdown...');
             
             let markdown = content
-                // ELIMINAR CUALQUIER SÍMBOLO PROBLEMÁTICO QUE PUEDA HABER QUEDADO
-                .replace(/>>>\s*(.*?)\s*<<</g, '**$1**')  // >>> texto <<< → **texto**
-                .replace(/<<<\s*(.*?)\s*>>>/g, '**$1**')  // <<< texto >>> → **texto**
-                .replace(/={10,}/g, '')  // Eliminar líneas de equals
-                .replace(/-{10,}/g, '')  // Eliminar líneas de guiones
+                // 1. ELIMINAR CUALQUIER SÍMBOLO PROBLEMÁTICO RESIDUAL
+                .replace(/>>>/g, '')  // Eliminar >>> completamente
+                .replace(/<<</g, '')  // Eliminar <<< completamente
+                .replace(/===/g, '')  // Eliminar === completamente
+                .replace(/---/g, '')  // Eliminar --- completamente
+                .replace(/\^\^\^/g, '')  // Eliminar ^^^ completamente
+                .replace(/\$\$\$/g, '')  // Eliminar $$$ completamente
                 
-                // RESTAURAR FORMATO MARKDOWN CORRECTO
+                // 2. LIMPIAR LÍNEAS DE SEPARACIÓN PROBLEMÁTICAS
+                .replace(/={3,}/g, '')  // Eliminar líneas de equals
+                .replace(/-{3,}/g, '')  // Eliminar líneas de guiones
+                .replace(/\*{3,}/g, '')  // Eliminar líneas de asteriscos
+                
+                // 3. ASEGURAR FORMATO MARKDOWN CORRECTO Y LIMPIO
                 .replace(/^## /gm, '## ')  // Asegurar formato de subtítulos
                 .replace(/^### /gm, '### ')  // Asegurar formato de subtítulos nivel 3
+                .replace(/^# /gm, '# ')  // Asegurar formato de títulos principales
                 
-                // RESTAURAR NEGRITAS IMPORTANTES (solo para términos clave)
+                // 4. RESTAURAR SOLO NEGRITAS ESENCIALES (sin otros formatos problemáticos)
                 .replace(/\b(BIOSKIN|medicina estética|tratamiento|resultado|beneficio|procedimiento)\b/gi, '**$1**')
                 
-                // LIMPIAR ESPACIADO FINAL
+                // 5. NORMALIZAR LISTAS
+                .replace(/^[\+\*] /gm, '- ')  // Normalizar bullets a guiones
+                .replace(/^• /gm, '- ')  // Bullet points a guiones
+                
+                // 6. LIMPIEZA FINAL AGRESIVA
                 .replace(/\n{3,}/g, '\n\n')  // Múltiples saltos → doble salto
                 .replace(/[ \t]+$/gm, '')  // Espacios al final de líneas
                 .replace(/^\s+$/gm, '')  // Líneas solo con espacios
+                .replace(/\n\s*\n\s*\n/g, '\n\n')  // Reducir saltos múltiples
                 
                 .trim();
                 
