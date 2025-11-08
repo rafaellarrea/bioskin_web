@@ -308,6 +308,7 @@ Deployment:   Vercel SPA
 - ✅ Nov 07 - Imágenes de conclusión añadidas
 - ✅ Nov 07 - Metadata ampliada con SEO y social media
 - ✅ Nov 07 - Tiempo de lectura actualizado
+- ✅ Nov 07 - Contenido limpio sin símbolos ** de formato
 
 **Archivos formateados**:
 ```
@@ -317,16 +318,46 @@ src/data/blogs/cuidado-1762479081670/metadata.json   # Metadata completa
 src/data/blogs/cuidado-1762473538084/metadata.json   # Metadata completa
 ```
 
-**Mejoras aplicadas**:
-- 📝 Excerpts descriptivos y completos (no truncados)
-- 🏷️ Tags específicos por temática médico-estética
-- 👨‍⚕️ Autores con títulos médicos profesionales
-- 📊 Metadata SEO completa (title, description, keywords)
-- 🌐 Social media metadata (OpenGraph, Twitter Cards)
-- 📈 Analytics estructura para futuras métricas
-- 🔗 Related topics por blog para mejores recomendaciones
+### 🚨 **Fase 13: CORRECCIÓN CRÍTICA - Bug de Fechas** (Noviembre 07, 2025)
+**Descripción**: Solución urgente al problema de bloqueo de horarios en día incorrecto
+**Problema identificado**: Sistema bloqueaba horarios del 8 Nov en lugar del 7 Nov debido a comparación UTC vs Local time
+
+**🔧 Corrección aplicada**:
+- ✅ Nov 07 - Identificado bug en función `isHourPast()` usando `toISOString()` (UTC)
+- ✅ Nov 07 - Corregido en `src/pages/Appointment.tsx`
+- ✅ Nov 07 - Corregido en `src/components/AdminAppointment.tsx` 
+- ✅ Nov 07 - Corregido en `src/components/AdminBlockSchedule.tsx`
+- ✅ Nov 07 - Implementado manejo de fechas locales correctamente
+- ✅ Nov 07 - Creado test de validación `public/test-date-fix.html`
+- ✅ Nov 07 - Verificación funcional: horarios se bloquean correctamente hoy
+
+**🐛 Causa del problema**:
+```javascript
+// INCORRECTO (causaba el bug)
+const todayString = today.toISOString().split('T')[0]; // UTC time
+const selectedString = selectedDate.toISOString().split('T')[0]; // UTC time
+
+// CORREGIDO
+const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+const todayString = `${todayLocal.getFullYear()}-${(todayLocal.getMonth() + 1).toString().padStart(2, '0')}-${todayLocal.getDate().toString().padStart(2, '0')}`;
+```
+
+**💥 Impacto solucionado**:
+- ✅ Horarios del día actual se bloquean correctamente después de pasar
+- ✅ No más confusión de fechas UTC vs Local time
+- ✅ Sistema respeta zona horaria de Ecuador (UTC-5)
+- ✅ Funcionamiento correcto a las 19:00 (7 PM) del día actual
+
+**📋 Archivos modificados**:
+```
+src/pages/Appointment.tsx              # Función isHourPast() corregida
+src/components/AdminAppointment.tsx    # Función isHourPast() corregida  
+src/components/AdminBlockSchedule.tsx  # Función isHourPast() corregida
+public/test-date-fix.html             # Test de validación creado
+```
 
 ---
 
-**Última actualización**: 07 Noviembre 2025 - Formateo y mejora estructura blogs existentes
-**Próxima revisión**: Integración blogs formateados con interfaz principal
+**Última actualización**: 07 Noviembre 2025 - CORRECCIÓN CRÍTICA: Bug de fechas UTC vs Local solucionado
+**Estado crítico**: ✅ RESUELTO - Sistema de bloqueos funciona correctamente
+**Próxima revisión**: Verificación en producción y monitoreo comportamiento
