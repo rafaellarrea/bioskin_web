@@ -64,11 +64,21 @@ function isHourPast(selectedDay: string, hour: string): boolean {
   if (!selectedDay || !hour) return false;
   
   const today = new Date();
-  const selectedDate = new Date(selectedDay + 'T00:00:00');
   
-  // Normalizar fechas para comparación (solo día, mes, año)
-  const todayString = today.toISOString().split('T')[0];
-  const selectedString = selectedDate.toISOString().split('T')[0];
+  // CORREGIDO: usar fechas locales en lugar de UTC para evitar problemas de zona horaria
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+  // Formatear fechas como strings locales YYYY-MM-DD
+  const todayString = `${todayLocal.getFullYear()}-${(todayLocal.getMonth() + 1).toString().padStart(2, '0')}-${todayLocal.getDate().toString().padStart(2, '0')}`;
+  const selectedString = selectedDay; // Ya está en formato YYYY-MM-DD
+  
+  // Debug: mostrar las fechas que se están comparando
+  console.log('🗓️ AdminBlockSchedule - Comparando fechas (CORREGIDO):', { 
+    hoy: todayString, 
+    seleccionado: selectedString, 
+    esHoy: todayString === selectedString,
+    horaActual: today.toLocaleTimeString('es-ES', { timeZone: 'America/Guayaquil' })
+  });
   
   // Si no es el día de hoy, no está en el pasado
   if (todayString !== selectedString) {
