@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "chatbot:init": "node scripts/init-chatbot-db.js",
+    "chatbot:test": "node scripts/test-chatbot.js",
+    "chatbot:stats": "node -e \"import('./lib/neon-chatbot-db.js').then(m => m.getDatabaseStats().then(console.log))\""
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
