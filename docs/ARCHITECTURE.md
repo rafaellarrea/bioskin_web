@@ -92,24 +92,45 @@ api/blogs/test.js            // GET  - System diagnostic
 // Calendar & Email Integration
 api/getEvents.js          // GET  - Google Calendar events
 api/sendEmail.js          // POST - Email + WhatsApp notifications
+
+// WhatsApp Chatbot with AI (Noviembre 2025)
+api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API
+api/chatbot-stats.js      // GET/POST - Monitoring and maintenance
 ```
 
 #### **Database Layer**
 ```javascript
-// lib/database.js - SQLite with better-sqlite3
+// lib/database.js - SQLite with better-sqlite3 (Blogs system)
 Tables:
 - blogs (id, title, content, blog_type, week_year, is_ai_generated)
 - tags (id, name)
 - blog_tags (blog_id, tag_id)  // Many-to-many relation
+
+// lib/neon-chatbot-db.js - Neon PostgreSQL (Chatbot system)
+Tables:
+- chat_conversations (id, session_id, phone_number, last_message_at, total_messages)
+- chat_messages (id, session_id, role, content, tokens_used, timestamp)
 ```
 
 #### **AI Service**
 ```javascript
-// lib/ai-service.js - OpenAI GPT-4o-mini integration
+// lib/ai-service.js - OpenAI GPT-4o-mini integration (Blogs)
 Features:
 - Weekly limits control (2 blogs/week: 1 medical + 1 technical)
 - Structured prompts (500-700 words)
 - Content validation and formatting
+
+// lib/chatbot-ai-service.js - OpenAI GPT-4o-mini integration (Chatbot)
+Features:
+- Conversational responses with context history
+- Intent detection and custom prompts
+- Token optimization (max 500 tokens/response)
+
+// lib/chatbot-cleanup.js - Automatic data maintenance
+Features:
+- Storage monitoring (512 MB limit on Neon free plan)
+- Auto-cleanup of old conversations (>30 days)
+- Session trimming (max 50 messages/session)
 ```
 
 ---
@@ -218,10 +239,16 @@ Example Blog Generation:
 ### **Environment Variables**
 ```bash
 # Development (.env)
-OPENAI_API_KEY=sk-proj-...                    # AI blog generation
+OPENAI_API_KEY=sk-proj-...                    # AI blog generation & chatbot
 GOOGLE_CREDENTIALS_BASE64=ewogICJ0eXBlI...    # Calendar integration
 EMAIL_USER=salud.bioskin@gmail.com           # Email notifications
 EMAIL_PASS=osplvayjwkiqbxfe                  # Gmail app password
+
+# Chatbot Variables (Noviembre 2025)
+NEON_DATABASE_URL=postgresql://user:pass@...  # Neon PostgreSQL connection
+WHATSAPP_VERIFY_TOKEN=tu_token_secreto        # Webhook verification
+WHATSAPP_ACCESS_TOKEN=EAAxxxxx                # WhatsApp Business API token
+WHATSAPP_PHONE_NUMBER_ID=123456789            # WhatsApp Business phone ID
 
 # Production (Vercel Dashboard)
 # Same variables configured in Vercel environment settings

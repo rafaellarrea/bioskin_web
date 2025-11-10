@@ -49,6 +49,28 @@ src/utils/slugify.ts          # Generación URLs
 
 ---
 
+### ✅ **Fase 4: Chatbot WhatsApp con IA** (Noviembre 2025)
+**Descripción**: Sistema de chatbot inteligente con OpenAI para atención automatizada
+**Logros**:
+- ✅ Webhook serverless para WhatsApp Business API
+- ✅ Integración OpenAI GPT-4o-mini para respuestas contextuales
+- ✅ Base de datos Neon PostgreSQL para persistencia
+- ✅ Sistema de limpieza automática de datos
+- ✅ Endpoint de monitoreo y estadísticas
+- ✅ Optimización para plan Hobby de Vercel (límite de 12 funciones)
+
+**Archivos clave**:
+```
+lib/neon-chatbot-db.js           # Gestión BD Neon
+lib/chatbot-cleanup.js           # Limpieza automática
+lib/chatbot-ai-service.js        # Servicio OpenAI
+api/whatsapp-chatbot.js          # Webhook principal
+api/chatbot-stats.js             # Monitoreo
+docs/CHATBOT-WHATSAPP-SETUP.md   # Documentación completa
+```
+
+---
+
 ### ✅ **Fase 4: Panel de Administración Avanzado** (Octubre 28, 2025)
 **Descripción**: Sistema administrativo completo con analytics y agendamiento avanzado
 **Logros**:
