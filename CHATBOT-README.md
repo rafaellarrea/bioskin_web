@@ -13,7 +13,7 @@ NEON_DATABASE_URL=postgresql://...
 WHATSAPP_VERIFY_TOKEN=tu_token_secreto
 WHATSAPP_ACCESS_TOKEN=EAAxxxxx
 WHATSAPP_PHONE_NUMBER_ID=123456789
-OPENAI_API_KEY=sk-proj-... (ya configurada)
+OPENAI_API_KEY=sk-proj-... (ya configurada en el entorno vercel)
 ```
 
 ### 2. Configurar Webhook en Meta
