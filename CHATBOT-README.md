@@ -10,16 +10,16 @@ Sistema de chatbot inteligente integrado con WhatsApp Business API, OpenAI GPT-4
 
 ```bash
 NEON_DATABASE_URL=postgresql://...
-WHATSAPP_VERIFY_TOKEN=tu_token_secreto
+WHATSAPP_VERIFY_TOKEN=bioskin_whatsapp_2025
 WHATSAPP_ACCESS_TOKEN=EAAxxxxx
-WHATSAPP_PHONE_NUMBER_ID=123456789
-OPENAI_API_KEY=sk-proj-... (ya configurada en el entorno vercel)
+WHATSAPP_PHONE_NUMBER_ID=832596109944880
+OPENAI_API_KEY=sk-proj-... (ya configurada)
 ```
 
 ### 2. Configurar Webhook en Meta
 
-- URL: `https://tu-proyecto.vercel.app/api/whatsapp-chatbot`
-- Verify Token: El mismo de `WHATSAPP_VERIFY_TOKEN`
+- URL: `https://saludbioskin.vercel.app/api/whatsapp-chatbot`
+- Verify Token: `bioskin_whatsapp_2025`
 - Eventos: Suscribirse a `messages`
 
 ### 3. Verificar Funcionamiento
