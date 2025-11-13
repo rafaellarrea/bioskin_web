@@ -28,7 +28,28 @@ export default async function handler(req, res) {
       const token = req.query['hub.verify_token'];
       const challenge = req.query['hub.challenge'];
 
-      console.log('🔐 Verificación de webhook:', { mode, token: token ? '***' : 'missing' });
+      console.log('🔐 Verificación de webhook:', { mode, token: token ? '***' : 'missing', challenge: challenge ? '***' : 'missing' });
+
+      // Si no hay parámetros, mostrar página de información
+      if (!mode && !token && !challenge) {
+        return res.status(200).json({
+          status: 'ok',
+          message: 'WhatsApp Chatbot Webhook',
+          info: 'Este endpoint está configurado para recibir webhooks de WhatsApp Business API',
+          verification: {
+            url: 'https://saludbioskin.vercel.app/api/whatsapp-chatbot',
+            method: 'GET',
+            requiredParams: ['hub.mode', 'hub.verify_token', 'hub.challenge']
+          },
+          environment: {
+            hasVerifyToken: !!process.env.WHATSAPP_VERIFY_TOKEN,
+            hasAccessToken: !!process.env.WHATSAPP_ACCESS_TOKEN,
+            hasPhoneNumberId: !!process.env.WHATSAPP_PHONE_NUMBER_ID,
+            hasNeonDb: !!process.env.NEON_DATABASE_URL,
+            hasOpenAI: !!process.env.OPENAI_API_KEY
+          }
+        });
+      }
 
       // Verificar token
       if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
@@ -36,8 +57,16 @@ export default async function handler(req, res) {
         return res.status(200).send(challenge);
       }
 
-      console.log('❌ Verificación fallida - token incorrecto');
-      return res.status(403).send('Forbidden');
+      console.log('❌ Verificación fallida - token incorrecto o parámetros faltantes');
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Token verification failed',
+        received: {
+          mode: mode || 'missing',
+          hasToken: !!token,
+          hasChallenge: !!challenge
+        }
+      });
     } catch (error) {
       console.error('❌ Error en verificación:', error);
       return res.status(500).json({ error: 'Error en verificación' });
