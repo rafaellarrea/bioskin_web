@@ -109,18 +109,17 @@ export default async function handler(req, res) {
     try {
       console.log('🔵 Webhook POST recibido:', JSON.stringify(req.body, null, 2));
       
-      // Responder INMEDIATAMENTE a WhatsApp (evita timeouts)
-      res.status(200).send('OK');
-
-      // Procesar mensaje de forma asíncrona
-      processWhatsAppMessage(req.body).catch(error => {
-        console.error('❌ Error procesando mensaje:', error);
-      });
+      // Procesar mensaje de forma síncrona pero rápida
+      await processWhatsAppMessage(req.body);
+      
+      // Responder OK después de procesar
+      return res.status(200).send('OK');
 
     } catch (error) {
       console.error('❌ Error en endpoint:', error);
+      // Responder OK incluso si hay error para que WhatsApp no reintente
+      return res.status(200).send('OK');
     }
-    return;
   }
 
   // Método no permitido
@@ -310,17 +309,20 @@ async function processWhatsAppMessage(body) {
     );
     console.log('✅ Respuesta del asistente guardada');
 
-    // Enviar respuesta a WhatsApp (ahora con await para ver errores)
+    // Enviar respuesta a WhatsApp (fire-and-forget para evitar timeout de Vercel)
     console.log('📤 Paso 7: Enviando respuesta a WhatsApp...');
-    try {
-      await sendWhatsAppMessage(from, aiResult.response);
-      console.log('✅ Respuesta enviada a WhatsApp');
-    } catch (error) {
-      console.error('❌ Error CRÍTICO enviando a WhatsApp:', error.message);
-      console.error('❌ Error type:', error.name);
-      console.error('❌ Error completo:', error);
-      // No lanzar el error para que el webhook responda 200 OK
-    }
+    
+    // Enviar de forma asíncrona sin esperar (fire-and-forget)
+    sendWhatsAppMessage(from, aiResult.response)
+      .then(() => {
+        console.log('✅ Respuesta enviada a WhatsApp exitosamente');
+      })
+      .catch(error => {
+        console.error('❌ Error enviando a WhatsApp:', error.message);
+        console.error('❌ Error type:', error.name);
+      });
+    
+    console.log('✅ Envío de WhatsApp iniciado (fire-and-forget)');
 
     // Limpieza ligera ocasional (10% de probabilidad)
     if (Math.random() < 0.1) {
@@ -377,12 +379,12 @@ async function sendWhatsAppMessage(to, text) {
 
     console.log('🚀 Enviando request a WhatsApp API...');
     
-    // Agregar timeout de 8 segundos al fetch
+    // Agregar timeout de 5 segundos al fetch (total función debe ser < 10s)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.log('⏰ [WHATSAPP] Timeout de 8s alcanzado, abortando...');
+      console.log('⏰ [WHATSAPP] Timeout de 5s alcanzado, abortando...');
       controller.abort();
-    }, 8000);
+    }, 5000);
     
     const response = await fetch(url, {
       method: 'POST',
@@ -410,7 +412,7 @@ async function sendWhatsAppMessage(to, text) {
     return data;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.error('❌ TIMEOUT enviando a WhatsApp: Request abortado después de 8s');
+      console.error('❌ TIMEOUT enviando a WhatsApp: Request abortado después de 5s');
     } else {
       console.error('❌ Error en sendWhatsAppMessage:', error.message);
       console.error('❌ Stack trace:', error.stack);
