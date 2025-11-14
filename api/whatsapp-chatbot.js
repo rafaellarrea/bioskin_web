@@ -136,14 +136,8 @@ async function processWhatsAppMessage(body) {
     const sessionId = `whatsapp_${from}`;
     console.log(`🔑 Session ID generado: ${sessionId}`);
 
-    // Inicializar base de datos si es necesario
-    console.log('💾 Paso 1: Inicializando base de datos...');
-    try {
-      await initChatbotDatabase();
-      console.log('✅ Base de datos inicializada');
-    } catch (err) {
-      console.log('ℹ️ Base de datos ya inicializada:', err.message);
-    }
+    // ⚠️ NO inicializamos la BD aquí - las tablas ya existen desde el setup inicial
+    // Solo operamos directamente sobre la BD
 
     // Crear/actualizar conversación
     console.log('💾 Paso 2: Creando/actualizando conversación...');
