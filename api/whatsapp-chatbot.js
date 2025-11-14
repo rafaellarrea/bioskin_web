@@ -2,7 +2,11 @@ import {
   initChatbotDatabase, 
   upsertConversation, 
   saveMessage, 
-  getConversationHistory 
+  getConversationHistory,
+  saveTrackingEvent,
+  upsertTemplate,
+  saveAppState,
+  updateUserPreferences
 } from '../lib/neon-chatbot-db-vercel.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
@@ -142,6 +146,107 @@ async function processWhatsAppMessage(body) {
     // Ignorar webhooks de estado (sent, delivered, read)
     if (!message && value?.statuses) {
       console.log('ℹ️ Webhook de estado ignorado:', value.statuses[0]?.status);
+      return;
+    }
+
+    // ============================================
+    // PROCESAMIENTO DE WEBHOOKS ADICIONALES
+    // ============================================
+
+    // 1. Message Echoes (sincronización con Business Manager)
+    if (message?.is_echo === true) {
+      console.log('🔄 Message echo detectado (mensaje desde Business Manager)');
+      try {
+        await saveTrackingEvent(
+          `admin_${message.from}`,
+          'message_echo',
+          {
+            messageId: message.id,
+            from: message.from,
+            text: message.text?.body,
+            timestamp: message.timestamp
+          }
+        );
+        console.log('✅ Echo registrado en tracking');
+      } catch (error) {
+        console.error('❌ Error procesando echo:', error);
+      }
+      return;
+    }
+
+    // 2. Tracking Events (análisis de interacciones)
+    if (entry[0]?.changes?.[0]?.value?.tracking_data) {
+      const trackingData = entry[0].changes[0].value.tracking_data;
+      console.log('📊 Tracking event recibido:', trackingData.event_type);
+      try {
+        await saveTrackingEvent(
+          trackingData.wa_id,
+          trackingData.event_type,
+          trackingData
+        );
+        console.log('✅ Tracking guardado');
+      } catch (error) {
+        console.error('❌ Error guardando tracking:', error);
+      }
+      return;
+    }
+
+    // 3. Template Updates (actualizaciones de plantillas de marketing)
+    if (entry[0]?.changes?.[0]?.field === 'message_template_status_update') {
+      const templateUpdate = entry[0].changes[0].value;
+      console.log('📋 Template update:', templateUpdate.message_template_name);
+      try {
+        await upsertTemplate(
+          templateUpdate.message_template_id,
+          templateUpdate.category,
+          templateUpdate.event,
+          {
+            name: templateUpdate.message_template_name,
+            language: templateUpdate.message_template_language,
+            reason: templateUpdate.reason,
+            rejectionReason: templateUpdate.rejection_reason
+          }
+        );
+        console.log('✅ Template actualizado');
+      } catch (error) {
+        console.error('❌ Error actualizando template:', error);
+      }
+      return;
+    }
+
+    // 4. App State Sync (estado online/offline)
+    if (entry[0]?.changes?.[0]?.field === 'smb_app_state_sync') {
+      const appState = entry[0].changes[0].value;
+      console.log('🔄 App state sync:', appState.status);
+      try {
+        await saveAppState('whatsapp_status', {
+          status: appState.status,
+          phoneNumber: appState.phone_number,
+          timestamp: new Date().toISOString()
+        });
+        console.log('✅ Estado de app guardado');
+      } catch (error) {
+        console.error('❌ Error guardando estado:', error);
+      }
+      return;
+    }
+
+    // 5. User Preferences (preferencias de comunicación)
+    if (entry[0]?.changes?.[0]?.value?.preferences) {
+      const prefs = entry[0].changes[0].value.preferences;
+      const userId = entry[0].changes[0].value.wa_id;
+      console.log('⚙️ Preferencias de usuario actualizadas');
+      try {
+        await updateUserPreferences(`whatsapp_${userId}`, {
+          notificationsEnabled: prefs.notifications_enabled,
+          language: prefs.language,
+          marketingOptIn: prefs.marketing_opt_in,
+          updatedAt: new Date().toISOString()
+        });
+        console.log('✅ Preferencias guardadas');
+      } catch (error) {
+        console.error('❌ Error guardando preferencias:', error);
+      }
       return;
     }
 

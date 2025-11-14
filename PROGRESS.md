@@ -10,13 +10,24 @@
 
 ## 🎯 Últimas Actualizaciones
 
-### ✅ **Nov 14, 2025: Chatbot WhatsApp Completamente Funcional**
+### ✅ **Nov 14, 2025: Chatbot WhatsApp - Expansión Completa de Funcionalidades**
 - ✅ Integración WhatsApp Business API funcionando
 - ✅ Respuestas con OpenAI GPT-4o-mini (3s timeout)
 - ✅ Sistema de fallback inteligente con detección de intención
 - ✅ Almacenamiento en memoria (fallback storage)
-- ✅ Mensajes gratuitos (customer service window)
+- ✅ Neon PostgreSQL activado con retry logic (2s timeout)
 - ✅ Procesamiento síncrono para Vercel (< 10s)
+- ✅ **NUEVO**: 3 tablas adicionales (tracking, templates, app_states)
+- ✅ **NUEVO**: Columna preferences (JSONB) para personalización
+- ✅ **NUEVO**: 5 webhooks procesados (echoes, tracking, templates, states, preferences)
+- ✅ **NUEVO**: AI prompt mejorado con información completa BIOSKIN (tratamientos, productos, protocolo atención)
+
+### ✅ **Nov 13, 2025: Chatbot WhatsApp Básico Funcional**
+- ✅ Webhook WhatsApp Business configurado y verificado
+- ✅ Integración OpenAI GPT-4o-mini básica
+- ✅ Sistema de fallback en memoria
+- ✅ Mensajes gratuitos (customer service window)
+- ✅ Base de datos inicial (conversaciones + mensajes)
 
 ---
 
