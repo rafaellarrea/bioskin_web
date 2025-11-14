@@ -9,7 +9,8 @@ import { chatbotAI } from '../lib/chatbot-ai-service.js';
 import { FallbackStorage } from '../lib/fallback-storage.js';
 
 // Flag para controlar si usar fallback
-let useFallback = false;
+// TODO: Cambiar a false cuando Neon funcione correctamente
+let useFallback = true; // ACTIVADO POR DEFECTO debido a timeouts de Neon
 
 /**
  * ENDPOINT PRINCIPAL DEL CHATBOT DE WHATSAPP
@@ -20,6 +21,9 @@ let useFallback = false;
  * - OPENAI_API_KEY: API key de OpenAI (ya configurada)
  * - WHATSAPP_VERIFY_TOKEN: Token para verificación del webhook
  * - WHATSAPP_ACCESS_TOKEN: Token de acceso de WhatsApp Business API
+ * 
+ * NOTA: Actualmente usando almacenamiento en memoria (fallback) debido a 
+ * problemas de timeout con Neon PostgreSQL free tier (scale-to-zero).
  */
 
 export default async function handler(req, res) {
