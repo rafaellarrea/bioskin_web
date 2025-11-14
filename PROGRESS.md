@@ -4,7 +4,19 @@
 - **Proyecto**: Website medicina estética BIOSKIN
 - **Tecnología**: React 18 + TypeScript + Vite + TailwindCSS
 - **Inicio**: Octubre 2025
-- **Estado**: ✅ Producción + Desarrollo activo
+- **Estado**: ✅ Producción + Chatbot WhatsApp Activo
+
+---
+
+## 🎯 Últimas Actualizaciones
+
+### ✅ **Nov 14, 2025: Chatbot WhatsApp Completamente Funcional**
+- ✅ Integración WhatsApp Business API funcionando
+- ✅ Respuestas con OpenAI GPT-4o-mini (3s timeout)
+- ✅ Sistema de fallback inteligente con detección de intención
+- ✅ Almacenamiento en memoria (fallback storage)
+- ✅ Mensajes gratuitos (customer service window)
+- ✅ Procesamiento síncrono para Vercel (< 10s)
 
 ---
 
