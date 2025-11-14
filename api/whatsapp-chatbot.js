@@ -6,13 +6,17 @@ import {
 } from '../lib/neon-chatbot-db-vercel.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
+import { FallbackStorage } from '../lib/fallback-storage.js';
+
+// Flag para controlar si usar fallback
+let useFallback = false;
 
 /**
  * ENDPOINT PRINCIPAL DEL CHATBOT DE WHATSAPP
  * Maneja verificación del webhook y procesamiento de mensajes
  * 
  * Variables de entorno requeridas:
- * - NEON_DATABASE_URL: URL de conexión a Neon PostgreSQL
+ * - NEON_DATABASE_URL o POSTGRES_URL: URL de conexión a PostgreSQL
  * - OPENAI_API_KEY: API key de OpenAI (ya configurada)
  * - WHATSAPP_VERIFY_TOKEN: Token para verificación del webhook
  * - WHATSAPP_ACCESS_TOKEN: Token de acceso de WhatsApp Business API
@@ -136,22 +140,50 @@ async function processWhatsAppMessage(body) {
     const sessionId = `whatsapp_${from}`;
     console.log(`🔑 Session ID generado: ${sessionId}`);
 
-    // ⚠️ NO inicializamos la BD aquí - las tablas ya existen desde el setup inicial
-    // Solo operamos directamente sobre la BD
+    // Wrapper para intentar operaciones con fallback
+    const withFallback = async (operation, fallbackFn, description) => {
+      if (useFallback) {
+        console.log(`⚡ [FALLBACK ACTIVO] ${description}`);
+        return fallbackFn();
+      }
+      
+      try {
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        );
+        return await Promise.race([operation(), timeoutPromise]);
+      } catch (error) {
+        console.warn(`⚠️ ${description} falló, activando fallback:`, error.message);
+        useFallback = true; // Activar fallback para próximas operaciones
+        return fallbackFn();
+      }
+    };
 
-    // Crear/actualizar conversación
+    // Crear/actualizar conversación (con fallback)
     console.log('💾 Paso 2: Creando/actualizando conversación...');
-    await upsertConversation(sessionId, from);
+    await withFallback(
+      () => upsertConversation(sessionId, from),
+      () => FallbackStorage.saveConversation(sessionId, from),
+      'Upsert conversación'
+    );
     console.log('✅ Conversación actualizada');
 
-    // Guardar mensaje del usuario
+    // Guardar mensaje del usuario (con fallback)
     console.log('💾 Paso 3: Guardando mensaje del usuario...');
-    await saveMessage(sessionId, 'user', userMessage, 0, messageId);
+    await withFallback(
+      () => saveMessage(sessionId, 'user', userMessage, 0, messageId),
+      () => FallbackStorage.saveMessage(sessionId, 'user', userMessage, 0, messageId),
+      'Guardar mensaje usuario'
+    );
     console.log('✅ Mensaje del usuario guardado');
 
-    // Obtener historial de conversación
+    // Obtener historial de conversación (con fallback)
     console.log('💾 Paso 4: Obteniendo historial...');
-    const history = await getConversationHistory(sessionId, 20);
+    const history = await withFallback(
+      () => getConversationHistory(sessionId, 20),
+      () => FallbackStorage.getConversationHistory(sessionId, 20),
+      'Obtener historial'
+    );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
     // Generar respuesta con IA
@@ -163,9 +195,13 @@ async function processWhatsAppMessage(body) {
       console.error('❌ Error en generación de respuesta:', aiResult.error);
     }
 
-    // Guardar respuesta del asistente
+    // Guardar respuesta del asistente (con fallback)
     console.log('💾 Paso 6: Guardando respuesta del asistente...');
-    await saveMessage(sessionId, 'assistant', aiResult.response, aiResult.tokensUsed);
+    await withFallback(
+      () => saveMessage(sessionId, 'assistant', aiResult.response, aiResult.tokensUsed),
+      () => FallbackStorage.saveMessage(sessionId, 'assistant', aiResult.response, aiResult.tokensUsed),
+      'Guardar respuesta asistente'
+    );
     console.log('✅ Respuesta del asistente guardada');
 
     // Enviar respuesta a WhatsApp

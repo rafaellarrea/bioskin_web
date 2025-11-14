@@ -1,5 +1,6 @@
 import { getDatabaseStats } from '../lib/neon-chatbot-db-vercel.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
+import { FallbackStorage } from '../lib/fallback-storage.js';
 
 /**
  * ENDPOINT DE MONITOREO DEL CHATBOT
@@ -18,16 +19,31 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       console.log('📊 Obteniendo estadísticas del chatbot...');
 
-      // Obtener estadísticas de la base de datos
-      const dbStats = await getDatabaseStats();
+      let dbStats;
+      let usedFallback = false;
+      
+      // Intentar obtener estadísticas de la base de datos (con timeout)
+      try {
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        );
+        dbStats = await Promise.race([getDatabaseStats(), timeoutPromise]);
+      } catch (error) {
+        console.warn('⚠️ Base de datos no disponible, usando fallback:', error.message);
+        dbStats = FallbackStorage.getStats();
+        usedFallback = true;
+      }
 
       // Verificar uso de almacenamiento
-      const storageCheck = await cleanupService.checkStorageUsage();
+      const storageCheck = usedFallback 
+        ? { needsCleanup: false, currentMB: 0, maxMB: 512, percentUsed: 0, sizePretty: '0 MB' }
+        : await cleanupService.checkStorageUsage();
 
       // Respuesta completa
       const stats = {
         timestamp: new Date().toISOString(),
-        status: storageCheck.needsCleanup ? 'warning' : 'healthy',
+        status: storageCheck.needsCleanup ? 'warning' : (usedFallback ? 'fallback' : 'healthy'),
+        dataSource: usedFallback ? 'memory (database unavailable)' : 'database',
         storage: {
           current: `${storageCheck.currentMB} MB`,
           limit: `${storageCheck.maxMB} MB`,
@@ -43,7 +59,7 @@ export default async function handler(req, res) {
         }
       };
 
-      console.log('✅ Estadísticas generadas');
+      console.log(`✅ Estadísticas generadas${usedFallback ? ' (modo fallback)' : ''}`);
       return res.status(200).json(stats);
     }
 
