@@ -134,37 +134,54 @@ async function processWhatsAppMessage(body) {
 
     // Generar ID de sesión (número de teléfono como identificador)
     const sessionId = `whatsapp_${from}`;
+    console.log(`🔑 Session ID generado: ${sessionId}`);
 
     // Inicializar base de datos si es necesario
-    await initChatbotDatabase().catch(err => {
-      console.log('ℹ️ Base de datos ya inicializada');
-    });
+    console.log('💾 Paso 1: Inicializando base de datos...');
+    try {
+      await initChatbotDatabase();
+      console.log('✅ Base de datos inicializada');
+    } catch (err) {
+      console.log('ℹ️ Base de datos ya inicializada:', err.message);
+    }
 
     // Crear/actualizar conversación
+    console.log('💾 Paso 2: Creando/actualizando conversación...');
     await upsertConversation(sessionId, from);
+    console.log('✅ Conversación actualizada');
 
     // Guardar mensaje del usuario
+    console.log('💾 Paso 3: Guardando mensaje del usuario...');
     await saveMessage(sessionId, 'user', userMessage, 0, messageId);
+    console.log('✅ Mensaje del usuario guardado');
 
     // Obtener historial de conversación
+    console.log('💾 Paso 4: Obteniendo historial...');
     const history = await getConversationHistory(sessionId, 20);
+    console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
     // Generar respuesta con IA
-    console.log('🤖 Generando respuesta con OpenAI...');
+    console.log('🤖 Paso 5: Generando respuesta con OpenAI...');
     const aiResult = await chatbotAI.generateResponse(userMessage, history);
+    console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed} tokens)`);
 
     if (aiResult.error) {
       console.error('❌ Error en generación de respuesta:', aiResult.error);
     }
 
     // Guardar respuesta del asistente
+    console.log('💾 Paso 6: Guardando respuesta del asistente...');
     await saveMessage(sessionId, 'assistant', aiResult.response, aiResult.tokensUsed);
+    console.log('✅ Respuesta del asistente guardada');
 
     // Enviar respuesta a WhatsApp
+    console.log('📤 Paso 7: Enviando respuesta a WhatsApp...');
     await sendWhatsAppMessage(from, aiResult.response);
+    console.log('✅ Respuesta enviada a WhatsApp');
 
     // Limpieza ligera ocasional (10% de probabilidad)
     if (Math.random() < 0.1) {
+      console.log('🧹 Ejecutando limpieza ligera...');
       cleanupService.lightCleanup().catch(err => {
         console.log('⚠️ Error en limpieza ligera:', err);
       });
@@ -173,6 +190,7 @@ async function processWhatsAppMessage(body) {
     console.log('✅ Mensaje procesado exitosamente');
   } catch (error) {
     console.error('❌ Error en processWhatsAppMessage:', error);
+    console.error('❌ Stack trace completo:', error.stack);
     throw error;
   }
 }
@@ -182,43 +200,58 @@ async function processWhatsAppMessage(body) {
  */
 async function sendWhatsAppMessage(to, text) {
   try {
+    console.log(`📤 Intentando enviar mensaje a ${to}`);
+    console.log(`📝 Texto: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`);
+    
     const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
+    console.log(`🔑 Phone Number ID: ${phoneNumberId ? phoneNumberId.substring(0, 10) + '...' : 'MISSING'}`);
+    console.log(`🔑 Access Token: ${accessToken ? 'Presente (longitud: ' + accessToken.length + ')' : 'MISSING'}`);
+
     if (!phoneNumberId || !accessToken) {
       console.error('❌ Credenciales de WhatsApp no configuradas');
-      return;
+      throw new Error('Credenciales de WhatsApp faltantes');
     }
 
     const url = `${WHATSAPP_API_URL}/${phoneNumberId}/messages`;
+    console.log(`🌐 URL de API: ${url}`);
 
+    const payload = {
+      messaging_product: 'whatsapp',
+      to: to,
+      type: 'text',
+      text: { body: text }
+    };
+    console.log('📦 Payload:', JSON.stringify(payload, null, 2));
+
+    console.log('🚀 Enviando request a WhatsApp API...');
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: to,
-        type: 'text',
-        text: { body: text }
-      })
+      body: JSON.stringify(payload)
     });
+
+    console.log(`📊 Response status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('❌ Error enviando mensaje a WhatsApp:', errorData);
-      throw new Error(`WhatsApp API error: ${response.status}`);
+      console.error('❌ Error de WhatsApp API:', JSON.stringify(errorData, null, 2));
+      throw new Error(`WhatsApp API error: ${response.status} - ${JSON.stringify(errorData)}`);
     }
 
     const data = await response.json();
-    console.log('✅ Mensaje enviado a WhatsApp:', data.messages?.[0]?.id);
+    console.log('✅ Respuesta de WhatsApp API:', JSON.stringify(data, null, 2));
+    console.log('✅ Mensaje enviado a WhatsApp con ID:', data.messages?.[0]?.id);
     
     return data;
   } catch (error) {
-    console.error('❌ Error en sendWhatsAppMessage:', error);
+    console.error('❌ Error en sendWhatsAppMessage:', error.message);
+    console.error('❌ Stack trace:', error.stack);
     throw error;
   }
 }
