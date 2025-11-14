@@ -13,6 +13,24 @@ import { FallbackStorage } from '../lib/fallback-storage.js';
 let useFallback = true; // ACTIVADO POR DEFECTO debido a timeouts de Neon
 
 /**
+ * Detección simple de intención sin IA
+ */
+function detectSimpleIntent(message) {
+  const lowerMsg = message.toLowerCase();
+  
+  if (/^(hola|buenos días|buenas tardes|hey|hi|saludos)/i.test(lowerMsg)) {
+    return 'greeting';
+  }
+  if (/(agendar|cita|reservar|turno|disponibilidad|horario)/i.test(lowerMsg)) {
+    return 'appointment';
+  }
+  if (/(información|info|tratamiento|servicio|precio|costo|cuánto)/i.test(lowerMsg)) {
+    return 'info';
+  }
+  return 'general';
+}
+
+/**
  * ENDPOINT PRINCIPAL DEL CHATBOT DE WHATSAPP
  * Maneja verificación del webhook y procesamiento de mensajes
  * 
@@ -190,23 +208,26 @@ async function processWhatsAppMessage(body) {
     );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
-    // Generar respuesta con IA (con timeout global de 7s)
+    // Generar respuesta con IA (con timeout global de 5s)
     console.log('🤖 Paso 5: Generando respuesta con OpenAI...');
     let aiResult;
+    
+    // Configurar timeout global ANTES de llamar a generateResponse
+    let timeoutReached = false;
+    const globalTimeoutId = setTimeout(() => {
+      timeoutReached = true;
+      console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (5s)');
+    }, 5000);
+    
     try {
-      // Timeout global de 7 segundos (da tiempo al timeout interno de 4.5s)
-      const aiPromise = chatbotAI.generateResponse(userMessage, history);
+      console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
+      aiResult = await chatbotAI.generateResponse(userMessage, history);
+      clearTimeout(globalTimeoutId); // Limpiar timeout si se resuelve
       
-      let timeoutId;
-      const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(() => {
-          console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (7s)');
-          reject(new Error('TIMEOUT_GLOBAL_7S'));
-        }, 7000);
-      });
-      
-      aiResult = await Promise.race([aiPromise, timeoutPromise]);
-      clearTimeout(timeoutId); // Limpiar timeout si se resuelve
+      if (timeoutReached) {
+        console.log('⚠️ [WEBHOOK] Respuesta llegó DESPUÉS del timeout global');
+        throw new Error('RESPONSE_AFTER_TIMEOUT');
+      }
       
       console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed || 0} tokens)`);
       
@@ -214,19 +235,37 @@ async function processWhatsAppMessage(body) {
         console.error('⚠️ Error en generación de respuesta:', aiResult.error);
       }
     } catch (error) {
+      clearTimeout(globalTimeoutId);
       console.error('❌ Error CRÍTICO generando respuesta:', error.message);
       console.log('🔄 Usando fallback de emergencia...');
       
-      // Fallback de emergencia
+      // Fallback de emergencia con detección de intención
+      const intent = detectSimpleIntent(userMessage);
+      let fallbackResponse;
+      
+      switch (intent) {
+        case 'greeting':
+          fallbackResponse = '¡Hola! 👋 Soy el asistente de BIOSKIN. ¿En qué puedo ayudarte hoy?';
+          break;
+        case 'appointment':
+          fallbackResponse = 'Me encantaría ayudarte a agendar una cita 📅 Por favor contáctanos al WhatsApp de la clínica para coordinar tu visita.';
+          break;
+        case 'info':
+          fallbackResponse = 'Ofrecemos tratamientos faciales y corporales de medicina estética ✨ ¿Sobre qué tratamiento te gustaría saber más?';
+          break;
+        default:
+          fallbackResponse = 'Gracias por tu mensaje 😊 Un asesor te contactará pronto para brindarte la información que necesitas.';
+      }
+      
       aiResult = {
-        response: '¡Hola! 👋 Soy el asistente de BIOSKIN. Estamos experimentando problemas técnicos momentáneos. Por favor, contáctanos directamente al WhatsApp de la clínica. ¡Gracias!',
+        response: fallbackResponse,
         tokensUsed: 0,
         error: error.message,
         fallback: true,
         emergency: true
       };
       
-      console.log('✅ Fallback de emergencia activado');
+      console.log(`✅ Fallback de emergencia activado (${intent}): "${fallbackResponse.substring(0, 30)}..."`);
     }
 
     // Guardar respuesta del asistente (con fallback)
