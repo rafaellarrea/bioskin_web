@@ -208,10 +208,14 @@ async function processWhatsAppMessage(body) {
     );
     console.log('✅ Respuesta del asistente guardada');
 
-    // Enviar respuesta a WhatsApp
+    // Enviar respuesta a WhatsApp (sin await para evitar timeout)
     console.log('📤 Paso 7: Enviando respuesta a WhatsApp...');
-    await sendWhatsAppMessage(from, aiResult.response);
-    console.log('✅ Respuesta enviada a WhatsApp');
+    sendWhatsAppMessage(from, aiResult.response).then(() => {
+      console.log('✅ Respuesta enviada a WhatsApp');
+    }).catch(error => {
+      console.error('❌ Error enviando a WhatsApp:', error.message);
+    });
+    console.log('✅ Envío de WhatsApp iniciado (async)');
 
     // Limpieza ligera ocasional (10% de probabilidad)
     if (Math.random() < 0.1) {
@@ -225,6 +229,12 @@ async function processWhatsAppMessage(body) {
   } catch (error) {
     console.error('❌ Error en processWhatsAppMessage:', error);
     console.error('❌ Stack trace completo:', error.stack);
+    
+    // Intentar enviar mensaje de error al usuario (sin await)
+    try {
+      sendWhatsAppMessage(from, 'Disculpa, tuvimos un problema procesando tu mensaje. Por favor intenta de nuevo. 🙏').catch(() => {});
+    } catch {}
+    
     throw error;
   }
 }
