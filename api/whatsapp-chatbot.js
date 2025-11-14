@@ -309,20 +309,16 @@ async function processWhatsAppMessage(body) {
     );
     console.log('✅ Respuesta del asistente guardada');
 
-    // Enviar respuesta a WhatsApp (fire-and-forget para evitar timeout de Vercel)
+    // Enviar respuesta a WhatsApp (DEBE ser síncrono para que funcione en Vercel)
     console.log('📤 Paso 7: Enviando respuesta a WhatsApp...');
-    
-    // Enviar de forma asíncrona sin esperar (fire-and-forget)
-    sendWhatsAppMessage(from, aiResult.response)
-      .then(() => {
-        console.log('✅ Respuesta enviada a WhatsApp exitosamente');
-      })
-      .catch(error => {
-        console.error('❌ Error enviando a WhatsApp:', error.message);
-        console.error('❌ Error type:', error.name);
-      });
-    
-    console.log('✅ Envío de WhatsApp iniciado (fire-and-forget)');
+    try {
+      await sendWhatsAppMessage(from, aiResult.response);
+      console.log('✅ Respuesta enviada a WhatsApp exitosamente');
+    } catch (error) {
+      console.error('❌ Error enviando a WhatsApp:', error.message);
+      console.error('❌ Error type:', error.name);
+      // No lanzar el error para que el proceso continúe
+    }
 
     // Limpieza ligera ocasional (10% de probabilidad)
     if (Math.random() < 0.1) {
