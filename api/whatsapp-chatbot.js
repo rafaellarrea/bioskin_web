@@ -190,13 +190,36 @@ async function processWhatsAppMessage(body) {
     );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
-    // Generar respuesta con IA
+    // Generar respuesta con IA (con timeout global)
     console.log('🤖 Paso 5: Generando respuesta con OpenAI...');
-    const aiResult = await chatbotAI.generateResponse(userMessage, history);
-    console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed} tokens)`);
-
-    if (aiResult.error) {
-      console.error('❌ Error en generación de respuesta:', aiResult.error);
+    let aiResult;
+    try {
+      // Timeout de 8 segundos para toda la operación
+      const aiPromise = chatbotAI.generateResponse(userMessage, history);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('TIMEOUT_GLOBAL')), 8000)
+      );
+      
+      aiResult = await Promise.race([aiPromise, timeoutPromise]);
+      console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed} tokens)`);
+      
+      if (aiResult.error) {
+        console.error('⚠️ Error en generación de respuesta:', aiResult.error);
+      }
+    } catch (error) {
+      console.error('❌ Error CRÍTICO generando respuesta:', error.message);
+      console.log('🔄 Usando fallback de emergencia...');
+      
+      // Fallback de emergencia
+      aiResult = {
+        response: '¡Hola! 👋 Soy el asistente de BIOSKIN. Estamos experimentando problemas técnicos momentáneos. Por favor, contáctanos directamente al WhatsApp de la clínica. ¡Gracias!',
+        tokensUsed: 0,
+        error: error.message,
+        fallback: true,
+        emergency: true
+      };
+      
+      console.log('✅ Fallback de emergencia activado');
     }
 
     // Guardar respuesta del asistente (con fallback)
