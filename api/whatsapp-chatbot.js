@@ -190,18 +190,25 @@ async function processWhatsAppMessage(body) {
     );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
-    // Generar respuesta con IA (con timeout global)
+    // Generar respuesta con IA (con timeout global de 7s)
     console.log('🤖 Paso 5: Generando respuesta con OpenAI...');
     let aiResult;
     try {
-      // Timeout de 8 segundos para toda la operación
+      // Timeout global de 7 segundos (da tiempo al timeout interno de 4.5s)
       const aiPromise = chatbotAI.generateResponse(userMessage, history);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT_GLOBAL')), 8000)
-      );
+      
+      let timeoutId;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (7s)');
+          reject(new Error('TIMEOUT_GLOBAL_7S'));
+        }, 7000);
+      });
       
       aiResult = await Promise.race([aiPromise, timeoutPromise]);
-      console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed} tokens)`);
+      clearTimeout(timeoutId); // Limpiar timeout si se resuelve
+      
+      console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed || 0} tokens)`);
       
       if (aiResult.error) {
         console.error('⚠️ Error en generación de respuesta:', aiResult.error);
