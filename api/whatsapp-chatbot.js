@@ -13,7 +13,7 @@ import { FallbackStorage } from '../lib/fallback-storage.js';
 let useFallback = true; // ACTIVADO POR DEFECTO debido a timeouts de Neon
 
 // Flag para DESACTIVAR OpenAI temporalmente (debug)
-const DISABLE_OPENAI = true; // TEMPORAL: Desactivar OpenAI completamente para debug
+const DISABLE_OPENAI = false; // ✅ OpenAI ACTIVADO - Sistema funcionando correctamente
 
 /**
  * Detección simple de intención sin IA
@@ -138,6 +138,12 @@ async function processWhatsAppMessage(body) {
     const changes = entry?.changes?.[0];
     const value = changes?.value;
     const message = value?.messages?.[0];
+
+    // Ignorar webhooks de estado (sent, delivered, read)
+    if (!message && value?.statuses) {
+      console.log('ℹ️ Webhook de estado ignorado:', value.statuses[0]?.status);
+      return;
+    }
 
     if (!message) {
       console.log('⚠️ No hay mensaje en el webhook');
