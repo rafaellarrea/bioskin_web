@@ -9,8 +9,8 @@ import { chatbotAI } from '../lib/chatbot-ai-service.js';
 import { FallbackStorage } from '../lib/fallback-storage.js';
 
 // Flag para controlar si usar fallback
-// TODO: Cambiar a false cuando Neon funcione correctamente
-let useFallback = true; // ACTIVADO POR DEFECTO debido a timeouts de Neon
+// Comenzar intentando Neon, caer a fallback si hay timeout
+let useFallback = false; // ✅ Intentar Neon primero, fallback automático si falla
 
 // Flag para DESACTIVAR OpenAI temporalmente (debug)
 const DISABLE_OPENAI = false; // ✅ OpenAI ACTIVADO - Sistema funcionando correctamente
@@ -179,7 +179,7 @@ async function processWhatsAppMessage(body) {
       
       try {
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 3000)
+          setTimeout(() => reject(new Error('Timeout')), 2000) // 2s timeout para Neon
         );
         return await Promise.race([operation(), timeoutPromise]);
       } catch (error) {
