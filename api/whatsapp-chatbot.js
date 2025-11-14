@@ -12,6 +12,9 @@ import { FallbackStorage } from '../lib/fallback-storage.js';
 // TODO: Cambiar a false cuando Neon funcione correctamente
 let useFallback = true; // ACTIVADO POR DEFECTO debido a timeouts de Neon
 
+// Flag para DESACTIVAR OpenAI temporalmente (debug)
+const DISABLE_OPENAI = true; // TEMPORAL: Desactivar OpenAI completamente para debug
+
 /**
  * Detección simple de intención sin IA
  */
@@ -212,34 +215,9 @@ async function processWhatsAppMessage(body) {
     console.log('🤖 Paso 5: Generando respuesta con OpenAI...');
     let aiResult;
     
-    // Configurar timeout global ANTES de llamar a generateResponse
-    let timeoutReached = false;
-    const globalTimeoutId = setTimeout(() => {
-      timeoutReached = true;
-      console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (5s)');
-    }, 5000);
-    
-    try {
-      console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
-      aiResult = await chatbotAI.generateResponse(userMessage, history);
-      clearTimeout(globalTimeoutId); // Limpiar timeout si se resuelve
-      
-      if (timeoutReached) {
-        console.log('⚠️ [WEBHOOK] Respuesta llegó DESPUÉS del timeout global');
-        throw new Error('RESPONSE_AFTER_TIMEOUT');
-      }
-      
-      console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed || 0} tokens)`);
-      
-      if (aiResult.error) {
-        console.error('⚠️ Error en generación de respuesta:', aiResult.error);
-      }
-    } catch (error) {
-      clearTimeout(globalTimeoutId);
-      console.error('❌ Error CRÍTICO generando respuesta:', error.message);
-      console.log('🔄 Usando fallback de emergencia...');
-      
-      // Fallback de emergencia con detección de intención
+    // TEMPORAL: Usar solo fallback para debug
+    if (DISABLE_OPENAI) {
+      console.log('⚠️ [DEBUG] OpenAI desactivado, usando fallback directo');
       const intent = detectSimpleIntent(userMessage);
       let fallbackResponse;
       
@@ -260,12 +238,67 @@ async function processWhatsAppMessage(body) {
       aiResult = {
         response: fallbackResponse,
         tokensUsed: 0,
-        error: error.message,
         fallback: true,
-        emergency: true
+        debug: true
       };
       
-      console.log(`✅ Fallback de emergencia activado (${intent}): "${fallbackResponse.substring(0, 30)}..."`);
+      console.log(`✅ Fallback DEBUG activado (${intent}): "${fallbackResponse.substring(0, 30)}..."`);
+    } else {
+      // Configurar timeout global ANTES de llamar a generateResponse
+      let timeoutReached = false;
+      const globalTimeoutId = setTimeout(() => {
+        timeoutReached = true;
+        console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (5s)');
+      }, 5000);
+      
+      try {
+        console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
+        aiResult = await chatbotAI.generateResponse(userMessage, history);
+        clearTimeout(globalTimeoutId); // Limpiar timeout si se resuelve
+        
+        if (timeoutReached) {
+          console.log('⚠️ [WEBHOOK] Respuesta llegó DESPUÉS del timeout global');
+          throw new Error('RESPONSE_AFTER_TIMEOUT');
+        }
+        
+        console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed || 0} tokens)`);
+        
+        if (aiResult.error) {
+          console.error('⚠️ Error en generación de respuesta:', aiResult.error);
+        }
+      } catch (error) {
+        clearTimeout(globalTimeoutId);
+        console.error('❌ Error CRÍTICO generando respuesta:', error.message);
+        console.log('🔄 Usando fallback de emergencia...');
+        
+        // Fallback de emergencia con detección de intención
+        const intent = detectSimpleIntent(userMessage);
+        let fallbackResponse;
+        
+        switch (intent) {
+          case 'greeting':
+            fallbackResponse = '¡Hola! 👋 Soy el asistente de BIOSKIN. ¿En qué puedo ayudarte hoy?';
+            break;
+          case 'appointment':
+            fallbackResponse = 'Me encantaría ayudarte a agendar una cita 📅 Por favor contáctanos al WhatsApp de la clínica para coordinar tu visita.';
+            break;
+          case 'info':
+            fallbackResponse = 'Ofrecemos tratamientos faciales y corporales de medicina estética ✨ ¿Sobre qué tratamiento te gustaría saber más?';
+            break;
+          default:
+            fallbackResponse = 'Gracias por tu mensaje 😊 Un asesor te contactará pronto para brindarte la información que necesitas.';
+        }
+        
+        aiResult = {
+          response: fallbackResponse,
+          tokensUsed: 0,
+          error: error.message,
+          fallback: true,
+          emergency: true
+        };
+        
+        console.log(`✅ Fallback de emergencia activado (${intent}): "${fallbackResponse.substring(0, 30)}..."`);
+      }
     }
 
     // Guardar respuesta del asistente (con fallback)
