@@ -78,11 +78,13 @@ export default async function handler(req, res) {
   // ============================================
   if (req.method === 'POST') {
     try {
+      console.log('🔵 Webhook POST recibido:', JSON.stringify(req.body, null, 2));
+      
       // Responder INMEDIATAMENTE a WhatsApp (evita timeouts)
       res.status(200).send('OK');
 
       // Procesar mensaje de forma asíncrona
-      await processWhatsAppMessage(req.body).catch(error => {
+      processWhatsAppMessage(req.body).catch(error => {
         console.error('❌ Error procesando mensaje:', error);
       });
 
