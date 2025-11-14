@@ -16,6 +16,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@types/better-sqlite3": "^7.6.13",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/postgres": "^0.10.0",
     "better-sqlite3": "^12.4.1",
     "dotenv": "^17.2.3",
     "googleapis": "^149.0.0",

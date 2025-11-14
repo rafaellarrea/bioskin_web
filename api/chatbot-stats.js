@@ -1,4 +1,4 @@
-import { getDatabaseStats } from '../lib/neon-chatbot-db-http.js';
+import { getDatabaseStats } from '../lib/neon-chatbot-db-vercel.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 
 /**
