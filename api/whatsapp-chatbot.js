@@ -3,7 +3,7 @@ import {
   upsertConversation, 
   saveMessage, 
   getConversationHistory 
-} from '../lib/neon-chatbot-db.js';
+} from '../lib/neon-chatbot-db-http.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
 

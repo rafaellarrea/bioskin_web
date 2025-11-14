@@ -6,7 +6,7 @@
  *   node scripts/init-chatbot-db.js
  */
 
-import { initChatbotDatabase, getDatabaseStats } from '../lib/neon-chatbot-db.js';
+import { initChatbotDatabase, getDatabaseStats } from '../lib/neon-chatbot-db-http.js';
 
 async function initializeDatabase() {
   console.log('🔧 Inicializando base de datos del chatbot...\n');

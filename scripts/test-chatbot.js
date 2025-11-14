@@ -11,7 +11,7 @@ import {
   upsertConversation, 
   saveMessage, 
   getConversationHistory 
-} from '../lib/neon-chatbot-db.js';
+} from '../lib/neon-chatbot-db-http.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
 
 async function testChatbot(message) {
