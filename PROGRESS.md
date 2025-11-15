@@ -10,19 +10,105 @@
 
 ## 🎯 Últimas Actualizaciones
 
-### ✅ **Nov 14, 2025: Chatbot WhatsApp - Expansión Completa de Funcionalidades**
+### ✅ **Nov 14, 2025: Chatbot WhatsApp - Sistema Completo con Monitoreo**
+
+#### **Expansión de Funcionalidades**
 - ✅ Integración WhatsApp Business API funcionando
-- ✅ Respuestas con OpenAI GPT-4o-mini (3s timeout)
+- ✅ Respuestas con OpenAI GPT-4o-mini (3s timeout, 150 tokens)
 - ✅ Sistema de fallback inteligente con detección de intención
 - ✅ Almacenamiento en memoria (fallback storage)
 - ✅ Neon PostgreSQL activado con retry logic (2s timeout)
 - ✅ Procesamiento síncrono para Vercel (< 10s)
-- ✅ **NUEVO**: 3 tablas adicionales (tracking, templates, app_states)
-- ✅ **NUEVO**: Columna preferences (JSONB) para personalización
-- ✅ **NUEVO**: 5 webhooks procesados (echoes, tracking, templates, states, preferences)
-- ✅ **NUEVO**: AI prompt mejorado con información completa BIOSKIN (tratamientos, productos, protocolo atención)
+
+#### **Base de Datos Extendida (5 tablas, 10 índices)**
+**Tablas principales:**
+- ✅ `chat_conversations` - Conversaciones con columna `preferences` (JSONB)
+- ✅ `chat_messages` - Historial completo de mensajes
+- ✅ `chatbot_tracking` - Eventos de tracking y webhooks
+- ✅ `chatbot_templates` - Plantillas de marketing WhatsApp
+- ✅ `chatbot_app_states` - Estados de sincronización de app
+
+**Índices optimizados:**
+- ✅ `idx_session_messages` - Mensajes por sesión
+- ✅ `idx_active_sessions` - Sesiones activas
+- ✅ `idx_tracking_session` - Tracking por sesión
+- ✅ `idx_tracking_type` - Tracking por tipo
+- ✅ `idx_app_states_timestamp` - Estados por timestamp
+- ✅ `idx_conversation_preferences` - Preferencias (GIN index)
+
+#### **Webhooks Procesados (5 tipos)**
+- ✅ **message_echoes** - Sincronización con Business Manager (mensajes enviados desde panel web)
+- ✅ **tracking_events** - Análisis de interacciones (clics, vistas, engagement)
+- ✅ **template_category_update** - Actualizaciones de plantillas de marketing
+- ✅ **smb_app_state_sync** - Estado online/offline de WhatsApp Business
+- ✅ **user_preferences** - Preferencias de comunicación (notificaciones, idioma, marketing)
+
+#### **Sistema de Monitoreo Implementado**
+- ✅ API `/api/chatbot-monitor` con 6 endpoints:
+  - `GET /` - Estadísticas generales (conversaciones, mensajes, tracking)
+  - `GET ?action=webhooks` - Conteo por tipo de webhook
+  - `GET ?action=tracking` - Eventos de tracking recientes
+  - `GET ?action=templates` - Estado de plantillas
+  - `GET ?action=preferences` - Análisis de preferencias
+  - `GET ?action=conversations` - Conversaciones detalladas
+- ✅ Panel visual `/chatbot-monitor.html` con dashboard interactivo
+
+#### **AI Training Mejorado (Dataset BIOSKIN)**
+**Catálogo completo de 16 tratamientos con precios exactos:**
+
+**Evaluación:**
+- Consulta + escáner facial: $10 USD - 30 min
+
+**Limpieza:**
+- Limpieza facial profunda: $25 USD - 90 min
+- Limpieza + crioradiofrecuencia: $30 USD - 90 min
+
+**Regeneración:**
+- Microneedling: $30 USD - 60 min
+- PRP (Plasma Rico en Plaquetas): $30 USD - 45 min
+- Bioestimuladores de colágeno: $250 USD - 45 min
+- Exosomas: $130 USD - 60 min
+
+**Tecnología Láser:**
+- Láser CO2: $150 USD - 90 min
+- Rejuvenecimiento IPL: $25 USD - 60 min
+- Hollywood peel: $35 USD - 90 min
+- Eliminación tatuajes: desde $15 USD - 45-60 min
+
+**Avanzados:**
+- HIFU full face: $60 USD - 120 min
+- Relleno de labios: $160 USD - 60 min
+- Tratamiento despigmentante: $30 USD - 90 min
+
+**Protocolo de atención estructurado:**
+- ✅ Saludo estandarizado con presentación completa
+- ✅ Sistema de consulta: info básica → detalles → requisitos → agendamiento
+- ✅ Precios exactos en USD con duración precisa
+- ✅ Derivación médica: Dra. Daniela Creamer (+593969890689)
+- ✅ Derivación técnica: Ing. Rafael Larrea (equipos)
+- ✅ Integración Google Calendar para disponibilidad
+- ✅ Confirmación automática por correo + recordatorio 24h
+
+**Funciones del servicio (`lib/chatbot-ai-service.js`):**
+- ✅ `generateResponse()` - Generación con contexto de historial
+- ✅ `detectIntent()` - Fallback inteligente sin IA
+- ✅ `saveTrackingEvent()` - Registro de eventos
+- ✅ `upsertTemplate()` - Gestión de plantillas
+- ✅ `saveAppState()` - Estados de app
+- ✅ `updateUserPreferences()` - Preferencias de usuario
+
+**Funciones Vercel utilizadas:** 8/12 (66% capacidad)
+- whatsapp-chatbot.js
+- chatbot-stats.js
+- chatbot-monitor.js ⭐ NUEVO
+- calendar.js
+- blogs.js
+- analytics.js
+- sendEmail.js
+- ai-blog/generate-production.js
 
 ### ✅ **Nov 13, 2025: Chatbot WhatsApp Básico Funcional**
+
 - ✅ Webhook WhatsApp Business configurado y verificado
 - ✅ Integración OpenAI GPT-4o-mini básica
 - ✅ Sistema de fallback en memoria
