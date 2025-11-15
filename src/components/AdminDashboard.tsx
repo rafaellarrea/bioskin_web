@@ -236,6 +236,14 @@ const AdminDashboard: React.FC = () => {
       available: true
     },
     {
+      id: 'chatbot-monitor',
+      title: 'Monitor Chatbot WhatsApp',
+      description: 'Estadísticas y análisis del chatbot con IA',
+      icon: <Monitor className="w-6 h-6" />,
+      color: 'bg-purple-500',
+      available: true
+    },
+    {
       id: 'users',
       title: 'Gestión de Usuarios',
       description: 'Administrar pacientes y personal',
@@ -318,6 +326,29 @@ const AdminDashboard: React.FC = () => {
       case 'calendar-manager':
         return (
           <CalendarManager onBack={() => setActiveSection('dashboard')} />
+        );
+      case 'chatbot-monitor':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Monitor Chatbot WhatsApp</h2>
+              <button 
+                onClick={() => setActiveSection('dashboard')}
+                className="text-[#deb887] hover:text-[#d4a574] font-medium flex items-center gap-2"
+              >
+                ← Volver al Dashboard
+              </button>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <iframe 
+                src="/chatbot-monitor.html"
+                className="w-full border-0"
+                style={{ height: 'calc(100vh - 200px)', minHeight: '800px' }}
+                title="Chatbot Monitor"
+              />
+            </div>
+          </div>
         );
       case 'analytics':
         return (
