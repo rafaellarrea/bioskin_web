@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2024-11-14",
+  "lastUpdated": "2025-11-14",
   "active": true,
   "promotions": {
     "services": [
@@ -18,10 +18,10 @@
         "discountType": "percentage",
         "quantity": 2,
         "pricePerUnit": 20,
-        "validFrom": "2024-11-14",
-        "validUntil": "2024-11-16",
+        "validFrom": "2025-11-14",
+        "validUntil": "2025-11-16",
         "terms": [
-          "Promoción válida viernes 14 a domingo 16 de noviembre",
+          "Promoción válida viernes 14 a domingo 16 de noviembre 2025",
           "Aplica solo para Limpieza facial profunda",
           "Las 2 sesiones deben usarse en un plazo de 60 días",
           "No acumulable con otras promociones",
@@ -34,11 +34,11 @@
     "equipment": [],
     "upcoming": [
       {
-        "id": "promo-blackweek-2024",
-        "name": "Black Week 2024",
+        "id": "promo-blackweek-2025",
+        "name": "Black Week 2025",
         "description": "Descuentos especiales en servicios seleccionados durante Black Week",
-        "validFrom": "2024-11-24",
-        "validUntil": "2024-12-01",
+        "validFrom": "2025-11-24",
+        "validUntil": "2025-12-01",
         "status": "programada",
         "note": "Activar manualmente cambiando 'active': true y moviendo a la categoría correspondiente (services/products/equipment)"
       }

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Chats WhatsApp - BIOSKIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      height: calc(100vh - 40px);
+    }
+
+    .header {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    .stat-item {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Panel izquierdo - Lista de conversaciones */
+    .conversations-panel {
+      border-right: 1px solid #e5e7eb;
+      overflow-y: auto;
+      background: #f9fafb;
+    }
+
+    .search-box {
+      padding: 15px;
+      border-bottom: 1px solid #e5e7eb;
+      background: white;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .conversation-item {
+      padding: 15px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: white;
+    }
+
+    .conversation-item:hover {
+      background: #f3f4f6;
+    }
+
+    .conversation-item.active {
+      background: #ede9fe;
+      border-left: 4px solid #7c3aed;
+    }
+
+    .conversation-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .conversation-phone {
+      font-weight: 600;
+      color: #1f2937;
+      font-size: 15px;
+    }
+
+    .conversation-time {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .conversation-preview {
+      font-size: 13px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    .badge.recent {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    /* Panel derecho - Chat y formulario */
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .chat-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .chat-phone {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 5px;
+    }
+
+    .chat-info {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 30px;
+      background: #f9fafb;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .message.user .message-bubble {
+      background: #7c3aed;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-bubble {
+      background: white;
+      color: #1f2937;
+      border: 1px solid #e5e7eb;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .message.user .message-time {
+      justify-content: flex-end;
+    }
+
+    /* Formulario de envío */
+    .send-form {
+      padding: 20px 30px;
+      border-top: 1px solid #e5e7eb;
+      background: white;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .send-button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    }
+
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #9ca3af;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .empty-state svg {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #7c3aed;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .alert.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .alert.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .alert.warning {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+    }
+
+    @media (max-width: 968px) {
+      .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+
+      .conversations-panel {
+        max-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>💬 Gestión de Chats WhatsApp</h1>
+      <div class="stats" id="stats">
+        <div class="stat-item">📊 Cargando...</div>
+      </div>
+    </div>
+
+    <!-- Panel izquierdo: Lista de conversaciones -->
+    <div class="conversations-panel">
+      <div class="search-box">
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="🔍 Buscar por teléfono..."
+        >
+      </div>
+      <div id="conversationsList">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Cargando conversaciones...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel derecho: Chat y formulario -->
+    <div class="chat-panel">
+      <div id="chatContent">
+        <div class="empty-state">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+          <h2>Selecciona una conversación</h2>
+          <p>Elige un chat de la lista para ver mensajes y enviar respuestas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Variables globales
+    let conversations = [];
+    let selectedPhone = null;
+    let currentMessages = [];
+    const API_BASE = '/api/chatbot-manager';
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+      loadConversations();
+      setupSearch();
+    });
+
+    // Cargar estadísticas
+    async function loadStats() {
+      try {
+        const response = await fetch(API_BASE);
+        const data = await response.json();
+        
+        if (data.success) {
+          const stats = data.stats;
+          document.getElementById('stats').innerHTML = `
+            <div class="stat-item">📊 Total: ${stats.total_conversations}</div>
+            <div class="stat-item">📅 Hoy: ${stats.active_today}</div>
+            <div class="stat-item">💬 Mensajes: ${stats.total_messages}</div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error cargando stats:', error);
+      }
+    }
+
+    // Cargar conversaciones
+    async function loadConversations() {
+      try {
+        const response = await fetch(`${API_BASE}?action=conversations`);
+        const data = await response.json();
+        
+        if (data.success) {
+          conversations = data.conversations;
+          renderConversations(conversations);
+        }
+      } catch (error) {
+        console.error('Error cargando conversaciones:', error);
+        document.getElementById('conversationsList').innerHTML = `
+          <div class="loading" style="color: #ef4444;">
+            <p>❌ Error cargando conversaciones</p>
+          </div>
+        `;
+      }
+    }
+
+    // Renderizar lista de conversaciones
+    function renderConversations(data) {
+      const container = document.getElementById('conversationsList');
+      
+      if (data.length === 0) {
+        container.innerHTML = `
+          <div class="loading">
+            <p>No hay conversaciones todavía</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = data.map(conv => `
+        <div 
+          class="conversation-item ${conv.phone_number === selectedPhone ? 'active' : ''}" 
+          onclick="selectConversation('${conv.phone_number}')"
+        >
+          <div class="conversation-header">
+            <span class="conversation-phone">📱 ${conv.phone_number || 'Anónimo'}</span>
+            <span class="conversation-time">${conv.time_ago}</span>
+          </div>
+          <div class="conversation-preview">
+            ${conv.last_message_preview || 'Sin mensajes'}
+          </div>
+          ${conv.is_recent ? '<span class="badge recent">Reciente</span>' : ''}
+          <div style="font-size: 12px; color: #9ca3af; margin-top: 5px;">
+            💬 ${conv.message_count} mensajes
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Seleccionar conversación
+    async function selectConversation(phone) {
+      selectedPhone = phone;
+      renderConversations(conversations);
+      await loadMessages(phone);
+    }
+
+    // Cargar mensajes de una conversación
+    async function loadMessages(phone) {
+      const chatContent = document.getElementById('chatContent');
+      
+      chatContent.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Cargando mensajes...</p>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${API_BASE}?action=messages&phone=${encodeURIComponent(phone)}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          currentMessages = data.messages;
+          renderChat(phone, data.messages);
+        }
+      } catch (error) {
+        console.error('Error cargando mensajes:', error);
+        chatContent.innerHTML = `
+          <div class="loading" style="color: #ef4444;">
+            <p>❌ Error cargando mensajes</p>
+          </div>
+        `;
+      }
+    }
+
+    // Renderizar chat completo
+    function renderChat(phone, messages) {
+      const chatContent = document.getElementById('chatContent');
+      
+      chatContent.innerHTML = `
+        <div class="chat-header">
+          <div class="chat-phone">📱 ${phone}</div>
+          <div class="chat-info">${messages.length} mensajes en la conversación</div>
+        </div>
+        
+        <div class="messages-container" id="messagesContainer">
+          ${messages.length === 0 ? `
+            <div class="empty-state">
+              <p>No hay mensajes en esta conversación</p>
+            </div>
+          ` : messages.map(msg => `
+            <div class="message ${msg.role}">
+              <div>
+                <div class="message-bubble">
+                  ${escapeHtml(msg.content)}
+                </div>
+                <div class="message-time">
+                  ${msg.time_ago}
+                  ${msg.role === 'user' ? '👤' : '🤖'}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="send-form">
+          <div id="alertContainer"></div>
+          
+          <div class="form-group">
+            <label for="messageInput">💬 Enviar mensaje a ${phone}</label>
+            <textarea 
+              id="messageInput" 
+              placeholder="Escribe tu mensaje aquí..."
+              rows="3"
+            ></textarea>
+          </div>
+          
+          <button 
+            class="send-button" 
+            onclick="sendMessage('${phone}')"
+            id="sendButton"
+          >
+            📤 Enviar Mensaje
+          </button>
+        </div>
+      `;
+
+      // Scroll al último mensaje
+      setTimeout(() => {
+        const container = document.getElementById('messagesContainer');
+        container.scrollTop = container.scrollHeight;
+      }, 100);
+    }
+
+    // Enviar mensaje
+    async function sendMessage(phone) {
+      const input = document.getElementById('messageInput');
+      const button = document.getElementById('sendButton');
+      const alertContainer = document.getElementById('alertContainer');
+      const message = input.value.trim();
+
+      if (!message) {
+        showAlert('Por favor escribe un mensaje', 'error');
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = '⏳ Enviando...';
+      alertContainer.innerHTML = '';
+
+      try {
+        const response = await fetch(`${API_BASE}?action=send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, message })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          if (data.whatsapp_sent) {
+            showAlert('✅ Mensaje enviado por WhatsApp y guardado en BD', 'success');
+          } else {
+            showAlert('⚠️ Mensaje guardado en BD pero no se pudo enviar por WhatsApp: ' + data.whatsapp_error, 'warning');
+          }
+          
+          input.value = '';
+          
+          // Recargar mensajes después de 1 segundo
+          setTimeout(() => {
+            loadMessages(phone);
+          }, 1000);
+        } else {
+          showAlert('❌ Error: ' + data.error, 'error');
+        }
+      } catch (error) {
+        console.error('Error enviando mensaje:', error);
+        showAlert('❌ Error de conexión al enviar mensaje', 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = '📤 Enviar Mensaje';
+      }
+    }
+
+    // Mostrar alerta
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      alertContainer.innerHTML = `
+        <div class="alert ${type}">
+          ${message}
+        </div>
+      `;
+      
+      setTimeout(() => {
+        alertContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    // Configurar búsqueda
+    function setupSearch() {
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = conversations.filter(conv => 
+          conv.phone_number?.toLowerCase().includes(query) ||
+          conv.last_message_preview?.toLowerCase().includes(query)
+        );
+        renderConversations(filtered);
+      });
+    }
+
+    // Escapar HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Auto-refresh cada 30 segundos
+    setInterval(() => {
+      loadStats();
+      loadConversations();
+      if (selectedPhone) {
+        loadMessages(selectedPhone);
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
