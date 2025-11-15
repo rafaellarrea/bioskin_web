@@ -1,18 +1,62 @@
 # 🎉 Sistema de Promociones BIOSKIN
 
 ## 📋 Descripción
-Sistema dinámico de gestión de promociones para servicios, productos y equipos de BIOSKIN. El chatbot **Matías** verifica automáticamente las promociones activas antes de responder sobre precios.
+Sistema **100% MANUAL** de gestión de promociones para servicios, productos y equipos de BIOSKIN. 
+
+**IMPORTANTE**: Las promociones **NO se activan automáticamente**. Debes editar el archivo `data/promotions.json` manualmente para activar/desactivar promociones.
+
+El chatbot **Matías** lee este archivo antes de responder sobre precios y menciona las promociones que tengan `"active": true`.
 
 ## 🗂️ Estructura
 
 ### Archivos principales:
-- **`data/promotions.json`** - Base de datos de promociones (JSON)
-- **`lib/promotions-service.js`** - Servicio de lectura y validación
+- **`data/promotions.json`** - Base de datos de promociones (editable manualmente)
+- **`lib/promotions-service.js`** - Servicio de lectura (NO valida fechas automáticamente)
 - **`lib/chatbot-ai-service.js`** - Integración con el chatbot
 
-## 📝 Formato de Promoción
+## ⚠️ ACTIVACIÓN MANUAL
 
-### Ejemplo actual (Limpieza Facial 2x$40):
+### Cómo funciona:
+1. **Editas `data/promotions.json`** y cambias `"active": true`
+2. **Haces commit y push** a GitHub
+3. **Vercel redespliega** (~1-2 min)
+4. **Matías empieza a mencionar** la promoción
+
+### Las fechas son solo informativas:
+- `validFrom` y `validUntil` son para que **tú** sepas cuándo activar/desactivar
+- El sistema **NO** activa/desactiva automáticamente por fechas
+- **Tú decides** cuándo cambiar `"active": true/false`
+
+## 📝 Promociones Actuales
+
+### 🔥 PRE BLACK WEEK (Viernes 14 - Domingo 16 Nov)
+```json
+{
+  "id": "promo-pre-blackweek-limpieza",
+  "name": "Pre Black Week - Limpieza Facial 2x1",
+  "service": "Limpieza facial profunda",
+  "active": true,  // ← CAMBIAR A false después del domingo 16
+  "promoPrice": 40,
+  "originalPrice": 50,
+  "quantity": 2,
+  "validFrom": "2024-11-14",
+  "validUntil": "2024-11-16",
+  "displayMessage": "🔥 ¡PRE BLACK WEEK! Limpieza facial profunda: 2x$40 USD..."
+}
+```
+
+### 🛒 BLACK WEEK (24 Nov - 1 Dic) - PRÓXIMAMENTE
+```json
+{
+  "id": "promo-blackweek-2024",
+  "name": "Black Week 2024",
+  "description": "Descuentos especiales en servicios seleccionados",
+  "validFrom": "2024-11-24",
+  "validUntil": "2024-12-01",
+  "status": "programada",
+  "note": "Activar manualmente el 24 de noviembre"
+}
+```
 ```json
 {
   "id": "promo-limpieza-2x40",
@@ -39,11 +83,66 @@ Sistema dinámico de gestión de promociones para servicios, productos y equipos
 }
 ```
 
-## ✏️ Cómo Agregar/Editar Promociones
+## ✏️ Cómo Gestionar Promociones (MANUAL)
 
-### 1. Editar `data/promotions.json`
+### 1. Activar una promoción
 
-#### Para SERVICIOS:
+**Ejemplo: Activar PRE BLACK WEEK (14-16 Nov)**
+```json
+{
+  "id": "promo-pre-blackweek-limpieza",
+  "active": true,  // ← Cambiar de false a true
+  ...
+}
+```
+
+**Pasos:**
+1. Editar `data/promotions.json`
+2. Cambiar `"active": false` → `"active": true`
+3. Commit: `git add data/promotions.json`
+4. Commit: `git commit -m "Activar PRE BLACK WEEK"`
+5. Push: `git push`
+6. Esperar 1-2 min (Vercel redespliega)
+
+### 2. Desactivar una promoción (después del 16 de Nov)
+
+```json
+{
+  "id": "promo-pre-blackweek-limpieza",
+  "active": false,  // ← Cambiar de true a false
+  ...
+}
+```
+
+### 3. Activar BLACK WEEK (24 Nov - 1 Dic)
+
+**El 24 de noviembre:**
+1. Abrir `data/promotions.json`
+2. Buscar la promoción en `"upcoming"`
+3. Copiar el objeto completo
+4. Moverlo a `"services"` (o `"products"` / `"equipment"`)
+5. Agregar `"active": true`
+6. Definir todos los campos requeridos (precio, mensaje, etc.)
+7. Commit y push
+
+**Ejemplo de migración:**
+```json
+"services": [
+  {
+    "id": "promo-blackweek-hifu",
+    "name": "Black Week - HIFU",
+    "service": "HIFU full face",
+    "active": true,  // ← AGREGAR esto
+    "type": "discount",
+    "originalPrice": 60,
+    "promoPrice": 50,
+    "discount": 17,
+    "validFrom": "2024-11-24",
+    "validUntil": "2024-12-01",
+    "displayMessage": "🛒 ¡BLACK WEEK! HIFU full face: $50 USD (precio regular $60 USD). Válido 24 nov - 1 dic."
+  }
+]
+```
 ```json
 "services": [
   {
@@ -141,7 +240,45 @@ Matías: "HIFU full face: $60 USD, duración 120 min. Por el momento no contamos
          pago si te interesa. ¿Deseas agendar? 😊"
 ```
 
-## 🔄 Cache y Actualización
+## 📅 Calendario de Promociones 2024
+
+### ✅ PRE BLACK WEEK (ACTIVA)
+- **Fechas**: Viernes 14 - Domingo 16 de noviembre
+- **Promo**: Limpieza facial 2x$40 USD
+- **Estado**: `"active": true` ✅
+- **Acción**: Desactivar el lunes 17 de noviembre
+
+### ⏳ BLACK WEEK (PRÓXIMA)
+- **Fechas**: 24 de noviembre - 1 de diciembre
+- **Promo**: Descuentos en servicios seleccionados
+- **Estado**: `"status": "programada"` (en sección `upcoming`)
+- **Acción**: Activar manualmente el 24 de noviembre
+
+## ⚠️ RECORDATORIOS IMPORTANTES
+
+### Tareas manuales requeridas:
+
+1. **17 de noviembre (lunes)**
+   - [ ] Desactivar PRE BLACK WEEK: cambiar `"active": false`
+   - [ ] Commit y push
+
+2. **24 de noviembre (domingo)**
+   - [ ] Activar BLACK WEEK: mover de `upcoming` a `services`
+   - [ ] Definir servicios con descuento y precios
+   - [ ] Cambiar `"active": true`
+   - [ ] Commit y push
+
+3. **2 de diciembre (lunes)**
+   - [ ] Desactivar BLACK WEEK: cambiar `"active": false`
+   - [ ] Commit y push
+
+### El sistema NO hace esto automáticamente
+- ❌ No activa promociones por fecha
+- ❌ No desactiva promociones vencidas
+- ❌ No valida fechas
+- ✅ Solo lee el campo `"active": true/false`
+
+## 🔄 Flujo de trabajo
 
 - **Cache**: 5 minutos para evitar lecturas constantes del archivo
 - **Actualización automática**: Después de 5 min, se recarga el archivo

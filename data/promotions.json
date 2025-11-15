@@ -1,36 +1,48 @@
 {
   "version": "1.0",
-  "lastUpdated": "2024-11-15",
+  "lastUpdated": "2024-11-14",
   "active": true,
   "promotions": {
     "services": [
       {
-        "id": "promo-limpieza-2x40",
-        "name": "Limpieza Facial 2x1",
+        "id": "promo-pre-blackweek-limpieza",
+        "name": "Pre Black Week - Limpieza Facial 2x1",
         "service": "Limpieza facial profunda",
         "serviceId": "limpieza-facial",
         "type": "package",
         "active": true,
-        "description": "2 Limpiezas faciales profundas",
+        "description": "2 Limpiezas faciales profundas - PRE BLACK WEEK",
         "originalPrice": 50,
         "promoPrice": 40,
         "discount": 20,
         "discountType": "percentage",
         "quantity": 2,
         "pricePerUnit": 20,
-        "validFrom": "2024-11-15",
-        "validUntil": "2024-12-31",
+        "validFrom": "2024-11-14",
+        "validUntil": "2024-11-16",
         "terms": [
+          "Promoción válida viernes 14 a domingo 16 de noviembre",
           "Aplica solo para Limpieza facial profunda",
           "Las 2 sesiones deben usarse en un plazo de 60 días",
           "No acumulable con otras promociones",
           "Sujeto a disponibilidad de agenda"
         ],
-        "displayMessage": "🎉 ¡PROMOCIÓN ACTIVA! Limpieza facial profunda: 2x$40 USD (precio regular 1x$25 USD). Ahorra $10 en tu segundo tratamiento."
+        "displayMessage": "🔥 ¡PRE BLACK WEEK! Limpieza facial profunda: 2x$40 USD (precio regular 1x$25 USD). Válido solo viernes 14 a domingo 16 de noviembre. ¡Ahorra $10!"
       }
     ],
     "products": [],
-    "equipment": []
+    "equipment": [],
+    "upcoming": [
+      {
+        "id": "promo-blackweek-2024",
+        "name": "Black Week 2024",
+        "description": "Descuentos especiales en servicios seleccionados durante Black Week",
+        "validFrom": "2024-11-24",
+        "validUntil": "2024-12-01",
+        "status": "programada",
+        "note": "Activar manualmente cambiando 'active': true y moviendo a la categoría correspondiente (services/products/equipment)"
+      }
+    ]
   },
   "general_rules": {
     "stackable": false,
@@ -42,6 +54,8 @@
     "checkBeforePrice": true,
     "alwaysMentionIfActive": true,
     "suggestBestDeal": true,
-    "priority": "promotion_first"
+    "priority": "promotion_first",
+    "manualActivation": true,
+    "note": "Las promociones SOLO se activan editando este archivo y cambiando 'active': true. NO se activan automáticamente por fechas."
   }
 }
