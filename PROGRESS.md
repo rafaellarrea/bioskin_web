@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 14, 2025: Endpoint de Inicialización de BD del Chatbot**
+- ✅ Creado `/api/init-chatbot-db` para inicializar tablas
+- ✅ Interfaz HTML `/init-chatbot-db.html` para ejecución fácil
+- ✅ Manejo de errores mejorado en APIs de gestión
+- ✅ Mensajes de error descriptivos con hints de solución
+
 ### ✅ **Nov 14, 2025: Sistema de Agendamiento Automatizado en Chatbot**
 
 #### **Agendamiento Automático Implementado**
