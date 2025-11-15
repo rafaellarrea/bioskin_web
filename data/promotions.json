@@ -1,0 +1,47 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2024-11-15",
+  "active": true,
+  "promotions": {
+    "services": [
+      {
+        "id": "promo-limpieza-2x40",
+        "name": "Limpieza Facial 2x1",
+        "service": "Limpieza facial profunda",
+        "serviceId": "limpieza-facial",
+        "type": "package",
+        "active": true,
+        "description": "2 Limpiezas faciales profundas",
+        "originalPrice": 50,
+        "promoPrice": 40,
+        "discount": 20,
+        "discountType": "percentage",
+        "quantity": 2,
+        "pricePerUnit": 20,
+        "validFrom": "2024-11-15",
+        "validUntil": "2024-12-31",
+        "terms": [
+          "Aplica solo para Limpieza facial profunda",
+          "Las 2 sesiones deben usarse en un plazo de 60 días",
+          "No acumulable con otras promociones",
+          "Sujeto a disponibilidad de agenda"
+        ],
+        "displayMessage": "🎉 ¡PROMOCIÓN ACTIVA! Limpieza facial profunda: 2x$40 USD (precio regular 1x$25 USD). Ahorra $10 en tu segundo tratamiento."
+      }
+    ],
+    "products": [],
+    "equipment": []
+  },
+  "general_rules": {
+    "stackable": false,
+    "requireAppointment": true,
+    "paymentMethods": ["efectivo", "transferencia", "tarjeta"],
+    "cancellationPolicy": "48 horas de anticipación"
+  },
+  "bot_instructions": {
+    "checkBeforePrice": true,
+    "alwaysMentionIfActive": true,
+    "suggestBestDeal": true,
+    "priority": "promotion_first"
+  }
+}
