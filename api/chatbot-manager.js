@@ -115,19 +115,19 @@ export default async function handler(req, res) {
       let whatsappError = null;
 
       try {
-        const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-        const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID;
+        const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-        if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) {
+        if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
           throw new Error('Credenciales de WhatsApp no configuradas');
         }
 
         const whatsappResponse = await fetch(
-          `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_ID}/messages`,
+          `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+              'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
