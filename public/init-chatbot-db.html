@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicializar DB Chatbot - BIOSKIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .info-box {
+      background: #f3f4f6;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    .info-box h3 {
+      color: #374151;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .info-box ul {
+      margin-left: 20px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .info-box li {
+      margin: 5px 0;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .result.success {
+      background: #d1fae5;
+      border: 2px solid #10b981;
+      color: #065f46;
+      display: block;
+    }
+
+    .result.error {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+      display: block;
+    }
+
+    .result.loading {
+      background: #dbeafe;
+      border: 2px solid #3b82f6;
+      color: #1e40af;
+      display: block;
+    }
+
+    .result h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .result pre {
+      background: rgba(0,0,0,0.05);
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .tables-list {
+      margin-top: 10px;
+    }
+
+    .tables-list li {
+      margin: 5px 0;
+      padding: 5px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 4px;
+    }
+
+    code {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗄️ Inicializar Base de Datos</h1>
+    <p class="subtitle">Sistema de inicialización de tablas del chatbot WhatsApp</p>
+
+    <div class="info-box">
+      <h3>📋 Este proceso creará:</h3>
+      <ul>
+        <li><code>chat_conversations</code> - Tabla de conversaciones</li>
+        <li><code>chat_messages</code> - Historial de mensajes</li>
+        <li><code>chatbot_tracking</code> - Eventos de tracking</li>
+        <li><code>chatbot_templates</code> - Plantillas de WhatsApp</li>
+        <li><code>chatbot_app_states</code> - Estados de aplicación</li>
+        <li>6 índices optimizados para consultas rápidas</li>
+      </ul>
+    </div>
+
+    <div class="info-box" style="border-color: #f59e0b; background: #fef3c7;">
+      <h3 style="color: #92400e;">⚠️ Requisitos:</h3>
+      <ul style="color: #92400e;">
+        <li>Variable <code>POSTGRES_URL</code> configurada en Vercel</li>
+        <li>Acceso a Neon PostgreSQL funcionando</li>
+        <li>Este proceso es seguro y no elimina datos existentes</li>
+      </ul>
+    </div>
+
+    <button class="btn" onclick="initDatabase()" id="initBtn">
+      🚀 Inicializar Base de Datos
+    </button>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    async function initDatabase() {
+      const btn = document.getElementById('initBtn');
+      const resultDiv = document.getElementById('result');
+      
+      // Deshabilitar botón
+      btn.disabled = true;
+      btn.textContent = '⏳ Inicializando...';
+      
+      // Mostrar loading
+      resultDiv.className = 'result loading';
+      resultDiv.innerHTML = `
+        <h3>⏳ Procesando...</h3>
+        <p>Conectando a la base de datos y creando tablas...</p>
+      `;
+      
+      try {
+        const response = await fetch('/api/init-chatbot-db');
+        const data = await response.json();
+        
+        if (data.success) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `
+            <h3>✅ Base de datos inicializada correctamente</h3>
+            <p>${data.message}</p>
+            
+            <div class="tables-list">
+              <strong>Tablas creadas:</strong>
+              <ul>
+                ${data.tables.map(table => `<li>✓ ${table}</li>`).join('')}
+              </ul>
+            </div>
+            
+            <div class="tables-list">
+              <strong>Índices creados:</strong>
+              <ul>
+                ${data.indices.map(index => `<li>✓ ${index}</li>`).join('')}
+              </ul>
+            </div>
+            
+            <p style="margin-top: 15px; padding: 10px; background: rgba(16,185,129,0.1); border-radius: 6px;">
+              <strong>🎉 ¡Todo listo!</strong><br>
+              Ahora puedes usar las páginas de monitoreo y gestión de chats sin errores.
+            </p>
+          `;
+          
+          // Rehabilitar botón con nuevo texto
+          btn.disabled = false;
+          btn.textContent = '🔄 Reinicializar (si es necesario)';
+        } else {
+          throw new Error(data.details || data.error || 'Error desconocido');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <h3>❌ Error al inicializar</h3>
+          <p><strong>Mensaje:</strong> ${error.message}</p>
+          
+          <div style="margin-top: 15px; padding: 10px; background: rgba(239,68,68,0.1); border-radius: 6px;">
+            <strong>Posibles causas:</strong>
+            <ul style="margin-top: 5px;">
+              <li>Variable <code>POSTGRES_URL</code> no configurada</li>
+              <li>Credenciales de Neon PostgreSQL incorrectas</li>
+              <li>Base de datos no accesible</li>
+              <li>Error de permisos en las tablas</li>
+            </ul>
+          </div>
+          
+          <div style="margin-top: 15px; padding: 10px; background: rgba(59,130,246,0.1); border-radius: 6px;">
+            <strong>Solución:</strong>
+            <ol style="margin-top: 5px; margin-left: 20px;">
+              <li>Verifica en Vercel: <code>vercel env ls</code></li>
+              <li>Asegúrate que POSTGRES_URL tiene el formato correcto</li>
+              <li>Prueba la conexión manualmente</li>
+              <li>Revisa los logs de Vercel para más detalles</li>
+            </ol>
+          </div>
+          
+          <pre>${error.stack || 'No hay stack trace disponible'}</pre>
+        `;
+        
+        // Rehabilitar botón
+        btn.disabled = false;
+        btn.textContent = '🔄 Intentar de nuevo';
+      }
+    }
+  </script>
+</body>
+</html>
