@@ -10,6 +10,41 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 14, 2025: Sistema de Agendamiento Automatizado en Chatbot**
+
+#### **Agendamiento Automático Implementado**
+- ✅ Verificación de disponibilidad en tiempo real con Google Calendar
+- ✅ Creación automática de citas sin intervención manual
+- ✅ Sugerencias inteligentes según preferencias (mañana/tarde/noche, fines de semana)
+- ✅ Parseo de lenguaje natural para fechas y horas
+- ✅ Validación completa (no domingos, no horas pasadas, horario 09:00-19:00)
+- ✅ Integración con sistema de emails y notificaciones WhatsApp
+
+#### **Flujos de Agendamiento**
+**Opción 1: Link directo**
+- Usuario pide agendar → Bot ofrece https://saludbioskin.vercel.app/#/appointment
+
+**Opción 2: Agendamiento asistido por chat**
+1. Bot pregunta fecha/hora preferida
+2. Verifica disponibilidad automáticamente en Google Calendar
+3. Si disponible: Confirma y pide datos (nombre, teléfono, tratamiento)
+4. Si ocupado: Sugiere 3 horarios alternativos cercanos
+5. Usuario confirma → Bot agenda automáticamente
+
+**Sugerencias inteligentes:**
+- "después de las 5pm" → Filtra solo 17:00-19:00
+- "fin de semana" → Muestra sábados disponibles
+- "en la mañana" → Muestra 09:00-12:00
+- "viernes" → Muestra próximo viernes disponible
+
+#### **Archivos Nuevos**
+- ✅ `lib/chatbot-appointment-service.js` - Servicio completo de agendamiento
+- ✅ `docs/CHATBOT-AGENDAMIENTO-AUTOMATICO.md` - Documentación técnica
+
+#### **Archivos Modificados**
+- ✅ `lib/chatbot-ai-service.js` - Prompt actualizado con flujo de agendamiento
+- ✅ `api/whatsapp-chatbot.js` - Integración con sistema de agendamiento
+
 ### ✅ **Nov 14, 2025: Chatbot WhatsApp - Sistema Completo con Monitoreo**
 
 #### **Expansión de Funcionalidades**
