@@ -33,45 +33,55 @@ export default async function handler(req, res) {
     // ESTADÍSTICAS GENERALES
     // ==========================================
     if (!action) {
-      const [conversationsResult, messagesResult, trackingResult] = await Promise.all([
-        sql`
-          SELECT 
-            COUNT(*) as total,
-            COUNT(CASE WHEN is_active THEN 1 END) as active,
-            COUNT(CASE WHEN last_message_at > NOW() - INTERVAL '24 hours' THEN 1 END) as last_24h,
-            AVG(total_messages) as avg_messages
-          FROM chat_conversations
-        `,
-        sql`
-          SELECT COUNT(*) as total
-          FROM chat_messages
-          WHERE timestamp > NOW() - INTERVAL '7 days'
-        `,
-        sql`
-          SELECT COUNT(*) as total
-          FROM chatbot_tracking
-          WHERE timestamp > NOW() - INTERVAL '7 days'
-        `
-      ]);
+      try {
+        const [conversationsResult, messagesResult, trackingResult] = await Promise.all([
+          sql`
+            SELECT 
+              COUNT(*) as total,
+              COUNT(CASE WHEN is_active THEN 1 END) as active,
+              COUNT(CASE WHEN last_message_at > NOW() - INTERVAL '24 hours' THEN 1 END) as last_24h,
+              AVG(total_messages) as avg_messages
+            FROM chat_conversations
+          `,
+          sql`
+            SELECT COUNT(*) as total
+            FROM chat_messages
+            WHERE timestamp > NOW() - INTERVAL '7 days'
+          `,
+          sql`
+            SELECT COUNT(*) as total
+            FROM chatbot_tracking
+            WHERE timestamp > NOW() - INTERVAL '7 days'
+          `
+        ]);
 
-      return res.status(200).json({
-        success: true,
-        timestamp: new Date().toISOString(),
-        data: {
-          conversations: {
-            total: parseInt(conversationsResult.rows[0]?.total || 0),
-            active: parseInt(conversationsResult.rows[0]?.active || 0),
-            last24h: parseInt(conversationsResult.rows[0]?.last_24h || 0),
-            avgMessages: parseFloat(conversationsResult.rows[0]?.avg_messages || 0).toFixed(2)
-          },
-          messages: {
-            last7days: parseInt(messagesResult.rows[0]?.total || 0)
-          },
-          tracking: {
-            last7days: parseInt(trackingResult.rows[0]?.total || 0)
+        return res.status(200).json({
+          success: true,
+          timestamp: new Date().toISOString(),
+          data: {
+            conversations: {
+              total: parseInt(conversationsResult.rows[0]?.total || 0),
+              active: parseInt(conversationsResult.rows[0]?.active || 0),
+              last24h: parseInt(conversationsResult.rows[0]?.last_24h || 0),
+              avgMessages: parseFloat(conversationsResult.rows[0]?.avg_messages || 0).toFixed(2)
+            },
+            messages: {
+              last7days: parseInt(messagesResult.rows[0]?.total || 0)
+            },
+            tracking: {
+              last7days: parseInt(trackingResult.rows[0]?.total || 0)
+            }
           }
-        }
-      });
+        });
+      } catch (dbError) {
+        console.error('❌ Error de base de datos:', dbError);
+        return res.status(500).json({
+          success: false,
+          error: 'Error de base de datos al obtener estadísticas',
+          details: dbError.message,
+          hint: 'Verifica que POSTGRES_URL esté configurado y las tablas inicializadas'
+        });
+      }
     }
 
     // ==========================================

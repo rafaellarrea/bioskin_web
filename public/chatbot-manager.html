@@ -407,6 +407,12 @@
     async function loadStats() {
       try {
         const response = await fetch(API_BASE);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error desconocido');
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -419,6 +425,9 @@
         }
       } catch (error) {
         console.error('Error cargando stats:', error);
+        document.getElementById('stats').innerHTML = `
+          <div class="stat-item" style="color: #ef4444;">❌ Error: ${error.message}</div>
+        `;
       }
     }
 
@@ -426,6 +435,12 @@
     async function loadConversations() {
       try {
         const response = await fetch(`${API_BASE}?action=conversations`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Error desconocido');
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -435,8 +450,17 @@
       } catch (error) {
         console.error('Error cargando conversaciones:', error);
         document.getElementById('conversationsList').innerHTML = `
-          <div class="loading" style="color: #ef4444;">
-            <p>❌ Error cargando conversaciones</p>
+          <div class="loading" style="color: #ef4444; padding: 20px; text-align: center;">
+            <p style="font-size: 24px; margin-bottom: 10px;">❌</p>
+            <p style="font-weight: bold;">Error cargando conversaciones</p>
+            <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">${error.message}</p>
+            <p style="font-size: 11px; margin-top: 15px; padding: 10px; background: rgba(239,68,68,0.1); border-radius: 8px;">
+              Posibles causas:<br>
+              • Base de datos no inicializada<br>
+              • Variable POSTGRES_URL no configurada<br>
+              • Error de conexión<br><br>
+              Revisa los logs de Vercel para más detalles
+            </p>
           </div>
         `;
       }

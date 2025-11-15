@@ -28,23 +28,33 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && action === 'conversations') {
       console.log('📋 [Manager] Obteniendo todas las conversaciones...');
       
-      const conversations = await getAllConversations();
-      
-      // Enriquecer con información adicional
-      const enriched = conversations.map(conv => ({
-        ...conv,
-        last_message_preview: conv.last_message?.substring(0, 100) || '',
-        time_ago: getTimeAgo(conv.last_message_at),
-        is_recent: isRecent(conv.last_message_at),
-        message_count: conv.message_count || 0
-      }));
+      try {
+        const conversations = await getAllConversations();
+        
+        // Enriquecer con información adicional
+        const enriched = conversations.map(conv => ({
+          ...conv,
+          last_message_preview: conv.last_message?.substring(0, 100) || '',
+          time_ago: getTimeAgo(conv.last_message_at),
+          is_recent: isRecent(conv.last_message_at),
+          message_count: conv.message_count || 0
+        }));
 
-      return res.status(200).json({
-        success: true,
-        timestamp: new Date().toISOString(),
-        count: enriched.length,
-        conversations: enriched
-      });
+        return res.status(200).json({
+          success: true,
+          timestamp: new Date().toISOString(),
+          count: enriched.length,
+          conversations: enriched
+        });
+      } catch (dbError) {
+        console.error('❌ [Manager] Error de base de datos:', dbError);
+        return res.status(500).json({
+          success: false,
+          error: 'Error de base de datos al obtener conversaciones',
+          details: dbError.message,
+          hint: 'Verifica que la base de datos esté inicializada y que POSTGRES_URL esté configurado'
+        });
+      }
     }
 
     // ========================================
@@ -63,19 +73,28 @@ export default async function handler(req, res) {
 
       console.log(`💬 [Manager] Obteniendo mensajes de ${phone}...`);
       
-      const messages = await getConversationMessages(phone);
-      
-      return res.status(200).json({
-        success: true,
-        timestamp: new Date().toISOString(),
-        phone,
-        count: messages.length,
-        messages: messages.map(msg => ({
-          ...msg,
-          time_ago: getTimeAgo(msg.created_at),
-          is_user: msg.role === 'user'
-        }))
-      });
+      try {
+        const messages = await getConversationMessages(phone);
+        
+        return res.status(200).json({
+          success: true,
+          timestamp: new Date().toISOString(),
+          phone,
+          count: messages.length,
+          messages: messages.map(msg => ({
+            ...msg,
+            time_ago: getTimeAgo(msg.created_at),
+            is_user: msg.role === 'user'
+          }))
+        });
+      } catch (dbError) {
+        console.error('❌ [Manager] Error obteniendo mensajes:', dbError);
+        return res.status(500).json({
+          success: false,
+          error: 'Error de base de datos al obtener mensajes',
+          details: dbError.message
+        });
+      }
     }
 
     // ========================================
@@ -173,23 +192,33 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && !action) {
       console.log('📊 [Manager] Obteniendo estadísticas generales...');
       
-      const conversations = await getAllConversations();
-      
-      const stats = {
-        total_conversations: conversations.length,
-        active_today: conversations.filter(c => isRecent(c.last_message_at, 24)).length,
-        active_this_week: conversations.filter(c => isRecent(c.last_message_at, 168)).length,
-        total_messages: conversations.reduce((sum, c) => sum + (c.message_count || 0), 0),
-        avg_messages_per_conversation: conversations.length > 0 
-          ? (conversations.reduce((sum, c) => sum + (c.message_count || 0), 0) / conversations.length).toFixed(1)
-          : 0
-      };
+      try {
+        const conversations = await getAllConversations();
+        
+        const stats = {
+          total_conversations: conversations.length,
+          active_today: conversations.filter(c => isRecent(c.last_message_at, 24)).length,
+          active_this_week: conversations.filter(c => isRecent(c.last_message_at, 168)).length,
+          total_messages: conversations.reduce((sum, c) => sum + (c.message_count || 0), 0),
+          avg_messages_per_conversation: conversations.length > 0 
+            ? (conversations.reduce((sum, c) => sum + (c.message_count || 0), 0) / conversations.length).toFixed(1)
+            : 0
+        };
 
-      return res.status(200).json({
-        success: true,
-        timestamp: new Date().toISOString(),
-        stats
-      });
+        return res.status(200).json({
+          success: true,
+          timestamp: new Date().toISOString(),
+          stats
+        });
+      } catch (dbError) {
+        console.error('❌ [Manager] Error obteniendo estadísticas:', dbError);
+        return res.status(500).json({
+          success: false,
+          error: 'Error de base de datos al obtener estadísticas',
+          details: dbError.message,
+          hint: 'Verifica que la base de datos esté inicializada'
+        });
+      }
     }
 
     // Acción no reconocida

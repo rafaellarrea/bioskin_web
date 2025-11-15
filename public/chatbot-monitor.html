@@ -255,6 +255,12 @@
       
       try {
         const response = await fetch(`${API_BASE}/chatbot-monitor`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || `HTTP ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (!data.success) throw new Error(data.error);
@@ -303,7 +309,25 @@
           <div class="timestamp">Última actualización: ${new Date(data.timestamp).toLocaleString('es-EC')}</div>
         `;
       } catch (error) {
-        statsGrid.innerHTML = `<div class="error">Error cargando estadísticas: ${error.message}</div>`;
+        console.error('Error:', error);
+        statsGrid.innerHTML = `
+          <div class="stat-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+            <div class="stat-icon" style="font-size: 48px;">❌</div>
+            <div class="stat-label">Error al cargar estadísticas</div>
+            <div class="stat-value" style="font-size: 16px; color: white;">${error.message}</div>
+            <div class="stat-detail" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; text-align: left;">
+              <strong>Posibles causas:</strong><br>
+              • Base de datos no inicializada (ejecutar init script)<br>
+              • Variable POSTGRES_URL no configurada en Vercel<br>
+              • Tablas del chatbot no existen<br>
+              • Error de conexión a Neon PostgreSQL<br><br>
+              <strong>Solución:</strong><br>
+              1. Verifica POSTGRES_URL en Vercel<br>
+              2. Inicializa las tablas enviando un mensaje de prueba al bot<br>
+              3. Revisa logs de Vercel para detalles del error
+            </div>
+          </div>
+        `;
       }
     }
 
