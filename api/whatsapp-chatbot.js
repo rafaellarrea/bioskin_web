@@ -11,6 +11,13 @@ import {
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
 import { FallbackStorage } from '../lib/fallback-storage.js';
+import {
+  checkAvailability,
+  getAvailableHours,
+  createAppointment,
+  suggestAvailableHours,
+  APPOINTMENT_LINK
+} from '../lib/chatbot-appointment-service.js';
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -321,12 +328,167 @@ async function processWhatsAppMessage(body) {
     );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
+    // ============================================
+    // PASO 4.5: DETECTAR Y PROCESAR AGENDAMIENTO AUTOMÁTICO
+    // ============================================
+    console.log('📅 Paso 4.5: Verificando si requiere agendamiento...');
+    
+    // Detectar intención de agendamiento
+    const intent = chatbotAI.detectIntent(userMessage);
+    const appointmentData = chatbotAI.extractAppointmentData(userMessage);
+    const timePreference = chatbotAI.detectTimePreference(userMessage);
+    
+    // Variable para forzar respuesta directa (sin OpenAI) en flujo de agendamiento
+    let directResponse = null;
+    
+    // Buscar estado de agendamiento en preferencias de usuario (simulado con último mensaje del asistente)
+    const lastAssistantMsg = history.filter(m => m.role === 'assistant').pop();
+    const isInAppointmentFlow = lastAssistantMsg?.content?.includes('verifico disponibilidad') || 
+                                 lastAssistantMsg?.content?.includes('está disponible') ||
+                                 lastAssistantMsg?.content?.includes('Confirmo tu cita');
+    
+    console.log('📋 Análisis de agendamiento:', {
+      intent,
+      hasAppointmentData: !!appointmentData,
+      hasTimePreference: !!timePreference,
+      isInAppointmentFlow,
+      data: appointmentData
+    });
+    
+    // FLUJO 1: Usuario pregunta por disponibilidad o quiere agendar
+    if ((intent === 'appointment' || appointmentData) && !isInAppointmentFlow) {
+      console.log('🎯 Iniciando flujo de agendamiento...');
+      
+      // Si tiene fecha y hora en el mensaje
+      if (appointmentData?.date && appointmentData?.time) {
+        console.log(`🔍 Verificando disponibilidad: ${appointmentData.date} a las ${appointmentData.time}`);
+        
+        try {
+          const availability = await checkAvailability(appointmentData.date, appointmentData.time);
+          
+          if (availability.available) {
+            directResponse = `✅ ¡Perfecto! El ${availability.message.split('El ')[1]} está disponible.\n\n` +
+                           `Para confirmar tu cita necesito:\n` +
+                           `📝 Tu nombre completo\n` +
+                           `📱 Tu teléfono\n` +
+                           `💆 ¿Qué tratamiento deseas?\n\n` +
+                           `¿Confirmo con esos datos?`;
+          } else {
+            // Sugerir horarios alternativos
+            const suggestions = await getAvailableHours(appointmentData.date);
+            const altHours = suggestions.available?.slice(0, 3).join(', ') || 'ninguno';
+            
+            directResponse = `❌ Lo siento, esa hora ya está ocupada.\n\n` +
+                           `Horarios disponibles el ${suggestions.dateFormatted}:\n` +
+                           `⏰ ${altHours}\n\n` +
+                           `¿Te sirve alguno de estos?`;
+          }
+        } catch (error) {
+          console.error('❌ Error verificando disponibilidad:', error);
+          directResponse = `⚠️ Tuve un problema verificando la agenda. ¿Podrías intentar de nuevo o agendar directamente en: ${APPOINTMENT_LINK}?`;
+        }
+      }
+      // Si tiene preferencia de tiempo (mañana/tarde/noche)
+      else if (timePreference) {
+        console.log(`💡 Detectada preferencia: ${timePreference.value}`);
+        
+        try {
+          const preferences = {
+            preferredTime: timePreference.value,
+            daysAhead: 7,
+            isWeekend: timePreference.value === 'weekend'
+          };
+          
+          const suggestions = await suggestAvailableHours(preferences);
+          
+          if (suggestions.suggestions.length > 0) {
+            let responseText = `📅 Encontré estas opciones para ti:\n\n`;
+            
+            suggestions.suggestions.forEach((sugg, idx) => {
+              responseText += `${idx + 1}. ${sugg.dayName} ${sugg.dateFormatted}\n`;
+              responseText += `   ⏰ ${sugg.availableHours.join(', ')}\n\n`;
+            });
+            
+            responseText += `¿Cuál te sirve mejor?`;
+            directResponse = responseText;
+          } else {
+            directResponse = `😔 No encontré horarios disponibles con esa preferencia.\n\n` +
+                           `¿Te gustaría ver todas las opciones disponibles o prefieres agendar en: ${APPOINTMENT_LINK}?`;
+          }
+        } catch (error) {
+          console.error('❌ Error sugiriendo horarios:', error);
+          directResponse = `⚠️ Tuve un problema buscando horarios. Puedes agendar directamente en: ${APPOINTMENT_LINK}`;
+        }
+      }
+      // Solo mencionó que quiere agendar
+      else {
+        directResponse = `¡Perfecto! 😊 Puedo ayudarte de dos formas:\n\n` +
+                       `1️⃣ Agenda en línea: ${APPOINTMENT_LINK}\n` +
+                       `2️⃣ Te ayudo aquí (verifico disponibilidad en tiempo real)\n\n` +
+                       `¿Cuál prefieres?`;
+      }
+    }
+    
+    // FLUJO 2: Usuario confirma cita después de verificar disponibilidad
+    else if (isInAppointmentFlow && (intent === 'appointment_confirmation' || userMessage.toLowerCase().includes('confirmo'))) {
+      console.log('✅ Usuario confirma cita');
+      
+      // Extraer datos del último mensaje del asistente y del usuario
+      if (appointmentData) {
+        console.log('📝 Creando cita con datos:', appointmentData);
+        
+        try {
+          // Necesitamos nombre, phone, service, date, hour
+          const result = await createAppointment({
+            name: appointmentData.name || 'Cliente WhatsApp',
+            phone: from,
+            service: appointmentData.service || 'Evaluación facial',
+            date: appointmentData.date,
+            hour: appointmentData.time
+          });
+          
+          if (result.success) {
+            directResponse = result.message;
+          } else {
+            directResponse = `❌ ${result.message}\n\n¿Prefieres agendar directamente en: ${APPOINTMENT_LINK}?`;
+          }
+        } catch (error) {
+          console.error('❌ Error creando cita:', error);
+          directResponse = `⚠️ Hubo un problema agendando tu cita. Por favor intenta en: ${APPOINTMENT_LINK}`;
+        }
+      } else {
+        directResponse = `Para confirmar tu cita necesito:\n` +
+                       `📝 Nombre completo\n` +
+                       `📱 Teléfono\n` +
+                       `💆 Tratamiento\n` +
+                       `📅 Fecha y hora\n\n` +
+                       `¿Podrías proporcionarme estos datos?`;
+      }
+    }
+    
+    // FLUJO 3: Usuario rechaza y quiere otra opción
+    else if (isInAppointmentFlow && intent === 'appointment_rejection') {
+      console.log('🔄 Usuario quiere cambiar fecha/hora');
+      directResponse = `Sin problema 😊 ¿Qué día y hora prefieres?\n\n` +
+                     `O si prefieres, agenda directamente en: ${APPOINTMENT_LINK}`;
+    }
+
     // Generar respuesta con IA (con timeout global de 5s)
-    console.log('🤖 Paso 5: Generando respuesta con OpenAI...');
+    console.log('🤖 Paso 5: Generando respuesta...');
     let aiResult;
     
+    // Si hay respuesta directa del sistema de agendamiento, usarla
+    if (directResponse) {
+      console.log('✅ Usando respuesta directa del sistema de agendamiento');
+      aiResult = {
+        response: directResponse,
+        tokensUsed: 0,
+        fallback: false,
+        appointmentSystem: true
+      };
+    }
     // TEMPORAL: Usar solo fallback para debug
-    if (DISABLE_OPENAI) {
+    else if (DISABLE_OPENAI) {
       console.log('⚠️ [DEBUG] OpenAI desactivado, usando fallback directo');
       const intent = detectSimpleIntent(userMessage);
       let fallbackResponse;
