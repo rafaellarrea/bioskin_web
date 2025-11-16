@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 16, 2025: Humanización del Chatbot WhatsApp**
+- ✅ Eliminadas respuestas predefinidas y scripts rígidos
+- ✅ Prompt simplificado y más natural (menos instrucciones)
+- ✅ IA responde conversacionalmente sin plantillas
+- ✅ Consulta automática a Google Calendar cuando detecta fecha/hora
+- ✅ Bot más fluido y adaptado a cada conversación
+
 ### ✅ **Nov 14, 2025: Endpoint de Inicialización de BD del Chatbot**
 - ✅ Creado `/api/init-chatbot-db` para inicializar tablas
 - ✅ Interfaz HTML `/init-chatbot-db.html` para ejecución fácil
