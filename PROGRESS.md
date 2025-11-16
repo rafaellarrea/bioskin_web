@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 16, 2025: Cambio de Personalidad - Salomé (Trato Formal)**
+- ✅ Nombre del bot cambiado de Matías a Salomé
+- ✅ Tratamiento de "usted" en todas las interacciones
+- ✅ Tono 100% profesional y formal
+- ✅ Mantiene calidez pero con respeto y formalidad
+
 ### ✅ **Nov 16, 2025: Humanización del Chatbot WhatsApp**
 - ✅ Eliminadas respuestas predefinidas y scripts rígidos
 - ✅ Prompt simplificado y más natural (menos instrucciones)
