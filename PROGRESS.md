@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 16, 2025: Límites Médicos y Transferencia Inteligente a Dra.**
+- ✅ Bot NO brinda diagnósticos médicos por chat
+- ✅ Proporciona info general (precios, duraciones, beneficios básicos)
+- ✅ Detecta interés real y sugiere consulta presencial ($10)
+- ✅ Transferencia automática a Dra. Daniela con resumen (3 líneas)
+- ✅ Link de WhatsApp generado con contexto de la conversación
+- ✅ Precio consulta médica: $10 (30 min)
+
 ### ✅ **Nov 16, 2025: Cambio de Personalidad - Salomé (Trato Formal)**
 - ✅ Nombre del bot cambiado de Matías a Salomé
 - ✅ Tratamiento de "usted" en todas las interacciones
