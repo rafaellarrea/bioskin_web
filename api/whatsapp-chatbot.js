@@ -565,9 +565,36 @@ async function processWhatsAppMessage(body) {
 
     // Guardar respuesta del asistente (con fallback)
     console.log('💾 Paso 6: Guardando respuesta del asistente...');
+    
+    // 🔍 DETECTAR SI SE DEBE TRANSFERIR A LA DOCTORA
+    const shouldTransfer = chatbotAI.detectIntent(userMessage) === 'transfer_doctor' ||
+                          aiResult.response?.includes('[TRANSFER_TO_DOCTOR]') ||
+                          (userMessage.toLowerCase().includes('sí') && 
+                           history.slice(-2).some(m => m.role === 'assistant' && 
+                           m.content.toLowerCase().includes('conecte con la dra')));
+    
+    let finalResponse = aiResult.response;
+    
+    if (shouldTransfer) {
+      console.log('📞 Transferencia a Dra. Daniela solicitada');
+      
+      // Generar link de WhatsApp con resumen
+      const whatsappLink = chatbotAI.generateDoctorWhatsAppLink(history);
+      
+      // Reemplazar [TRANSFER_TO_DOCTOR] o agregar al final
+      if (finalResponse.includes('[TRANSFER_TO_DOCTOR]')) {
+        finalResponse = finalResponse.replace('[TRANSFER_TO_DOCTOR]', 
+          `Perfecto. Aquí está el enlace para contactar directamente con la Dra. Daniela:\n\n${whatsappLink}\n\nElla le brindará una atención personalizada 😊`);
+      } else {
+        finalResponse += `\n\nPerfecto. Aquí está el enlace para contactar directamente con la Dra. Daniela:\n\n${whatsappLink}\n\nElla le brindará una atención personalizada 😊`;
+      }
+      
+      console.log('✅ Link de WhatsApp generado y agregado a la respuesta');
+    }
+    
     await withFallback(
-      () => saveMessage(sessionId, 'assistant', aiResult.response, aiResult.tokensUsed),
-      () => FallbackStorage.saveMessage(sessionId, 'assistant', aiResult.response, aiResult.tokensUsed),
+      () => saveMessage(sessionId, 'assistant', finalResponse, aiResult.tokensUsed),
+      () => FallbackStorage.saveMessage(sessionId, 'assistant', finalResponse, aiResult.tokensUsed),
       'Guardar respuesta asistente'
     );
     console.log('✅ Respuesta del asistente guardada');
@@ -575,7 +602,7 @@ async function processWhatsAppMessage(body) {
     // Enviar respuesta a WhatsApp (DEBE ser síncrono para que funcione en Vercel)
     console.log('📤 Paso 7: Enviando respuesta a WhatsApp...');
     try {
-      await sendWhatsAppMessage(from, aiResult.response);
+      await sendWhatsAppMessage(from, finalResponse);
       console.log('✅ Respuesta enviada a WhatsApp exitosamente');
     } catch (error) {
       console.error('❌ Error enviando a WhatsApp:', error.message);
