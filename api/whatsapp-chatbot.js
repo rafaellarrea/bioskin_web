@@ -474,21 +474,11 @@ async function processWhatsAppMessage(body) {
     }
 
     // Generar respuesta con IA (con timeout global de 5s)
-    console.log('🤖 Paso 5: Generando respuesta...');
+    console.log('🤖 Paso 5: Generando respuesta con IA...');
     let aiResult;
     
-    // Si hay respuesta directa del sistema de agendamiento, usarla
-    if (directResponse) {
-      console.log('✅ Usando respuesta directa del sistema de agendamiento');
-      aiResult = {
-        response: directResponse,
-        tokensUsed: 0,
-        fallback: false,
-        appointmentSystem: true
-      };
-    }
     // TEMPORAL: Usar solo fallback para debug
-    else if (DISABLE_OPENAI) {
+    if (DISABLE_OPENAI) {
       console.log('⚠️ [DEBUG] OpenAI desactivado, usando fallback directo');
       const intent = detectSimpleIntent(userMessage);
       let fallbackResponse;
@@ -525,7 +515,7 @@ async function processWhatsAppMessage(body) {
       
       try {
         console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
-        aiResult = await chatbotAI.generateResponse(userMessage, history);
+        aiResult = await chatbotAI.generateResponse(userMessage, history, calendarTools);
         clearTimeout(globalTimeoutId); // Limpiar timeout si se resuelve
         
         if (timeoutReached) {
