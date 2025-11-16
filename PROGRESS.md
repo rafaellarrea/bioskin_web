@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 16, 2025: Refactorización - Catálogo Centralizado de Tratamientos**
+- ✅ Creado `lib/treatments-data.js` como fuente única de verdad
+- ✅ Eliminada duplicación de datos entre archivos
+- ✅ `chatbot-ai-service.js` usa `generateCatalogText()` y `findTreatmentByKeyword()`
+- ✅ `chatbot-appointment-service.js` importa funciones helper
+- ✅ Estructura de datos unificada: TREATMENTS_CATALOG (5 categorías)
+- ✅ Mantenimiento simplificado: actualizar precios en un solo lugar
+
 ### ✅ **Nov 16, 2025: Límites Médicos y Transferencia Inteligente a Dra.**
 - ✅ Bot NO brinda diagnósticos médicos por chat
 - ✅ Proporciona info general (precios, duraciones, beneficios básicos)
