@@ -463,13 +463,51 @@ async function processWhatsAppMessage(body) {
       
       console.log('📋 Datos finales para agendamiento:', finalAppointmentData);
       
-      // Extraer nombre del mensaje de confirmación si lo incluye
-      const nameMatch = userMessage.match(/nombre[:\s]+([a-záéíóúñ\s]+)/i);
-      const extractedName = nameMatch ? nameMatch[1].trim() : null;
+      // Extraer nombre y tratamiento del mensaje del usuario (más flexible)
+      let extractedName = null;
+      let extractedService = null;
       
-      // Extraer tratamiento del mensaje si lo incluye
-      const serviceMatch = userMessage.match(/tratamiento[:\s]+([a-záéíóúñ\s]+)/i);
-      const extractedService = serviceMatch ? serviceMatch[1].trim() : null;
+      // Opción 1: Formato explícito "nombre: X, tratamiento: Y"
+      const nameMatch = userMessage.match(/nombre[:\s]+([a-záéíóúñ\s]+?)(?:,|tratamiento|servicio|$)/i);
+      const serviceMatch = userMessage.match(/(?:tratamiento|servicio)[:\s]+([a-záéíóúñ\s]+?)(?:,|$)/i);
+      
+      if (nameMatch) extractedName = nameMatch[1].trim();
+      if (serviceMatch) extractedService = serviceMatch[1].trim();
+      
+      // Opción 2: Formato "Nombre Apellido, tratamiento" (buscar comas)
+      if (!extractedName && !extractedService && userMessage.includes(',')) {
+        const parts = userMessage.split(',').map(p => p.trim());
+        if (parts.length >= 2) {
+          // Primera parte podría ser el nombre (si tiene 2+ palabras)
+          const firstPart = parts[0];
+          if (firstPart.split(' ').length >= 2 && /^[a-záéíóúñ\s]+$/i.test(firstPart)) {
+            extractedName = firstPart;
+          }
+          // Segunda parte podría ser el servicio
+          const secondPart = parts[1];
+          extractedService = secondPart;
+        }
+      }
+      
+      // Opción 3: Buscar en el historial reciente si pidió estos datos
+      if (!extractedName || !extractedService) {
+        const lastBotMsg = history.filter(m => m.role === 'assistant').pop();
+        if (lastBotMsg?.content?.includes('nombre completo') || lastBotMsg?.content?.includes('tratamiento que deseas')) {
+          // El bot pidió datos, intentar extraer del mensaje actual
+          if (!extractedName) {
+            // Buscar nombre (2+ palabras con letras)
+            const namePattern = /([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/;
+            const possibleName = userMessage.match(namePattern);
+            if (possibleName) extractedName = possibleName[1].trim();
+          }
+          if (!extractedService && !extractedName) {
+            // Si no encontró nombre, todo el mensaje podría ser el servicio
+            extractedService = userMessage.trim();
+          }
+        }
+      }
+      
+      console.log('📝 Datos extraídos del mensaje:', { extractedName, extractedService });
       
       if (finalAppointmentData?.date && finalAppointmentData?.time) {
         console.log('📝 Creando cita con datos:', finalAppointmentData);
@@ -549,8 +587,18 @@ async function processWhatsAppMessage(body) {
     console.log(`🔑 [AI] OPENAI_API_KEY configurado: ${!!process.env.OPENAI_API_KEY}`);
     let aiResult;
     
+    // ✅ SI HAY RESPUESTA DIRECTA (de flujo de agendamiento), USARLA EN LUGAR DE IA
+    if (directResponse) {
+      console.log(`✅ Usando respuesta directa del flujo de agendamiento: "${directResponse.substring(0, 50)}..."`);
+      aiResult = {
+        response: directResponse,
+        tokensUsed: 0,
+        fallback: false,
+        direct: true
+      };
+    }
     // TEMPORAL: Usar solo fallback para debug
-    if (DISABLE_OPENAI) {
+    else if (DISABLE_OPENAI) {
       console.log('⚠️ [DEBUG] OpenAI desactivado, usando fallback directo');
       const intent = detectSimpleIntent(userMessage);
       let fallbackResponse;
