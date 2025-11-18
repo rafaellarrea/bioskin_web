@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 18, 2025: Fix - Reducción de Funciones Serverless**
+- ✅ Reducidas funciones de 13 a 8 (límite Vercel Hobby: 12)
+- ✅ Eliminadas funciones de testing: `test-openai.js`, `test-simple.js`
+- ✅ Eliminada función duplicada: `ai-blog/generate.js` (mantener solo `generate-production.js`)
+- ✅ Eliminadas funciones admin no críticas: `chatbot-monitor.js`, `init-chatbot-db.js`
+- ✅ Convertido `treatments-data.js` a CommonJS para compatibilidad Vercel
+
 ### ✅ **Nov 16, 2025: Refactorización - Catálogo Centralizado de Tratamientos**
 - ✅ Creado `lib/treatments-data.js` como fuente única de verdad
 - ✅ Eliminada duplicación de datos entre archivos
