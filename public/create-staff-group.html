@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Grupo Staff WhatsApp - BIOSKIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 700px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 30px;
+      color: #667eea;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result {
+      display: none;
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f8f9fa;
+    }
+
+    .result.active {
+      display: block;
+    }
+
+    .result.success {
+      background: #d4edda;
+      border: 2px solid #28a745;
+    }
+
+    .result.error {
+      background: #f8d7da;
+      border: 2px solid #dc3545;
+    }
+
+    .result h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .info-item {
+      margin: 10px 0;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #667eea;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .info-value {
+      color: #333;
+      word-break: break-all;
+      font-family: 'Courier New', monospace;
+    }
+
+    .invite-link {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .invite-link a {
+      color: #667eea;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 16px;
+      word-break: break-all;
+    }
+
+    .invite-link a:hover {
+      text-decoration: underline;
+    }
+
+    .instructions {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .instructions h4 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+    }
+
+    .instructions li {
+      margin: 8px 0;
+      color: #555;
+    }
+
+    .copy-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .copy-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Crear Grupo Staff WhatsApp</h1>
+    <p class="subtitle">BIOSKIN - Sistema de Notificaciones</p>
+
+    <button class="btn" onclick="createGroup()">
+      Crear Grupo y Obtener Link de Invitación
+    </button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Creando grupo y obteniendo invite link...</p>
+    </div>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    async function createGroup() {
+      const btn = document.querySelector('.btn');
+      const loading = document.getElementById('loading');
+      const result = document.getElementById('result');
+
+      // Resetear UI
+      btn.disabled = true;
+      loading.classList.add('active');
+      result.classList.remove('active', 'success', 'error');
+      result.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/create-staff-group');
+        const data = await response.json();
+
+        loading.classList.remove('active');
+        result.classList.add('active');
+
+        if (data.success) {
+          result.classList.add('success');
+          displaySuccess(data);
+        } else {
+          result.classList.add('error');
+          displayError(data);
+        }
+      } catch (error) {
+        loading.classList.remove('active');
+        result.classList.add('active', 'error');
+        result.innerHTML = `
+          <h3>❌ Error de Conexión</h3>
+          <p>${error.message}</p>
+        `;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function displaySuccess(data) {
+      const result = document.getElementById('result');
+      
+      let html = `
+        <h3>🎉 ¡Grupo Creado Exitosamente!</h3>
+        
+        <div class="info-item">
+          <span class="info-label">Group ID:</span>
+          <span class="info-value">${data.groupId}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">Nombre:</span>
+          <span class="info-value">${data.subject || 'BIOSKIN Staff - Notificaciones'}</span>
+        </div>
+      `;
+
+      if (data.inviteLink) {
+        html += `
+          <div class="invite-link">
+            <p style="margin-bottom: 10px; font-weight: 600; color: #333;">🔗 LINK DE INVITACIÓN:</p>
+            <a href="${data.inviteLink}" target="_blank">${data.inviteLink}</a>
+            <br>
+            <button class="copy-btn" onclick="copyToClipboard('${data.inviteLink}')">
+              📋 Copiar Link
+            </button>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="instructions">
+          <h4>📝 Pasos Siguientes:</h4>
+          <ol>
+            <li><strong>Enviar invite link a:</strong>
+              <ul style="margin-top: 5px;">
+                <li>Rafael: ${data.staffNumbers[0]}</li>
+                <li>Daniela: ${data.staffNumbers[1]}</li>
+              </ul>
+            </li>
+            <li><strong>Configurar en Vercel:</strong><br>
+              <code style="background: #f0f0f0; padding: 3px 8px; border-radius: 3px; display: inline-block; margin-top: 5px;">
+                WHATSAPP_STAFF_GROUP_ID=${data.groupId}
+              </code>
+              <button class="copy-btn" onclick="copyToClipboard('${data.groupId}')">
+                📋 Copiar Group ID
+              </button>
+            </li>
+            <li>Staff debe hacer clic en el link para unirse al grupo</li>
+            <li>Una vez unidos, el bot podrá enviar notificaciones al grupo</li>
+          </ol>
+        </div>
+      `;
+
+      result.innerHTML = html;
+    }
+
+    function displayError(data) {
+      const result = document.getElementById('result');
+      result.innerHTML = `
+        <h3>❌ Error</h3>
+        <div class="info-item">
+          <span class="info-label">Mensaje:</span>
+          <span class="info-value">${data.error || data.message}</span>
+        </div>
+        ${data.details ? `
+          <div class="info-item">
+            <span class="info-label">Detalles:</span>
+            <pre style="background: #f0f0f0; padding: 10px; border-radius: 5px; overflow-x: auto;">
+              ${JSON.stringify(data.details, null, 2)}
+            </pre>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Copiado al portapapeles');
+      }).catch(err => {
+        alert('❌ Error al copiar: ' + err);
+      });
+    }
+  </script>
+</body>
+</html>
