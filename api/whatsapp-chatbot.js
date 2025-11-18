@@ -473,8 +473,19 @@ async function processWhatsAppMessage(body) {
                      `O si prefieres, agenda directamente en: ${APPOINTMENT_LINK}`;
     }
 
+    // ============================================
+    // PASO 5: PREPARAR HERRAMIENTAS DE CALENDAR PARA LA IA
+    // ============================================
+    const calendarTools = {
+      checkAvailability,
+      getAvailableHours,
+      suggestAvailableHours,
+      APPOINTMENT_LINK
+    };
+
     // Generar respuesta con IA (con timeout global de 5s)
     console.log('🤖 Paso 5: Generando respuesta con IA...');
+    console.log(`🔑 [AI] OPENAI_API_KEY configurado: ${!!process.env.OPENAI_API_KEY}`);
     let aiResult;
     
     // TEMPORAL: Usar solo fallback para debug
@@ -485,16 +496,16 @@ async function processWhatsAppMessage(body) {
       
       switch (intent) {
         case 'greeting':
-          fallbackResponse = '¡Hola! 👋 Soy el asistente de BIOSKIN. ¿En qué puedo ayudarte hoy?';
+          fallbackResponse = 'Buenos días, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?';
           break;
         case 'appointment':
-          fallbackResponse = 'Me encantaría ayudarte a agendar una cita 📅 Por favor contáctanos al WhatsApp de la clínica para coordinar tu visita.';
+          fallbackResponse = '¿Le gustaría ver todas las opciones disponibles o prefiere agendar en: https://saludbioskin.vercel.app/#/appointment?';
           break;
         case 'info':
-          fallbackResponse = 'Ofrecemos tratamientos faciales y corporales de medicina estética ✨ ¿Sobre qué tratamiento te gustaría saber más?';
+          fallbackResponse = 'Contamos con diversos tratamientos de medicina estética ✨ ¿Sobre qué tratamiento desea información?';
           break;
         default:
-          fallbackResponse = 'Gracias por tu mensaje 😊 Un asesor te contactará pronto para brindarte la información que necesitas.';
+          fallbackResponse = 'Gracias por su mensaje. ¿En qué puedo asistirle hoy?';
       }
       
       aiResult = {
@@ -539,16 +550,16 @@ async function processWhatsAppMessage(body) {
         
         switch (intent) {
           case 'greeting':
-            fallbackResponse = '¡Hola! 👋 Soy el asistente de BIOSKIN. ¿En qué puedo ayudarte hoy?';
+            fallbackResponse = 'Buenos días, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?';
             break;
           case 'appointment':
-            fallbackResponse = 'Me encantaría ayudarte a agendar una cita 📅 Por favor contáctanos al WhatsApp de la clínica para coordinar tu visita.';
+            fallbackResponse = '¿Le gustaría ver todas las opciones disponibles o prefiere agendar en: https://saludbioskin.vercel.app/#/appointment?';
             break;
           case 'info':
-            fallbackResponse = 'Ofrecemos tratamientos faciales y corporales de medicina estética ✨ ¿Sobre qué tratamiento te gustaría saber más?';
+            fallbackResponse = 'Contamos con diversos tratamientos de medicina estética ✨ ¿Sobre qué tratamiento desea información?';
             break;
           default:
-            fallbackResponse = 'Gracias por tu mensaje 😊 Un asesor te contactará pronto para brindarte la información que necesitas.';
+            fallbackResponse = 'Gracias por su mensaje. ¿En qué puedo asistirle hoy?';
         }
         
         aiResult = {
