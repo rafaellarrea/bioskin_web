@@ -362,18 +362,23 @@ async function processWhatsAppMessage(body) {
       // Si tiene fecha y hora en el mensaje
       if (appointmentData?.date && appointmentData?.time) {
         console.log(`🔍 Verificando disponibilidad: ${appointmentData.date} a las ${appointmentData.time}`);
+        console.log(`🔍 Mensaje original del usuario: "${userMessage}"`);
         
         try {
           const availability = await checkAvailability(appointmentData.date, appointmentData.time);
           
           if (availability.available) {
             // Formatear fecha legible
-            const dateFormatted = new Date(appointmentData.date).toLocaleDateString('es-ES', { 
+            console.log(`📅 Fecha parseada (ISO): ${appointmentData.date}`);
+            const dateObj = new Date(appointmentData.date + 'T00:00:00-05:00'); // Forzar timezone Ecuador
+            console.log(`📅 Date object: ${dateObj}`);
+            const dateFormatted = dateObj.toLocaleDateString('es-ES', { 
               day: 'numeric', 
               month: 'long', 
               year: 'numeric',
               timeZone: 'America/Guayaquil'
             });
+            console.log(`📅 Fecha formateada para mensaje: "${dateFormatted}"`);
             
             directResponse = `✅ ¡Perfecto! El ${dateFormatted} a las ${appointmentData.time} está disponible.\n\n` +
                            `Para confirmar tu cita necesito:\n` +
@@ -453,23 +458,40 @@ async function processWhatsAppMessage(body) {
       console.log('🔍 Bot pidió datos:', botAskedForData);
       console.log('🔍 Intent detectado:', intent);
       
+      // IMPORTANTE: Detectar si el usuario está corrigiendo una fecha
+      const isCorrection = /\b(no|incorrecto|equivocado|error|hoy es|ma\u00f1ana es)\b/i.test(userMessage);
+      console.log('🔍 ¿Es una corrección?:', isCorrection);
+      
       // Extraer fecha/hora del historial de mensajes
       console.log('🔍 Buscando fecha/hora en el historial...');
       let extractedDate = null;
       let extractedTime = null;
       
-      // Buscar en los últimos mensajes del usuario y asistente
+      // Si es una corrección, priorizar el mensaje ACTUAL del usuario
+      if (isCorrection) {
+        const currentMsgData = chatbotAI.extractAppointmentData(userMessage);
+        if (currentMsgData?.date) {
+          extractedDate = currentMsgData.date;
+          console.log(`📅 Fecha CORREGIDA del mensaje actual: ${extractedDate}`);
+        }
+        if (currentMsgData?.time) {
+          extractedTime = currentMsgData.time;
+          console.log(`⏰ Hora CORREGIDA del mensaje actual: ${extractedTime}`);
+        }
+      }
+      
+      // Buscar en los últimos mensajes del usuario y asistente (solo si no encontró en corrección)
       for (let i = history.length - 1; i >= 0 && (!extractedDate || !extractedTime); i--) {
         const msg = history[i];
         const msgData = chatbotAI.extractAppointmentData(msg.content);
         
         if (msgData?.date && !extractedDate) {
           extractedDate = msgData.date;
-          console.log(`📅 Fecha encontrada en historial: ${extractedDate}`);
+          console.log(`📅 Fecha encontrada en historial (mensaje ${i}): ${extractedDate}`);
         }
         if (msgData?.time && !extractedTime) {
           extractedTime = msgData.time;
-          console.log(`⏰ Hora encontrada en historial: ${extractedTime}`);
+          console.log(`⏰ Hora encontrada en historial (mensaje ${i}): ${extractedTime}`);
         }
       }
       
@@ -483,7 +505,47 @@ async function processWhatsAppMessage(body) {
       
       console.log('📋 Datos finales para agendamiento:', finalAppointmentData);
       
-      // Extraer nombre y tratamiento del mensaje del usuario (más flexible)
+      // SI ES UNA CORRECCIÓN DE FECHA/HORA: Re-verificar disponibilidad inmediatamente
+      if (isCorrection && finalAppointmentData?.date && finalAppointmentData?.time) {
+        console.log('🔄 Usuario corrigió fecha/hora, re-verificando disponibilidad...');
+        
+        try {
+          const availability = await checkAvailability(finalAppointmentData.date, finalAppointmentData.time);
+          
+          if (availability.available) {
+            const dateObj = new Date(finalAppointmentData.date + 'T00:00:00-05:00');
+            const dateFormatted = dateObj.toLocaleDateString('es-ES', { 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric',
+              timeZone: 'America/Guayaquil'
+            });
+            
+            directResponse = `✅ Perfecto, entiendo. El ${dateFormatted} a las ${finalAppointmentData.time} SÍ está disponible.\n\n` +
+                           `Para confirmar tu cita necesito:\n` +
+                           `📝 Tu nombre completo\n` +
+                           `💆 ¿Qué tratamiento deseas?\n\n` +
+                           `¿Confirmo con esos datos?`;
+          } else {
+            const suggestions = await getAvailableHours(finalAppointmentData.date);
+            const altHours = suggestions.available?.slice(0, 3).join(', ') || 'ninguno';
+            
+            directResponse = `❌ Disculpa, esa hora ya está ocupada.\n\n` +
+                           `Horarios disponibles el ${suggestions.dateFormatted}:\n` +
+                           `⏰ ${altHours}\n\n` +
+                           `¿Te sirve alguno de estos?`;
+          }
+          
+          console.log('✅ Re-verificación completada, usando directResponse');
+          // Saltar el resto del flujo de confirmación
+        } catch (error) {
+          console.error('❌ Error re-verificando disponibilidad:', error);
+          directResponse = `⚠️ Tuve un problema verificando la agenda. ¿Podrías confirmar la fecha otra vez?`;
+        }
+      }
+      
+      // CONTINUAR CON EXTRACCIÓN DE NOMBRE/SERVICIO SOLO SI NO ES CORRECCIÓN
+      else {
       let extractedName = null;
       let extractedService = null;
       
@@ -618,6 +680,7 @@ async function processWhatsAppMessage(body) {
                        `📅 Fecha y hora\n\n` +
                        `¿Podrías proporcionarme estos datos?`;
       }
+      } // Cierre del else de "CONTINUAR CON EXTRACCIÓN..."
     }
     
     // FLUJO 3: Usuario rechaza y quiere otra opción
