@@ -10,6 +10,19 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 18, 2025: Fix Crítico - Parseado de Fechas en Español**
+- ✅ Agregado soporte para formato "DD de NOMBREMES" (ej: "19 de noviembre")
+- ✅ Soporta todos los meses: enero, febrero, marzo, abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre
+- ✅ Soporta variante con año: "25 de diciembre de 2025"
+- ✅ Creado `test-date-parsing.js` con 18 casos de prueba (100% passing)
+- ✅ Bot ahora entiende el formato más natural en español
+
+### ✅ **Nov 18, 2025: Mejoras en Detección de Inicio de Flujo**
+- ✅ Patrón ampliado para detectar "por aquí", "opción 2", "la 2", etc.
+- ✅ Detección automática de consultas de disponibilidad directas
+- ✅ Protección contra interferencia de IA durante flujo activo
+- ✅ Prompt de IA reforzado con ejemplos negativos
+
 ### ✅ **Nov 18, 2025: Máquina de Estados para Agendamiento Estructurado**
 - ✅ Creado `lib/appointment-state-machine.js` con 7 estados definidos
 - ✅ Estados: IDLE → AWAITING_DATE → AWAITING_TIME → AWAITING_NAME → AWAITING_SERVICE → CONFIRMING → COMPLETE
