@@ -66,19 +66,19 @@ async function createStaffGroup() {
     }
   }
 
-  // Datos del grupo
+  // Datos del grupo (según documentación oficial)
   const groupConfig = {
+    messaging_product: 'whatsapp',
     subject: 'BIOSKIN Staff - Notificaciones',
-    participants: [
-      '+593997061321', // Ing. Rafael Larrea
-      '+593998653732'  // Dra. Daniela Creamer
-    ]
+    description: 'Notificaciones automáticas del bot: citas, derivaciones y consultas importantes'
   };
 
   console.log('📋 Configuración del grupo:');
   console.log(`   Nombre: "${groupConfig.subject}"`);
-  console.log(`   Participantes:`);
-  groupConfig.participants.forEach(p => console.log(`     - ${p}`));
+  console.log(`   Descripción: "${groupConfig.description}"`);
+  console.log('');
+  console.log('⚠️  NOTA: Los participantes se agregan DESPUÉS via invite_link');
+  console.log('   (No se pueden agregar al crear el grupo según API)');
   console.log('');
 
   try {
@@ -127,19 +127,19 @@ async function createStaffGroup() {
       console.log('📋 Información del grupo:');
       console.log(`   Group ID: ${data.id}`);
       
-      if (data.participants) {
-        console.log(`   Participantes agregados: ${data.participants.length}`);
-        data.participants.forEach(p => {
-          console.log(`     - ${p.wa_id || p.phone || 'N/A'}`);
-        });
-      }
+      console.log('\n⚠️  IMPORTANTE: Escuchar webhook para obtener invite_link');
+      console.log('   El webhook group_lifecycle_update contendrá el invite_link');
+      console.log('   Ese link debe enviarse a:');
+      console.log('   - Rafael (+593997061321)');
+      console.log('   - Daniela (+593998653732)');
 
-      console.log('\n📝 SIGUIENTE PASO: Configurar en Vercel');
-      console.log('   1. Ir a Dashboard Vercel → Settings → Environment Variables');
-      console.log('   2. Agregar variable:');
-      console.log(`      Name: WHATSAPP_STAFF_GROUP_ID`);
-      console.log(`      Value: ${data.id}`);
-      console.log('   3. Re-deploy el proyecto');
+      console.log('\n📝 PASOS SIGUIENTES:');
+      console.log('   1. Configurar webhook (si no está configurado)');
+      console.log('   2. Esperar webhook con invite_link');
+      console.log('   3. Enviar invite_link a Rafael y Daniela');
+      console.log('   4. Ellos hacen clic y se unen al grupo');
+      console.log('   5. Configurar Group ID en Vercel:');
+      console.log(`      WHATSAPP_STAFF_GROUP_ID=${data.id}`);
 
       console.log('\n📝 Para desarrollo local, agregar a .env:');
       console.log(`WHATSAPP_STAFF_GROUP_ID=${data.id}`);
@@ -152,7 +152,8 @@ async function createStaffGroup() {
         JSON.stringify({
           groupId: data.id,
           createdAt: new Date().toISOString(),
-          participants: groupConfig.participants
+          staffNumbers: ['+593997061321', '+593998653732'],
+          status: 'waiting_for_webhook_invite_link'
         }, null, 2)
       );
       console.log(`\n💾 Configuración guardada en: ${configFile}`);

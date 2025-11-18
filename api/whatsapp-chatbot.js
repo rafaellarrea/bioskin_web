@@ -707,7 +707,14 @@ async function sendWhatsAppMessage(to, text) {
 }
 
 /**
- * Asegura que el grupo de staff existe, creándolo si es necesario
+ * ⚠️ IMPORTANTE: Según documentación oficial, NO se pueden agregar participantes
+ * directamente al crear el grupo. El flujo correcto es:
+ * 1. Crear grupo (solo subject y description)
+ * 2. Recibir webhook con invite_link
+ * 3. Enviar invite_link a los usuarios
+ * 4. Usuarios hacen clic y se unen
+ * 
+ * Por simplicidad operativa, usamos fallback a mensajes individuales.
  * @returns {Promise<string|null>} Group ID o null si falla
  */
 async function ensureStaffGroupExists() {
@@ -718,55 +725,11 @@ async function ensureStaffGroupExists() {
     return groupId;
   }
 
-  console.log('⚠️ [STAFF GROUP] Group ID no configurado, creando grupo...');
+  console.log('⚠️ [STAFF GROUP] Group ID no configurado');
+  console.log('📖 [STAFF GROUP] Para crear grupo, ver: docs/WHATSAPP-GROUP-SETUP-CORRECTED.md');
+  console.log('🔄 [STAFF GROUP] Usando fallback a mensajes individuales');
   
-  try {
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-
-    if (!phoneNumberId || !accessToken) {
-      console.error('❌ [STAFF GROUP] Credenciales no configuradas');
-      return null;
-    }
-
-    const response = await fetch(
-      `https://graph.facebook.com/v21.0/${phoneNumberId}/groups`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          subject: 'BIOSKIN Staff - Notificaciones',
-          participants: [
-            '+593997061321', // Rafael Larrea
-            '+593998653732'  // Daniela Creamer
-          ]
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('❌ [STAFF GROUP] Error creando grupo:', errorData);
-      return null;
-    }
-
-    const data = await response.json();
-    
-    if (data.id) {
-      console.log(`✅ [STAFF GROUP] Grupo creado exitosamente: ${data.id}`);
-      console.log('⚠️ [STAFF GROUP] IMPORTANTE: Configurar en Vercel:');
-      console.log(`   WHATSAPP_STAFF_GROUP_ID=${data.id}`);
-      return data.id;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('❌ [STAFF GROUP] Error en ensureStaffGroupExists:', error);
-    return null;
-  }
+  return null;
 }
 
 /**
