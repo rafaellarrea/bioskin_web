@@ -738,92 +738,44 @@ async function ensureStaffGroupExists() {
  * @param {Object} data - Datos del evento
  * @param {string} patientPhone - Número de teléfono del paciente
  */
+/**
+ * Notifica al personal de BIOSKIN sobre eventos importantes
+ * Usa el número principal con diferenciación por tema (médico/técnico)
+ */
 async function notifyStaffGroup(eventType, data, patientPhone) {
-  console.log(`📢 [STAFF GROUP] Notificando evento tipo: ${eventType}`);
+  console.log(`📢 [NOTIFICACIÓN BIOSKIN] Evento tipo: ${eventType}`);
   
-  // Intentar obtener o crear el grupo
-  const groupId = await ensureStaffGroupExists();
-  
-  if (!groupId) {
-    console.log('⚠️ [STAFF GROUP] No se pudo obtener Group ID, usando fallback');
-    return await sendToStaffIndividually(eventType, data, patientPhone);
-  }
-
-  // Crear enlace directo al chat con el paciente
-  const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
-
-  let message = '';
-  
-  // Construir mensaje según el tipo de evento
-  switch (eventType) {
-    case 'appointment':
-      const dateObj = new Date(data.date + 'T00:00:00-05:00');
-      const dateFormatted = dateObj.toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-        weekday: 'long',
-        timeZone: 'America/Guayaquil'
-      });
-      
-      message = `🗓️ *NUEVA CITA AGENDADA*\n\n` +
-        `👤 *Paciente:* ${data.name}\n` +
-        `📱 *Teléfono:* ${patientPhone}\n` +
-        `💆 *Tratamiento:* ${data.service}\n` +
-        `📅 *Fecha:* ${dateFormatted}\n` +
-        `⏰ *Hora:* ${data.hour}\n\n` +
-        `💬 *Chat directo:* ${patientChatLink}`;
-      break;
-      
-    case 'referral':
-      message = `👨‍⚕️ *DERIVACIÓN A DOCTORA*\n\n` +
-        `👤 *Paciente:* ${data.name || 'No proporcionado'}\n` +
-        `📱 *Teléfono:* ${patientPhone}\n` +
-        `🔍 *Motivo:* ${data.reason}\n` +
-        `📝 *Resumen conversación:*\n${data.summary}\n\n` +
-        `💬 *Chat directo:* ${patientChatLink}`;
-      break;
-      
-    case 'consultation':
-      message = `❓ *CONSULTA IMPORTANTE*\n\n` +
-        `👤 *Paciente:* ${data.name || 'No identificado'}\n` +
-        `📱 *Teléfono:* ${patientPhone}\n` +
-        `💬 *Consulta:* ${data.query}\n` +
-        `🤖 *Respuesta bot:* ${data.botResponse || 'Pendiente'}\n\n` +
-        `💬 *Chat directo:* ${patientChatLink}`;
-      break;
-      
-    default:
-      message = `📬 *NUEVO EVENTO*\n\n` +
-        `📱 *Teléfono:* ${patientPhone}\n` +
-        `📄 *Detalles:* ${JSON.stringify(data, null, 2)}\n\n` +
-        `💬 *Chat directo:* ${patientChatLink}`;
-  }
-
-  try {
-    console.log(`📤 [STAFF GROUP] Enviando mensaje al grupo: ${groupId}`);
-    await sendWhatsAppMessage(groupId, message);
-    console.log(`✅ [STAFF GROUP] Notificación enviada exitosamente`);
-    return { success: true, target: 'group', groupId };
-  } catch (error) {
-    console.error(`❌ [STAFF GROUP] Error enviando al grupo:`, error);
-    console.log('⚠️ [STAFF GROUP] Usando fallback a mensajes individuales');
-    return await sendToStaffIndividually(eventType, data, patientPhone);
-  }
+  // Enviar directamente al número principal de BIOSKIN
+  // La función sendToStaffIndividually maneja la diferenciación por tema
+  return await sendToStaffIndividually(eventType, data, patientPhone);
 }
 
 /**
- * Envía notificaciones individualmente como fallback
+ * Envía notificación al número principal de BIOSKIN
+ * Diferencia entre temas médicos (Dra. Daniela) y técnicos (Ing. Rafael)
  */
 async function sendToStaffIndividually(eventType, data, patientPhone) {
-  const STAFF_NUMBERS = [
-    '+593997061321', // Rafael Larrea
-    '+593998653732'  // Daniela Creamer
-  ];
+  const BIOSKIN_NUMBER = '+593969890689'; // Número principal de BIOSKIN
 
-  console.log(`📤 [FALLBACK] Enviando a ${STAFF_NUMBERS.length} números individuales`);
+  console.log(`📤 [NOTIFICACIÓN] Enviando al número principal de BIOSKIN`);
 
-  // Reutilizar la misma lógica de construcción de mensaje
+  // Determinar destinatario según el tipo de consulta
+  let recipient = '';
+  let ismedical = true;
+  
+  // Detectar si es tema técnico o de equipos
+  const technicalKeywords = /(equipo|aparato|dispositivo|máquina|laser|hifu|tecnología|compra|precio.*equipo|producto.*estético|aparatología)/i;
+  const dataText = JSON.stringify(data).toLowerCase();
+  
+  if (technicalKeywords.test(dataText) || eventType === 'technical_inquiry') {
+    recipient = 'Ing. Rafael Larrea';
+    isMedical = false;
+  } else {
+    recipient = 'Dra. Daniela Creamer';
+    isMedical = true;
+  }
+
+  // Construir mensaje
   const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
   let message = '';
   
@@ -838,7 +790,8 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
         timeZone: 'America/Guayaquil'
       });
       
-      message = `🗓️ *NUEVA CITA AGENDADA*\n\n` +
+      message = `🗓️ *NUEVA CITA AGENDADA*\n` +
+        `📋 *Para:* ${recipient}\n\n` +
         `👤 *Paciente:* ${data.name}\n` +
         `📱 *Teléfono:* ${patientPhone}\n` +
         `💆 *Tratamiento:* ${data.service}\n` +
@@ -848,7 +801,8 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
       break;
       
     case 'referral':
-      message = `👨‍⚕️ *DERIVACIÓN A DOCTORA*\n\n` +
+      message = `👨‍⚕️ *DERIVACIÓN*\n` +
+        `📋 *Para:* ${recipient}\n\n` +
         `👤 *Paciente:* ${data.name || 'No proporcionado'}\n` +
         `📱 *Teléfono:* ${patientPhone}\n` +
         `🔍 *Motivo:* ${data.reason}\n` +
@@ -857,40 +811,29 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
       break;
       
     case 'consultation':
-      message = `❓ *CONSULTA IMPORTANTE*\n\n` +
+      message = `❓ *CONSULTA IMPORTANTE*\n` +
+        `📋 *Para:* ${recipient}\n\n` +
         `👤 *Paciente:* ${data.name || 'No identificado'}\n` +
         `📱 *Teléfono:* ${patientPhone}\n` +
         `💬 *Consulta:* ${data.query}\n` +
-        `🤖 *Respuesta:* ${data.botResponse || 'Pendiente'}\n\n` +
+        `🤖 *Respuesta bot:* ${data.botResponse || 'Pendiente'}\n\n` +
         `💬 *Chat directo:* ${patientChatLink}`;
       break;
   }
 
-  const notifications = STAFF_NUMBERS.map(async (staffNumber) => {
-    try {
-      console.log(`📤 Enviando a ${staffNumber}...`);
-      await sendWhatsAppMessage(staffNumber, message);
-      console.log(`✅ Enviado a ${staffNumber}`);
-      return { success: true, number: staffNumber };
-    } catch (error) {
-      console.error(`❌ Error enviando a ${staffNumber}:`, error.message);
-      return { success: false, number: staffNumber, error: error.message };
-    }
-  });
-
   try {
-    const results = await Promise.allSettled(notifications);
-    const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    console.log(`✅ [FALLBACK] ${successCount}/${STAFF_NUMBERS.length} notificaciones enviadas`);
+    console.log(`📤 Enviando notificación a BIOSKIN (${recipient})...`);
+    await sendWhatsAppMessage(BIOSKIN_NUMBER, message);
+    console.log(`✅ Notificación enviada exitosamente`);
     
     return {
-      success: successCount > 0,
-      target: 'individual',
-      total: STAFF_NUMBERS.length,
-      sent: successCount
+      success: true,
+      target: 'bioskin_main',
+      recipient: recipient,
+      number: BIOSKIN_NUMBER
     };
   } catch (error) {
-    console.error(`❌ [FALLBACK] Error:`, error);
+    console.error(`❌ Error enviando notificación:`, error.message);
     return {
       success: false,
       error: error.message

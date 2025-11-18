@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Notificaciones Centralizadas con Enrutamiento Inteligente**
+- ✅ Actualizado a número principal único: +593969890689 (BIOSKIN)
+- ✅ Sistema de detección automática de temas (médico vs técnico)
+- ✅ Mensajes personalizados: "Para Dra. Daniela Creamer" o "Para Ing. Rafael Larrea"
+- ✅ Enlaces WhatsApp mejorados con presentación completa del paciente
+- ✅ Contexto automático según tipo de consulta (tratamiento/equipo)
+- ✅ Removidos números individuales del staff (consolidación)
+
 ### ✅ **Nov 18, 2025: Sistema Grupo WhatsApp - Creación Automática (CORREGIDO)**
 - ✅ Confirmado: WhatsApp Cloud API **SÍ permite crear grupos** programáticamente
 - ✅ Implementado `ensureStaffGroupExists()` - crea grupo si no existe
