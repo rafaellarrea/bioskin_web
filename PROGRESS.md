@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 18, 2025: Máquina de Estados para Agendamiento Estructurado**
+- ✅ Creado `lib/appointment-state-machine.js` con 7 estados definidos
+- ✅ Estados: IDLE → AWAITING_DATE → AWAITING_TIME → AWAITING_NAME → AWAITING_SERVICE → CONFIRMING → COMPLETE
+- ✅ Validación estricta en cada paso (no avanza sin dato válido)
+- ✅ Eliminada lógica redundante de extracción de datos
+- ✅ Flujo secuencial garantizado (sin saltos ni repeticiones)
+- ✅ Bot solo ofrece 2 opciones al inicio: link directo o guía paso a paso
+- ✅ Prompt actualizado para que IA NO interfiera con el flujo estructurado
+
 ### ✅ **Nov 18, 2025: Fix - Bot IA Totalmente Funcional**
 - ✅ Salomé se presenta correctamente: "Soy Salomé de BIOSKIN" (nunca "soy un asistente")
 - ✅ Tratamiento de "usted" reforzado en prompt y ejemplos
