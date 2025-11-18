@@ -707,74 +707,126 @@ async function sendWhatsAppMessage(to, text) {
 }
 
 /**
+ * Notifica al grupo de staff sobre eventos importantes
+ * @param {string} eventType - Tipo de evento: 'appointment', 'referral', 'consultation'
+ * @param {Object} data - Datos del evento
+ * @param {string} patientPhone - Número de teléfono del paciente
+ */
+async function notifyStaffGroup(eventType, data, patientPhone) {
+  // ID del grupo de WhatsApp (formato: numero@g.us)
+  // IMPORTANTE: Este ID se obtiene cuando se crea el grupo manualmente
+  // Formato típico: 593988148890-[timestamp]@g.us
+  // Por ahora usar fallback a números individuales hasta obtener el Group ID real
+  const STAFF_GROUP_ID = process.env.WHATSAPP_STAFF_GROUP_ID;
+  
+  const STAFF_NUMBERS_FALLBACK = [
+    '+593997061321', // Ing. Rafael Larrea
+    '+593998653732'  // Dra. Daniela Creamer
+  ];
+
+  console.log(`📢 [STAFF GROUP] Notificando evento tipo: ${eventType}`);
+  console.log(`📋 Datos:`, JSON.stringify(data, null, 2));
+
+  // Crear enlace directo al chat con el paciente
+  const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
+
+  let message = '';
+  
+  // Construir mensaje según el tipo de evento
+  switch (eventType) {
+    case 'appointment':
+      const dateObj = new Date(data.date + 'T00:00:00-05:00');
+      const dateFormatted = dateObj.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        weekday: 'long',
+        timeZone: 'America/Guayaquil'
+      });
+      
+      message = `🗓️ *NUEVA CITA AGENDADA*\n\n` +
+        `👤 *Paciente:* ${data.name}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `💆 *Tratamiento:* ${data.service}\n` +
+        `📅 *Fecha:* ${dateFormatted}\n` +
+        `⏰ *Hora:* ${data.hour}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+      
+    case 'referral':
+      message = `👨‍⚕️ *DERIVACIÓN A DOCTORA*\n\n` +
+        `👤 *Paciente:* ${data.name || 'No proporcionado'}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `🔍 *Motivo:* ${data.reason}\n` +
+        `📝 *Resumen conversación:*\n${data.summary}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+      
+    case 'consultation':
+      message = `❓ *CONSULTA IMPORTANTE*\n\n` +
+        `👤 *Paciente:* ${data.name || 'No identificado'}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `💬 *Consulta:* ${data.query}\n` +
+        `🤖 *Respuesta bot:* ${data.botResponse || 'Pendiente'}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+      
+    default:
+      message = `📬 *NUEVO EVENTO*\n\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `📄 *Detalles:* ${JSON.stringify(data, null, 2)}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+  }
+
+  try {
+    // Si existe el Group ID, enviar al grupo
+    if (STAFF_GROUP_ID && STAFF_GROUP_ID !== 'undefined') {
+      console.log(`📤 Enviando al grupo: ${STAFF_GROUP_ID}`);
+      await sendWhatsAppMessage(STAFF_GROUP_ID, message);
+      console.log(`✅ Notificación enviada al grupo exitosamente`);
+      return { success: true, target: 'group', groupId: STAFF_GROUP_ID };
+    } 
+    // Fallback: enviar a números individuales
+    else {
+      console.log(`⚠️ Group ID no configurado, usando fallback a números individuales`);
+      const notifications = STAFF_NUMBERS_FALLBACK.map(async (staffNumber) => {
+        try {
+          console.log(`📤 Enviando notificación a ${staffNumber}...`);
+          await sendWhatsAppMessage(staffNumber, message);
+          console.log(`✅ Notificación enviada exitosamente a ${staffNumber}`);
+          return { success: true, number: staffNumber };
+        } catch (error) {
+          console.error(`❌ Error enviando notificación a ${staffNumber}:`, error.message);
+          return { success: false, number: staffNumber, error: error.message };
+        }
+      });
+
+      const results = await Promise.allSettled(notifications);
+      const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+      console.log(`✅ ${successCount}/${STAFF_NUMBERS_FALLBACK.length} notificaciones enviadas exitosamente`);
+      
+      return {
+        success: successCount > 0,
+        target: 'individual',
+        total: STAFF_NUMBERS_FALLBACK.length,
+        sent: successCount
+      };
+    }
+  } catch (error) {
+    console.error(`❌ Error enviando notificación al staff:`, error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * DEPRECATED: Usar notifyStaffGroup() en su lugar
  * Notifica al staff cuando se crea una nueva cita
  * @param {Object} appointmentData - Datos de la cita creada
  * @param {string} patientPhone - Número de teléfono del paciente
  */
 async function notifyStaffNewAppointment(appointmentData, patientPhone) {
-  const STAFF_NUMBERS = [
-    '+593997061321', // Ing. Rafael Larrea
-    '+593998653732'  // Dra. Daniela Creamer
-  ];
-
-  console.log(`📢 [STAFF NOTIFICATION] Enviando notificación de nueva cita al staff...`);
-  console.log(`📋 Datos de la cita:`, JSON.stringify(appointmentData, null, 2));
-
-  // Crear enlace directo al chat con el paciente
-  const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
-
-  // Formatear fecha de la cita
-  const dateObj = new Date(appointmentData.date + 'T00:00:00-05:00');
-  const dateFormatted = dateObj.toLocaleDateString('es-ES', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    weekday: 'long',
-    timeZone: 'America/Guayaquil'
-  });
-
-  // Mensaje de notificación para el staff
-  const message = `🆕 *NUEVA CITA AGENDADA*\n\n` +
-    `👤 *Paciente:* ${appointmentData.name}\n` +
-    `📱 *Teléfono:* ${patientPhone}\n` +
-    `💆 *Tratamiento:* ${appointmentData.service}\n` +
-    `📅 *Fecha:* ${dateFormatted}\n` +
-    `⏰ *Hora:* ${appointmentData.hour}\n\n` +
-    `💬 *Chat directo con paciente:*\n${patientChatLink}`;
-
-  // Enviar notificación a cada miembro del staff
-  const notifications = STAFF_NUMBERS.map(async (staffNumber) => {
-    try {
-      console.log(`📤 Enviando notificación a ${staffNumber}...`);
-      await sendWhatsAppMessage(staffNumber, message);
-      console.log(`✅ Notificación enviada exitosamente a ${staffNumber}`);
-      return { success: true, number: staffNumber };
-    } catch (error) {
-      console.error(`❌ Error enviando notificación a ${staffNumber}:`, error.message);
-      // No lanzar error - las notificaciones al staff no deben bloquear el flujo
-      return { success: false, number: staffNumber, error: error.message };
-    }
-  });
-
-  try {
-    const results = await Promise.allSettled(notifications);
-    console.log(`📊 Resultados de notificaciones al staff:`, results);
-    
-    const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    console.log(`✅ ${successCount}/${STAFF_NUMBERS.length} notificaciones enviadas exitosamente`);
-    
-    return {
-      success: successCount > 0,
-      total: STAFF_NUMBERS.length,
-      sent: successCount
-    };
-  } catch (error) {
-    console.error(`❌ Error en Promise.allSettled de notificaciones:`, error);
-    return {
-      success: false,
-      total: STAFF_NUMBERS.length,
-      sent: 0,
-      error: error.message
-    };
-  }
+  return notifyStaffGroup('appointment', appointmentData, patientPhone);
 }

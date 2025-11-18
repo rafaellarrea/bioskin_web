@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Sistema de Grupo WhatsApp para Notificaciones**
+- ✅ Implementado `notifyStaffGroup()` con soporte para grupo de WhatsApp
+- ✅ Grupo incluye: Bot (+593988148890), Rafael (+593997061321), Daniela (+593998653732)
+- ✅ 3 tipos de notificaciones: citas, derivaciones, consultas importantes
+- ✅ Fallback automático a números individuales si grupo no configurado
+- ✅ Documentación completa: `docs/WHATSAPP-STAFF-GROUP-SETUP.md`
+- ✅ Script de prueba: `scripts/test-staff-notifications.js`
+- ✅ Variable de entorno: `WHATSAPP_STAFF_GROUP_ID` (formato: numero@g.us)
+
 ### ✅ **Nov 19, 2025: Sistema de Notificaciones al Staff**
 - ✅ Implementado `notifyStaffNewAppointment()` en `whatsapp-chatbot.js`
 - ✅ Notificaciones automáticas a +593997061321 (Ing. Rafael Larrea) y +593998653732 (Dra. Daniela Creamer)
