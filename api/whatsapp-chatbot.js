@@ -367,10 +367,17 @@ async function processWhatsAppMessage(body) {
           const availability = await checkAvailability(appointmentData.date, appointmentData.time);
           
           if (availability.available) {
-            directResponse = `✅ ¡Perfecto! El ${availability.message.split('El ')[1]} está disponible.\n\n` +
+            // Formatear fecha legible
+            const dateFormatted = new Date(appointmentData.date).toLocaleDateString('es-ES', { 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric',
+              timeZone: 'America/Guayaquil'
+            });
+            
+            directResponse = `✅ ¡Perfecto! El ${dateFormatted} a las ${appointmentData.time} está disponible.\n\n` +
                            `Para confirmar tu cita necesito:\n` +
                            `📝 Tu nombre completo\n` +
-                           `📱 Tu teléfono\n` +
                            `💆 ¿Qué tratamiento deseas?\n\n` +
                            `¿Confirmo con esos datos?`;
           } else {
@@ -430,8 +437,21 @@ async function processWhatsAppMessage(body) {
     }
     
     // FLUJO 2: Usuario confirma cita después de verificar disponibilidad
-    else if (isInAppointmentFlow && (intent === 'appointment_confirmation' || userMessage.toLowerCase().includes('confirmo') || userMessage.toLowerCase().includes('si') || userMessage.toLowerCase().includes('sí'))) {
-      console.log('✅ Usuario confirma cita');
+    // Detectar si el bot acaba de pedir datos (nombre, tratamiento, etc.)
+    const lastBotMessage = history.filter(m => m.role === 'assistant').pop()?.content || '';
+    const botAskedForData = lastBotMessage.includes('Tu nombre completo') || 
+                           lastBotMessage.includes('tratamiento deseas') ||
+                           lastBotMessage.includes('Para confirmar tu cita necesito');
+    
+    // Entrar al flujo si:
+    // 1. Está en flujo de agendamiento Y bot pidió datos
+    // 2. O si detecta confirmación explícita
+    const shouldProcessAppointmentData = isInAppointmentFlow && (botAskedForData || intent === 'appointment_confirmation');
+    
+    if (shouldProcessAppointmentData) {
+      console.log('✅ Usuario proporcionando datos para cita');
+      console.log('🔍 Bot pidió datos:', botAskedForData);
+      console.log('🔍 Intent detectado:', intent);
       
       // Extraer fecha/hora del historial de mensajes
       console.log('🔍 Buscando fecha/hora en el historial...');
@@ -489,20 +509,55 @@ async function processWhatsAppMessage(body) {
         }
       }
       
-      // Opción 3: Buscar en el historial reciente si pidió estos datos
+      // Opción 3: Formato multilínea "Nombre\nTeléfono\nServicio"
+      if (!extractedName || !extractedService) {
+        const lines = userMessage.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 0);
+        console.log(`🔍 Líneas detectadas:`, lines);
+        
+        if (lines.length >= 2) {
+          // Primera línea: probablemente el nombre (2+ palabras)
+          if (!extractedName && /^[A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,}$/.test(lines[0])) {
+            extractedName = lines[0];
+            console.log(`✅ Nombre de línea 1: ${extractedName}`);
+          }
+          
+          // Segunda línea: podría ser teléfono (ignorar)
+          // Tercera línea o última: probablemente el servicio
+          const lastLine = lines[lines.length - 1];
+          if (!extractedService && lastLine && lastLine !== extractedName) {
+            // Si la última línea NO es un número de teléfono
+            if (!/^\d+$/.test(lastLine)) {
+              extractedService = lastLine;
+              console.log(`✅ Servicio de última línea: ${extractedService}`);
+            }
+          }
+          
+          // Si hay exactamente 2 líneas y no se detectó servicio
+          if (lines.length === 2 && !extractedService && extractedName) {
+            extractedService = lines[1];
+            console.log(`✅ Servicio de línea 2: ${extractedService}`);
+          }
+        }
+      }
+      
+      // Opción 4: Buscar patrones en el historial si el bot pidió estos datos
       if (!extractedName || !extractedService) {
         const lastBotMsg = history.filter(m => m.role === 'assistant').pop();
-        if (lastBotMsg?.content?.includes('nombre completo') || lastBotMsg?.content?.includes('tratamiento que deseas')) {
+        if (lastBotMsg?.content?.includes('nombre completo') || lastBotMsg?.content?.includes('tratamiento deseas')) {
           // El bot pidió datos, intentar extraer del mensaje actual
           if (!extractedName) {
             // Buscar nombre (2+ palabras con letras)
             const namePattern = /([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/;
             const possibleName = userMessage.match(namePattern);
-            if (possibleName) extractedName = possibleName[1].trim();
+            if (possibleName) {
+              extractedName = possibleName[1].trim();
+              console.log(`✅ Nombre de patrón regex: ${extractedName}`);
+            }
           }
           if (!extractedService && !extractedName) {
             // Si no encontró nombre, todo el mensaje podría ser el servicio
             extractedService = userMessage.trim();
+            console.log(`✅ Servicio de mensaje completo: ${extractedService}`);
           }
         }
       }
