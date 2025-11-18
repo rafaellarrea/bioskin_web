@@ -18,6 +18,11 @@ import {
   suggestAvailableHours,
   APPOINTMENT_LINK
 } from '../lib/chatbot-appointment-service.js';
+import { 
+  getStateMachine, 
+  saveStateMachine,
+  APPOINTMENT_STATES 
+} from '../lib/appointment-state-machine.js';
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -329,365 +334,63 @@ async function processWhatsAppMessage(body) {
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
     // ============================================
-    // PASO 4.5: DETECTAR Y PROCESAR AGENDAMIENTO AUTOMÁTICO
+    // PASO 4.5: SISTEMA DE MÁQUINA DE ESTADOS PARA AGENDAMIENTO
     // ============================================
-    console.log('📅 Paso 4.5: Verificando si requiere agendamiento...');
+    console.log('📅 Paso 4.5: Verificando estado de agendamiento...');
     
-    // Detectar intención de agendamiento
-    const intent = chatbotAI.detectIntent(userMessage);
-    const appointmentData = chatbotAI.extractAppointmentData(userMessage);
-    const timePreference = chatbotAI.detectTimePreference(userMessage);
+    // Obtener o crear máquina de estados para esta sesión
+    const stateMachine = getStateMachine(sessionId, from);
+    console.log(`🔧 [StateMachine] Estado actual: ${stateMachine.state}`);
     
-    // Variable para forzar respuesta directa (sin OpenAI) en flujo de agendamiento
+    // Variable para respuesta directa (bypass IA si estamos en flujo de agendamiento)
     let directResponse = null;
     
-    // Buscar estado de agendamiento en preferencias de usuario (simulado con último mensaje del asistente)
-    const lastAssistantMsg = history.filter(m => m.role === 'assistant').pop();
-    const isInAppointmentFlow = lastAssistantMsg?.content?.includes('verifico disponibilidad') || 
-                                 lastAssistantMsg?.content?.includes('está disponible') ||
-                                 lastAssistantMsg?.content?.includes('Confirmo tu cita');
+    // Detectar intención básica
+    const intent = chatbotAI.detectIntent(userMessage);
     
-    console.log('📋 Análisis de agendamiento:', {
-      intent,
-      hasAppointmentData: !!appointmentData,
-      hasTimePreference: !!timePreference,
-      isInAppointmentFlow,
-      data: appointmentData
-    });
-    
-    // FLUJO 1: Usuario pregunta por disponibilidad o quiere agendar
-    if ((intent === 'appointment' || appointmentData) && !isInAppointmentFlow) {
-      console.log('🎯 Iniciando flujo de agendamiento...');
+    // CASO 1: Usuario quiere iniciar agendamiento y está en IDLE
+    if (intent === 'appointment' && stateMachine.state === APPOINTMENT_STATES.IDLE) {
+      console.log('🎯 [StateMachine] Iniciando nuevo flujo de agendamiento');
       
-      // Si tiene fecha y hora en el mensaje
-      if (appointmentData?.date && appointmentData?.time) {
-        console.log(`🔍 Verificando disponibilidad: ${appointmentData.date} a las ${appointmentData.time}`);
-        console.log(`🔍 Mensaje original del usuario: "${userMessage}"`);
-        
-        try {
-          const availability = await checkAvailability(appointmentData.date, appointmentData.time);
-          
-          if (availability.available) {
-            // Formatear fecha legible
-            console.log(`📅 Fecha parseada (ISO): ${appointmentData.date}`);
-            const dateObj = new Date(appointmentData.date + 'T00:00:00-05:00'); // Forzar timezone Ecuador
-            console.log(`📅 Date object: ${dateObj}`);
-            const dateFormatted = dateObj.toLocaleDateString('es-ES', { 
-              day: 'numeric', 
-              month: 'long', 
-              year: 'numeric',
-              timeZone: 'America/Guayaquil'
-            });
-            console.log(`📅 Fecha formateada para mensaje: "${dateFormatted}"`);
-            
-            directResponse = `✅ ¡Perfecto! El ${dateFormatted} a las ${appointmentData.time} está disponible.\n\n` +
-                           `Para confirmar tu cita necesito:\n` +
-                           `📝 Tu nombre completo\n` +
-                           `💆 ¿Qué tratamiento deseas?\n\n` +
-                           `¿Confirmo con esos datos?`;
-          } else {
-            // Sugerir horarios alternativos
-            const suggestions = await getAvailableHours(appointmentData.date);
-            const altHours = suggestions.available?.slice(0, 3).join(', ') || 'ninguno';
-            
-            directResponse = `❌ Lo siento, esa hora ya está ocupada.\n\n` +
-                           `Horarios disponibles el ${suggestions.dateFormatted}:\n` +
-                           `⏰ ${altHours}\n\n` +
-                           `¿Te sirve alguno de estos?`;
-          }
-        } catch (error) {
-          console.error('❌ Error verificando disponibilidad:', error);
-          directResponse = `⚠️ Tuve un problema verificando la agenda. ¿Podrías intentar de nuevo o agendar directamente en: ${APPOINTMENT_LINK}?`;
-        }
-      }
-      // Si tiene preferencia de tiempo (mañana/tarde/noche)
-      else if (timePreference) {
-        console.log(`💡 Detectada preferencia: ${timePreference.value}`);
-        
-        try {
-          const preferences = {
-            preferredTime: timePreference.value,
-            daysAhead: 7,
-            isWeekend: timePreference.value === 'weekend'
-          };
-          
-          const suggestions = await suggestAvailableHours(preferences);
-          
-          if (suggestions.suggestions.length > 0) {
-            let responseText = `📅 Encontré estas opciones para ti:\n\n`;
-            
-            suggestions.suggestions.forEach((sugg, idx) => {
-              responseText += `${idx + 1}. ${sugg.dayName} ${sugg.dateFormatted}\n`;
-              responseText += `   ⏰ ${sugg.availableHours.join(', ')}\n\n`;
-            });
-            
-            responseText += `¿Cuál te sirve mejor?`;
-            directResponse = responseText;
-          } else {
-            directResponse = `😔 No encontré horarios disponibles con esa preferencia.\n\n` +
-                           `¿Te gustaría ver todas las opciones disponibles o prefieres agendar en: ${APPOINTMENT_LINK}?`;
-          }
-        } catch (error) {
-          console.error('❌ Error sugiriendo horarios:', error);
-          directResponse = `⚠️ Tuve un problema buscando horarios. Puedes agendar directamente en: ${APPOINTMENT_LINK}`;
-        }
-      }
-      // Solo mencionó que quiere agendar
-      else {
-        directResponse = `¡Perfecto! 😊 Puedo ayudarte de dos formas:\n\n` +
-                       `1️⃣ Agenda en línea: ${APPOINTMENT_LINK}\n` +
-                       `2️⃣ Te ayudo aquí (verifico disponibilidad en tiempo real)\n\n` +
+      // Verificar si el usuario dijo "te guío" o "ayúdame tú" (opción 2)
+      const wantsGuidance = /ayuda|guid|asist|aqu[íi]|contigo/i.test(userMessage);
+      
+      if (wantsGuidance) {
+        // Iniciar la máquina de estados
+        const result = stateMachine.start(from);
+        directResponse = result.message;
+        saveStateMachine(sessionId, stateMachine);
+      } else {
+        // Ofrecer opciones
+        directResponse = `¡Perfecto! Puedo ayudarte de dos formas:\n\n` +
+                       `1️⃣ Agenda directamente aquí: ${APPOINTMENT_LINK}\n` +
+                       `2️⃣ Te guío paso a paso (verifico disponibilidad en tiempo real)\n\n` +
                        `¿Cuál prefieres?`;
       }
     }
-    
-    // FLUJO 2: Usuario confirma cita después de verificar disponibilidad
-    // Detectar si el bot acaba de pedir datos (nombre, tratamiento, etc.)
-    const lastBotMessage = history.filter(m => m.role === 'assistant').pop()?.content || '';
-    const botAskedForData = lastBotMessage.includes('Tu nombre completo') || 
-                           lastBotMessage.includes('tratamiento deseas') ||
-                           lastBotMessage.includes('Para confirmar tu cita necesito');
-    
-    // Entrar al flujo si:
-    // 1. Está en flujo de agendamiento Y bot pidió datos
-    // 2. O si detecta confirmación explícita
-    const shouldProcessAppointmentData = isInAppointmentFlow && (botAskedForData || intent === 'appointment_confirmation');
-    
-    if (shouldProcessAppointmentData) {
-      console.log('✅ Usuario proporcionando datos para cita');
-      console.log('🔍 Bot pidió datos:', botAskedForData);
-      console.log('🔍 Intent detectado:', intent);
+    // CASO 2: Ya hay un flujo de agendamiento activo
+    else if (stateMachine.isActive()) {
+      console.log('🔄 [StateMachine] Procesando mensaje en flujo activo');
       
-      // IMPORTANTE: Detectar si el usuario está corrigiendo una fecha
-      const isCorrection = /\b(no|incorrecto|equivocado|error|hoy es|ma\u00f1ana es)\b/i.test(userMessage);
-      console.log('🔍 ¿Es una corrección?:', isCorrection);
-      
-      // Extraer fecha/hora del historial de mensajes
-      console.log('🔍 Buscando fecha/hora en el historial...');
-      let extractedDate = null;
-      let extractedTime = null;
-      
-      // Si es una corrección, priorizar el mensaje ACTUAL del usuario
-      if (isCorrection) {
-        const currentMsgData = chatbotAI.extractAppointmentData(userMessage);
-        if (currentMsgData?.date) {
-          extractedDate = currentMsgData.date;
-          console.log(`📅 Fecha CORREGIDA del mensaje actual: ${extractedDate}`);
-        }
-        if (currentMsgData?.time) {
-          extractedTime = currentMsgData.time;
-          console.log(`⏰ Hora CORREGIDA del mensaje actual: ${extractedTime}`);
-        }
-      }
-      
-      // Buscar en los últimos mensajes del usuario y asistente (solo si no encontró en corrección)
-      for (let i = history.length - 1; i >= 0 && (!extractedDate || !extractedTime); i--) {
-        const msg = history[i];
-        const msgData = chatbotAI.extractAppointmentData(msg.content);
+      try {
+        const result = await stateMachine.processMessage(userMessage);
+        directResponse = result.message;
         
-        if (msgData?.date && !extractedDate) {
-          extractedDate = msgData.date;
-          console.log(`📅 Fecha encontrada en historial (mensaje ${i}): ${extractedDate}`);
-        }
-        if (msgData?.time && !extractedTime) {
-          extractedTime = msgData.time;
-          console.log(`⏰ Hora encontrada en historial (mensaje ${i}): ${extractedTime}`);
-        }
-      }
-      
-      // Si tenemos fecha y hora del historial, crear appointmentData
-      const historicalData = (extractedDate && extractedTime) ? {
-        date: extractedDate,
-        time: extractedTime
-      } : null;
-      
-      const finalAppointmentData = appointmentData || historicalData;
-      
-      console.log('📋 Datos finales para agendamiento:', finalAppointmentData);
-      
-      // SI ES UNA CORRECCIÓN DE FECHA/HORA: Re-verificar disponibilidad inmediatamente
-      if (isCorrection && finalAppointmentData?.date && finalAppointmentData?.time) {
-        console.log('🔄 Usuario corrigió fecha/hora, re-verificando disponibilidad...');
+        // Guardar estado actualizado
+        saveStateMachine(sessionId, stateMachine);
         
-        try {
-          const availability = await checkAvailability(finalAppointmentData.date, finalAppointmentData.time);
-          
-          if (availability.available) {
-            const dateObj = new Date(finalAppointmentData.date + 'T00:00:00-05:00');
-            const dateFormatted = dateObj.toLocaleDateString('es-ES', { 
-              day: 'numeric', 
-              month: 'long', 
-              year: 'numeric',
-              timeZone: 'America/Guayaquil'
-            });
-            
-            directResponse = `✅ Perfecto, entiendo. El ${dateFormatted} a las ${finalAppointmentData.time} SÍ está disponible.\n\n` +
-                           `Para confirmar tu cita necesito:\n` +
-                           `📝 Tu nombre completo\n` +
-                           `💆 ¿Qué tratamiento deseas?\n\n` +
-                           `¿Confirmo con esos datos?`;
-          } else {
-            const suggestions = await getAvailableHours(finalAppointmentData.date);
-            const altHours = suggestions.available?.slice(0, 3).join(', ') || 'ninguno';
-            
-            directResponse = `❌ Disculpa, esa hora ya está ocupada.\n\n` +
-                           `Horarios disponibles el ${suggestions.dateFormatted}:\n` +
-                           `⏰ ${altHours}\n\n` +
-                           `¿Te sirve alguno de estos?`;
-          }
-          
-          console.log('✅ Re-verificación completada, usando directResponse');
-          // Saltar el resto del flujo de confirmación
-        } catch (error) {
-          console.error('❌ Error re-verificando disponibilidad:', error);
-          directResponse = `⚠️ Tuve un problema verificando la agenda. ¿Podrías confirmar la fecha otra vez?`;
+        // Si se completó el agendamiento, limpiar la máquina
+        if (result.completed) {
+          console.log('✅ [StateMachine] Agendamiento completado, limpiando máquina');
+          stateMachine.reset();
         }
-      }
-      
-      // CONTINUAR CON EXTRACCIÓN DE NOMBRE/SERVICIO SOLO SI NO ES CORRECCIÓN
-      else {
-      let extractedName = null;
-      let extractedService = null;
-      
-      // Opción 1: Formato explícito "nombre: X, tratamiento: Y"
-      const nameMatch = userMessage.match(/nombre[:\s]+([a-záéíóúñ\s]+?)(?:,|tratamiento|servicio|$)/i);
-      const serviceMatch = userMessage.match(/(?:tratamiento|servicio)[:\s]+([a-záéíóúñ\s]+?)(?:,|$)/i);
-      
-      if (nameMatch) extractedName = nameMatch[1].trim();
-      if (serviceMatch) extractedService = serviceMatch[1].trim();
-      
-      // Opción 2: Formato "Nombre Apellido, tratamiento" (buscar comas)
-      if (!extractedName && !extractedService && userMessage.includes(',')) {
-        const parts = userMessage.split(',').map(p => p.trim());
-        if (parts.length >= 2) {
-          // Primera parte podría ser el nombre (si tiene 2+ palabras)
-          const firstPart = parts[0];
-          if (firstPart.split(' ').length >= 2 && /^[a-záéíóúñ\s]+$/i.test(firstPart)) {
-            extractedName = firstPart;
-          }
-          // Segunda parte podría ser el servicio
-          const secondPart = parts[1];
-          extractedService = secondPart;
-        }
-      }
-      
-      // Opción 3: Formato multilínea "Nombre\nTeléfono\nServicio"
-      if (!extractedName || !extractedService) {
-        const lines = userMessage.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 0);
-        console.log(`🔍 Líneas detectadas:`, lines);
         
-        if (lines.length >= 2) {
-          // Primera línea: probablemente el nombre (2+ palabras)
-          if (!extractedName && /^[A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,}$/.test(lines[0])) {
-            extractedName = lines[0];
-            console.log(`✅ Nombre de línea 1: ${extractedName}`);
-          }
-          
-          // Segunda línea: podría ser teléfono (ignorar)
-          // Tercera línea o última: probablemente el servicio
-          const lastLine = lines[lines.length - 1];
-          if (!extractedService && lastLine && lastLine !== extractedName) {
-            // Si la última línea NO es un número de teléfono
-            if (!/^\d+$/.test(lastLine)) {
-              extractedService = lastLine;
-              console.log(`✅ Servicio de última línea: ${extractedService}`);
-            }
-          }
-          
-          // Si hay exactamente 2 líneas y no se detectó servicio
-          if (lines.length === 2 && !extractedService && extractedName) {
-            extractedService = lines[1];
-            console.log(`✅ Servicio de línea 2: ${extractedService}`);
-          }
-        }
+        console.log(`✅ [StateMachine] Nuevo estado: ${stateMachine.state}`);
+      } catch (error) {
+        console.error('❌ [StateMachine] Error procesando mensaje:', error);
+        directResponse = `⚠️ Hubo un problema procesando tu solicitud.\n\n¿Quieres empezar de nuevo o prefieres agendar en: ${APPOINTMENT_LINK}?`;
+        stateMachine.reset();
       }
-      
-      // Opción 4: Buscar patrones en el historial si el bot pidió estos datos
-      if (!extractedName || !extractedService) {
-        const lastBotMsg = history.filter(m => m.role === 'assistant').pop();
-        if (lastBotMsg?.content?.includes('nombre completo') || lastBotMsg?.content?.includes('tratamiento deseas')) {
-          // El bot pidió datos, intentar extraer del mensaje actual
-          if (!extractedName) {
-            // Buscar nombre (2+ palabras con letras)
-            const namePattern = /([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)/;
-            const possibleName = userMessage.match(namePattern);
-            if (possibleName) {
-              extractedName = possibleName[1].trim();
-              console.log(`✅ Nombre de patrón regex: ${extractedName}`);
-            }
-          }
-          if (!extractedService && !extractedName) {
-            // Si no encontró nombre, todo el mensaje podría ser el servicio
-            extractedService = userMessage.trim();
-            console.log(`✅ Servicio de mensaje completo: ${extractedService}`);
-          }
-        }
-      }
-      
-      console.log('📝 Datos extraídos del mensaje:', { extractedName, extractedService });
-      
-      if (finalAppointmentData?.date && finalAppointmentData?.time) {
-        console.log('📝 Creando cita con datos:', finalAppointmentData);
-        
-        try {
-          // Verificar si tenemos todos los datos necesarios
-          const hasName = extractedName || finalAppointmentData.name;
-          const hasService = extractedService || finalAppointmentData.service;
-          
-          if (!hasName || !hasService) {
-            // Pedir datos faltantes
-            const missing = [];
-            if (!hasName) missing.push('📝 Tu nombre completo');
-            if (!hasService) missing.push('💆 El tratamiento que deseas');
-            
-            directResponse = `Para confirmar tu cita para el ${finalAppointmentData.date} a las ${finalAppointmentData.time}, necesito:\n\n` +
-                           missing.join('\n') + '\n\n' +
-                           `Por favor, proporcióname estos datos 😊`;
-          } else {
-            // Tenemos todos los datos, crear la cita
-            console.log('🎯 Todos los datos completos, creando cita en Calendar...');
-            
-            const result = await createAppointment({
-              name: hasName,
-              phone: from,
-              service: hasService,
-              date: finalAppointmentData.date,
-              hour: finalAppointmentData.time
-            });
-            
-            if (result.success) {
-              directResponse = `✅ ¡Cita agendada exitosamente!\n\n` +
-                             `📅 Fecha: ${finalAppointmentData.date}\n` +
-                             `⏰ Hora: ${finalAppointmentData.time}\n` +
-                             `👤 Paciente: ${hasName}\n` +
-                             `💆 Tratamiento: ${hasService}\n\n` +
-                             `Te esperamos en BIOSKIN Salud & Estética 😊\n` +
-                             `📍 Dirección: [Tu dirección]\n\n` +
-                             `Recibirás un correo de confirmación.`;
-            } else {
-              directResponse = `❌ ${result.message}\n\n¿Prefieres agendar directamente en: ${APPOINTMENT_LINK}?`;
-            }
-          }
-        } catch (error) {
-          console.error('❌ Error creando cita:', error);
-          directResponse = `⚠️ Hubo un problema agendando tu cita. Por favor intenta en: ${APPOINTMENT_LINK}`;
-        }
-      } else {
-        directResponse = `Para confirmar tu cita necesito:\n` +
-                       `📝 Nombre completo\n` +
-                       `📱 Teléfono\n` +
-                       `💆 Tratamiento\n` +
-                       `📅 Fecha y hora\n\n` +
-                       `¿Podrías proporcionarme estos datos?`;
-      }
-      } // Cierre del else de "CONTINUAR CON EXTRACCIÓN..."
-    }
-    
-    // FLUJO 3: Usuario rechaza y quiere otra opción
-    else if (isInAppointmentFlow && intent === 'appointment_rejection') {
-      console.log('🔄 Usuario quiere cambiar fecha/hora');
-      directResponse = `Sin problema 😊 ¿Qué día y hora prefieres?\n\n` +
-                     `O si prefieres, agenda directamente en: ${APPOINTMENT_LINK}`;
     }
 
     // ============================================
