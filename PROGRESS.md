@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 18, 2025: Fix - Bot IA Totalmente Funcional**
+- ✅ Salomé se presenta correctamente: "Soy Salomé de BIOSKIN" (nunca "soy un asistente")
+- ✅ Tratamiento de "usted" reforzado en prompt y ejemplos
+- ✅ Integración con Google Calendar habilitada (calendarTools pasado a IA)
+- ✅ Bot consulta disponibilidad automáticamente cuando usuario menciona fecha/hora
+- ✅ Sistema IA completo operativo (OpenAI + Calendar + Agendamiento)
+
 ### ✅ **Nov 18, 2025: Fix - Reducción de Funciones Serverless**
 - ✅ Reducidas funciones de 13 a 8 (límite Vercel Hobby: 12)
 - ✅ Eliminadas funciones de testing: `test-openai.js`, `test-simple.js`
