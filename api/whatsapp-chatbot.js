@@ -521,8 +521,8 @@ async function processWhatsAppMessage(body) {
       let timeoutReached = false;
       const globalTimeoutId = setTimeout(() => {
         timeoutReached = true;
-        console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (5s)');
-      }, 5000);
+        console.log('⏰ [WEBHOOK] ¡TIMEOUT GLOBAL alcanzado! (15s)');
+      }, 15000); // Aumentado a 15 segundos
       
       try {
         console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
