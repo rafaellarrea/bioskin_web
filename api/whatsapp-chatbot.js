@@ -707,25 +707,84 @@ async function sendWhatsAppMessage(to, text) {
 }
 
 /**
+ * Asegura que el grupo de staff existe, creándolo si es necesario
+ * @returns {Promise<string|null>} Group ID o null si falla
+ */
+async function ensureStaffGroupExists() {
+  let groupId = process.env.WHATSAPP_STAFF_GROUP_ID;
+  
+  if (groupId) {
+    console.log(`✅ [STAFF GROUP] Group ID configurado: ${groupId}`);
+    return groupId;
+  }
+
+  console.log('⚠️ [STAFF GROUP] Group ID no configurado, creando grupo...');
+  
+  try {
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+    if (!phoneNumberId || !accessToken) {
+      console.error('❌ [STAFF GROUP] Credenciales no configuradas');
+      return null;
+    }
+
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${phoneNumberId}/groups`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          subject: 'BIOSKIN Staff - Notificaciones',
+          participants: [
+            '+593997061321', // Rafael Larrea
+            '+593998653732'  // Daniela Creamer
+          ]
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ [STAFF GROUP] Error creando grupo:', errorData);
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (data.id) {
+      console.log(`✅ [STAFF GROUP] Grupo creado exitosamente: ${data.id}`);
+      console.log('⚠️ [STAFF GROUP] IMPORTANTE: Configurar en Vercel:');
+      console.log(`   WHATSAPP_STAFF_GROUP_ID=${data.id}`);
+      return data.id;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('❌ [STAFF GROUP] Error en ensureStaffGroupExists:', error);
+    return null;
+  }
+}
+
+/**
  * Notifica al grupo de staff sobre eventos importantes
  * @param {string} eventType - Tipo de evento: 'appointment', 'referral', 'consultation'
  * @param {Object} data - Datos del evento
  * @param {string} patientPhone - Número de teléfono del paciente
  */
 async function notifyStaffGroup(eventType, data, patientPhone) {
-  // ID del grupo de WhatsApp (formato: numero@g.us)
-  // IMPORTANTE: Este ID se obtiene cuando se crea el grupo manualmente
-  // Formato típico: 593988148890-[timestamp]@g.us
-  // Por ahora usar fallback a números individuales hasta obtener el Group ID real
-  const STAFF_GROUP_ID = process.env.WHATSAPP_STAFF_GROUP_ID;
-  
-  const STAFF_NUMBERS_FALLBACK = [
-    '+593997061321', // Ing. Rafael Larrea
-    '+593998653732'  // Dra. Daniela Creamer
-  ];
-
   console.log(`📢 [STAFF GROUP] Notificando evento tipo: ${eventType}`);
-  console.log(`📋 Datos:`, JSON.stringify(data, null, 2));
+  
+  // Intentar obtener o crear el grupo
+  const groupId = await ensureStaffGroupExists();
+  
+  if (!groupId) {
+    console.log('⚠️ [STAFF GROUP] No se pudo obtener Group ID, usando fallback');
+    return await sendToStaffIndividually(eventType, data, patientPhone);
+  }
 
   // Crear enlace directo al chat con el paciente
   const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
@@ -779,41 +838,96 @@ async function notifyStaffGroup(eventType, data, patientPhone) {
   }
 
   try {
-    // Si existe el Group ID, enviar al grupo
-    if (STAFF_GROUP_ID && STAFF_GROUP_ID !== 'undefined') {
-      console.log(`📤 Enviando al grupo: ${STAFF_GROUP_ID}`);
-      await sendWhatsAppMessage(STAFF_GROUP_ID, message);
-      console.log(`✅ Notificación enviada al grupo exitosamente`);
-      return { success: true, target: 'group', groupId: STAFF_GROUP_ID };
-    } 
-    // Fallback: enviar a números individuales
-    else {
-      console.log(`⚠️ Group ID no configurado, usando fallback a números individuales`);
-      const notifications = STAFF_NUMBERS_FALLBACK.map(async (staffNumber) => {
-        try {
-          console.log(`📤 Enviando notificación a ${staffNumber}...`);
-          await sendWhatsAppMessage(staffNumber, message);
-          console.log(`✅ Notificación enviada exitosamente a ${staffNumber}`);
-          return { success: true, number: staffNumber };
-        } catch (error) {
-          console.error(`❌ Error enviando notificación a ${staffNumber}:`, error.message);
-          return { success: false, number: staffNumber, error: error.message };
-        }
-      });
-
-      const results = await Promise.allSettled(notifications);
-      const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-      console.log(`✅ ${successCount}/${STAFF_NUMBERS_FALLBACK.length} notificaciones enviadas exitosamente`);
-      
-      return {
-        success: successCount > 0,
-        target: 'individual',
-        total: STAFF_NUMBERS_FALLBACK.length,
-        sent: successCount
-      };
-    }
+    console.log(`📤 [STAFF GROUP] Enviando mensaje al grupo: ${groupId}`);
+    await sendWhatsAppMessage(groupId, message);
+    console.log(`✅ [STAFF GROUP] Notificación enviada exitosamente`);
+    return { success: true, target: 'group', groupId };
   } catch (error) {
-    console.error(`❌ Error enviando notificación al staff:`, error);
+    console.error(`❌ [STAFF GROUP] Error enviando al grupo:`, error);
+    console.log('⚠️ [STAFF GROUP] Usando fallback a mensajes individuales');
+    return await sendToStaffIndividually(eventType, data, patientPhone);
+  }
+}
+
+/**
+ * Envía notificaciones individualmente como fallback
+ */
+async function sendToStaffIndividually(eventType, data, patientPhone) {
+  const STAFF_NUMBERS = [
+    '+593997061321', // Rafael Larrea
+    '+593998653732'  // Daniela Creamer
+  ];
+
+  console.log(`📤 [FALLBACK] Enviando a ${STAFF_NUMBERS.length} números individuales`);
+
+  // Reutilizar la misma lógica de construcción de mensaje
+  const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
+  let message = '';
+  
+  switch (eventType) {
+    case 'appointment':
+      const dateObj = new Date(data.date + 'T00:00:00-05:00');
+      const dateFormatted = dateObj.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        weekday: 'long',
+        timeZone: 'America/Guayaquil'
+      });
+      
+      message = `🗓️ *NUEVA CITA AGENDADA*\n\n` +
+        `👤 *Paciente:* ${data.name}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `💆 *Tratamiento:* ${data.service}\n` +
+        `📅 *Fecha:* ${dateFormatted}\n` +
+        `⏰ *Hora:* ${data.hour}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+      
+    case 'referral':
+      message = `👨‍⚕️ *DERIVACIÓN A DOCTORA*\n\n` +
+        `👤 *Paciente:* ${data.name || 'No proporcionado'}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `🔍 *Motivo:* ${data.reason}\n` +
+        `📝 *Resumen:*\n${data.summary}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+      
+    case 'consultation':
+      message = `❓ *CONSULTA IMPORTANTE*\n\n` +
+        `👤 *Paciente:* ${data.name || 'No identificado'}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `💬 *Consulta:* ${data.query}\n` +
+        `🤖 *Respuesta:* ${data.botResponse || 'Pendiente'}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+  }
+
+  const notifications = STAFF_NUMBERS.map(async (staffNumber) => {
+    try {
+      console.log(`📤 Enviando a ${staffNumber}...`);
+      await sendWhatsAppMessage(staffNumber, message);
+      console.log(`✅ Enviado a ${staffNumber}`);
+      return { success: true, number: staffNumber };
+    } catch (error) {
+      console.error(`❌ Error enviando a ${staffNumber}:`, error.message);
+      return { success: false, number: staffNumber, error: error.message };
+    }
+  });
+
+  try {
+    const results = await Promise.allSettled(notifications);
+    const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    console.log(`✅ [FALLBACK] ${successCount}/${STAFF_NUMBERS.length} notificaciones enviadas`);
+    
+    return {
+      success: successCount > 0,
+      target: 'individual',
+      total: STAFF_NUMBERS.length,
+      sent: successCount
+    };
+  } catch (error) {
+    console.error(`❌ [FALLBACK] Error:`, error);
     return {
       success: false,
       error: error.message

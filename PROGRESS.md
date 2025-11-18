@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 18, 2025: Sistema Grupo WhatsApp - Creación Automática (CORREGIDO)**
+- ✅ Confirmado: WhatsApp Cloud API **SÍ permite crear grupos** programáticamente
+- ✅ Implementado `ensureStaffGroupExists()` - crea grupo si no existe
+- ✅ Script `create-staff-group.js` - creación manual del grupo via API
+- ✅ Script `verify-staff-group.js` - verificación de grupo existente
+- ✅ Endpoint: `POST /{phone-number-id}/groups` con participants
+- ✅ Documentación actualizada: `docs/WHATSAPP-GROUP-API-GUIDE.md`
+- ✅ Sistema robusto con fallback a mensajes individuales
+- ✅ Logs detallados para troubleshooting
+
 ### ✅ **Nov 19, 2025: Sistema de Grupo WhatsApp para Notificaciones**
 - ✅ Implementado `notifyStaffGroup()` con soporte para grupo de WhatsApp
 - ✅ Grupo incluye: Bot (+593988148890), Rafael (+593997061321), Daniela (+593998653732)
