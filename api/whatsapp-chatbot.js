@@ -430,27 +430,88 @@ async function processWhatsAppMessage(body) {
     }
     
     // FLUJO 2: Usuario confirma cita después de verificar disponibilidad
-    else if (isInAppointmentFlow && (intent === 'appointment_confirmation' || userMessage.toLowerCase().includes('confirmo'))) {
+    else if (isInAppointmentFlow && (intent === 'appointment_confirmation' || userMessage.toLowerCase().includes('confirmo') || userMessage.toLowerCase().includes('si') || userMessage.toLowerCase().includes('sí'))) {
       console.log('✅ Usuario confirma cita');
       
-      // Extraer datos del último mensaje del asistente y del usuario
-      if (appointmentData) {
-        console.log('📝 Creando cita con datos:', appointmentData);
+      // Extraer fecha/hora del historial de mensajes
+      console.log('🔍 Buscando fecha/hora en el historial...');
+      let extractedDate = null;
+      let extractedTime = null;
+      
+      // Buscar en los últimos mensajes del usuario y asistente
+      for (let i = history.length - 1; i >= 0 && (!extractedDate || !extractedTime); i--) {
+        const msg = history[i];
+        const msgData = chatbotAI.extractAppointmentData(msg.content);
+        
+        if (msgData?.date && !extractedDate) {
+          extractedDate = msgData.date;
+          console.log(`📅 Fecha encontrada en historial: ${extractedDate}`);
+        }
+        if (msgData?.time && !extractedTime) {
+          extractedTime = msgData.time;
+          console.log(`⏰ Hora encontrada en historial: ${extractedTime}`);
+        }
+      }
+      
+      // Si tenemos fecha y hora del historial, crear appointmentData
+      const historicalData = (extractedDate && extractedTime) ? {
+        date: extractedDate,
+        time: extractedTime
+      } : null;
+      
+      const finalAppointmentData = appointmentData || historicalData;
+      
+      console.log('📋 Datos finales para agendamiento:', finalAppointmentData);
+      
+      // Extraer nombre del mensaje de confirmación si lo incluye
+      const nameMatch = userMessage.match(/nombre[:\s]+([a-záéíóúñ\s]+)/i);
+      const extractedName = nameMatch ? nameMatch[1].trim() : null;
+      
+      // Extraer tratamiento del mensaje si lo incluye
+      const serviceMatch = userMessage.match(/tratamiento[:\s]+([a-záéíóúñ\s]+)/i);
+      const extractedService = serviceMatch ? serviceMatch[1].trim() : null;
+      
+      if (finalAppointmentData?.date && finalAppointmentData?.time) {
+        console.log('📝 Creando cita con datos:', finalAppointmentData);
         
         try {
-          // Necesitamos nombre, phone, service, date, hour
-          const result = await createAppointment({
-            name: appointmentData.name || 'Cliente WhatsApp',
-            phone: from,
-            service: appointmentData.service || 'Evaluación facial',
-            date: appointmentData.date,
-            hour: appointmentData.time
-          });
+          // Verificar si tenemos todos los datos necesarios
+          const hasName = extractedName || finalAppointmentData.name;
+          const hasService = extractedService || finalAppointmentData.service;
           
-          if (result.success) {
-            directResponse = result.message;
+          if (!hasName || !hasService) {
+            // Pedir datos faltantes
+            const missing = [];
+            if (!hasName) missing.push('📝 Tu nombre completo');
+            if (!hasService) missing.push('💆 El tratamiento que deseas');
+            
+            directResponse = `Para confirmar tu cita para el ${finalAppointmentData.date} a las ${finalAppointmentData.time}, necesito:\n\n` +
+                           missing.join('\n') + '\n\n' +
+                           `Por favor, proporcióname estos datos 😊`;
           } else {
-            directResponse = `❌ ${result.message}\n\n¿Prefieres agendar directamente en: ${APPOINTMENT_LINK}?`;
+            // Tenemos todos los datos, crear la cita
+            console.log('🎯 Todos los datos completos, creando cita en Calendar...');
+            
+            const result = await createAppointment({
+              name: hasName,
+              phone: from,
+              service: hasService,
+              date: finalAppointmentData.date,
+              hour: finalAppointmentData.time
+            });
+            
+            if (result.success) {
+              directResponse = `✅ ¡Cita agendada exitosamente!\n\n` +
+                             `📅 Fecha: ${finalAppointmentData.date}\n` +
+                             `⏰ Hora: ${finalAppointmentData.time}\n` +
+                             `👤 Paciente: ${hasName}\n` +
+                             `💆 Tratamiento: ${hasService}\n\n` +
+                             `Te esperamos en BIOSKIN Salud & Estética 😊\n` +
+                             `📍 Dirección: [Tu dirección]\n\n` +
+                             `Recibirás un correo de confirmación.`;
+            } else {
+              directResponse = `❌ ${result.message}\n\n¿Prefieres agendar directamente en: ${APPOINTMENT_LINK}?`;
+            }
           }
         } catch (error) {
           console.error('❌ Error creando cita:', error);
