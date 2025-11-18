@@ -10,6 +10,23 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Sistema de Notificaciones al Staff**
+- ✅ Implementado `notifyStaffNewAppointment()` en `whatsapp-chatbot.js`
+- ✅ Notificaciones automáticas a +593997061321 (Ing. Rafael Larrea) y +593998653732 (Dra. Daniela Creamer)
+- ✅ Mensaje incluye datos completos: paciente, teléfono, tratamiento, fecha, hora
+- ✅ Enlace directo al chat con paciente (https://wa.me/[numero])
+- ✅ Callback implementado en state machine (no bloquea cita si falla notificación)
+- ✅ Notificaciones enviadas automáticamente después de confirmación de cita
+
+### ✅ **Nov 19, 2025: Mejoras UX en Flujo de Agendamiento**
+- ✅ Humanizado mensaje inicial: "Con gusto 😊" en lugar de "Perfecto"
+- ✅ Mensaje más natural: "Te ayudo aquí mismo" vs "verifico disponibilidad en tiempo real"
+- ✅ Mostrar TODAS las horas disponibles (eliminado truncamiento con "...")
+- ✅ Filtro de hora de almuerzo (13:00-14:00 excluido de disponibilidad)
+- ✅ Dirección completa en mensaje final: "Av. Ordóñez Lasso y Calle de la Menta"
+- ✅ Enlace a Google Maps agregado: https://maps.app.goo.gl/KfXhuCB1hEFhQzP56
+- ✅ Pregunta de cierre profesional: "¿Hay algo más en lo que pueda asistirle?"
+
 ### ✅ **Nov 18, 2025: Fix Crítico - Parseado de Fechas en Español**
 - ✅ Agregado soporte para formato "DD de NOMBREMES" (ej: "19 de noviembre")
 - ✅ Soporta todos los meses: enero, febrero, marzo, abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre

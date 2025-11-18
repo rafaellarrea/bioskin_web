@@ -367,9 +367,9 @@ async function processWhatsAppMessage(body) {
       } else {
         // Ofrecer opciones
         console.log('📋 [StateMachine] Ofreciendo opciones de agendamiento');
-        directResponse = `¡Perfecto! Puedo ayudarte de dos formas:\n\n` +
+        directResponse = `¡Con gusto! 😊 Puedo ayudarte de dos formas:\n\n` +
                        `1️⃣ Agenda directamente aquí: ${APPOINTMENT_LINK}\n` +
-                       `2️⃣ Te guío paso a paso (verifico disponibilidad en tiempo real)\n\n` +
+                       `2️⃣ Te ayudo aquí mismo (reviso horarios disponibles)\n\n` +
                        `¿Cuál prefieres?`;
       }
     }
@@ -414,7 +414,13 @@ async function processWhatsAppMessage(body) {
       console.log('🔄 [StateMachine] Procesando mensaje en flujo activo');
       
       try {
-        const result = await stateMachine.processMessage(userMessage);
+        // Crear callback para notificar al staff cuando se crea una cita
+        const onAppointmentCreated = async (appointmentData) => {
+          console.log('📢 [Webhook] Ejecutando notificación al staff...');
+          await notifyStaffNewAppointment(appointmentData, from);
+        };
+
+        const result = await stateMachine.processMessage(userMessage, onAppointmentCreated);
         directResponse = result.message;
         
         // Guardar estado actualizado
@@ -697,5 +703,78 @@ async function sendWhatsAppMessage(to, text) {
       console.error('❌ Stack trace:', error.stack);
     }
     throw error;
+  }
+}
+
+/**
+ * Notifica al staff cuando se crea una nueva cita
+ * @param {Object} appointmentData - Datos de la cita creada
+ * @param {string} patientPhone - Número de teléfono del paciente
+ */
+async function notifyStaffNewAppointment(appointmentData, patientPhone) {
+  const STAFF_NUMBERS = [
+    '+593997061321', // Ing. Rafael Larrea
+    '+593998653732'  // Dra. Daniela Creamer
+  ];
+
+  console.log(`📢 [STAFF NOTIFICATION] Enviando notificación de nueva cita al staff...`);
+  console.log(`📋 Datos de la cita:`, JSON.stringify(appointmentData, null, 2));
+
+  // Crear enlace directo al chat con el paciente
+  const patientChatLink = `https://wa.me/${patientPhone.replace(/\D/g, '')}`;
+
+  // Formatear fecha de la cita
+  const dateObj = new Date(appointmentData.date + 'T00:00:00-05:00');
+  const dateFormatted = dateObj.toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    weekday: 'long',
+    timeZone: 'America/Guayaquil'
+  });
+
+  // Mensaje de notificación para el staff
+  const message = `🆕 *NUEVA CITA AGENDADA*\n\n` +
+    `👤 *Paciente:* ${appointmentData.name}\n` +
+    `📱 *Teléfono:* ${patientPhone}\n` +
+    `💆 *Tratamiento:* ${appointmentData.service}\n` +
+    `📅 *Fecha:* ${dateFormatted}\n` +
+    `⏰ *Hora:* ${appointmentData.hour}\n\n` +
+    `💬 *Chat directo con paciente:*\n${patientChatLink}`;
+
+  // Enviar notificación a cada miembro del staff
+  const notifications = STAFF_NUMBERS.map(async (staffNumber) => {
+    try {
+      console.log(`📤 Enviando notificación a ${staffNumber}...`);
+      await sendWhatsAppMessage(staffNumber, message);
+      console.log(`✅ Notificación enviada exitosamente a ${staffNumber}`);
+      return { success: true, number: staffNumber };
+    } catch (error) {
+      console.error(`❌ Error enviando notificación a ${staffNumber}:`, error.message);
+      // No lanzar error - las notificaciones al staff no deben bloquear el flujo
+      return { success: false, number: staffNumber, error: error.message };
+    }
+  });
+
+  try {
+    const results = await Promise.allSettled(notifications);
+    console.log(`📊 Resultados de notificaciones al staff:`, results);
+    
+    const successCount = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    console.log(`✅ ${successCount}/${STAFF_NUMBERS.length} notificaciones enviadas exitosamente`);
+    
+    return {
+      success: successCount > 0,
+      total: STAFF_NUMBERS.length,
+      sent: successCount
+    };
+  } catch (error) {
+    console.error(`❌ Error en Promise.allSettled de notificaciones:`, error);
+    return {
+      success: false,
+      total: STAFF_NUMBERS.length,
+      sent: 0,
+      error: error.message
+    };
   }
 }
