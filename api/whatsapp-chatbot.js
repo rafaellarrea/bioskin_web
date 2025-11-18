@@ -350,22 +350,63 @@ async function processWhatsAppMessage(body) {
     
     // CASO 1: Usuario quiere iniciar agendamiento y está en IDLE
     if (intent === 'appointment' && stateMachine.state === APPOINTMENT_STATES.IDLE) {
-      console.log('🎯 [StateMachine] Iniciando nuevo flujo de agendamiento');
+      console.log('🎯 [StateMachine] Usuario solicita agendamiento');
       
-      // Verificar si el usuario dijo "te guío" o "ayúdame tú" (opción 2)
-      const wantsGuidance = /ayuda|guid|asist|aqu[íi]|contigo/i.test(userMessage);
+      // Verificar si el usuario ya eligió la opción 2 (guía paso a paso)
+      // Patrones: "por aquí", "aquí", "opción 2", "la 2", "guíame", "ayúdame", "paso a paso"
+      const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist/i.test(userMessage);
+      
+      console.log(`🔍 [StateMachine] ¿Usuario quiere guía? ${wantsGuidance} (mensaje: "${userMessage}")`);
       
       if (wantsGuidance) {
         // Iniciar la máquina de estados
+        console.log('✅ [StateMachine] Iniciando flujo guiado');
         const result = stateMachine.start(from);
         directResponse = result.message;
         saveStateMachine(sessionId, stateMachine);
       } else {
         // Ofrecer opciones
+        console.log('📋 [StateMachine] Ofreciendo opciones de agendamiento');
         directResponse = `¡Perfecto! Puedo ayudarte de dos formas:\n\n` +
                        `1️⃣ Agenda directamente aquí: ${APPOINTMENT_LINK}\n` +
                        `2️⃣ Te guío paso a paso (verifico disponibilidad en tiempo real)\n\n` +
                        `¿Cuál prefieres?`;
+      }
+    }
+    // CASO 1.5: Usuario está en IDLE pero responde con preferencia de opción (sin mencionar "agendar")
+    else if (stateMachine.state === APPOINTMENT_STATES.IDLE) {
+      // Detectar si el usuario está respondiendo a la pregunta "¿Cuál prefieres?"
+      const lastBotMsg = history.filter(m => m.role === 'assistant').pop()?.content || '';
+      const botOfferedOptions = lastBotMsg.includes('Puedo ayudarte de dos formas') || 
+                                lastBotMsg.includes('¿Cuál prefieres?');
+      
+      if (botOfferedOptions) {
+        const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist/i.test(userMessage);
+        const wantsLink = /opci[óo]n\s*1|la\s*1|link|directo|solo|dame/i.test(userMessage);
+        
+        console.log(`🔍 [StateMachine] Bot ofreció opciones, usuario respondió: guidance=${wantsGuidance}, link=${wantsLink}`);
+        
+        if (wantsGuidance) {
+          console.log('✅ [StateMachine] Usuario eligió guía paso a paso');
+          const result = stateMachine.start(from);
+          directResponse = result.message;
+          saveStateMachine(sessionId, stateMachine);
+        } else if (wantsLink) {
+          console.log('✅ [StateMachine] Usuario eligió link directo');
+          directResponse = `Perfecto, aquí está el link para agendar:\n\n${APPOINTMENT_LINK}\n\n¡Te esperamos! 😊`;
+        }
+      }
+      
+      // CASO ESPECIAL: Usuario pregunta directamente por disponibilidad de una fecha
+      // Ejemplo: "Podrías decirme si hay disponibilidad para mañana"
+      const asksAvailability = /(disponibilidad|disponible|libre|horario|puedo\s+ir).*?(ma[ñn]ana|pasado|lunes|martes|miércoles|jueves|viernes|sábado|\d{1,2}\/\d{1,2})/i.test(userMessage);
+      
+      if (asksAvailability && !botOfferedOptions) {
+        console.log('🔍 [StateMachine] Usuario pregunta por disponibilidad de fecha específica');
+        // Iniciar el flujo automáticamente sin ofrecer opciones
+        const result = stateMachine.start(from);
+        directResponse = result.message;
+        saveStateMachine(sessionId, stateMachine);
       }
     }
     // CASO 2: Ya hay un flujo de agendamiento activo
@@ -416,6 +457,17 @@ async function processWhatsAppMessage(body) {
         tokensUsed: 0,
         fallback: false,
         direct: true
+      };
+    }
+    // ⚠️ CRÍTICO: Si la máquina de estados está activa, NO usar IA bajo ninguna circunstancia
+    else if (stateMachine.isActive()) {
+      console.log('⚠️ [CRÍTICO] Máquina de estados activa pero no hay directResponse - NO USAR IA');
+      // Esto no debería pasar, pero si pasa, informar al usuario
+      aiResult = {
+        response: 'Estoy procesando tu solicitud de agendamiento. Por favor espera un momento...',
+        tokensUsed: 0,
+        fallback: false,
+        error: 'StateMachine activa sin directResponse'
       };
     }
     // TEMPORAL: Usar solo fallback para debug
