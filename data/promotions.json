@@ -1,17 +1,42 @@
 {
-  "version": "1.0",
-  "lastUpdated": "2025-11-14",
+  "version": "2.0",
+  "lastUpdated": "2025-11-18",
   "active": true,
+  "roles": {
+    "medico": {
+      "botName": "Salomé de BIOSKIN",
+      "description": "Asistente de medicina estética y tratamientos faciales/corporales",
+      "greeting": "Buenos días, soy Salomé de BIOSKIN Salud & Estética. 😊 ¿En qué puedo asistirle hoy?",
+      "expertise": ["tratamientos faciales", "tratamientos corporales", "consultas médicas", "agendamiento de citas"],
+      "contact": {
+        "name": "Dra. Daniela Creamer",
+        "role": "Médico Estético",
+        "phone": "+593969890689"
+      }
+    },
+    "tecnico": {
+      "botName": "Asistente Técnico BIOSKIN",
+      "description": "Especialista en equipos médicos estéticos y tecnología",
+      "greeting": "Buenos días, soy el Asistente Técnico de BIOSKIN. 😊 ¿Le interesa información sobre nuestros equipos médicos estéticos?",
+      "expertise": ["equipos HIFU", "tecnología láser", "dispositivos médicos", "cotizaciones", "capacitación técnica"],
+      "contact": {
+        "name": "Ing. Rafael Larrea",
+        "role": "Ingeniero de Equipos Médicos",
+        "phone": "+593969890689"
+      }
+    }
+  },
   "promotions": {
     "services": [
       {
-        "id": "promo-pre-blackweek-limpieza",
-        "name": "Pre Black Week - Limpieza Facial 2x1",
+        "id": "promo-limpieza-2x40",
+        "name": "2 Limpiezas Faciales por $40",
         "service": "Limpieza facial profunda",
         "serviceId": "limpieza-facial",
         "type": "package",
+        "role": "medico",
         "active": true,
-        "description": "2 Limpiezas faciales profundas - PRE BLACK WEEK",
+        "description": "2 Limpiezas faciales profundas por solo $40 USD",
         "originalPrice": 50,
         "promoPrice": 40,
         "discount": 20,
@@ -19,30 +44,69 @@
         "quantity": 2,
         "pricePerUnit": 20,
         "validFrom": "2025-11-14",
-        "validUntil": "2025-11-16",
+        "validUntil": "2025-12-31",
         "terms": [
-          "Promoción válida viernes 14 a domingo 16 de noviembre 2025",
-          "Aplica solo para Limpieza facial profunda",
+          "Válido para nuevos y antiguos clientes",
           "Las 2 sesiones deben usarse en un plazo de 60 días",
           "No acumulable con otras promociones",
           "Sujeto a disponibilidad de agenda"
         ],
-        "displayMessage": "🔥 ¡PRE BLACK WEEK! Limpieza facial profunda: 2x$40 USD (precio regular 1x$25 USD). Válido solo viernes 14 a domingo 16 de noviembre. ¡Ahorra $10!"
+        "displayMessage": "💆‍♀️ Limpieza facial profunda: 2x$40 USD (precio regular $50). ¡Ahorra $10!"
+      },
+      {
+        "id": "promo-primera-consulta",
+        "name": "Primera Consulta Médico-Estética",
+        "service": "Consulta de evaluación",
+        "serviceId": "consulta",
+        "type": "discount",
+        "role": "medico",
+        "active": true,
+        "description": "Primera evaluación con la Dra. Daniela Creamer",
+        "originalPrice": 15,
+        "promoPrice": 10,
+        "discount": 33,
+        "discountType": "percentage",
+        "duration": "30 minutos",
+        "validFrom": "2025-11-01",
+        "validUntil": "2025-12-31",
+        "terms": [
+          "Solo para nuevos pacientes",
+          "Incluye evaluación personalizada",
+          "Plan de tratamiento recomendado"
+        ],
+        "displayMessage": "🩺 Primera consulta médico-estética: Solo $10 (30 min con Dra. Daniela)"
       }
     ],
     "products": [],
-    "equipment": [],
-    "upcoming": [
+    "equipment": [
       {
-        "id": "promo-blackweek-2025",
-        "name": "Black Week 2025",
-        "description": "Descuentos especiales en servicios seleccionados durante Black Week",
-        "validFrom": "2025-11-24",
-        "validUntil": "2025-12-01",
-        "status": "programada",
-        "note": "Activar manualmente cambiando 'active': true y moviendo a la categoría correspondiente (services/products/equipment)"
+        "id": "promo-hifu-financiamiento",
+        "name": "HIFU Profesional - Financiamiento Especial",
+        "equipment": "Equipos HIFU",
+        "equipmentId": "hifu-professional",
+        "type": "financing",
+        "role": "tecnico",
+        "active": true,
+        "description": "Equipos HIFU de última generación con financiamiento hasta 12 meses",
+        "financing": "12 meses sin intereses",
+        "includes": [
+          "Equipo completo HIFU facial y corporal",
+          "Capacitación técnica presencial",
+          "Garantía 2 años",
+          "Soporte técnico 24/7",
+          "Manuales en español"
+        ],
+        "validFrom": "2025-11-01",
+        "validUntil": "2025-12-31",
+        "terms": [
+          "Financiamiento sujeto a aprobación",
+          "Incluye training completo",
+          "Certificado de capacitación"
+        ],
+        "displayMessage": "🔬 HIFU Profesional: Financiamiento 12 meses 0% + Capacitación incluida"
       }
-    ]
+    ],
+    "upcoming": []
   },
   "general_rules": {
     "stackable": false,
@@ -51,11 +115,16 @@
     "cancellationPolicy": "48 horas de anticipación"
   },
   "bot_instructions": {
+    "detectRole": true,
+    "roleDetectionKeywords": {
+      "medico": ["tratamiento", "facial", "limpieza", "consulta", "cita", "piel", "acné", "manchas", "arrugas", "rejuvenecimiento"],
+      "tecnico": ["equipo", "aparato", "dispositivo", "máquina", "laser", "hifu", "tecnología", "compra", "precio equipo", "cotización"]
+    },
     "checkBeforePrice": true,
     "alwaysMentionIfActive": true,
     "suggestBestDeal": true,
     "priority": "promotion_first",
     "manualActivation": true,
-    "note": "Las promociones SOLO se activan editando este archivo y cambiando 'active': true. NO se activan automáticamente por fechas."
+    "note": "El bot detecta automáticamente el rol (médico/técnico) según las palabras clave de la conversación y muestra solo las promociones relevantes."
   }
 }
