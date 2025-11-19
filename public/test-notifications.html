@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test de Notificaciones - BIOSKIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .status-box {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 4px solid #deb887;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .status-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-label {
+      font-weight: 600;
+      color: #555;
+    }
+
+    .status-value {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .button-secondary {
+      background: #deb887;
+      color: white;
+    }
+
+    .button-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .log-box {
+      background: #1e1e1e;
+      color: #00ff00;
+      padding: 20px;
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .log-entry {
+      margin-bottom: 5px;
+      word-wrap: break-word;
+    }
+
+    .log-time {
+      color: #888;
+      margin-right: 10px;
+    }
+
+    .emoji {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔔 Test de Notificaciones</h1>
+    <p class="subtitle">Sistema de diagnóstico para notificaciones del navegador</p>
+
+    <div class="status-box">
+      <div class="status-item">
+        <span class="status-label">Soporte del Navegador</span>
+        <span id="browserSupport" class="status-value">Verificando...</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Estado de Permisos</span>
+        <span id="permissionStatus" class="status-value">Verificando...</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Última Notificación</span>
+        <span id="lastNotification" class="status-value status-warning">Ninguna</span>
+      </div>
+    </div>
+
+    <button id="requestPermissionBtn" class="button button-primary">
+      📢 Solicitar Permisos de Notificación
+    </button>
+
+    <button id="sendTestBtn" class="button button-secondary" disabled>
+      🧪 Enviar Notificación de Prueba
+    </button>
+
+    <button id="sendMultipleBtn" class="button button-success" disabled>
+      🔥 Enviar 3 Notificaciones (Test Múltiple)
+    </button>
+
+    <div class="log-box">
+      <div class="log-entry"><span class="log-time">[INICIO]</span> Sistema de test iniciado...</div>
+      <div id="logContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    const logContainer = document.getElementById('logContainer');
+    const browserSupportEl = document.getElementById('browserSupport');
+    const permissionStatusEl = document.getElementById('permissionStatus');
+    const lastNotificationEl = document.getElementById('lastNotification');
+    const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+    const sendTestBtn = document.getElementById('sendTestBtn');
+    const sendMultipleBtn = document.getElementById('sendMultipleBtn');
+
+    let notificationCount = 0;
+
+    function log(message, emoji = '📝') {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-ES');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="log-time">[${timeStr}]</span> ${emoji} ${message}`;
+      logContainer.appendChild(entry);
+      logContainer.parentElement.scrollTop = logContainer.parentElement.scrollHeight;
+      console.log(`${emoji} ${message}`);
+    }
+
+    function updateStatus() {
+      // Verificar soporte del navegador
+      if ('Notification' in window) {
+        browserSupportEl.textContent = '✅ Soportado';
+        browserSupportEl.className = 'status-value status-success';
+        log('Navegador soporta notificaciones', '✅');
+      } else {
+        browserSupportEl.textContent = '❌ No soportado';
+        browserSupportEl.className = 'status-value status-error';
+        log('Navegador NO soporta notificaciones', '❌');
+        return;
+      }
+
+      // Verificar permisos
+      const permission = Notification.permission;
+      log(`Estado de permisos actual: ${permission}`, '🔍');
+
+      switch (permission) {
+        case 'granted':
+          permissionStatusEl.textContent = '✅ Otorgado';
+          permissionStatusEl.className = 'status-value status-success';
+          requestPermissionBtn.textContent = '✅ Permisos Ya Otorgados';
+          requestPermissionBtn.disabled = true;
+          sendTestBtn.disabled = false;
+          sendMultipleBtn.disabled = false;
+          log('Permisos YA otorgados - puede enviar notificaciones', '✅');
+          break;
+        case 'denied':
+          permissionStatusEl.textContent = '❌ Denegado';
+          permissionStatusEl.className = 'status-value status-error';
+          requestPermissionBtn.textContent = '❌ Permisos Bloqueados';
+          requestPermissionBtn.disabled = true;
+          log('Permisos DENEGADOS - debe habilitarlos en configuración del navegador', '❌');
+          break;
+        case 'default':
+          permissionStatusEl.textContent = '⚠️ Sin solicitar';
+          permissionStatusEl.className = 'status-value status-warning';
+          requestPermissionBtn.disabled = false;
+          log('Permisos no solicitados - click en el botón para solicitar', '⚠️');
+          break;
+      }
+    }
+
+    async function requestPermission() {
+      log('Solicitando permisos al usuario...', '📢');
+      
+      try {
+        const permission = await Notification.requestPermission();
+        log(`Resultado de solicitud: ${permission}`, '🔔');
+        
+        if (permission === 'granted') {
+          log('¡Permisos OTORGADOS exitosamente!', '🎉');
+          updateStatus();
+          // Enviar notificación de prueba automáticamente
+          setTimeout(() => sendTestNotification(), 500);
+        } else if (permission === 'denied') {
+          log('Permisos DENEGADOS por el usuario', '😢');
+          updateStatus();
+        } else {
+          log('Usuario cerró el diálogo sin responder', '⚠️');
+          updateStatus();
+        }
+      } catch (error) {
+        log(`ERROR al solicitar permisos: ${error.message}`, '❌');
+        console.error(error);
+      }
+    }
+
+    function sendTestNotification() {
+      if (Notification.permission !== 'granted') {
+        log('No se puede enviar notificación - permisos no otorgados', '❌');
+        alert('⚠️ Primero debes otorgar permisos de notificación');
+        return;
+      }
+
+      try {
+        notificationCount++;
+        const timestamp = new Date().toLocaleTimeString('es-ES');
+        
+        log(`Creando notificación #${notificationCount}...`, '🚀');
+        
+        const notification = new Notification('🧪 Notificación de Prueba', {
+          body: `Esta es la notificación #${notificationCount}\nHora: ${timestamp}\nSistema: BIOSKIN Admin`,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `test-${notificationCount}`,
+          requireInteraction: false,
+          silent: false
+        });
+
+        log(`✅ Notificación #${notificationCount} ENVIADA exitosamente`, '🎉');
+        lastNotificationEl.textContent = `#${notificationCount} - ${timestamp}`;
+        lastNotificationEl.className = 'status-value status-success';
+
+        notification.onclick = () => {
+          log(`Usuario hizo click en notificación #${notificationCount}`, '👆');
+          window.focus();
+          notification.close();
+        };
+
+        notification.onerror = (error) => {
+          log(`ERROR en notificación #${notificationCount}: ${error}`, '❌');
+        };
+
+        notification.onshow = () => {
+          log(`Notificación #${notificationCount} mostrada en pantalla`, '👁️');
+        };
+
+        notification.onclose = () => {
+          log(`Notificación #${notificationCount} cerrada`, '🔚');
+        };
+
+        // Auto-cerrar después de 5 segundos
+        setTimeout(() => {
+          notification.close();
+          log(`Notificación #${notificationCount} auto-cerrada`, '⏰');
+        }, 5000);
+
+      } catch (error) {
+        log(`ERROR al crear notificación: ${error.message}`, '❌');
+        console.error(error);
+      }
+    }
+
+    function sendMultipleNotifications() {
+      log('Enviando 3 notificaciones con intervalos de 1 segundo...', '🔥');
+      
+      sendTestNotification();
+      
+      setTimeout(() => {
+        sendTestNotification();
+      }, 1000);
+      
+      setTimeout(() => {
+        sendTestNotification();
+      }, 2000);
+    }
+
+    // Event listeners
+    requestPermissionBtn.addEventListener('click', requestPermission);
+    sendTestBtn.addEventListener('click', sendTestNotification);
+    sendMultipleBtn.addEventListener('click', sendMultipleNotifications);
+
+    // Inicializar
+    updateStatus();
+    log('Sistema listo para probar notificaciones', '✅');
+  </script>
+</body>
+</html>
