@@ -57,12 +57,13 @@ async function initSessionsTable() {
  * Valida credenciales contra variables de entorno
  */
 function validateCredentials(username, password) {
-  const validUsername = process.env.ADMIN_USERNAME || 'admin';
-  const validPassword = process.env.ADMIN_PASSWORD || 'b10sk1n';
+  // Limpiar variables de entorno de espacios y saltos de línea
+  const validUsername = (process.env.ADMIN_USERNAME || 'admin').trim();
+  const validPassword = (process.env.ADMIN_PASSWORD || 'b10sk1n').trim();
 
   console.log('🔍 [AUTH] Validando credenciales...');
   console.log(`🔍 [AUTH] Usuario recibido: "${username}"`);
-  console.log(`🔍 [AUTH] Usuario esperado: "${validUsername}"`);
+  console.log(`🔍 [AUTH] Usuario esperado (limpio): "${validUsername}"`);
   console.log(`🔍 [AUTH] Password recibido length: ${password?.length}`);
   console.log(`🔍 [AUTH] Password esperado length: ${validPassword?.length}`);
   console.log(`🔍 [AUTH] Username match: ${username === validUsername}`);
