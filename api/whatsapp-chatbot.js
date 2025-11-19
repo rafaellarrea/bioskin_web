@@ -331,17 +331,57 @@ async function processWhatsAppMessage(body) {
     );
     console.log('✅ Conversación actualizada');
 
-    // Notificar al admin si es una nueva conversación
-    if (conversationResult?.isNew) {
-      console.log('🆕 Nueva conversación detectada');
-      // Notificación deshabilitada temporalmente para debug
-      // notifyNewConversation(from, userMessage).catch(err => {
-      //   console.error('⚠️ Error enviando notificación (no crítico):', err);
-      // });
+    // Obtener historial de conversación ANTES de la notificación (con fallback)
+    console.log('💾 Paso 3: Obteniendo historial...');
+    const history = await withFallback(
+      () => getConversationHistory(sessionId, 20),
+      () => FallbackStorage.getConversationHistory(sessionId, 20),
+      'Obtener historial'
+    );
+    console.log(`✅ Historial obtenido: ${history.length} mensajes`);
+
+    // Notificar al admin si es una nueva conversación O si han pasado >15 minutos desde el último mensaje
+    const shouldNotifyNew = conversationResult?.isNew;
+    let shouldNotifyInactive = false;
+    
+    if (!shouldNotifyNew && history.length > 0) {
+      // Buscar el último mensaje (excluyendo el mensaje actual que acaba de llegar)
+      const previousMessages = history.filter(msg => msg.message_id !== messageId);
+      
+      if (previousMessages.length > 0) {
+        const lastMessage = previousMessages[0]; // El historial viene ordenado DESC
+        const lastMessageTime = new Date(lastMessage.created_at).getTime();
+        const currentTime = Date.now();
+        const minutesSinceLastMessage = (currentTime - lastMessageTime) / 60000;
+        
+        console.log(`⏰ Tiempo desde último mensaje: ${minutesSinceLastMessage.toFixed(1)} minutos`);
+        
+        if (minutesSinceLastMessage > 15) {
+          shouldNotifyInactive = true;
+          console.log('🔔 >15 minutos de inactividad - enviando notificación');
+          await notifyStaffGroup('consultation', {
+            phone: from,
+            message: userMessage,
+            inactivityMinutes: Math.floor(minutesSinceLastMessage)
+          }, from).catch(err => {
+            console.error('⚠️ Error enviando notificación (no crítico):', err);
+          });
+        } else {
+          console.log(`✅ Conversación activa (${minutesSinceLastMessage.toFixed(1)} min) - no notificar`);
+        }
+      }
+    } else if (shouldNotifyNew) {
+      console.log('🆕 Nueva conversación detectada - enviando notificación');
+      await notifyStaffGroup('consultation', {
+        phone: from,
+        message: userMessage
+      }, from).catch(err => {
+        console.error('⚠️ Error enviando notificación (no crítico):', err);
+      });
     }
 
     // Guardar mensaje del usuario (con fallback)
-    console.log('💾 Paso 3: Guardando mensaje del usuario...');
+    console.log('💾 Paso 4: Guardando mensaje del usuario...');
     await withFallback(
       () => saveMessage(sessionId, 'user', userMessage, 0, messageId),
       () => FallbackStorage.saveMessage(sessionId, 'user', userMessage, 0, messageId),
@@ -349,14 +389,14 @@ async function processWhatsAppMessage(body) {
     );
     console.log('✅ Mensaje del usuario guardado');
 
-    // Obtener historial de conversación (con fallback)
-    console.log('💾 Paso 4: Obteniendo historial...');
-    const history = await withFallback(
+    // Actualizar historial después de guardar el mensaje del usuario
+    console.log('💾 Paso 5: Actualizando historial...');
+    const updatedHistory = await withFallback(
       () => getConversationHistory(sessionId, 20),
       () => FallbackStorage.getConversationHistory(sessionId, 20),
-      'Obtener historial'
+      'Actualizar historial'
     );
-    console.log(`✅ Historial obtenido: ${history.length} mensajes`);
+    console.log(`✅ Historial actualizado: ${updatedHistory.length} mensajes`);
 
     // ============================================
     // PASO 4.5: SISTEMA DE MÁQUINA DE ESTADOS PARA AGENDAMIENTO
@@ -402,7 +442,7 @@ async function processWhatsAppMessage(body) {
     // CASO 1.5: Usuario está en IDLE pero responde con preferencia de opción (sin mencionar "agendar")
     else if (stateMachine.state === APPOINTMENT_STATES.IDLE) {
       // Detectar si el usuario está respondiendo a la pregunta "¿Cuál prefieres?"
-      const lastBotMsg = history.filter(m => m.role === 'assistant').pop()?.content || '';
+      const lastBotMsg = updatedHistory.filter(m => m.role === 'assistant').pop()?.content || '';
       const botOfferedOptions = lastBotMsg.includes('Puedo ayudarte de dos formas') || 
                                 lastBotMsg.includes('¿Cuál prefieres?');
       
@@ -543,7 +583,7 @@ async function processWhatsAppMessage(body) {
       
       try {
         console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
-        aiResult = await chatbotAI.generateResponse(userMessage, history, calendarTools);
+        aiResult = await chatbotAI.generateResponse(userMessage, updatedHistory, calendarTools);
         clearTimeout(globalTimeoutId); // Limpiar timeout si se resuelve
         
         if (timeoutReached) {
@@ -598,7 +638,7 @@ async function processWhatsAppMessage(body) {
     const shouldTransfer = chatbotAI.detectIntent(userMessage) === 'transfer_doctor' ||
                           aiResult.response?.includes('[TRANSFER_TO_DOCTOR]') ||
                           (userMessage.toLowerCase().includes('sí') && 
-                           history.slice(-2).some(m => m.role === 'assistant' && 
+                           updatedHistory.slice(-2).some(m => m.role === 'assistant' && 
                            m.content.toLowerCase().includes('conecte con la dra')));
     
     let finalResponse = aiResult.response;
@@ -607,7 +647,7 @@ async function processWhatsAppMessage(body) {
       console.log('📞 Transferencia a Dra. Daniela solicitada');
       
       // Generar link de WhatsApp con resumen
-      const whatsappLink = chatbotAI.generateDoctorWhatsAppLink(history);
+      const whatsappLink = chatbotAI.generateDoctorWhatsAppLink(updatedHistory);
       
       // Reemplazar [TRANSFER_TO_DOCTOR] o agregar al final
       if (finalResponse.includes('[TRANSFER_TO_DOCTOR]')) {
