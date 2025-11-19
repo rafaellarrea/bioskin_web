@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban } from 'lucide-react';
 import { useEffect } from 'react';
 
 export default function AdminDashboard() {
@@ -33,6 +33,27 @@ export default function AdminDashboard() {
       icon: MessageSquare,
       path: '/admin/chats',
       color: 'from-blue-500 to-blue-600'
+    },
+    {
+      title: 'Gestión de Agenda',
+      description: 'Visualiza y administra citas del calendario',
+      icon: Calendar,
+      path: '/admin/calendar',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
+      title: 'Bloqueo de Horarios',
+      description: 'Bloquea horarios no disponibles en el calendario',
+      icon: Ban,
+      path: '/admin/block-schedule',
+      color: 'from-red-500 to-red-600'
+    },
+    {
+      title: 'Agendar Cita Manual',
+      description: 'Crea citas manualmente en el sistema',
+      icon: Clock,
+      path: '/admin/appointment',
+      color: 'from-orange-500 to-orange-600'
     },
     {
       title: 'Monitor de Actividad',

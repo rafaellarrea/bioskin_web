@@ -19,6 +19,11 @@ import BlogAdminPage from './pages/BlogAdminPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminChatManager from './pages/AdminChatManager';
+import AdminCalendarManager from './pages/AdminCalendarManager';
+import AdminBlockSchedule from './pages/AdminBlockSchedule';
+import AdminAppointment from './pages/AdminAppointment';
+import AdminMonitor from './pages/AdminMonitor';
+import AdminStats from './pages/AdminStats';
 
 function App() {
   return (
@@ -48,6 +53,11 @@ function App() {
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/chats" element={<AdminChatManager />} />
+            <Route path="/admin/calendar" element={<AdminCalendarManager />} />
+            <Route path="/admin/block-schedule" element={<AdminBlockSchedule />} />
+            <Route path="/admin/appointment" element={<AdminAppointment />} />
+            <Route path="/admin/monitor" element={<AdminMonitor />} />
+            <Route path="/admin/stats" element={<AdminStats />} />
 
             <Route path="/appointment" element={<Appointment />} />
             <Route path="/about" element={<About />} />
