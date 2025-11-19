@@ -558,7 +558,7 @@
     let conversations = [];
     let selectedPhone = null;
     let currentMessages = [];
-    const API_BASE = '/api/chatbot-manager';
+    const API_BASE = '/api/chatbot-api?type=manager';
 
     // Inicializar
     document.addEventListener('DOMContentLoaded', () => {
@@ -598,7 +598,7 @@
     // Cargar conversaciones
     async function loadConversations() {
       try {
-        const response = await fetch(`${API_BASE}?action=conversations`);
+        const response = await fetch(`${API_BASE}&action=conversations`);
         
         if (!response.ok) {
           const errorData = await response.json();

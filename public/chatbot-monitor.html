@@ -244,7 +244,7 @@
   </div>
 
   <script>
-    const API_BASE = '/api';
+    const API_BASE = '/api/chatbot-api?type=monitor';
 
     // Cargar estadísticas generales
     async function loadStats() {
@@ -255,7 +255,7 @@
         // Delay para dar tiempo a la conexión
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        const response = await fetch(`${API_BASE}/chatbot-monitor`);
+        const response = await fetch(API_BASE);
         
         if (!response.ok) {
           const errorData = await response.json();
@@ -340,7 +340,7 @@
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const response = await fetch(`${API_BASE}/chatbot-monitor?action=webhooks`);
+        const response = await fetch(`${API_BASE}&action=webhooks`);
         const data = await response.json();
         
         if (!data.success) throw new Error(data.error);
@@ -381,7 +381,7 @@
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const response = await fetch(`${API_BASE}/chatbot-monitor?action=tracking&limit=50`);
+        const response = await fetch(`${API_BASE}&action=tracking&limit=50`);
         const data = await response.json();
         
         if (!data.success) throw new Error(data.error);
@@ -424,7 +424,7 @@
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const response = await fetch(`${API_BASE}/chatbot-monitor?action=templates`);
+        const response = await fetch(`${API_BASE}&action=templates`);
         const data = await response.json();
         
         if (!data.success) throw new Error(data.error);
@@ -466,7 +466,7 @@
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const response = await fetch(`${API_BASE}/chatbot-monitor?action=preferences`);
+        const response = await fetch(`${API_BASE}&action=preferences`);
         const data = await response.json();
         
         if (!data.success) throw new Error(data.error);
@@ -510,7 +510,7 @@
       try {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const response = await fetch(`${API_BASE}/chatbot-monitor?action=conversations&limit=50`);
+        const response = await fetch(`${API_BASE}&action=conversations&limit=50`);
         const data = await response.json();
         
         if (!data.success) throw new Error(data.error);
