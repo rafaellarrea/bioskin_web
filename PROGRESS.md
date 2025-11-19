@@ -10,6 +10,17 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Fix Admin Login + Optimización Funciones**
+- ✅ **Problema**: Admin login no funcionaba (credenciales no coincidían)
+- ✅ Reconfiguradas variables via Vercel CLI:
+  - `ADMIN_USERNAME=admin`
+  - `ADMIN_PASSWORD=b10sk1n`
+- ✅ **Límite de funciones**: Reducidas de 13 a 10 funciones serverless
+  - Eliminadas: `test-admin-auth.js`, `test-chatbot-simple.js`, `test-imports.js`
+  - **Margen actual**: 10/12 funciones (2 libres)
+- ✅ Deployment exitoso en producción
+- ✅ Tabla `admin_sessions` inicializada
+
 ### ✅ **Nov 19, 2025: Fix CRÍTICO Error Sintaxis - Método Faltante**
 - ✅ **PROBLEMA REAL**: Método `getActivePromotions()` no estaba definido en `promotions-service.js`
 - ✅ Código del método estaba flotando entre dos métodos (líneas 123-132)
