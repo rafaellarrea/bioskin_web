@@ -188,6 +188,23 @@
       🔥 Enviar 3 Notificaciones (Test Múltiple)
     </button>
 
+    <div class="status-box" style="background: #fff3cd; border-left-color: #ffc107; margin-top: 20px;">
+      <h3 style="margin-bottom: 15px; color: #856404; font-size: 16px;">💡 Guía para Chrome</h3>
+      <div style="color: #856404; line-height: 1.6; font-size: 14px;">
+        <p style="margin-bottom: 10px;"><strong>Si no aparece el diálogo de permisos:</strong></p>
+        <ol style="margin-left: 20px; margin-bottom: 15px;">
+          <li>Haz clic en el <strong>candado 🔒</strong> junto a la URL (arriba a la izquierda)</li>
+          <li>Busca <strong>"Notificaciones"</strong></li>
+          <li>Selecciona <strong>"Permitir"</strong></li>
+          <li>Recarga esta página (F5)</li>
+        </ol>
+        <p style="margin-bottom: 10px;"><strong>O ve a configuración avanzada:</strong></p>
+        <p style="margin-left: 20px; font-family: monospace; background: white; padding: 5px; border-radius: 5px;">
+          chrome://settings/content/notifications
+        </p>
+      </div>
+    </div>
+
     <div class="log-box">
       <div class="log-entry"><span class="log-time">[INICIO]</span> Sistema de test iniciado...</div>
       <div id="logContainer"></div>
@@ -222,6 +239,15 @@
         browserSupportEl.textContent = '✅ Soportado';
         browserSupportEl.className = 'status-value status-success';
         log('Navegador soporta notificaciones', '✅');
+        
+        // Información adicional del navegador
+        const userAgent = navigator.userAgent;
+        log(`Navegador detectado: ${userAgent.includes('Chrome') ? 'Chrome' : userAgent.includes('Firefox') ? 'Firefox' : userAgent.includes('Safari') ? 'Safari' : 'Otro'}`, '🌐');
+        
+        // Verificar si es HTTPS o localhost
+        const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+        log(`Protocolo seguro: ${isSecure ? '✅ HTTPS' : '⚠️ HTTP (puede causar problemas)'}`, '🔒');
+        
       } else {
         browserSupportEl.textContent = '❌ No soportado';
         browserSupportEl.className = 'status-value status-error';
@@ -249,6 +275,7 @@
           requestPermissionBtn.textContent = '❌ Permisos Bloqueados';
           requestPermissionBtn.disabled = true;
           log('Permisos DENEGADOS - debe habilitarlos en configuración del navegador', '❌');
+          log('Para Chrome: Haz clic en el candado 🔒 junto a la URL → Configuración del sitio → Notificaciones → Permitir', '💡');
           break;
         case 'default':
           permissionStatusEl.textContent = '⚠️ Sin solicitar';
