@@ -324,16 +324,18 @@
         
         log(`Creando notificación #${notificationCount}...`, '🚀');
         
-        const notification = new Notification('🧪 Notificación de Prueba', {
-          body: `Esta es la notificación #${notificationCount}\nHora: ${timestamp}\nSistema: BIOSKIN Admin`,
+        const notification = new Notification('🧪 Notificación de Prueba BIOSKIN', {
+          body: `Esta es la notificación #${notificationCount}\nHora: ${timestamp}\n\n⚠️ MIRA EL CENTRO DE NOTIFICACIONES DE WINDOWS (Win+N) SI NO VES UN POPUP`,
           icon: '/favicon.ico',
           badge: '/favicon.ico',
-          tag: `test-${notificationCount}`,
-          requireInteraction: false,
-          silent: false
+          tag: `bioskin-test-${Date.now()}`, // Único para cada notificación
+          requireInteraction: true, // FORZAR que no se cierre automáticamente
+          silent: false, // Con sonido
+          vibrate: [200, 100, 200] // Vibración en dispositivos móviles
         });
 
         log(`✅ Notificación #${notificationCount} ENVIADA exitosamente`, '🎉');
+        log(`⚠️ Si no ves un popup, presiona Windows+N para ver el centro de notificaciones`, '💡');
         lastNotificationEl.textContent = `#${notificationCount} - ${timestamp}`;
         lastNotificationEl.className = 'status-value status-success';
 
@@ -345,21 +347,23 @@
 
         notification.onerror = (error) => {
           log(`ERROR en notificación #${notificationCount}: ${error}`, '❌');
+          log(`Posibles causas: Modo No Molestar de Windows activo, notificaciones de Chrome bloqueadas en Windows`, '🔍');
         };
 
         notification.onshow = () => {
-          log(`Notificación #${notificationCount} mostrada en pantalla`, '👁️');
+          log(`👁️ Notificación #${notificationCount} mostrada en pantalla`, '✅');
+          log(`Si no la ves como popup, puede estar en el centro de notificaciones de Windows`, '💡');
         };
 
         notification.onclose = () => {
           log(`Notificación #${notificationCount} cerrada`, '🔚');
         };
 
-        // Auto-cerrar después de 5 segundos
-        setTimeout(() => {
-          notification.close();
-          log(`Notificación #${notificationCount} auto-cerrada`, '⏰');
-        }, 5000);
+        // NO auto-cerrar para que permanezca visible
+        // setTimeout(() => {
+        //   notification.close();
+        //   log(`Notificación #${notificationCount} auto-cerrada`, '⏰');
+        // }, 5000);
 
       } catch (error) {
         log(`ERROR al crear notificación: ${error.message}`, '❌');
