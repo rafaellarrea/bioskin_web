@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ⚠️ **Nov 18, 2025: Diagnóstico - Panel Admin Sin Conversaciones**
+- ❌ **Problema identificado**: Falta variable `POSTGRES_URL` en Vercel
+- ✅ Creado endpoint de prueba: `/api/test-db-connection`
+- ✅ Documentación completa: `docs/FIX-NO-CONVERSACIONES.md`
+- ✅ Actualizado `.env.example` con `POSTGRES_URL`
+- 📋 **Solución**: Configurar connection string de Neon PostgreSQL en Vercel
+- 🔗 **Variables críticas faltantes**:
+  - `POSTGRES_URL` - Base de datos principal del chatbot
+  - `WHATSAPP_STAFF_GROUP_ID` - Grupo para notificaciones
+
 ### ✅ **Nov 18, 2025: Optimización de Funciones Serverless + Fix Panel Admin**
 - ✅ **Reducción de funciones**: De 11 a 10 funciones serverless (límite: 12)
 - ✅ Consolidadas 3 funciones de WhatsApp groups en `whatsapp-groups.js`
