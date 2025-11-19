@@ -60,6 +60,14 @@ function validateCredentials(username, password) {
   const validUsername = process.env.ADMIN_USERNAME || 'admin';
   const validPassword = process.env.ADMIN_PASSWORD || 'b10sk1n';
 
+  console.log('🔍 [AUTH] Validando credenciales...');
+  console.log(`🔍 [AUTH] Usuario recibido: "${username}"`);
+  console.log(`🔍 [AUTH] Usuario esperado: "${validUsername}"`);
+  console.log(`🔍 [AUTH] Password recibido length: ${password?.length}`);
+  console.log(`🔍 [AUTH] Password esperado length: ${validPassword?.length}`);
+  console.log(`🔍 [AUTH] Username match: ${username === validUsername}`);
+  console.log(`🔍 [AUTH] Password match: ${password === validPassword}`);
+
   return username === validUsername && password === validPassword;
 }
 
