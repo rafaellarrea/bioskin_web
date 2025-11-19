@@ -459,24 +459,35 @@
     /* Panel conversaciones móvil */
     @media (max-width: 768px) {
       .conversations-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        background: white;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .conversations-panel.mobile-hidden {
+        display: none;
+      }
+
+      .chat-panel {
         display: none;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 1000;
+        z-index: 20;
         background: white;
-      }
-
-      .conversations-panel.mobile-visible {
-        display: block;
-      }
-
-      .chat-panel {
-        display: flex;
         flex-direction: column;
-        height: 100%;
+      }
+
+      .chat-panel.mobile-visible {
+        display: flex;
       }
 
       .messages-container {
@@ -498,46 +509,32 @@
         font-size: 12px;
       }
 
-      /* Botón para mostrar lista de conversaciones en móvil */
-      .mobile-toggle {
-        display: block;
-        position: fixed;
-        bottom: 80px;
-        right: 20px;
+      /* Botón para volver a conversaciones */
+      .mobile-back {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: sticky;
+        top: 0;
         background: #667eea;
         color: white;
-        border: none;
-        border-radius: 50%;
-        width: 56px;
-        height: 56px;
-        font-size: 24px;
+        padding: 15px;
+        font-weight: 600;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 999;
+        z-index: 10;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 16px;
+      }
+
+      .mobile-back:active {
+        background: #5568d3;
       }
     }
 
-    .mobile-toggle {
+    .mobile-back {
       display: none;
-    }
-
-    .mobile-close {
-      display: none;
-      position: sticky;
-      top: 0;
-      background: #667eea;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-weight: 600;
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    @media (max-width: 768px) {
-      .mobile-close {
-        display: block;
-      }
     }
   </style>
 </head>
@@ -640,9 +637,6 @@
 
     <!-- Panel izquierdo: Lista de conversaciones -->
     <div class="conversations-panel" id="conversationsPanel">
-      <div class="mobile-close" onclick="toggleMobileConversations()">
-        ✕ Cerrar Lista
-      </div>
       <div class="search-box">
         <input 
           type="text" 
@@ -658,13 +652,11 @@
       </div>
     </div>
 
-    <!-- Botón flotante móvil para mostrar conversaciones -->
-    <button class="mobile-toggle" onclick="toggleMobileConversations()">
-      💬
-    </button>
-
     <!-- Panel derecho: Chat y formulario -->
-    <div class="chat-panel">
+    <div class="chat-panel" id="chatPanel">
+      <button class="mobile-back" id="mobileBackBtn" onclick="backToConversations()">
+        ← Volver a conversaciones
+      </button>
       <div id="chatContent">
         <div class="empty-state">
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -808,16 +800,17 @@
       renderConversations(conversations);
       await loadMessages(phone);
       
-      // En móvil, cerrar el panel de conversaciones al seleccionar
+      // En móvil, mostrar el chat y ocultar lista de conversaciones
       if (window.innerWidth <= 768) {
-        toggleMobileConversations();
+        document.getElementById('conversationsPanel').classList.add('mobile-hidden');
+        document.getElementById('chatPanel').classList.add('mobile-visible');
       }
     }
 
-    // Toggle para mostrar/ocultar panel en móvil
-    function toggleMobileConversations() {
-      const panel = document.getElementById('conversationsPanel');
-      panel.classList.toggle('mobile-visible');
+    // Volver a la lista de conversaciones (móvil)
+    function backToConversations() {
+      document.getElementById('conversationsPanel').classList.remove('mobile-hidden');
+      document.getElementById('chatPanel').classList.remove('mobile-visible');
     }
 
     // Cargar mensajes de una conversación
