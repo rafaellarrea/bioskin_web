@@ -345,16 +345,17 @@ async function processWhatsAppMessage(body) {
     let shouldNotifyInactive = false;
     
     if (!shouldNotifyNew && history.length > 0) {
-      // Buscar el último mensaje (excluyendo el mensaje actual que acaba de llegar)
-      const previousMessages = history.filter(msg => msg.message_id !== messageId);
+      // El historial viene ordenado DESC (más reciente primero)
+      // Como obtenemos el historial ANTES de guardar el mensaje actual,
+      // history[0] es el mensaje más reciente ANTES del mensaje que acaba de llegar
+      const lastMessage = history[0];
       
-      if (previousMessages.length > 0) {
-        const lastMessage = previousMessages[0]; // El historial viene ordenado DESC
+      if (lastMessage && lastMessage.created_at) {
         const lastMessageTime = new Date(lastMessage.created_at).getTime();
         const currentTime = Date.now();
         const minutesSinceLastMessage = (currentTime - lastMessageTime) / 60000;
         
-        console.log(`⏰ Tiempo desde último mensaje: ${minutesSinceLastMessage.toFixed(1)} minutos`);
+        console.log(`⏰ Último mensaje: ${lastMessage.created_at}, Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
         
         if (minutesSinceLastMessage > 15) {
           shouldNotifyInactive = true;
@@ -369,6 +370,8 @@ async function processWhatsAppMessage(body) {
         } else {
           console.log(`✅ Conversación activa (${minutesSinceLastMessage.toFixed(1)} min) - no notificar`);
         }
+      } else {
+        console.log('⚠️ No se pudo obtener timestamp del último mensaje');
       }
     } else if (shouldNotifyNew) {
       console.log('🆕 Nueva conversación detectada - enviando notificación');
