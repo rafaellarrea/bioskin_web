@@ -825,7 +825,7 @@
       `;
 
       try {
-        const response = await fetch(`${API_BASE}?action=messages&phone=${encodeURIComponent(phone)}`);
+        const response = await fetch(`${API_BASE}&action=messages&phone=${encodeURIComponent(phone)}`);
         const data = await response.json();
         
         if (data.success) {
@@ -918,7 +918,7 @@
       alertContainer.innerHTML = '';
 
       try {
-        const response = await fetch(`${API_BASE}?action=send`, {
+        const response = await fetch(`${API_BASE}&action=send`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, message })
@@ -1117,7 +1117,7 @@
       if (!notificationsEnabled) return;
 
       try {
-        const response = await fetch(`${API_BASE}?action=conversations`);
+        const response = await fetch(`${API_BASE}&action=conversations`);
         
         if (!response.ok) return;
 
