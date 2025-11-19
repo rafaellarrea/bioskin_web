@@ -23,7 +23,7 @@ import {
   saveStateMachine,
   APPOINTMENT_STATES 
 } from '../lib/appointment-state-machine.js';
-import { notifyNewConversation } from '../lib/admin-notifications.js';
+// import { notifyNewConversation } from '../lib/admin-notifications.js'; // Temporalmente deshabilitado para debug
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -318,10 +318,11 @@ async function processWhatsAppMessage(body) {
 
     // Notificar al admin si es una nueva conversación
     if (conversationResult?.isNew) {
-      console.log('🆕 Nueva conversación detectada, notificando al admin...');
-      notifyNewConversation(from, userMessage).catch(err => {
-        console.error('⚠️ Error enviando notificación (no crítico):', err);
-      });
+      console.log('🆕 Nueva conversación detectada');
+      // Notificación deshabilitada temporalmente para debug
+      // notifyNewConversation(from, userMessage).catch(err => {
+      //   console.error('⚠️ Error enviando notificación (no crítico):', err);
+      // });
     }
 
     // Guardar mensaje del usuario (con fallback)
