@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Fix Error Sintaxis chatbot-ai-service.js**
+- ✅ Renombrada variable `data` a `appointmentData` en método `extractAppointmentData()`
+- ✅ Resuelto conflicto con identificadores reservados en módulo ESM
+- ✅ Verificación de sintaxis pasada correctamente
+
 ### ⚠️ **Nov 18, 2025: Diagnóstico - Panel Admin Sin Conversaciones**
 - ❌ **Problema identificado**: Falta variable `POSTGRES_URL` en Vercel
 - ✅ Creado endpoint de prueba: `/api/test-db-connection`
