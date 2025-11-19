@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - BIOSKIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+    }
+
+    .dashboard-container {
+      max-width: 900px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 30px 20px;
+      }
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 24px;
+      }
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 768px) {
+      .header p {
+        font-size: 14px;
+      }
+    }
+
+    .user-info {
+      background: rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 25px;
+      display: inline-block;
+      margin-top: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .content {
+      padding: 40px 30px;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 30px 20px;
+      }
+    }
+
+    .section-title {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .section-title {
+        font-size: 18px;
+      }
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 768px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+    }
+
+    .card {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        padding: 25px 20px;
+      }
+
+      .card:hover {
+        transform: none;
+      }
+    }
+
+    .card-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .card-title {
+        font-size: 18px;
+      }
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .card-description {
+        font-size: 13px;
+      }
+    }
+
+    .logout-btn {
+      background: rgba(239,68,68,0.1);
+      border: 2px solid rgba(239,68,68,0.3);
+      color: #dc2626;
+      padding: 12px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 0 auto;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: rgba(239,68,68,0.2);
+      border-color: rgba(239,68,68,0.5);
+    }
+
+    @media (max-width: 768px) {
+      .logout-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sistema de autenticación -->
+  <script>
+    const AUTH_API = '/api/admin-auth';
+    let currentUser = null;
+    let sessionToken = null;
+
+    (async function checkAuth() {
+      sessionToken = localStorage.getItem('adminSessionToken');
+      
+      if (!sessionToken) {
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${AUTH_API}?action=verify`, {
+          headers: {
+            'Authorization': `Bearer ${sessionToken}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.valid) {
+          currentUser = data.user;
+          console.log('✅ Usuario autenticado:', currentUser.username);
+          updateUserInfo();
+        } else {
+          localStorage.removeItem('adminSessionToken');
+          localStorage.removeItem('adminUser');
+          redirectToLogin();
+        }
+      } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        redirectToLogin();
+      }
+    })();
+
+    function redirectToLogin() {
+      window.location.href = '/admin-login.html?redirect=/admin-dashboard.html';
+    }
+
+    function updateUserInfo() {
+      if (currentUser) {
+        document.getElementById('username').textContent = currentUser.username;
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch(`${AUTH_API}?action=logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`
+          },
+          body: JSON.stringify({ sessionToken })
+        });
+      } catch (error) {
+        console.error('Error en logout:', error);
+      }
+
+      localStorage.removeItem('adminSessionToken');
+      localStorage.removeItem('adminUser');
+      window.location.href = '/admin-login.html';
+    }
+  </script>
+
+  <div class="dashboard-container">
+    <div class="header">
+      <h1>🏥 Panel de Administración BIOSKIN</h1>
+      <p>Gestión centralizada del chatbot de WhatsApp</p>
+      <div class="user-info">
+        👤 <span id="username">Administrador</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="section-title">📊 Herramientas de Gestión</div>
+      
+      <div class="card-grid">
+        <a href="/chatbot-manager.html" class="card">
+          <div class="card-icon">💬</div>
+          <div class="card-title">Gestión de Chats</div>
+          <div class="card-description">
+            Administra conversaciones activas, responde mensajes y gestiona clientes en tiempo real
+          </div>
+        </a>
+
+        <a href="/chatbot-monitor.html" class="card">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Monitor de Actividad</div>
+          <div class="card-description">
+            Visualiza estadísticas, tracking de eventos y métricas del chatbot
+          </div>
+        </a>
+
+        <a href="/chatbot-stats.html" class="card">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Estadísticas Avanzadas</div>
+          <div class="card-description">
+            Reportes detallados y análisis de rendimiento del sistema
+          </div>
+        </a>
+      </div>
+
+      <button onclick="logout()" class="logout-btn">
+        🚪 Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</body>
+</html>
