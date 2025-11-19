@@ -426,6 +426,84 @@
   </style>
 </head>
 <body>
+  <!-- Sistema de autenticación -->
+  <script>
+    // ============================================
+    // MIDDLEWARE DE AUTENTICACIÓN
+    // ============================================
+    const AUTH_API = '/api/admin-auth';
+    let currentUser = null;
+    let sessionToken = null;
+
+    // Verificar autenticación al cargar la página
+    (async function checkAuth() {
+      sessionToken = localStorage.getItem('adminSessionToken');
+      
+      if (!sessionToken) {
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${AUTH_API}?action=verify`, {
+          headers: {
+            'Authorization': `Bearer ${sessionToken}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.valid) {
+          currentUser = data.user;
+          console.log('✅ Usuario autenticado:', currentUser.username);
+          
+          // Actualizar header con info del usuario
+          updateUserInfo();
+        } else {
+          localStorage.removeItem('adminSessionToken');
+          localStorage.removeItem('adminUser');
+          redirectToLogin();
+        }
+      } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        redirectToLogin();
+      }
+    })();
+
+    function redirectToLogin() {
+      const currentPath = window.location.pathname;
+      window.location.href = `/admin-login.html?redirect=${encodeURIComponent(currentPath)}`;
+    }
+
+    function updateUserInfo() {
+      // Agregar nombre de usuario en el header
+      const statsDiv = document.getElementById('stats');
+      if (statsDiv && currentUser) {
+        const userBadge = `<div class="stat-item" style="background: rgba(16,185,129,0.2);">👤 ${currentUser.username}</div>`;
+        statsDiv.insertAdjacentHTML('afterbegin', userBadge);
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch(`${AUTH_API}?action=logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`
+          },
+          body: JSON.stringify({ sessionToken })
+        });
+      } catch (error) {
+        console.error('Error en logout:', error);
+      }
+
+      localStorage.removeItem('adminSessionToken');
+      localStorage.removeItem('adminUser');
+      window.location.href = '/admin-login.html';
+    }
+  </script>
+
   <div class="container">
     <!-- Header -->
     <div class="header">
@@ -438,6 +516,9 @@
         <div class="stats" id="stats">
           <div class="stat-item">📊 Cargando...</div>
         </div>
+        <button class="notification-btn" onclick="logout()" style="background: rgba(239,68,68,0.3); border-color: rgba(239,68,68,0.5);">
+          🚪 Cerrar Sesión
+        </button>
       </div>
     </div>
 

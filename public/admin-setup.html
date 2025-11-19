@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Admin - BIOSKIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .setup-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 500px;
+      padding: 40px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: #667eea;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #374151;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .alert.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .alert.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .info-box {
+      background: #dbeafe;
+      border: 1px solid #93c5fd;
+      color: #1e40af;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .step {
+      margin-bottom: 30px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .step:last-child {
+      border-bottom: none;
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      background: #667eea;
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 32px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .step-title {
+      display: inline-block;
+      color: #374151;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-container">
+    <div class="header">
+      <h1>🔧 Setup Inicial - Admin</h1>
+      <p>Configura el primer usuario administrador</p>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div class="step">
+      <div>
+        <span class="step-number">1</span>
+        <span class="step-title">Inicializar Base de Datos</span>
+      </div>
+      <div class="info-box">
+        <strong>⚠️ Importante:</strong>
+        Esto creará las tablas necesarias para el sistema de autenticación.
+        Solo necesitas hacer esto una vez.
+      </div>
+      <button onclick="initDatabase()" class="btn" id="initBtn">
+        🗄️ Inicializar Tablas
+      </button>
+    </div>
+
+    <div class="step">
+      <div>
+        <span class="step-number">2</span>
+        <span class="step-title">Crear Usuario Admin</span>
+      </div>
+      <form id="setupForm" onsubmit="createAdmin(event)">
+        <div class="form-group">
+          <label for="secret">Secret Key (de variables de entorno)</label>
+          <input 
+            type="password" 
+            id="secret" 
+            required 
+            placeholder="ADMIN_SETUP_SECRET"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="username">Usuario *</label>
+          <input 
+            type="text" 
+            id="username" 
+            required 
+            placeholder="admin"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña *</label>
+          <input 
+            type="password" 
+            id="password" 
+            required 
+            minlength="8"
+            placeholder="Mínimo 8 caracteres"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email (opcional)</label>
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="admin@bioskin.com"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="fullName">Nombre Completo (opcional)</label>
+          <input 
+            type="text" 
+            id="fullName" 
+            placeholder="Administrador BIOSKIN"
+          >
+        </div>
+
+        <button type="submit" class="btn" id="createBtn">
+          👤 Crear Usuario Admin
+        </button>
+      </form>
+    </div>
+
+    <div class="info-box">
+      <strong>📝 Notas:</strong>
+      • El SECRET debe estar configurado en las variables de entorno de Vercel como <code>ADMIN_SETUP_SECRET</code><br>
+      • Guarda las credenciales en un lugar seguro<br>
+      • Una vez creado el usuario, usa /admin-login.html para acceder
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/admin-auth';
+
+    async function initDatabase() {
+      const btn = document.getElementById('initBtn');
+      const alertContainer = document.getElementById('alertContainer');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Inicializando...';
+
+      try {
+        const response = await fetch(`${API_BASE}?action=init`, {
+          method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showAlert('✅ Base de datos inicializada correctamente', 'success');
+          btn.textContent = '✅ Completado';
+        } else {
+          showAlert('❌ Error: ' + (data.error || 'Error desconocido'), 'error');
+          btn.disabled = false;
+          btn.textContent = '🗄️ Inicializar Tablas';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showAlert('❌ Error de conexión', 'error');
+        btn.disabled = false;
+        btn.textContent = '🗄️ Inicializar Tablas';
+      }
+    }
+
+    async function createAdmin(event) {
+      event.preventDefault();
+
+      const btn = document.getElementById('createBtn');
+      const alertContainer = document.getElementById('alertContainer');
+
+      const secret = document.getElementById('secret').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const email = document.getElementById('email').value;
+      const fullName = document.getElementById('fullName').value;
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Creando usuario...';
+
+      try {
+        const response = await fetch(`${API_BASE}?action=createUser`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            secret,
+            username,
+            password,
+            email: email || null,
+            fullName: fullName || null
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showAlert(`✅ Usuario creado: ${data.user.username}\n\nAhora puedes iniciar sesión en /admin-login.html`, 'success');
+          btn.textContent = '✅ Usuario Creado';
+          
+          // Limpiar formulario
+          document.getElementById('setupForm').reset();
+        } else {
+          showAlert('❌ Error: ' + (data.error || 'Error desconocido'), 'error');
+          btn.disabled = false;
+          btn.textContent = '👤 Crear Usuario Admin';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showAlert('❌ Error de conexión', 'error');
+        btn.disabled = false;
+        btn.textContent = '👤 Crear Usuario Admin';
+      }
+    }
+
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      alertContainer.innerHTML = `
+        <div class="alert ${type}">
+          ${message.replace(/\n/g, '<br>')}
+        </div>
+      `;
+      
+      alertContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
