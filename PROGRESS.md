@@ -10,6 +10,18 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 18, 2025: Optimización de Funciones Serverless + Fix Panel Admin**
+- ✅ **Reducción de funciones**: De 11 a 10 funciones serverless (límite: 12)
+- ✅ Consolidadas 3 funciones de WhatsApp groups en `whatsapp-groups.js`
+  - Eliminadas: `check-groups-eligibility.js`, `create-staff-group.js`, `get-invite-link.js`
+  - Nueva función unificada con 3 acciones: check, create, invite
+- ✅ Creado `chatbot-monitor.js` (faltante) para panel de monitoreo
+- ✅ Agregadas funciones faltantes en `neon-chatbot-db-vercel.js`:
+  - `getConversationMessages()`, `getTrackingEvents()`, `getWhatsAppTemplates()`, `getUserPreferences()`
+- ✅ Delays de conexión implementados en todos los endpoints (1-1.5s)
+- ✅ Corregida firma de `saveMessage()` en `chatbot-manager.js`
+- ✅ Panel de admin de chats ahora funcional con retry logic
+
 ### ✅ **Nov 19, 2025: Sistema Dual de Roles + Control Total Máquina Estados**
 - ✅ **Rol Médico (Salomé)**: Tratamientos faciales/corporales, citas médicas
 - ✅ **Rol Técnico**: Equipos HIFU, láser, dispositivos médicos, cotizaciones

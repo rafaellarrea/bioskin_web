@@ -29,6 +29,9 @@ export default async function handler(req, res) {
       console.log('📋 [Manager] Obteniendo todas las conversaciones...');
       
       try {
+        // Delay de 1.5 segundos para dar tiempo a la conexión de BD
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         const conversations = await getAllConversations();
         
         // Enriquecer con información adicional
@@ -74,6 +77,9 @@ export default async function handler(req, res) {
       console.log(`💬 [Manager] Obteniendo mensajes de ${phone}...`);
       
       try {
+        // Delay de 1 segundo para conexión
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const messages = await getConversationMessages(phone);
         
         return res.status(200).json({
@@ -115,17 +121,26 @@ export default async function handler(req, res) {
 
       // 1. Guardar mensaje en BD como mensaje del asistente
       try {
-        await saveMessage(phone, {
-          role: 'assistant',
-          content: message,
-          created_at: new Date().toISOString()
-        });
+        // Buscar session_id del teléfono
+        const conversations = await getAllConversations();
+        const conv = conversations.find(c => c.phone_number === phone);
+        
+        if (!conv) {
+          return res.status(404).json({
+            success: false,
+            error: 'Conversación no encontrada para este teléfono'
+          });
+        }
+        
+        // Guardar mensaje con la firma correcta: (sessionId, role, content, tokensUsed, messageId)
+        await saveMessage(conv.session_id, 'assistant', message, 0, null);
         console.log('✅ [Manager] Mensaje guardado en BD');
       } catch (dbError) {
         console.error('❌ [Manager] Error guardando en BD:', dbError);
         return res.status(500).json({
           success: false,
-          error: 'Error guardando mensaje en BD'
+          error: 'Error guardando mensaje en BD',
+          details: dbError.message
         });
       }
 
@@ -193,6 +208,9 @@ export default async function handler(req, res) {
       console.log('📊 [Manager] Obteniendo estadísticas generales...');
       
       try {
+        // Delay de 1.5 segundos para dar tiempo a la conexión
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         const conversations = await getAllConversations();
         
         const stats = {
