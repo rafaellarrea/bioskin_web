@@ -16,29 +16,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async (): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
+      const sessionToken = localStorage.getItem('adminSessionToken');
+      if (!sessionToken) {
         setIsAuthenticated(false);
         setUsername(null);
         return false;
       }
 
-      // Verificar si el token sigue siendo válido
-      const tokenData = JSON.parse(atob(token.split('.')[1]));
-      const expiresAt = tokenData.exp * 1000;
+      // Verificar sesión con el API
+      const response = await fetch('/api/admin-auth?action=verify', {
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`
+        }
+      });
 
-      if (Date.now() >= expiresAt) {
-        localStorage.removeItem('adminToken');
+      const data = await response.json();
+
+      if (data.success && data.valid) {
+        const savedUsername = localStorage.getItem('adminUsername');
+        setIsAuthenticated(true);
+        setUsername(savedUsername || data.user?.username || 'admin');
+        return true;
+      } else {
+        // Sesión inválida, limpiar
+        localStorage.removeItem('adminSessionToken');
         localStorage.removeItem('adminUsername');
         setIsAuthenticated(false);
         setUsername(null);
         return false;
       }
-
-      const savedUsername = localStorage.getItem('adminUsername');
-      setIsAuthenticated(true);
-      setUsername(savedUsername);
-      return true;
     } catch (error) {
       console.error('Error verificando autenticación:', error);
       setIsAuthenticated(false);
@@ -49,31 +55,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      // Verificar credenciales (en producción esto debería ser una llamada API)
-      if (username === 'admin' && password === 'b10sk1n') {
-        // Crear un token simple (en producción usar JWT real)
-        const tokenPayload = {
-          username,
-          exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 horas
-        };
-        const token = btoa(JSON.stringify({ header: {}, payload: tokenPayload }));
+      console.log('🔐 Intentando login con API...');
+      
+      const response = await fetch('/api/admin-auth?action=login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+      console.log('📊 Respuesta del API:', data);
+
+      if (data.success) {
+        // Guardar sesión
+        localStorage.setItem('adminSessionToken', data.sessionToken);
+        localStorage.setItem('adminUsername', data.user?.username || username);
+        localStorage.setItem('adminSessionExpiry', data.expiresAt);
         
-        localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminUsername', username);
         setIsAuthenticated(true);
-        setUsername(username);
+        setUsername(data.user?.username || username);
+        
+        console.log('✅ Login exitoso');
         return true;
+      } else {
+        console.error('❌ Login fallido:', data.error);
+        return false;
       }
-      return false;
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('❌ Error en login:', error);
       return false;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
+    const sessionToken = localStorage.getItem('adminSessionToken');
+    
+    // Intentar cerrar sesión en el servidor
+    if (sessionToken) {
+      fetch('/api/admin-auth?action=logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`
+        },
+        body: JSON.stringify({ sessionToken })
+      }).catch(err => console.error('Error cerrando sesión en servidor:', err));
+    }
+    
+    // Limpiar local
+    localStorage.removeItem('adminSessionToken');
     localStorage.removeItem('adminUsername');
+    localStorage.removeItem('adminSessionExpiry');
     setIsAuthenticated(false);
     setUsername(null);
   };
