@@ -244,9 +244,7 @@
   </div>
 
   <script>
-    const API_BASE = window.location.hostname === 'localhost' 
-      ? 'http://localhost:3000/api'
-      : 'https://saludbioskin.vercel.app/api';
+    const API_BASE = '/api';
 
     // Cargar estadísticas generales
     async function loadStats() {
@@ -254,6 +252,9 @@
       statsGrid.innerHTML = '<div class="loading">Cargando estadísticas...</div>';
       
       try {
+        // Delay para dar tiempo a la conexión
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         const response = await fetch(`${API_BASE}/chatbot-monitor`);
         
         if (!response.ok) {
@@ -337,6 +338,8 @@
       content.innerHTML = '<div class="section"><div class="loading">Cargando webhooks...</div></div>';
       
       try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const response = await fetch(`${API_BASE}/chatbot-monitor?action=webhooks`);
         const data = await response.json();
         
@@ -376,6 +379,8 @@
       content.innerHTML = '<div class="section"><div class="loading">Cargando eventos...</div></div>';
       
       try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const response = await fetch(`${API_BASE}/chatbot-monitor?action=tracking&limit=50`);
         const data = await response.json();
         
@@ -417,6 +422,8 @@
       content.innerHTML = '<div class="section"><div class="loading">Cargando plantillas...</div></div>';
       
       try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const response = await fetch(`${API_BASE}/chatbot-monitor?action=templates`);
         const data = await response.json();
         
@@ -457,6 +464,8 @@
       content.innerHTML = '<div class="section"><div class="loading">Cargando preferencias...</div></div>';
       
       try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const response = await fetch(`${API_BASE}/chatbot-monitor?action=preferences`);
         const data = await response.json();
         
@@ -499,6 +508,8 @@
       content.innerHTML = '<div class="section"><div class="loading">Cargando conversaciones...</div></div>';
       
       try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const response = await fetch(`${API_BASE}/chatbot-monitor?action=conversations&limit=50`);
         const data = await response.json();
         

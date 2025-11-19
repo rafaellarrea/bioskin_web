@@ -140,12 +140,15 @@
       display: flex;
       flex-direction: column;
       background: white;
+      height: 100%;
+      overflow: hidden;
     }
 
     .chat-header {
       padding: 20px 30px;
       border-bottom: 1px solid #e5e7eb;
       background: #f9fafb;
+      flex-shrink: 0;
     }
 
     .chat-phone {
@@ -163,8 +166,29 @@
     .messages-container {
       flex: 1;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 20px 30px;
       background: #f9fafb;
+      min-height: 0;
+      max-height: calc(100vh - 450px);
+    }
+
+    .messages-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: #7c3aed;
+      border-radius: 10px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb:hover {
+      background: #6d28d9;
     }
 
     .message {
@@ -217,6 +241,9 @@
       padding: 20px 30px;
       border-top: 1px solid #e5e7eb;
       background: white;
+      flex-shrink: 0;
+      position: relative;
+      bottom: 0;
     }
 
     .form-group {
