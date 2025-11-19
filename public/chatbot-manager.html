@@ -58,6 +58,56 @@
       backdrop-filter: blur(10px);
     }
 
+    .notification-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.5);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .notification-btn:hover {
+      background: rgba(255,255,255,0.3);
+      border-color: rgba(255,255,255,0.8);
+      transform: translateY(-2px);
+    }
+
+    .notification-btn.active {
+      background: #10b981;
+      border-color: #10b981;
+    }
+
+    .notification-btn.disabled {
+      background: rgba(239,68,68,0.3);
+      border-color: rgba(239,68,68,0.5);
+      cursor: not-allowed;
+    }
+
+    .notification-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: pulse 2s infinite;
+    }
+
+    .notification-status.active {
+      background: #10b981;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     /* Panel izquierdo - Lista de conversaciones */
     .conversations-panel {
       border-right: 1px solid #e5e7eb;
@@ -380,8 +430,14 @@
     <!-- Header -->
     <div class="header">
       <h1>💬 Gestión de Chats WhatsApp</h1>
-      <div class="stats" id="stats">
-        <div class="stat-item">📊 Cargando...</div>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <button id="notificationBtn" class="notification-btn" onclick="toggleNotifications()">
+          <span class="notification-status" id="notificationStatus"></span>
+          <span id="notificationText">🔔 Activar Notificaciones</span>
+        </button>
+        <div class="stats" id="stats">
+          <div class="stat-item">📊 Cargando...</div>
+        </div>
       </div>
     </div>
 
@@ -713,6 +769,200 @@
         loadMessages(selectedPhone);
       }
     }, 30000);
+
+    // ============================================
+    // SISTEMA DE NOTIFICACIONES DEL NAVEGADOR
+    // ============================================
+    
+    let notificationsEnabled = false;
+    let notificationCheckInterval = null;
+    let knownConversations = new Set();
+
+    // Verificar soporte de notificaciones
+    function checkNotificationSupport() {
+      return 'Notification' in window;
+    }
+
+    // Activar/desactivar notificaciones
+    async function toggleNotifications() {
+      const btn = document.getElementById('notificationBtn');
+      const status = document.getElementById('notificationStatus');
+      const text = document.getElementById('notificationText');
+
+      if (!checkNotificationSupport()) {
+        alert('❌ Tu navegador no soporta notificaciones de escritorio');
+        btn.classList.add('disabled');
+        text.textContent = '❌ No soportado';
+        return;
+      }
+
+      // Si ya están activadas, desactivar
+      if (notificationsEnabled) {
+        notificationsEnabled = false;
+        stopNotificationPolling();
+        status.classList.remove('active');
+        text.textContent = '🔔 Activar Notificaciones';
+        btn.classList.remove('active');
+        return;
+      }
+
+      // Solicitar permisos
+      try {
+        if (Notification.permission === 'denied') {
+          alert('❌ Los permisos de notificación fueron denegados.\n\n' +
+                'Para habilitarlos:\n' +
+                '1. Haz clic en el ícono de candado 🔒 en la barra de direcciones\n' +
+                '2. Busca "Notificaciones"\n' +
+                '3. Cambia a "Permitir"');
+          return;
+        }
+
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+          notificationsEnabled = true;
+          status.classList.add('active');
+          text.textContent = '🔔 Notificaciones Activas';
+          btn.classList.add('active');
+          
+          // Mostrar notificación de prueba
+          new Notification('🔔 Notificaciones activadas', {
+            body: '¡Recibirás alertas de nuevas conversaciones y mensajes!',
+            icon: '/images/bioskin-logo.png'
+          });
+
+          // Inicializar sistema
+          await initializeNotifications();
+          startNotificationPolling();
+        } else {
+          alert('❌ Necesitas otorgar permisos para recibir notificaciones');
+        }
+      } catch (error) {
+        console.error('Error con notificaciones:', error);
+        alert('❌ Error al solicitar permisos de notificación');
+      }
+    }
+
+    // Inicializar sistema de notificaciones
+    async function initializeNotifications() {
+      try {
+        // Cargar todas las conversaciones actuales sin notificar
+        conversations.forEach(conv => {
+          knownConversations.add(conv.session_id);
+        });
+        
+        console.log(`✅ Sistema de notificaciones inicializado con ${knownConversations.size} conversaciones`);
+      } catch (error) {
+        console.error('Error inicializando notificaciones:', error);
+      }
+    }
+
+    // Iniciar polling para nuevas conversaciones
+    function startNotificationPolling() {
+      if (notificationCheckInterval) return;
+      
+      console.log('🔔 Iniciando polling de notificaciones cada 30s');
+      
+      notificationCheckInterval = setInterval(async () => {
+        await checkForNewConversations();
+      }, 30000);
+    }
+
+    // Detener polling
+    function stopNotificationPolling() {
+      if (notificationCheckInterval) {
+        clearInterval(notificationCheckInterval);
+        notificationCheckInterval = null;
+        console.log('🔕 Polling de notificaciones detenido');
+      }
+    }
+
+    // Verificar nuevas conversaciones
+    async function checkForNewConversations() {
+      if (!notificationsEnabled) return;
+
+      try {
+        const response = await fetch(`${API_BASE}?action=conversations`);
+        
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        if (!data.success || !data.conversations) return;
+
+        // Verificar conversaciones nuevas
+        for (const conv of data.conversations) {
+          const convId = conv.session_id;
+          
+          // Si es una conversación que no conocíamos
+          if (!knownConversations.has(convId)) {
+            knownConversations.add(convId);
+            
+            // Solo notificar si es reciente (últimos 5 minutos)
+            const lastMessageTime = new Date(conv.last_message_at).getTime();
+            const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+            
+            if (lastMessageTime > fiveMinutesAgo) {
+              console.log('🆕 Nueva conversación detectada:', conv.phone_number);
+              showBrowserNotification(
+                '🆕 Nueva conversación iniciada',
+                `📱 ${conv.phone_number}\n💬 Nueva conversación en WhatsApp`,
+                conv.phone_number
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error verificando conversaciones:', error);
+      }
+    }
+
+    // Mostrar notificación del navegador
+    function showBrowserNotification(title, body, phoneNumber) {
+      if (!notificationsEnabled || Notification.permission !== 'granted') {
+        return;
+      }
+
+      try {
+        const notification = new Notification(title, {
+          body: body,
+          icon: '/images/bioskin-logo.png',
+          badge: '/images/bioskin-logo.png',
+          vibrate: [200, 100, 200],
+          requireInteraction: true,
+          tag: `conv-${phoneNumber}`
+        });
+
+        notification.onclick = (event) => {
+          event.preventDefault();
+          window.focus();
+          
+          // Seleccionar la conversación
+          const conv = conversations.find(c => c.phone_number === phoneNumber);
+          if (conv) {
+            selectConversation(conv);
+          }
+          
+          notification.close();
+        };
+      } catch (error) {
+        console.error('Error mostrando notificación:', error);
+      }
+    }
+
+    // Verificar estado de notificaciones al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('notificationBtn');
+      const status = document.getElementById('notificationStatus');
+      
+      if (!checkNotificationSupport()) {
+        btn.classList.add('disabled');
+        document.getElementById('notificationText').textContent = '❌ No soportado';
+      } else if (Notification.permission === 'granted') {
+        // Si ya hay permisos, ofrecer activar directamente
+        status.style.background = '#f59e0b'; // Amarillo = disponible
+      }
+    });
   </script>
 </body>
 </html>
