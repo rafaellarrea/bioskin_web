@@ -10,6 +10,19 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Sistema de Notificaciones del Navegador Mejorado**
+- ✅ **Solicitud de permisos correcta**: Ahora pide permisos de notificación al usuario
+- ✅ **Validación completa**: Verifica soporte del navegador, permisos granted/denied/default
+- ✅ **Notificación de prueba**: Muestra notificación inmediata al activar
+- ✅ **Feedback visual mejorado**:
+  - Botón con `animate-pulse` cuando está activo
+  - Punto verde indicador en esquina superior derecha
+  - Tooltips descriptivos con emojis
+- ✅ **Logs de debugging**: Console.log para rastrear estado de notificaciones
+- ✅ **Detección de nuevas conversaciones**: Muestra preview del mensaje (50 caracteres)
+- ✅ **Auto-cierre**: Notificaciones se cierran automáticamente después de 5 segundos
+- ✅ **Manejo de errores**: Alertas claras cuando hay problemas con permisos
+
 ### ✅ **Nov 19, 2025: Fix AdminChatManager + API Stats**
 - ✅ **Fix error 400**: Agregado soporte para `action=stats` en API manager
 - ✅ **Fix TypeError**: Filtro de conversaciones con validación de campos undefined
