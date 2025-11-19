@@ -23,6 +23,7 @@ import {
   saveStateMachine,
   APPOINTMENT_STATES 
 } from '../lib/appointment-state-machine.js';
+import { notifyNewConversation } from '../lib/admin-notifications.js';
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -308,12 +309,20 @@ async function processWhatsAppMessage(body) {
 
     // Crear/actualizar conversación (con fallback)
     console.log('💾 Paso 2: Creando/actualizando conversación...');
-    await withFallback(
+    const conversationResult = await withFallback(
       () => upsertConversation(sessionId, from),
       () => FallbackStorage.saveConversation(sessionId, from),
       'Upsert conversación'
     );
     console.log('✅ Conversación actualizada');
+
+    // Notificar al admin si es una nueva conversación
+    if (conversationResult?.isNew) {
+      console.log('🆕 Nueva conversación detectada, notificando al admin...');
+      notifyNewConversation(from, userMessage).catch(err => {
+        console.error('⚠️ Error enviando notificación (no crítico):', err);
+      });
+    }
 
     // Guardar mensaje del usuario (con fallback)
     console.log('💾 Paso 3: Guardando mensaje del usuario...');
