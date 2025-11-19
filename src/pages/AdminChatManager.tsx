@@ -213,9 +213,12 @@ export default function AdminChatManager() {
     }
   };
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.phone.includes(searchQuery) || conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter(conv => {
+    const phone = conv.phone || '';
+    const lastMessage = conv.lastMessage || '';
+    const query = searchQuery.toLowerCase();
+    return phone.includes(searchQuery) || lastMessage.toLowerCase().includes(query);
+  });
 
   if (!isAuthenticated) {
     return null;

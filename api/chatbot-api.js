@@ -89,7 +89,16 @@ async function handleManagerEndpoints(req, res, action) {
       const conversations = await getAllConversations();
       
       const enriched = conversations.map(conv => ({
+        // Campos originales
         ...conv,
+        // Transformación para compatibilidad con frontend
+        phone: conv.phone_number || conv.phone,
+        lastMessage: conv.last_message || '',
+        lastMessageTime: conv.last_message_at || conv.created_at,
+        unreadCount: conv.unread_count || 0,
+        messageCount: conv.message_count || 0,
+        conversationState: conv.conversation_state || 'active',
+        // Campos adicionales
         last_message_preview: conv.last_message?.substring(0, 100) || '',
         time_ago: getTimeAgo(conv.last_message_at),
         is_recent: isRecent(conv.last_message_at),
@@ -136,7 +145,16 @@ async function handleManagerEndpoints(req, res, action) {
         phone,
         count: messages.length,
         messages: messages.map(msg => ({
+          // Campos originales
           ...msg,
+          // Transformación para compatibilidad con frontend
+          id: msg.id,
+          phone: phone,
+          sender: msg.role === 'user' ? 'user' : (msg.role === 'assistant' ? 'bot' : 'admin'),
+          message: msg.message || msg.content || '',
+          timestamp: msg.created_at,
+          isRead: true, // Asumimos que todos están leídos al cargarlos
+          // Campos adicionales
           time_ago: getTimeAgo(msg.created_at),
           is_user: msg.role === 'user'
         }))
@@ -243,8 +261,8 @@ async function handleManagerEndpoints(req, res, action) {
     });
   }
 
-  // GET: Estadísticas de gestión (sin action)
-  if (req.method === 'GET' && !action) {
+  // GET: Estadísticas de gestión (sin action o con action=stats)
+  if (req.method === 'GET' && (!action || action === 'stats')) {
     console.log('📊 [Manager] Obteniendo estadísticas generales...');
     
     try {
@@ -254,9 +272,13 @@ async function handleManagerEndpoints(req, res, action) {
       
       const stats = {
         total_conversations: conversations.length,
+        totalConversations: conversations.length, // Alias para compatibilidad
         active_today: conversations.filter(c => isRecent(c.last_message_at, 24)).length,
+        activeToday: conversations.filter(c => isRecent(c.last_message_at, 24)).length, // Alias
         active_this_week: conversations.filter(c => isRecent(c.last_message_at, 168)).length,
         total_messages: conversations.reduce((sum, c) => sum + (c.message_count || 0), 0),
+        totalMessages: conversations.reduce((sum, c) => sum + (c.message_count || 0), 0), // Alias
+        unreadConversations: conversations.filter(c => c.unread_count > 0).length,
         avg_messages_per_conversation: conversations.length > 0 
           ? (conversations.reduce((sum, c) => sum + (c.message_count || 0), 0) / conversations.length).toFixed(1)
           : 0
@@ -265,7 +287,9 @@ async function handleManagerEndpoints(req, res, action) {
       return res.status(200).json({
         success: true,
         timestamp: new Date().toISOString(),
-        stats
+        stats,
+        // También incluir en nivel superior para compatibilidad
+        ...stats
       });
     } catch (dbError) {
       console.error('❌ [Manager] Error obteniendo estadísticas:', dbError);
