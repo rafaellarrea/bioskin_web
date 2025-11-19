@@ -96,15 +96,30 @@ export default function AdminChatManager() {
       if (!response.ok) throw new Error('Error al cargar conversaciones');
       
       const data = await response.json();
-      setConversations(data.conversations || []);
+      const newConversations = data.conversations || [];
+      setConversations(newConversations);
       setLoading(false);
 
       // Notificaciones de nuevas conversaciones
-      if (notificationsEnabled && data.conversations) {
-        data.conversations.forEach((conv: Conversation) => {
-          if (!knownConversationsRef.current.has(conv.phone) && knownConversationsRef.current.size > 0) {
-            showNotification('Nueva conversación', `Mensaje de ${conv.phone}`);
+      if (notificationsEnabled && newConversations.length > 0) {
+        console.log('🔍 Verificando nuevas conversaciones...', {
+          total: newConversations.length,
+          conocidas: knownConversationsRef.current.size
+        });
+
+        newConversations.forEach((conv: Conversation) => {
+          const isNew = !knownConversationsRef.current.has(conv.phone);
+          const hasKnownConversations = knownConversationsRef.current.size > 0;
+          
+          if (isNew && hasKnownConversations) {
+            console.log('🆕 Nueva conversación detectada:', conv.phone);
+            const preview = conv.lastMessage?.substring(0, 50) || 'Sin mensaje';
+            showNotification(
+              `💬 Nueva conversación`,
+              `${conv.phone}\n${preview}${conv.lastMessage?.length > 50 ? '...' : ''}`
+            );
           }
+          
           knownConversationsRef.current.add(conv.phone);
         });
       }
@@ -190,26 +205,81 @@ export default function AdminChatManager() {
 
   const toggleNotifications = async () => {
     if (!notificationsEnabled) {
-      if ('Notification' in window) {
+      // Verificar si el navegador soporta notificaciones
+      if (!('Notification' in window)) {
+        alert('Tu navegador no soporta notificaciones de escritorio');
+        return;
+      }
+
+      // Si ya está granted, activar directamente
+      if (Notification.permission === 'granted') {
+        setNotificationsEnabled(true);
+        // Inicializar set con conversaciones actuales
+        conversations.forEach(conv => knownConversationsRef.current.add(conv.phone));
+        showNotification('✅ Notificaciones activadas', 'Recibirás alertas de nuevas conversaciones');
+        return;
+      }
+
+      // Si está denegado, informar al usuario
+      if (Notification.permission === 'denied') {
+        alert('❌ Las notificaciones están bloqueadas. Por favor, habilítalas en la configuración de tu navegador.');
+        return;
+      }
+
+      // Solicitar permiso
+      try {
+        console.log('🔔 Solicitando permiso de notificaciones...');
         const permission = await Notification.requestPermission();
+        console.log('🔔 Permiso otorgado:', permission);
+        
         if (permission === 'granted') {
           setNotificationsEnabled(true);
           // Inicializar set con conversaciones actuales
-          if (conversations.length === 0) {
-            await loadConversations();
-          }
           conversations.forEach(conv => knownConversationsRef.current.add(conv.phone));
-          showNotification('Notificaciones activadas', 'Recibirás alertas de nuevas conversaciones');
+          // Mostrar notificación de prueba
+          const notification = new Notification('✅ Notificaciones activadas', {
+            body: 'Recibirás alertas de nuevas conversaciones',
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: 'bioskin-notifications-enabled'
+          });
+          
+          // Auto-cerrar después de 3 segundos
+          setTimeout(() => notification.close(), 3000);
+        } else {
+          alert('⚠️ Necesitas otorgar permisos de notificaciones para usar esta función');
         }
+      } catch (error) {
+        console.error('❌ Error al solicitar permisos:', error);
+        alert('Error al activar notificaciones. Intenta recargar la página.');
       }
     } else {
       setNotificationsEnabled(false);
+      console.log('🔕 Notificaciones desactivadas');
     }
   };
 
   const showNotification = (title: string, body: string) => {
-    if (notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body, icon: '/favicon.ico' });
+    if (!notificationsEnabled) return;
+    
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        const notification = new Notification(title, { 
+          body, 
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: `bioskin-${Date.now()}`,
+          requireInteraction: false
+        });
+
+        // Auto-cerrar después de 5 segundos
+        setTimeout(() => notification.close(), 5000);
+
+        // Log para debugging
+        console.log('🔔 Notificación enviada:', title, body);
+      } catch (error) {
+        console.error('❌ Error mostrando notificación:', error);
+      }
     }
   };
 
@@ -261,17 +331,22 @@ export default function AdminChatManager() {
               </div>
 
               {/* Notifications */}
-              <button
-                onClick={toggleNotifications}
-                className={`p-2 rounded-lg transition-colors ${
-                  notificationsEnabled 
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-                title={notificationsEnabled ? 'Desactivar notificaciones' : 'Activar notificaciones'}
-              >
-                {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={toggleNotifications}
+                  className={`p-2 rounded-lg transition-all ${
+                    notificationsEnabled 
+                      ? 'bg-green-100 text-green-600 hover:bg-green-200 animate-pulse' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title={notificationsEnabled ? '🔔 Notificaciones ACTIVAS - Click para desactivar' : '🔕 Click para activar notificaciones'}
+                >
+                  {notificationsEnabled ? <Bell className="w-5 h-5" /> : <BellOff className="w-5 h-5" />}
+                </button>
+                {notificationsEnabled && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                )}
+              </div>
             </div>
           </div>
         </div>
