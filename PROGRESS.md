@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Sistema Dual de Roles + Control Total Máquina Estados**
+- ✅ **Rol Médico (Salomé)**: Tratamientos faciales/corporales, citas médicas
+- ✅ **Rol Técnico**: Equipos HIFU, láser, dispositivos médicos, cotizaciones
+- ✅ Detección automática de rol según palabras clave de conversación
+- ✅ Promociones segmentadas por rol (médico/técnico) en `data/promotions.json`
+- ✅ Flag `skipAI` para control total de máquina de estados (fix conversación Clara)
+- ✅ IA completamente silenciada cuando flujo de agendamiento está activo
+
 ### ✅ **Nov 19, 2025: Notificaciones Centralizadas con Enrutamiento Inteligente**
 - ✅ Actualizado a número principal único: +593969890689 (BIOSKIN)
 - ✅ Sistema de detección automática de temas (médico vs técnico)
