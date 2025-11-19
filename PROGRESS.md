@@ -10,6 +10,19 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Fix AdminChatManager + API Stats**
+- ✅ **Fix error 400**: Agregado soporte para `action=stats` en API manager
+- ✅ **Fix TypeError**: Filtro de conversaciones con validación de campos undefined
+- ✅ **Transformación de datos**: API ahora devuelve campos en camelCase
+  - `phone_number` → `phone`
+  - `last_message` → `lastMessage`
+  - `last_message_at` → `lastMessageTime`
+  - `unread_count` → `unreadCount`
+  - `message_count` → `messageCount`
+  - `conversation_state` → `conversationState`
+- ✅ Mensajes transformados con `sender`, `message`, `timestamp`, `isRead`
+- ✅ Estadísticas con aliases para compatibilidad (camelCase + snake_case)
+
 ### ✅ **Nov 19, 2025: Panel Admin Completo + Fix Autenticación**
 - ✅ **Fix autenticación**: Variables de entorno tenían saltos de línea (`\n`), agregado `.trim()`
 - ✅ Agregadas 6 páginas administrativas completas:
