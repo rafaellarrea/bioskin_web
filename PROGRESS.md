@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Fix CRÍTICO Error Sintaxis - Método Faltante**
+- ✅ **PROBLEMA REAL**: Método `getActivePromotions()` no estaba definido en `promotions-service.js`
+- ✅ Código del método estaba flotando entre dos métodos (líneas 123-132)
+- ✅ Reorganizado: Definido método `getActivePromotions()` correctamente
+- ✅ Verificación de sintaxis: `node --check` pasa en ambos archivos
+- ⚠️ **Nota**: El error "Unexpected identifier 'data'" era engañoso, apuntaba al import
+
 ### ✅ **Nov 19, 2025: Fix Error Sintaxis chatbot-ai-service.js**
 - ✅ Renombrada variable `data` a `appointmentData` en método `extractAppointmentData()`
 - ✅ Resuelto conflicto con identificadores reservados en módulo ESM
