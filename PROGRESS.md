@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 19, 2025: Notificaciones WhatsApp Inteligentes**
+- ✅ **Umbral de 15 minutos**: Notificaciones al staff solo cuando conversación inactiva >15 min
+- ✅ **Validación de tiempo**: Calcula tiempo desde último mensaje en historial
+- ✅ **Evita spam**: No notifica en conversaciones activas (mensajes cada <15 min)
+- ✅ **Nueva conversación**: Siempre notifica cuando es primer contacto del paciente
+- ✅ **Logging mejorado**: Muestra minutos de inactividad en consola
+- ✅ **Datos adicionales**: Notificación incluye `inactivityMinutes` en payload
+
 ### ✅ **Nov 19, 2025: Sistema de Notificaciones del Navegador Mejorado**
 - ✅ **Solicitud de permisos correcta**: Ahora pide permisos de notificación al usuario
 - ✅ **Validación completa**: Verifica soporte del navegador, permisos granted/denied/default
