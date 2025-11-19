@@ -30,6 +30,20 @@
       height: calc(100vh - 40px);
     }
 
+    /* Layout móvil mejorado */
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+      }
+
+      .container {
+        border-radius: 0;
+        height: 100vh;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+    }
+
     .header {
       grid-column: 1 / -1;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -38,6 +52,21 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 15px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .header h1 {
+        font-size: 18px;
+        text-align: center;
+      }
     }
 
     .header h1 {
@@ -49,6 +78,20 @@
       display: flex;
       gap: 20px;
       font-size: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+      .stats {
+        gap: 8px;
+        font-size: 12px;
+      }
+
+      .stat-item {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
     }
 
     .stat-item {
@@ -413,14 +456,87 @@
       border: 1px solid #fcd34d;
     }
 
-    @media (max-width: 968px) {
-      .container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+    /* Panel conversaciones móvil */
+    @media (max-width: 768px) {
+      .conversations-panel {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        background: white;
       }
 
-      .conversations-panel {
-        max-height: 300px;
+      .conversations-panel.mobile-visible {
+        display: block;
+      }
+
+      .chat-panel {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .messages-container {
+        max-height: none !important;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .send-form {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 2px solid #e5e7eb;
+        padding: 12px;
+      }
+
+      .notification-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      /* Botón para mostrar lista de conversaciones en móvil */
+      .mobile-toggle {
+        display: block;
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 999;
+      }
+    }
+
+    .mobile-toggle {
+      display: none;
+    }
+
+    .mobile-close {
+      display: none;
+      position: sticky;
+      top: 0;
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-close {
+        display: block;
       }
     }
   </style>
@@ -523,7 +639,10 @@
     </div>
 
     <!-- Panel izquierdo: Lista de conversaciones -->
-    <div class="conversations-panel">
+    <div class="conversations-panel" id="conversationsPanel">
+      <div class="mobile-close" onclick="toggleMobileConversations()">
+        ✕ Cerrar Lista
+      </div>
       <div class="search-box">
         <input 
           type="text" 
@@ -538,6 +657,11 @@
         </div>
       </div>
     </div>
+
+    <!-- Botón flotante móvil para mostrar conversaciones -->
+    <button class="mobile-toggle" onclick="toggleMobileConversations()">
+      💬
+    </button>
 
     <!-- Panel derecho: Chat y formulario -->
     <div class="chat-panel">
@@ -565,7 +689,22 @@
       loadStats();
       loadConversations();
       setupSearch();
+      setupAutoRefresh();
     });
+
+    // Auto-refresh cada 30 segundos
+    function setupAutoRefresh() {
+      setInterval(() => {
+        console.log('🔄 Auto-refresh: actualizando conversaciones...');
+        loadConversations();
+        loadStats();
+        
+        // Si hay una conversación seleccionada, recargar mensajes
+        if (selectedPhone) {
+          loadMessages(selectedPhone);
+        }
+      }, 30000);
+    }
 
     // Cargar estadísticas
     async function loadStats() {
@@ -668,6 +807,17 @@
       selectedPhone = phone;
       renderConversations(conversations);
       await loadMessages(phone);
+      
+      // En móvil, cerrar el panel de conversaciones al seleccionar
+      if (window.innerWidth <= 768) {
+        toggleMobileConversations();
+      }
+    }
+
+    // Toggle para mostrar/ocultar panel en móvil
+    function toggleMobileConversations() {
+      const panel = document.getElementById('conversationsPanel');
+      panel.classList.toggle('mobile-visible');
     }
 
     // Cargar mensajes de una conversación
@@ -927,9 +1077,20 @@
     // Inicializar sistema de notificaciones
     async function initializeNotifications() {
       try {
+        // Cargar conversaciones actuales si aún no están cargadas
+        if (conversations.length === 0) {
+          const response = await fetch(`${API_BASE}&action=conversations`);
+          const data = await response.json();
+          if (data.success) {
+            conversations = data.conversations;
+          }
+        }
+        
         // Cargar todas las conversaciones actuales sin notificar
         conversations.forEach(conv => {
-          knownConversations.add(conv.session_id);
+          if (conv.session_id) {
+            knownConversations.add(conv.session_id);
+          }
         });
         
         console.log(`✅ Sistema de notificaciones inicializado con ${knownConversations.size} conversaciones`);
