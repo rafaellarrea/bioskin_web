@@ -29,83 +29,96 @@
   "promotions": {
     "services": [
       {
-        "id": "promo-limpieza-2x40",
-        "name": "2 Limpiezas Faciales por $40",
-        "service": "Limpieza facial profunda",
-        "serviceId": "limpieza-facial",
+        "id": "blackweek-hollywood-peel",
+        "name": "BLACK WEEK - Hollywood Peel",
+        "service": "Hollywood Peel Láser ND YAG",
+        "serviceId": "hollywood-peel",
         "type": "package",
         "role": "medico",
         "active": true,
-        "description": "2 Limpiezas faciales profundas por solo $40 USD",
-        "originalPrice": 50,
-        "promoPrice": 40,
-        "discount": 20,
+        "description": "Tratamiento Hollywood Peel con Láser ND YAG - BLACK WEEK",
+        "prices": {
+          "single": 35,
+          "double": 55,
+          "pricePerUnit": 27.5
+        },
+        "originalPrice": 70,
+        "promoPrice": 55,
+        "discount": 21,
         "discountType": "percentage",
-        "quantity": 2,
-        "pricePerUnit": 20,
-        "validFrom": "2025-11-14",
-        "validUntil": "2025-12-31",
+        "validFrom": "2025-11-24",
+        "validUntil": "2025-12-01",
         "terms": [
-          "Válido para nuevos y antiguos clientes",
+          "Promoción válida del 24 de noviembre al 1 de diciembre 2025",
+          "Hollywood Peel con Láser ND YAG de última generación",
+          "1 sesión: $35 | 2 sesiones: $55",
           "Las 2 sesiones deben usarse en un plazo de 60 días",
-          "No acumulable con otras promociones",
-          "Sujeto a disponibilidad de agenda"
+          "No acumulable con otras promociones"
         ],
-        "displayMessage": "💆‍♀️ Limpieza facial profunda: 2x$40 USD (precio regular $50). ¡Ahorra $10!"
+        "displayMessage": "⭐ BLACK WEEK: Hollywood Peel Láser ND YAG 1x$35 o 2x$55 (24 nov - 1 dic)"
       },
       {
-        "id": "promo-primera-consulta",
-        "name": "Primera Consulta Médico-Estética",
-        "service": "Consulta de evaluación",
-        "serviceId": "consulta",
-        "type": "discount",
+        "id": "blackweek-microneedling",
+        "name": "BLACK WEEK - Microneedling",
+        "service": "Microneedling Estimulador de Colágeno",
+        "serviceId": "microneedling",
+        "type": "package",
         "role": "medico",
         "active": true,
-        "description": "Primera evaluación con la Dra. Daniela Creamer",
-        "originalPrice": 15,
-        "promoPrice": 10,
-        "discount": 33,
+        "description": "Microneedling estimulador de colágeno - BLACK WEEK",
+        "prices": {
+          "single": 25,
+          "double": 50,
+          "pricePerUnit": 25
+        },
+        "originalPrice": 60,
+        "promoPrice": 50,
+        "discount": 17,
         "discountType": "percentage",
-        "duration": "30 minutos",
-        "validFrom": "2025-11-01",
-        "validUntil": "2025-12-31",
+        "validFrom": "2025-11-24",
+        "validUntil": "2025-12-01",
         "terms": [
-          "Solo para nuevos pacientes",
-          "Incluye evaluación personalizada",
-          "Plan de tratamiento recomendado"
+          "Promoción válida del 24 de noviembre al 1 de diciembre 2025",
+          "Estimula la producción natural de colágeno",
+          "1 sesión: $25 | 2 sesiones: $50",
+          "Las 2 sesiones deben usarse en un plazo de 60 días",
+          "No acumulable con otras promociones"
         ],
-        "displayMessage": "🩺 Primera consulta médico-estética: Solo $10 (30 min con Dra. Daniela)"
+        "displayMessage": "💉 BLACK WEEK: Microneedling Estimula Colágeno 1x$25 o 2x$50 (24 nov - 1 dic)"
+      },
+      {
+        "id": "blackweek-hifu-7d",
+        "name": "BLACK WEEK - HIFU 7D",
+        "service": "HIFU 7D Bioestimulador de Colágeno",
+        "serviceId": "hifu-7d",
+        "type": "package",
+        "role": "medico",
+        "active": true,
+        "description": "HIFU 7D tecnología de bioestimulación de colágeno - BLACK WEEK",
+        "prices": {
+          "single": 60,
+          "double": 100,
+          "pricePerUnit": 50
+        },
+        "originalPrice": 140,
+        "promoPrice": 100,
+        "discount": 29,
+        "discountType": "percentage",
+        "validFrom": "2025-11-24",
+        "validUntil": "2025-12-01",
+        "terms": [
+          "Promoción válida del 24 de noviembre al 1 de diciembre 2025",
+          "HIFU 7D - Tecnología de última generación",
+          "Bioestimulador natural de colágeno",
+          "1 sesión: $60 | 2 sesiones: $100",
+          "Las 2 sesiones deben usarse en un plazo de 90 días",
+          "No acumulable con otras promociones"
+        ],
+        "displayMessage": "🔥 BLACK WEEK: HIFU 7D Bioestimulador Colágeno 1x$60 o 2x$100 (24 nov - 1 dic)"
       }
     ],
     "products": [],
-    "equipment": [
-      {
-        "id": "promo-hifu-financiamiento",
-        "name": "HIFU Profesional - Financiamiento Especial",
-        "equipment": "Equipos HIFU",
-        "equipmentId": "hifu-professional",
-        "type": "financing",
-        "role": "tecnico",
-        "active": true,
-        "description": "Equipos HIFU de última generación con financiamiento hasta 12 meses",
-        "financing": "12 meses sin intereses",
-        "includes": [
-          "Equipo completo HIFU facial y corporal",
-          "Capacitación técnica presencial",
-          "Garantía 2 años",
-          "Soporte técnico 24/7",
-          "Manuales en español"
-        ],
-        "validFrom": "2025-11-01",
-        "validUntil": "2025-12-31",
-        "terms": [
-          "Financiamiento sujeto a aprobación",
-          "Incluye training completo",
-          "Certificado de capacitación"
-        ],
-        "displayMessage": "🔬 HIFU Profesional: Financiamiento 12 meses 0% + Capacitación incluida"
-      }
-    ],
+    "equipment": [],
     "upcoming": []
   },
   "general_rules": {
