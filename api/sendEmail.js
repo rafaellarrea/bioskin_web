@@ -7,8 +7,183 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Método no permitido' });
   }
 
-  const { name, email, message, start, end, service, phone } = req.body;
+  const { 
+    name, 
+    email, 
+    message, 
+    start, 
+    end, 
+    service, 
+    phone,
+    notificationType, // 'appointment', 'chatbot_new_conversation', 'chatbot_reactivation', 'chatbot_appointment'
+    inactivityMinutes // para reactivaciones
+  } = req.body;
 
+  // ============================================
+  // CASO 1: NOTIFICACIÓN DE NUEVA CONVERSACIÓN
+  // ============================================
+  if (notificationType === 'chatbot_new_conversation') {
+    const phoneClean = phone.replace(/\D/g, '');
+    const whatsappLink = `https://wa.me/${phoneClean}`;
+    const adminPanel = 'https://saludbioskin.vercel.app/chatbot-manager.html';
+    const messagePreview = message.length > 150 ? message.substring(0, 150) + '...' : message;
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT),
+      secure: false,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `Chatbot BIOSKIN <${process.env.EMAIL_USER}>`,
+        to: 'salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com',
+        subject: '🆕 Nueva conversación en WhatsApp - BIOSKIN Chatbot',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #ba9256 0%, #d4af37 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0;">🆕 Nueva Conversación</h2>
+            </div>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 0 0 10px 10px;">
+              <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ba9256;">
+                <p style="margin: 8px 0;"><strong>📱 Teléfono:</strong> <a href="${whatsappLink}" style="color: #25D366;">${phone}</a></p>
+                <p style="margin: 8px 0;"><strong>💬 Mensaje:</strong></p>
+                <div style="background: #f5f5f5; padding: 12px; border-radius: 5px; margin-top: 8px;">
+                  <p style="margin: 0; white-space: pre-wrap;">${messagePreview}</p>
+                </div>
+              </div>
+              <div style="text-align: center; margin: 20px 0;">
+                <a href="${whatsappLink}" style="display: inline-block; background: #25D366; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">💬 Responder en WhatsApp</a>
+                <a href="${adminPanel}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">📊 Ver Panel Admin</a>
+              </div>
+              <p style="color: #666; font-size: 12px; text-align: center; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">Notificación automática del chatbot BIOSKIN</p>
+            </div>
+          </div>
+        `
+      });
+      return res.status(200).json({ success: true, message: 'Notificación enviada' });
+    } catch (err) {
+      console.error('❌ Error:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  // ============================================
+  // CASO 2: REACTIVACIÓN DE CONVERSACIÓN
+  // ============================================
+  if (notificationType === 'chatbot_reactivation') {
+    const phoneClean = phone.replace(/\D/g, '');
+    const whatsappLink = `https://wa.me/${phoneClean}`;
+    const adminPanel = 'https://saludbioskin.vercel.app/chatbot-manager.html';
+    const messagePreview = message.length > 150 ? message.substring(0, 150) + '...' : message;
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT),
+      secure: false,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `Chatbot BIOSKIN <${process.env.EMAIL_USER}>`,
+        to: 'salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com',
+        subject: `🔔 Conversación reactivada (${inactivityMinutes} min) - BIOSKIN Chatbot`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #ba9256 0%, #d4af37 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0;">🔔 Conversación Reactivada</h2>
+            </div>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 0 0 10px 10px;">
+              <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin-bottom: 15px; border-radius: 4px;">
+                <strong>⏰ Cliente volvió después de ${inactivityMinutes} minutos de inactividad</strong>
+              </div>
+              <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ba9256;">
+                <p style="margin: 8px 0;"><strong>📱 Teléfono:</strong> <a href="${whatsappLink}" style="color: #25D366;">${phone}</a></p>
+                <p style="margin: 8px 0;"><strong>💬 Mensaje:</strong></p>
+                <div style="background: #f5f5f5; padding: 12px; border-radius: 5px; margin-top: 8px;">
+                  <p style="margin: 0; white-space: pre-wrap;">${messagePreview}</p>
+                </div>
+              </div>
+              <div style="text-align: center; margin: 20px 0;">
+                <a href="${whatsappLink}" style="display: inline-block; background: #25D366; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">💬 Responder en WhatsApp</a>
+                <a href="${adminPanel}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 5px;">📊 Ver Panel Admin</a>
+              </div>
+              <p style="color: #666; font-size: 12px; text-align: center; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">Notificación automática del chatbot BIOSKIN</p>
+            </div>
+          </div>
+        `
+      });
+      return res.status(200).json({ success: true, message: 'Notificación enviada' });
+    } catch (err) {
+      console.error('❌ Error:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  // ============================================
+  // CASO 3: AGENDAMIENTO DESDE CHATBOT
+  // ============================================
+  if (notificationType === 'chatbot_appointment') {
+    const phoneClean = phone.replace(/\D/g, '');
+    const whatsappLink = `https://wa.me/${phoneClean}`;
+    
+    const dateObj = new Date(message + 'T00:00:00-05:00');
+    const dateFormatted = dateObj.toLocaleDateString('es-ES', {
+      day: 'numeric', month: 'long', year: 'numeric', weekday: 'long', timeZone: 'America/Guayaquil'
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT),
+      secure: false,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `Agendamiento BIOSKIN <${process.env.EMAIL_USER}>`,
+        to: 'salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com',
+        subject: `🗓️ Nueva cita agendada - ${name} (${dateFormatted})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 25px; border-radius: 10px 10px 0 0; text-align: center;">
+              <h2 style="margin: 0; font-size: 28px;">🗓️ ¡Nueva Cita Agendada!</h2>
+            </div>
+            <div style="background: #f9f9f9; padding: 25px; border-radius: 0 0 10px 10px;">
+              <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #28a745;">
+                <h3 style="color: #28a745; margin-top: 0;">Detalles de la Cita</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee;"><strong>👤 Paciente:</strong></td><td style="padding: 10px 0; border-bottom: 1px solid #eee;">${name}</td></tr>
+                  <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee;"><strong>📱 Teléfono:</strong></td><td style="padding: 10px 0; border-bottom: 1px solid #eee;"><a href="${whatsappLink}" style="color: #25D366;">${phone}</a></td></tr>
+                  <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee;"><strong>💆 Tratamiento:</strong></td><td style="padding: 10px 0; border-bottom: 1px solid #eee;">${service}</td></tr>
+                  <tr><td style="padding: 10px 0; border-bottom: 1px solid #eee;"><strong>📅 Fecha:</strong></td><td style="padding: 10px 0; border-bottom: 1px solid #eee;">${dateFormatted}</td></tr>
+                  <tr><td style="padding: 10px 0;"><strong>⏰ Hora:</strong></td><td style="padding: 10px 0;">${email}</td></tr>
+                </table>
+              </div>
+              <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <p style="margin: 0;"><strong>📌 Recordatorio:</strong> Esta cita ya fue creada en Google Calendar automáticamente.</p>
+              </div>
+              <div style="text-align: center;">
+                <a href="${whatsappLink}" style="display: inline-block; background: #25D366; color: white; padding: 14px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 8px;">💬 Contactar Paciente</a>
+                <a href="https://calendar.google.com" style="display: inline-block; background: #4285F4; color: white; padding: 14px 28px; border-radius: 25px; text-decoration: none; font-weight: bold; margin: 8px;">📅 Ver Calendar</a>
+              </div>
+              <p style="color: #666; font-size: 12px; text-align: center; margin-top: 25px; border-top: 1px solid #ddd; padding-top: 15px;">Cita agendada a través del chatbot de WhatsApp</p>
+            </div>
+          </div>
+        `
+      });
+      return res.status(200).json({ success: true, message: 'Notificación enviada' });
+    } catch (err) {
+      console.error('❌ Error:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  // ============================================
+  // CASO 4: AGENDAMIENTO NORMAL (flujo original)
+  // ============================================
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, message: 'Faltan datos' });
   }

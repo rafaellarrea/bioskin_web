@@ -340,16 +340,26 @@ async function processWhatsAppMessage(body) {
     );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
-    // Notificar al admin si es una nueva conversación O si han pasado >15 minutos desde el último mensaje
+    // Notificar al admin si es una nueva conversación O si han pasado >10 minutos desde el último mensaje
     const shouldNotifyNew = conversationResult?.isNew;
     let shouldNotifyInactive = false;
     
-    // 🔔 Notificar nueva conversación al staff
+    // 🔔 Notificar nueva conversación al staff (SOLO EMAIL)
     if (shouldNotifyNew) {
-      console.log('🆕 Nueva conversación detectada - enviando notificación al staff');
+      console.log('🆕 Nueva conversación detectada - enviando notificación EMAIL al staff');
       try {
-        await notifyNewConversation(from, userMessage);
-        console.log('✅ Notificación de nueva conversación enviada');
+        await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            notificationType: 'chatbot_new_conversation',
+            phone: from,
+            message: userMessage,
+            name: 'Chatbot BIOSKIN',
+            email: 'noreply@bioskin.com'
+          })
+        });
+        console.log('✅ Notificación EMAIL de nueva conversación enviada');
       } catch (notifyError) {
         console.error('⚠️ Error enviando notificación de nueva conversación (no crítico):', notifyError);
       }
@@ -368,30 +378,34 @@ async function processWhatsAppMessage(body) {
         
         console.log(`⏰ Último mensaje: ${lastMessage.created_at}, Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
         
-        if (minutesSinceLastMessage > 15) {
+        // ✅ Notificar si han pasado más de 10 minutos (SOLO EMAIL)
+        if (minutesSinceLastMessage > 10) {
           shouldNotifyInactive = true;
-          console.log('🔔 >15 minutos de inactividad - enviando notificación');
-          await notifyStaffGroup('consultation', {
-            phone: from,
-            message: userMessage,
-            inactivityMinutes: Math.floor(minutesSinceLastMessage)
-          }, from).catch(err => {
+          console.log(`🔔 >${minutesSinceLastMessage.toFixed(1)} minutos de inactividad - enviando notificación EMAIL`);
+          
+          try {
+            await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                notificationType: 'chatbot_reactivation',
+                phone: from,
+                message: userMessage,
+                inactivityMinutes: Math.floor(minutesSinceLastMessage),
+                name: 'Chatbot BIOSKIN',
+                email: 'noreply@bioskin.com'
+              })
+            });
+            console.log('✅ Notificación EMAIL de reactivación enviada');
+          } catch (err) {
             console.error('⚠️ Error enviando notificación (no crítico):', err);
-          });
+          }
         } else {
           console.log(`✅ Conversación activa (${minutesSinceLastMessage.toFixed(1)} min) - no notificar`);
         }
       } else {
         console.log('⚠️ No se pudo obtener timestamp del último mensaje');
       }
-    } else if (shouldNotifyNew) {
-      console.log('🆕 Nueva conversación detectada - enviando notificación');
-      await notifyStaffGroup('consultation', {
-        phone: from,
-        message: userMessage
-      }, from).catch(err => {
-        console.error('⚠️ Error enviando notificación (no crítico):', err);
-      });
     }
 
     // Guardar mensaje del usuario (con fallback)
@@ -495,20 +509,36 @@ async function processWhatsAppMessage(body) {
       skipAI = true; // ⚠️ CRÍTICO: Máquina de estados tiene control total
       
       try {
-        // Crear callback para notificar al staff cuando se crea una cita
+        // Crear callback para notificar al staff cuando se crea una cita (WhatsApp + Email)
         const onAppointmentCreated = async (appointmentData) => {
-          console.log('📢 [Webhook] === INICIANDO NOTIFICACIÓN AL STAFF ===');
+          console.log('📢 [Webhook] === INICIANDO NOTIFICACIONES AL STAFF (AGENDAMIENTO) ===');
           console.log('📢 [DEBUG] appointmentData:', JSON.stringify(appointmentData, null, 2));
-          console.log('📢 [DEBUG] Número paciente (from):', from);
-          console.log('📢 [DEBUG] Número BIOSKIN:', '+593969890689');
-          console.log('📢 [DEBUG] WHATSAPP_PHONE_NUMBER_ID:', process.env.WHATSAPP_PHONE_NUMBER_ID ? `Configurado (${process.env.WHATSAPP_PHONE_NUMBER_ID.substring(0, 10)}...)` : '❌ FALTA');
-          console.log('📢 [DEBUG] WHATSAPP_ACCESS_TOKEN:', process.env.WHATSAPP_ACCESS_TOKEN ? `Configurado (${process.env.WHATSAPP_ACCESS_TOKEN.length} chars)` : '❌ FALTA');
           
           try {
+            // 1. Notificación por WhatsApp
+            console.log('📱 [WhatsApp] Enviando notificación de agendamiento...');
             await notifyStaffNewAppointment(appointmentData, from);
-            console.log('✅ [Webhook] Notificación al staff completada exitosamente');
+            console.log('✅ [WhatsApp] Notificación de agendamiento enviada');
+            
+            // 2. Notificación por Email
+            console.log('📧 [Email] Enviando notificación de agendamiento...');
+            await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                notificationType: 'chatbot_appointment',
+                name: appointmentData.name,
+                phone: from,
+                service: appointmentData.service,
+                message: appointmentData.date,
+                email: appointmentData.hour
+              })
+            });
+            console.log('✅ [Email] Notificación de agendamiento enviada');
+            
+            console.log('✅ [Webhook] Ambas notificaciones completadas exitosamente');
           } catch (notifyError) {
-            console.error('❌ [Webhook] Error en notificación al staff:', notifyError.message);
+            console.error('❌ [Webhook] Error en notificaciones:', notifyError.message);
             console.error('❌ [Webhook] Stack trace:', notifyError.stack);
             // No lanzar error para que el agendamiento se complete de todos modos
           }
