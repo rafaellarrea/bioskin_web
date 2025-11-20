@@ -23,7 +23,7 @@ import {
   saveStateMachine,
   APPOINTMENT_STATES 
 } from '../lib/appointment-state-machine.js';
-// import { notifyNewConversation } from '../lib/admin-notifications.js'; // Temporalmente deshabilitado para debug
+import { notifyNewConversation } from '../lib/admin-notifications.js';
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -344,6 +344,17 @@ async function processWhatsAppMessage(body) {
     const shouldNotifyNew = conversationResult?.isNew;
     let shouldNotifyInactive = false;
     
+    // 🔔 Notificar nueva conversación al staff
+    if (shouldNotifyNew) {
+      console.log('🆕 Nueva conversación detectada - enviando notificación al staff');
+      try {
+        await notifyNewConversation(from, userMessage);
+        console.log('✅ Notificación de nueva conversación enviada');
+      } catch (notifyError) {
+        console.error('⚠️ Error enviando notificación de nueva conversación (no crítico):', notifyError);
+      }
+    }
+    
     if (!shouldNotifyNew && history.length > 0) {
       // El historial viene ordenado DESC (más reciente primero)
       // Como obtenemos el historial ANTES de guardar el mensaje actual,
@@ -486,8 +497,21 @@ async function processWhatsAppMessage(body) {
       try {
         // Crear callback para notificar al staff cuando se crea una cita
         const onAppointmentCreated = async (appointmentData) => {
-          console.log('📢 [Webhook] Ejecutando notificación al staff...');
-          await notifyStaffNewAppointment(appointmentData, from);
+          console.log('📢 [Webhook] === INICIANDO NOTIFICACIÓN AL STAFF ===');
+          console.log('📢 [DEBUG] appointmentData:', JSON.stringify(appointmentData, null, 2));
+          console.log('📢 [DEBUG] Número paciente (from):', from);
+          console.log('📢 [DEBUG] Número BIOSKIN:', '+593969890689');
+          console.log('📢 [DEBUG] WHATSAPP_PHONE_NUMBER_ID:', process.env.WHATSAPP_PHONE_NUMBER_ID ? `Configurado (${process.env.WHATSAPP_PHONE_NUMBER_ID.substring(0, 10)}...)` : '❌ FALTA');
+          console.log('📢 [DEBUG] WHATSAPP_ACCESS_TOKEN:', process.env.WHATSAPP_ACCESS_TOKEN ? `Configurado (${process.env.WHATSAPP_ACCESS_TOKEN.length} chars)` : '❌ FALTA');
+          
+          try {
+            await notifyStaffNewAppointment(appointmentData, from);
+            console.log('✅ [Webhook] Notificación al staff completada exitosamente');
+          } catch (notifyError) {
+            console.error('❌ [Webhook] Error en notificación al staff:', notifyError.message);
+            console.error('❌ [Webhook] Stack trace:', notifyError.stack);
+            // No lanzar error para que el agendamiento se complete de todos modos
+          }
         };
 
         const result = await stateMachine.processMessage(userMessage, onAppointmentCreated);
@@ -833,7 +857,7 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
 
   // Determinar destinatario según el tipo de consulta
   let recipient = '';
-  let ismedical = true;
+  let isMedical = true;
   
   // Detectar si es tema técnico o de equipos
   const technicalKeywords = /(equipo|aparato|dispositivo|máquina|laser|hifu|tecnología|compra|precio.*equipo|producto.*estético|aparatología)/i;
@@ -895,8 +919,12 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
 
   try {
     console.log(`📤 Enviando notificación a BIOSKIN (${recipient})...`);
+    console.log(`📤 Mensaje a enviar: ${message.substring(0, 100)}...`);
+    
     await sendWhatsAppMessage(BIOSKIN_NUMBER, message);
-    console.log(`✅ Notificación enviada exitosamente`);
+    
+    console.log(`✅ Notificación enviada exitosamente al número ${BIOSKIN_NUMBER}`);
+    console.log(`✅ Destinatario: ${recipient}`);
     
     return {
       success: true,
@@ -905,10 +933,28 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
       number: BIOSKIN_NUMBER
     };
   } catch (error) {
-    console.error(`❌ Error enviando notificación:`, error.message);
+    console.error(`❌ Error enviando notificación a BIOSKIN:`, error.message);
+    console.error(`❌ Stack trace completo:`, error.stack);
+    console.error(`❌ Número destino:`, BIOSKIN_NUMBER);
+    console.error(`❌ Tipo de error:`, error.name);
+    
+    // Intentar fallback a email de emergencia
+    try {
+      console.log('🔄 Intentando fallback a notificación por email...');
+      const emailPayload = {
+        to: 'bioskin@example.com', // Configurar email real en producción
+        subject: `⚠️ Notificación WhatsApp fallida - ${eventType}`,
+        body: `No se pudo enviar notificación WhatsApp al staff.\n\nMensaje original:\n${message}\n\nError: ${error.message}`
+      };
+      console.log('📧 Email de emergencia preparado (implementar envío real)');
+    } catch (emailError) {
+      console.error('❌ También falló el fallback a email:', emailError.message);
+    }
+    
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      stack: error.stack
     };
   }
 }

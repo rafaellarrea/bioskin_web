@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 20, 2025: Restauración Sistema de Agendamiento WhatsApp**
+- ✅ **Notificaciones nuevas conversaciones**: Habilitado `notifyNewConversation` al detectar primer contacto
+- ✅ **Logs debug detallados**: Agregados logs en callback de agendamiento con datos completos
+- ✅ **Mejora manejo errores**: Stack traces completos + fallback a email en `sendToStaffIndividually`
+- ✅ **Fix variable isMedical**: Corregida inconsistencia camelCase (ismedical → isMedical)
+- ✅ **Página verificación**: Creado `verify-whatsapp-credentials.html` para diagnóstico en producción
+- ✅ **Sistema completo funcional**: Flujo agendamiento → Calendar → Notificación staff verificado
+
 ### ✅ **Nov 19, 2025: Notificaciones WhatsApp Inteligentes**
 - ✅ **Umbral de 15 minutos**: Notificaciones al staff solo cuando conversación inactiva >15 min
 - ✅ **Validación de tiempo**: Calcula tiempo desde último mensaje en historial
