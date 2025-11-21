@@ -53,6 +53,9 @@ test-*.html
 *.sqlite
 *.sqlite3
 
+# Important: Keep products.json for Vercel deployment
+!data/products.json
+
 # Cache
 .cache
 .parcel-cache

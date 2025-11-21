@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "chatbot:init": "node scripts/init-chatbot-db.js",
     "chatbot:test": "node scripts/test-chatbot.js",
-    "chatbot:stats": "node -e \"import('./lib/neon-chatbot-db.js').then(m => m.getDatabaseStats().then(console.log))\""
+    "chatbot:stats": "node -e \"import('./lib/neon-chatbot-db.js').then(m => m.getDatabaseStats().then(console.log))\"",
+    "products:extract": "node scripts/extract-products-to-json.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
