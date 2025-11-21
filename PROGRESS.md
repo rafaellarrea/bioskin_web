@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Flujo Servicio Técnico Completo - Revisión + Solicitud Nombre**
+- 🔧 **Saludo contextual**: Agregado según hora de Ecuador (Buenos días/tardes/noches)
+- 🔧 **Respuesta servicio técnico**: Confirma revisión de equipos (incluso no adquiridos con BIOSKIN)
+- 🔧 **Servicios incluidos**: Instalación, revisión/diagnóstico, mantenimiento, reparación
+- 🔧 **Flujo mejorado**: Pregunta → Oferta contacto Ing. → Solicita nombre → Envía notificación
+- 🔧 **Detección ampliada**: Reconoce "revisar equipo", "manteni", "repar", "install", "soport"
+- 🔧 **Notificación con nombre**: Incluye nombre del cliente en mensaje a BIOSKIN
+- 🔧 **Mensaje confirmación**: "He notificado al Ing. Rafael, se comunicará con usted..."
+- ✅ **3 pasos**: Confirma servicio → Pide nombre → Notifica BIOSKIN (+593969890689)
+
 ### ✅ **Nov 21, 2025: Mejora Flujo Contacto Ing. Rafael - Notificación Interna**
 - 🔧 **Cambio requerido**: Link WhatsApp no debe mostrarse hasta que bot no pueda resolver
 - 🔧 **Nueva lógica**: Bot pregunta "¿desea que el Ing. Rafael le contacte?" primero
