@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Terminología Profesional - Departamento Técnico**
+- 🔧 **Cambio terminológico**: Reemplazado "Ing. Rafael" por "departamento técnico"
+- 🔧 **Mensajes actualizados**: Oferta contacto, confirmación, notificaciones
+- 🔧 **Detección mejorada**: Eliminado "ingeniero" de palabras clave de solicitud contacto
+- 🔧 **Notificación interna**: Mantiene "Departamento Técnico (Ing. Rafael Larrea)" para staff
+- 🔧 **Consistencia total**: 8 referencias actualizadas en whatsapp-chatbot.js
+- ✅ **Imagen profesional**: Usuario ve departamento genérico, no nombres específicos
+
 ### ✅ **Nov 21, 2025: Flujo Servicio Técnico Completo - Revisión + Solicitud Nombre**
 - 🔧 **Saludo contextual**: Agregado según hora de Ecuador (Buenos días/tardes/noches)
 - 🔧 **Respuesta servicio técnico**: Confirma revisión de equipos (incluso no adquiridos con BIOSKIN)

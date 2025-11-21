@@ -679,20 +679,20 @@ async function processWhatsAppMessage(body) {
     let userConfirmsEngineerContact = false;
     let userProvidingName = false;
     
-    // Detectar confirmación de contacto con ingeniero
+    // Detectar confirmación de contacto con departamento técnico
     const lastBotMsg = updatedHistory.filter(m => m.role === 'assistant').pop()?.content || '';
-    const botOfferedEngineerContact = /le gustaría que el ing\. rafael le contacte/i.test(lastBotMsg);
+    const botOfferedEngineerContact = /(departamento técnico|equipo técnico|nuestro técnico).*contacte/i.test(lastBotMsg);
     const botAskedForName = /por favor, indíqueme su nombre completo/i.test(lastBotMsg);
     
     userConfirmsEngineerContact = botOfferedEngineerContact && /^(si|sí|ok|dale|claro|por favor|quiero|me gustaría|confirmo|acepto)$/i.test(userMessage.trim());
     userProvidingName = botAskedForName && userMessage.trim().length > 3 && !/^(no|nada|otro|otra)/i.test(userMessage.trim());
     
-    // CASO 1: Usuario confirma que quiere contacto con ingeniero
+    // CASO 1: Usuario confirma que quiere contacto con departamento técnico
     if (userConfirmsEngineerContact) {
-      console.log('✅ [Technical] Usuario CONFIRMÓ que quiere contacto con Ing. Rafael');
+      console.log('✅ [Technical] Usuario CONFIRMÓ que quiere contacto con departamento técnico');
       
       // Solicitar nombre
-      directResponse = `Perfecto 😊 Para que el Ing. Rafael pueda contactarle adecuadamente, por favor indíqueme su nombre completo.`;
+      directResponse = `Perfecto 😊 Para que nuestro departamento técnico pueda contactarle adecuadamente, por favor indíqueme su nombre completo.`;
       skipAI = true;
     }
     // CASO 2: Usuario proporciona su nombre
@@ -714,7 +714,7 @@ async function processWhatsAppMessage(body) {
         
         const notificationResult = await notifyStaffGroup('technical_inquiry', {
           name: userName,
-          reason: 'Solicitud de contacto con Ing. Rafael - Servicio Técnico',
+          reason: 'Solicitud de contacto con Departamento Técnico',
           summary: engineerSummary,
           query: updatedHistory.filter(m => m.role === 'user').slice(-4).map(m => m.content).join('\n\n')
         }, from);
@@ -722,10 +722,10 @@ async function processWhatsAppMessage(body) {
         if (notificationResult.success) {
           console.log('✅ [Technical] Notificación enviada exitosamente a BIOSKIN');
           
-          directResponse = `Perfecto, ${userName} 😊\n\nHe notificado al Ing. Rafael sobre su consulta técnica. Él se comunicará con usted a este número (${from}) a la brevedad posible para coordinar la revisión de su equipo.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
+          directResponse = `Perfecto, ${userName} 😊\n\nHe notificado a nuestro departamento técnico sobre su consulta. Se comunicarán con usted a este número (${from}) a la brevedad posible para coordinar la revisión de su equipo.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
         } else {
           console.error('❌ [Technical] Error enviando notificación:', notificationResult.error);
-          directResponse = `Gracias, ${userName} 😊\n\nHe registrado su solicitud. El Ing. Rafael se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
+          directResponse = `Gracias, ${userName} 😊\n\nHe registrado su solicitud. Nuestro departamento técnico se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
         }
       } catch (error) {
         console.error('❌ [Technical] Error crítico en notificación:', error.message);
@@ -765,7 +765,7 @@ async function processWhatsAppMessage(body) {
             'Guardar tracking técnico'
           );
           
-          // ⚠️ SOLO ofrecer contacto con ingeniero cuando sea ESTRICTAMENTE necesario
+          // ⚠️ SOLO ofrecer contacto con departamento técnico cuando sea ESTRICTAMENTE necesario
           // Contar mensajes técnicos previos del usuario
           const technicalMessagesCount = updatedHistory.filter(msg => 
             msg.role === 'user' && 
@@ -773,7 +773,7 @@ async function processWhatsAppMessage(body) {
           ).length;
           
           // Detectar si usuario pide contacto directo explícitamente
-          const userRequestsContact = /(hablar|contactar|comunicar|llamar|ingeniero|técnico|especialista|rafael|que me contacte|quiero hablar|necesito ayuda)/i.test(userMessage);
+          const userRequestsContact = /(hablar|contactar|comunicar|llamar|técnico|especialista|que me contacte|quiero hablar|necesito ayuda)/i.test(userMessage);
           
           // Solo OFRECER contacto (sin link directo) si:
           // 1. Usuario pide explícitamente contacto, O
@@ -785,9 +785,9 @@ async function processWhatsAppMessage(body) {
           
           if (technicalResponse.suggestedActions.includes('transfer_engineer') && shouldOfferContact) {
             // SOLO preguntar, NO enviar link directamente
-            technicalResponse.responseText += `\n\n¿Le gustaría que el Ing. Rafael le contacte directamente para resolver esta consulta? 🔧`;
+            technicalResponse.responseText += `\n\n¿Le gustaría que nuestro departamento técnico le contacte directamente para resolver esta consulta? 🔧`;
             
-            console.log(`📞 [Technical] Ofreciendo contacto con ingeniero (${technicalMessagesCount} msgs técnicos)`);
+            console.log(`📞 [Technical] Ofreciendo contacto con departamento técnico (${technicalMessagesCount} msgs técnicos)`);
           }
           
           // Usar respuesta técnica como directResponse
@@ -1118,7 +1118,7 @@ async function notifyStaffGroup(eventType, data, patientPhone) {
 
 /**
  * Envía notificación al número principal de BIOSKIN
- * Diferencia entre temas médicos (Dra. Daniela) y técnicos (Ing. Rafael)
+ * Diferencia entre temas médicos (Dra. Daniela) y técnicos (Departamento Técnico)
  */
 async function sendToStaffIndividually(eventType, data, patientPhone) {
   const BIOSKIN_NUMBER = '+593969890689'; // Número principal de BIOSKIN
@@ -1134,7 +1134,7 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
   const dataText = JSON.stringify(data).toLowerCase();
   
   if (technicalKeywords.test(dataText) || eventType === 'technical_inquiry') {
-    recipient = 'Ing. Rafael Larrea';
+    recipient = 'Departamento Técnico (Ing. Rafael Larrea)';
     isMedical = false;
   } else {
     recipient = 'Dra. Daniela Creamer';
