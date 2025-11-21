@@ -378,13 +378,25 @@ async function processWhatsAppMessage(body) {
     if (!isNewConversation && history.length > 0) {
       // Buscar último mensaje del usuario (antes del actual)
       const userMessages = history.filter(msg => msg.role === 'user');
+      
+      console.log(`🔍 [DEBUG INACTIVIDAD] Total mensajes en historial: ${history.length}`);
+      console.log(`🔍 [DEBUG INACTIVIDAD] Mensajes del usuario: ${userMessages.length}`);
+      
       if (userMessages.length > 0) {
         const lastUserMsg = userMessages[0]; // Mensajes ordenados DESC (más reciente primero)
+        
+        console.log(`🔍 [DEBUG INACTIVIDAD] Último mensaje del usuario:`);
+        console.log(`   - Contenido: "${lastUserMsg.content?.substring(0, 50)}"`);
+        console.log(`   - Timestamp: ${lastUserMsg.created_at || lastUserMsg.timestamp}`);
+        console.log(`   - ID: ${lastUserMsg.id}`);
+        
         const lastMsgTime = new Date(lastUserMsg.created_at || lastUserMsg.timestamp).getTime();
         const currentTime = Date.now();
         inactivityMinutes = Math.floor((currentTime - lastMsgTime) / 60000);
         
         console.log(`⏱️ Inactividad calculada: ${inactivityMinutes} minutos desde último mensaje del usuario`);
+        console.log(`   - Última actividad: ${new Date(lastMsgTime).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })}`);
+        console.log(`   - Hora actual: ${new Date(currentTime).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })}`);
         
         // Notificar si han pasado más de 10 minutos
         shouldNotifyInactive = inactivityMinutes > 10;
