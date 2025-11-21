@@ -347,8 +347,12 @@ async function processWhatsAppMessage(body) {
     // 🔔 Notificar nueva conversación al staff (SOLO EMAIL)
     if (shouldNotifyNew) {
       console.log('🆕 Nueva conversación detectada - enviando notificación EMAIL al staff');
+      console.log('📧 [DEBUG] Destinatarios: salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com');
+      console.log('📧 [DEBUG] Teléfono cliente:', from);
+      console.log('📧 [DEBUG] Mensaje:', userMessage.substring(0, 100));
+      
       try {
-        await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+        const response = await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -359,9 +363,22 @@ async function processWhatsAppMessage(body) {
             email: 'noreply@bioskin.com'
           })
         });
-        console.log('✅ Notificación EMAIL de nueva conversación enviada');
+        
+        // ✅ VERIFICAR RESPUESTA HTTP
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Sin detalles' }));
+          console.error('❌ Email nueva conversación FALLÓ');
+          console.error('❌ Status:', response.status, response.statusText);
+          console.error('❌ Error:', errorData);
+        } else {
+          const result = await response.json().catch(() => ({ message: 'OK' }));
+          console.log('✅ Notificación EMAIL de nueva conversación enviada CORRECTAMENTE');
+          console.log('✅ Resultado:', result.message || 'Email enviado');
+        }
       } catch (notifyError) {
-        console.error('⚠️ Error enviando notificación de nueva conversación (no crítico):', notifyError);
+        console.error('❌ Error CRÍTICO enviando notificación de nueva conversación:', notifyError.message);
+        console.error('❌ Tipo:', notifyError.name);
+        console.error('❌ Stack:', notifyError.stack);
       }
     }
     
@@ -382,9 +399,12 @@ async function processWhatsAppMessage(body) {
         if (minutesSinceLastMessage > 10) {
           shouldNotifyInactive = true;
           console.log(`🔔 >${minutesSinceLastMessage.toFixed(1)} minutos de inactividad - enviando notificación EMAIL`);
+          console.log('📧 [DEBUG] Destinatarios: salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com');
+          console.log('📧 [DEBUG] Teléfono cliente:', from);
+          console.log('📧 [DEBUG] Minutos inactividad:', Math.floor(minutesSinceLastMessage));
           
           try {
-            await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+            const response = await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -396,9 +416,22 @@ async function processWhatsAppMessage(body) {
                 email: 'noreply@bioskin.com'
               })
             });
-            console.log('✅ Notificación EMAIL de reactivación enviada');
+            
+            // ✅ VERIFICAR RESPUESTA HTTP
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({ message: 'Sin detalles' }));
+              console.error('❌ Email reactivación FALLÓ');
+              console.error('❌ Status:', response.status, response.statusText);
+              console.error('❌ Error:', errorData);
+            } else {
+              const result = await response.json().catch(() => ({ message: 'OK' }));
+              console.log('✅ Notificación EMAIL de reactivación enviada CORRECTAMENTE');
+              console.log('✅ Resultado:', result.message || 'Email enviado');
+            }
           } catch (err) {
-            console.error('⚠️ Error enviando notificación (no crítico):', err);
+            console.error('❌ Error CRÍTICO enviando reactivación:', err.message);
+            console.error('❌ Tipo:', err.name);
+            console.error('❌ Stack:', err.stack);
           }
         } else {
           console.log(`✅ Conversación activa (${minutesSinceLastMessage.toFixed(1)} min) - no notificar`);
@@ -513,16 +546,29 @@ async function processWhatsAppMessage(body) {
         const onAppointmentCreated = async (appointmentData) => {
           console.log('📢 [Webhook] === INICIANDO NOTIFICACIONES AL STAFF (AGENDAMIENTO) ===');
           console.log('📢 [DEBUG] appointmentData:', JSON.stringify(appointmentData, null, 2));
+          console.log('📢 [DEBUG] Número paciente (from):', from);
+          console.log('📢 [DEBUG] Número BIOSKIN destino: +593969890689');
           
           try {
             // 1. Notificación por WhatsApp
             console.log('📱 [WhatsApp] Enviando notificación de agendamiento...');
-            await notifyStaffNewAppointment(appointmentData, from);
-            console.log('✅ [WhatsApp] Notificación de agendamiento enviada');
+            const whatsappResult = await notifyStaffNewAppointment(appointmentData, from);
+            
+            // ✅ VERIFICAR RESULTADO DE WHATSAPP
+            if (!whatsappResult || !whatsappResult.success) {
+              console.error('❌ [WhatsApp] FALLÓ notificación de agendamiento');
+              console.error('❌ [WhatsApp] Error:', whatsappResult?.error || 'Sin detalles');
+              console.error('❌ [WhatsApp] Stack:', whatsappResult?.stack || 'N/A');
+              console.error('❌ [WhatsApp] Número destino intentado:', whatsappResult?.number || 'desconocido');
+            } else {
+              console.log('✅ [WhatsApp] Notificación de agendamiento enviada CORRECTAMENTE');
+              console.log('✅ [WhatsApp] Destinatario:', whatsappResult.recipient);
+              console.log('✅ [WhatsApp] Número:', whatsappResult.number);
+            }
             
             // 2. Notificación por Email
             console.log('📧 [Email] Enviando notificación de agendamiento...');
-            await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+            const emailResponse = await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -534,12 +580,24 @@ async function processWhatsAppMessage(body) {
                 email: appointmentData.hour
               })
             });
-            console.log('✅ [Email] Notificación de agendamiento enviada');
             
-            console.log('✅ [Webhook] Ambas notificaciones completadas exitosamente');
+            // ✅ VERIFICAR RESPUESTA HTTP DEL EMAIL
+            if (!emailResponse.ok) {
+              const emailError = await emailResponse.json().catch(() => ({ message: 'Sin detalles' }));
+              console.error('❌ [Email] FALLÓ notificación de agendamiento');
+              console.error('❌ [Email] Status:', emailResponse.status, emailResponse.statusText);
+              console.error('❌ [Email] Error:', emailError);
+            } else {
+              const emailResult = await emailResponse.json().catch(() => ({ message: 'OK' }));
+              console.log('✅ [Email] Notificación de agendamiento enviada CORRECTAMENTE');
+              console.log('✅ [Email] Resultado:', emailResult.message || 'Email enviado');
+            }
+            
+            console.log('✅ [Webhook] Proceso de notificaciones completado');
           } catch (notifyError) {
-            console.error('❌ [Webhook] Error en notificaciones:', notifyError.message);
-            console.error('❌ [Webhook] Stack trace:', notifyError.stack);
+            console.error('❌ [Webhook] Error CRÍTICO en notificaciones:', notifyError.message);
+            console.error('❌ [Webhook] Tipo de error:', notifyError.name);
+            console.error('❌ [Webhook] Stack trace completo:', notifyError.stack);
             // No lanzar error para que el agendamiento se complete de todos modos
           }
         };
@@ -762,18 +820,22 @@ async function processWhatsAppMessage(body) {
  */
 async function sendWhatsAppMessage(to, text) {
   try {
-    console.log(`📤 Intentando enviar mensaje a ${to}`);
-    console.log(`📝 Texto: "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`);
+    console.log(`📤 [sendWhatsAppMessage] Intentando enviar mensaje a ${to}`);
+    console.log(`📝 [sendWhatsAppMessage] Texto (${text.length} chars): "${text.substring(0, 100)}${text.length > 100 ? '...' : ''}"`);
     
     const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
-    console.log(`🔑 Phone Number ID: ${phoneNumberId ? phoneNumberId.substring(0, 10) + '...' : 'MISSING'}`);
-    console.log(`🔑 Access Token: ${accessToken ? 'Presente (longitud: ' + accessToken.length + ')' : 'MISSING'}`);
+    console.log(`🔑 [sendWhatsAppMessage] Phone Number ID: ${phoneNumberId ? phoneNumberId.substring(0, 10) + '...' : '❌ MISSING'}`);
+    console.log(`🔑 [sendWhatsAppMessage] Access Token: ${accessToken ? '✅ Presente (longitud: ' + accessToken.length + ')' : '❌ MISSING'}`);
+    console.log(`🔑 [sendWhatsAppMessage] API URL: ${WHATSAPP_API_URL}`);
 
     if (!phoneNumberId || !accessToken) {
-      console.error('❌ Credenciales de WhatsApp no configuradas');
+      console.error('❌ [sendWhatsAppMessage] CRÍTICO: Credenciales de WhatsApp no configuradas');
+      console.error('❌ [sendWhatsAppMessage] Verificar variables de entorno en Vercel:');
+      console.error('   - WHATSAPP_PHONE_NUMBER_ID');
+      console.error('   - WHATSAPP_ACCESS_TOKEN');
       throw new Error('Credenciales de WhatsApp faltantes');
     }
 
