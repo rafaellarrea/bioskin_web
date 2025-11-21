@@ -39,12 +39,31 @@ let useFallback = false; // ✅ Intentar Neon primero, fallback automático si f
 const DISABLE_OPENAI = false; // ✅ OpenAI ACTIVADO - Sistema funcionando correctamente
 
 /**
+ * Obtiene el saludo apropiado según la hora de Ecuador
+ */
+function getTimeBasedGreeting() {
+  const ecuadorTime = new Date().toLocaleString('en-US', { 
+    timeZone: 'America/Guayaquil',
+    hour12: false 
+  });
+  const hour = parseInt(ecuadorTime.split(',')[1].trim().split(':')[0]);
+  
+  if (hour >= 5 && hour < 12) {
+    return 'Buenos días';
+  } else if (hour >= 12 && hour < 19) {
+    return 'Buenas tardes';
+  } else {
+    return 'Buenas noches';
+  }
+}
+
+/**
  * Detección simple de intención sin IA
  */
 function detectSimpleIntent(message) {
   const lowerMsg = message.toLowerCase();
   
-  if (/^(hola|buenos días|buenas tardes|hey|hi|saludos)/i.test(lowerMsg)) {
+  if (/^(hola|buenos días|buenas tardes|buenas noches|hey|hi|saludos)/i.test(lowerMsg)) {
     return 'greeting';
   }
   if (/(agendar|cita|reservar|turno|disponibilidad|horario)/i.test(lowerMsg)) {
@@ -750,7 +769,7 @@ async function processWhatsAppMessage(body) {
       
       switch (intent) {
         case 'greeting':
-          fallbackResponse = 'Buenos días, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?';
+          fallbackResponse = `${getTimeBasedGreeting()}, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?`;
           break;
         case 'appointment':
           fallbackResponse = '¿Le gustaría ver todas las opciones disponibles o prefiere agendar en: https://saludbioskin.vercel.app/#/appointment?';
@@ -804,7 +823,7 @@ async function processWhatsAppMessage(body) {
         
         switch (intent) {
           case 'greeting':
-            fallbackResponse = 'Buenos días, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?';
+            fallbackResponse = `${getTimeBasedGreeting()}, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?`;
             break;
           case 'appointment':
             fallbackResponse = '¿Le gustaría ver todas las opciones disponibles o prefiere agendar en: https://saludbioskin.vercel.app/#/appointment?';
