@@ -707,14 +707,17 @@ async function processWhatsAppMessage(body) {
         if (notificationResult.success) {
           console.log('✅ [Technical] Notificación enviada exitosamente a BIOSKIN');
           
-          directResponse = `Perfecto 😊 He notificado al Ing. Rafael sobre su consulta. Él se comunicará con usted a este número (${from}) a la brevedad posible.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
+          const greeting = getTimeBasedGreeting();
+          directResponse = `${greeting}, soy Salomé de BIOSKIN 😊\n\nPerfecto, he notificado al Ing. Rafael sobre su consulta técnica. Él se comunicará con usted a este número (${from}) a la brevedad posible.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
         } else {
           console.error('❌ [Technical] Error enviando notificación:', notificationResult.error);
-          directResponse = `He registrado su solicitud. El Ing. Rafael se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
+          const greeting = getTimeBasedGreeting();
+          directResponse = `${greeting}, soy Salomé de BIOSKIN 😊\n\nHe registrado su solicitud. El Ing. Rafael se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
         }
       } catch (error) {
         console.error('❌ [Technical] Error crítico en notificación:', error.message);
-        directResponse = `Su solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
+        const greeting = getTimeBasedGreeting();
+        directResponse = `${greeting}, soy Salomé de BIOSKIN 😊\n\nSu solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
       }
       
       skipAI = true;
