@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Fix - Detección Contextual de Precios + Storage Error**
+- 🔧 **Problema**: Usuario dice "Si" al bot preguntando por precio → no muestra precio
+- 🔧 **Causa**: Buscaba contexto en índice -2 en lugar de último mensaje assistant
+- 🔧 **Solución**: `conversationHistory.slice().reverse().find(msg => msg.role === 'assistant')`
+- 🔧 **Detección mejorada**: Confirma si bot preguntó "¿desea conocer el precio?"
+- 🔧 **Palabras clave**: si/sí/ok/dale/claro/por favor/quiero/me interesa/obvio/afirmativo
+- 🔧 **Logging añadido**: Muestra tipo detección (directa vs contextual) y contexto
+- 🔧 **Storage error fix**: Validar `result[0]` antes de acceder a `size_bytes`
+- ✅ **6/6 pruebas pasando**: Solicitud directa, confirmación contextual, sin falsos positivos
+
 ### ✅ **Nov 21, 2025: Fix CRÍTICO - Sistema de Notificaciones Email Restaurado**
 - 🔧 **Problema identificado**: `conversationResult.isNew` siempre undefined → no enviaba emails
 - 🔧 **Detección nueva conversación**: Ahora usa `history.length === 0` (historial vacío)
