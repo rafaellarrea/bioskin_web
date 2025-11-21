@@ -33,6 +33,12 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "INCLUYE GARANTIA DE 6 MESES"
   ],
   price: "",
+  stock: {
+    available: true,
+    quantity: 2,
+    location: "Bodega BIOSKIN",
+    deliveryTime: "Inmediato"
+  },
   images: [
     "/images/productos/dispositivos/analizador/analizador1.jpg",
     "/images/productos/dispositivos/analizador/analizador2.jpg",
@@ -82,6 +88,12 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Mejoría de sensibilidad íntima y estética genital femenina."
   ],
   "price": "",
+  "stock": {
+    "available": true,
+    "quantity": 1,
+    "location": "Bodega BIOSKIN",
+    "deliveryTime": "Inmediato"
+  },
   "images": [
     "/images/productos/dispositivos/laserco2/laser1.jpg",
     "/images/productos/dispositivos/laserco2/laser2.jpg",
@@ -125,6 +137,12 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
     "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
   ],
   price: "",
+  stock: {
+    available: true,
+    quantity: 3,
+    location: "Bodega BIOSKIN",
+    deliveryTime: "Inmediato"
+  },
   images: [
     "/images/productos/dispositivos/hifu/hifu1.jpg",
     "/images/productos/dispositivos/hifu/hifu2.jpg",
@@ -166,6 +184,12 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Reducción de lesiones vasculares y pigmentadas."
   ],
   price: "",
+  stock: {
+    available: true,
+    quantity: 2,
+    location: "Bodega BIOSKIN",
+    deliveryTime: "Inmediato"
+  },
   images: [
     "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
     "/images/productos/dispositivos/multifuncional/multifuncional2.jpg"
