@@ -11,6 +11,12 @@ import {
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
 import { FallbackStorage } from '../lib/fallback-storage.js';
+import { 
+  classifyTechnical, 
+  generateTechnicalReply,
+  generateEngineerTransferSummary,
+  generateEngineerWhatsAppLink 
+} from '../lib/chatbot-technical-ai-service.js';
 import {
   checkAvailability,
   getAvailableHours,
@@ -623,6 +629,71 @@ async function processWhatsAppMessage(body) {
         directResponse = `⚠️ Hubo un problema procesando tu solicitud.\n\n¿Quieres empezar de nuevo o prefieres agendar en: ${APPOINTMENT_LINK}?`;
         stateMachine.reset();
         skipAI = false;
+      }
+    }
+
+    // ============================================
+    // PASO 4.7: SISTEMA DE DETECCIÓN TÉCNICA CON IA
+    // ============================================
+    console.log('🔧 Paso 4.7: Verificando si es consulta técnica...');
+    
+    let technicalClassification = null;
+    let technicalResponse = null;
+    
+    // Solo clasificar si NO estamos en flujo de agendamiento activo
+    if (!stateMachine.isActive() && !directResponse) {
+      try {
+        // Clasificar mensaje con IA
+        technicalClassification = await classifyTechnical(userMessage, updatedHistory);
+        
+        console.log(`🔍 [Technical] Clasificación: ${technicalClassification.kind}/${technicalClassification.subtype} (${technicalClassification.confidence})`);
+        
+        // Si es técnico con alta confianza, generar respuesta especializada
+        if (technicalClassification.kind === 'technical' && technicalClassification.confidence >= 0.65) {
+          console.log('✅ [Technical] Consulta técnica detectada, generando respuesta especializada...');
+          
+          // Generar respuesta técnica con IA + contexto de productos
+          technicalResponse = await generateTechnicalReply(technicalClassification, updatedHistory);
+          
+          console.log(`✅ [Technical] Respuesta generada: ${technicalResponse.responseText.substring(0, 60)}...`);
+          console.log(`🎯 [Technical] Acciones sugeridas: ${technicalResponse.suggestedActions.join(', ')}`);
+          
+          // Guardar evento de tracking
+          await withFallback(
+            () => saveTrackingEvent(sessionId, 'technical_detected', {
+              classification: technicalClassification.subtype,
+              confidence: technicalClassification.confidence,
+              productsFound: technicalResponse.meta.productsFound,
+              suggestedActions: technicalResponse.suggestedActions
+            }),
+            () => FallbackStorage.saveEvent(sessionId, 'technical_detected', { subtype: technicalClassification.subtype }),
+            'Guardar tracking técnico'
+          );
+          
+          // Si debe transferir al ingeniero, agregar link de WhatsApp
+          if (technicalResponse.suggestedActions.includes('transfer_engineer')) {
+            const engineerSummary = generateEngineerTransferSummary(
+              updatedHistory,
+              technicalClassification,
+              technicalResponse.meta
+            );
+            const engineerLink = generateEngineerWhatsAppLink(engineerSummary, from);
+            
+            // Agregar link al final de la respuesta
+            technicalResponse.responseText += `\n\n📱 *Contacto directo con Ing. Rafael:*\n${engineerLink}`;
+            
+            console.log('📞 [Technical] Link de transferencia al ingeniero agregado');
+          }
+          
+          // Usar respuesta técnica como directResponse
+          directResponse = technicalResponse.responseText;
+          skipAI = true; // No usar IA general
+          
+          console.log('✅ [Technical] Respuesta técnica establecida como directResponse');
+        }
+      } catch (error) {
+        console.error('❌ [Technical] Error en clasificación/generación técnica:', error.message);
+        // Continuar con flujo normal si falla el sistema técnico
       }
     }
 

@@ -10,6 +10,18 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 20, 2025: Sistema Técnico IA-First Implementado**
+- ✅ **Clasificación basada en IA**: `classifyTechnical()` con few-shot learning (6 ejemplos)
+- ✅ **Respuestas dinámicas**: `generateTechnicalReply()` usa IA + contexto de productos
+- ✅ **Catálogo de productos técnicos**: 4 equipos con especificaciones, stock, keywords
+- ✅ **Helpers de productos**: `searchProducts()`, `getProductByModel()`, `checkStock()`
+- ✅ **Subtipos técnicos**: support, sales, installation, warranty, specs, other
+- ✅ **Límites de seguridad**: No instrucciones peligrosas, escalamiento cuando necesario
+- ✅ **Acciones sugeridas**: troubleshoot, send_manual, create_ticket, transfer_engineer, schedule_visit, provide_quote
+- ✅ **Transferencia al Ing. Rafael**: Genera resumen automático + link WhatsApp
+- ✅ **Tracking técnico**: `saveTrackingEvent` con confidence y productos encontrados
+- ✅ **Fallback heurístico**: Keywords si IA falla (confidence < 0.65)
+
 ### ✅ **Nov 20, 2025: Refactor UX Conversacional del State Machine**
 - ✅ **Funciones helper DRY**: `formatDateFriendly()`, `formatDateShort()`, `formatAvailableSlots()` para eliminar duplicación
 - ✅ **Validación de nombres mejorada**: `isValidName()` acepta guiones, apóstrofes ("María-José", "D'Angelo")
