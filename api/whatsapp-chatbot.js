@@ -406,76 +406,7 @@ async function processWhatsAppMessage(body) {
         console.error('❌ Stack:', notifyError.stack);
       }
     }
-    
-    if (!shouldNotifyNew && history.length > 0) {
-      // El historial viene ordenado DESC (más reciente primero)
-      // Como obtenemos el historial ANTES de guardar el mensaje actual,
-      // history[0] es el mensaje más reciente ANTES del mensaje que acaba de llegar
-      
-      // ⚠️ CRÍTICO: Buscar el ÚLTIMO MENSAJE DEL USUARIO (no del asistente)
-      // para calcular correctamente el tiempo de inactividad
-      const lastUserMessage = history.find(msg => msg.role === 'user');
-      
-      console.log(`🔍 [DEBUG] Último mensaje del usuario en historial:`, lastUserMessage ? JSON.stringify({
-        role: lastUserMessage.role,
-        timestamp: lastUserMessage.timestamp,
-        preview: lastUserMessage.content?.substring(0, 50)
-      }, null, 2) : 'No hay mensajes previos del usuario');
-      
-      if (lastUserMessage && lastUserMessage.timestamp) {
-        const lastMessageTime = new Date(lastUserMessage.timestamp).getTime();
-        const currentTime = Date.now();
-        const minutesSinceLastMessage = (currentTime - lastMessageTime) / 60000;
-        
-        console.log(`⏰ Último mensaje del USUARIO: ${lastUserMessage.timestamp}`);
-        console.log(`⏰ Tiempo actual: ${new Date(currentTime).toISOString()}`);
-        console.log(`⏰ Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
-        
-        // ✅ Notificar si han pasado más de 10 minutos desde el ÚLTIMO MENSAJE DEL USUARIO
-        if (minutesSinceLastMessage > 10) {
-          shouldNotifyInactive = true;
-          console.log(`🔔 >${minutesSinceLastMessage.toFixed(1)} minutos de inactividad del usuario - enviando notificación EMAIL`);
-          console.log('📧 [DEBUG] Destinatarios: salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com');
-          console.log('📧 [DEBUG] Teléfono cliente:', from);
-          console.log('📧 [DEBUG] Minutos inactividad:', Math.floor(minutesSinceLastMessage));
-          
-          try {
-            const response = await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                notificationType: 'chatbot_reactivation',
-                phone: from,
-                message: userMessage,
-                inactivityMinutes: Math.floor(minutesSinceLastMessage),
-                name: 'Chatbot BIOSKIN',
-                email: 'noreply@bioskin.com'
-              })
-            });
-            
-            // ✅ VERIFICAR RESPUESTA HTTP
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({ message: 'Sin detalles' }));
-              console.error('❌ Email reactivación FALLÓ');
-              console.error('❌ Status:', response.status, response.statusText);
-              console.error('❌ Error:', errorData);
-            } else {
-              const result = await response.json().catch(() => ({ message: 'OK' }));
-              console.log('✅ Notificación EMAIL de reactivación enviada CORRECTAMENTE');
-              console.log('✅ Resultado:', result.message || 'Email enviado');
-            }
-          } catch (err) {
-            console.error('❌ Error CRÍTICO enviando reactivación:', err.message);
-            console.error('❌ Tipo:', err.name);
-            console.error('❌ Stack:', err.stack);
-          }
-        } else {
-          console.log(`✅ Usuario estuvo activo recientemente (${minutesSinceLastMessage.toFixed(1)} min desde último mensaje) - no notificar`);
-        }
-      } else {
-        console.log('⚠️ No se encontró mensaje previo del usuario en el historial (puede ser primera interacción)');
-      }
-    }
+
 
     // Guardar mensaje del usuario (con fallback)
     console.log('💾 Paso 4: Guardando mensaje del usuario...');
@@ -698,8 +629,22 @@ async function processWhatsAppMessage(body) {
             'Guardar tracking técnico'
           );
           
-          // Si debe transferir al ingeniero, agregar link de WhatsApp
-          if (technicalResponse.suggestedActions.includes('transfer_engineer')) {
+          // ⚠️ SOLO transferir al ingeniero después de interacción suficiente
+          // Contar mensajes técnicos previos del usuario
+          const technicalMessagesCount = updatedHistory.filter(msg => 
+            msg.role === 'user' && 
+            (/(equipo|dispositivo|aparato|hifu|laser|ipl|yag|co2|analizador)/i.test(msg.content))
+          ).length;
+          
+          // Solo agregar link si:
+          // 1. Usuario ha hecho >2 preguntas técnicas consecutivas, O
+          // 2. Usuario pide explícitamente hablar con el ingeniero, O
+          // 3. Es problema complejo que requiere visita técnica
+          const shouldTransferNow = technicalMessagesCount > 2 ||
+                                   /(hablar|contactar|comunicar|llamar|ingeniero|técnico|especialista|rafael)/i.test(userMessage) ||
+                                   technicalClassification.subtype === 'warranty';
+          
+          if (technicalResponse.suggestedActions.includes('transfer_engineer') && shouldTransferNow) {
             const engineerSummary = generateEngineerTransferSummary(
               updatedHistory,
               technicalClassification,
@@ -710,7 +655,11 @@ async function processWhatsAppMessage(body) {
             // Agregar link al final de la respuesta
             technicalResponse.responseText += `\n\n📱 *Contacto directo con Ing. Rafael:*\n${engineerLink}`;
             
-            console.log('📞 [Technical] Link de transferencia al ingeniero agregado');
+            console.log(`📞 [Technical] Link de transferencia agregado (${technicalMessagesCount} msgs técnicos previos)`);
+          } else if (technicalResponse.suggestedActions.includes('transfer_engineer')) {
+            // Si no debe transferir aún, agregar opción al final
+            technicalResponse.responseText += `\n\n¿Desea que le conecte con el Ing. Rafael para una asesoría personalizada? 🔧`;
+            console.log('💬 [Technical] Ofreciendo conexión con ingeniero (sin link directo aún)');
           }
           
           // Usar respuesta técnica como directResponse
