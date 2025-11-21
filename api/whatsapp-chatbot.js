@@ -42,11 +42,13 @@ const DISABLE_OPENAI = false; // ✅ OpenAI ACTIVADO - Sistema funcionando corre
  * Obtiene el saludo apropiado según la hora de Ecuador
  */
 function getTimeBasedGreeting() {
-  const ecuadorTime = new Date().toLocaleString('en-US', { 
-    timeZone: 'America/Guayaquil',
-    hour12: false 
-  });
-  const hour = parseInt(ecuadorTime.split(',')[1].trim().split(':')[0]);
+  // Obtener hora de Ecuador usando Date con timezone
+  const ecuadorDate = new Date(new Date().toLocaleString('en-US', { 
+    timeZone: 'America/Guayaquil'
+  }));
+  const hour = ecuadorDate.getHours();
+  
+  console.log(`⏰ Hora Ecuador: ${hour}:${ecuadorDate.getMinutes()}`);
   
   if (hour >= 5 && hour < 12) {
     return 'Buenos días';
