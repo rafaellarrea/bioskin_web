@@ -32,7 +32,18 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "",
     "INCLUYE GARANTIA DE 6 MESES"
   ],
-  price: "",
+  price: "$1,500",
+  pricing: {
+    current: 1500,
+    previous: 1700,
+    currency: "USD",
+    taxNote: "+ IVA",
+    discount: {
+      active: true,
+      percentage: 11.76,
+      savings: 200
+    }
+  },
   stock: {
     available: true,
     quantity: 2,
@@ -87,10 +98,21 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Rejuvenecimiento vaginal: tensado, lubricación, restauración de flora y pH.",
     "Mejoría de sensibilidad íntima y estética genital femenina."
   ],
-  "price": "",
+  "price": "$3,650",
+  "pricing": {
+    "current": 3650,
+    "previous": 4000,
+    "currency": "USD",
+    "taxNote": "+ IVA",
+    "discount": {
+      "active": true,
+      "percentage": 8.75,
+      "savings": 350
+    }
+  },
   "stock": {
     "available": true,
-    "quantity": 1,
+    "quantity": 2,
     "location": "Bodega BIOSKIN",
     "deliveryTime": "Inmediato"
   },
@@ -136,10 +158,21 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
     "Tratamiento seguro y efectivo para pieles maduras y con flacidez.",
     "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
   ],
-  price: "",
+  price: "$1,600",
+  pricing: {
+    current: 1600,
+    previous: 1800,
+    currency: "USD",
+    taxNote: "+ IVA",
+    discount: {
+      active: true,
+      percentage: 11.11,
+      savings: 200
+    }
+  },
   stock: {
     available: true,
-    quantity: 3,
+    quantity: 2,
     location: "Bodega BIOSKIN",
     deliveryTime: "Inmediato"
   },
@@ -183,7 +216,18 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Rejuvenecimiento facial, reducción de líneas finas y flacidez.",
     "Reducción de lesiones vasculares y pigmentadas."
   ],
-  price: "",
+  price: "$2,900",
+  pricing: {
+    current: 2900,
+    previous: 3100,
+    currency: "USD",
+    taxNote: "+ IVA",
+    discount: {
+      active: true,
+      percentage: 6.45,
+      savings: 200
+    }
+  },
   stock: {
     available: true,
     quantity: 2,
