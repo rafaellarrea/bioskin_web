@@ -383,9 +383,16 @@ async function processWhatsAppMessage(body) {
       console.log(`🔍 [DEBUG INACTIVIDAD] Mensajes del usuario: ${userMessages.length}`);
       
       if (userMessages.length > 0) {
-        const lastUserMsg = userMessages[0]; // Mensajes ordenados DESC (más reciente primero)
+        // 🔥 ORDENAR EXPLÍCITAMENTE por timestamp DESC (más reciente primero)
+        userMessages.sort((a, b) => {
+          const timeA = new Date(a.created_at || a.timestamp).getTime();
+          const timeB = new Date(b.created_at || b.timestamp).getTime();
+          return timeB - timeA; // DESC: más reciente primero
+        });
         
-        console.log(`🔍 [DEBUG INACTIVIDAD] Último mensaje del usuario:`);
+        const lastUserMsg = userMessages[0]; // Ahora GARANTIZADO el más reciente
+        
+        console.log(`🔍 [DEBUG INACTIVIDAD] Último mensaje del usuario (después de ordenar):`);
         console.log(`   - Contenido: "${lastUserMsg.content?.substring(0, 50)}"`);
         console.log(`   - Timestamp: ${lastUserMsg.created_at || lastUserMsg.timestamp}`);
         console.log(`   - ID: ${lastUserMsg.id}`);
