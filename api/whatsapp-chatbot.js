@@ -392,21 +392,30 @@ async function processWhatsAppMessage(body) {
       // El historial viene ordenado DESC (más reciente primero)
       // Como obtenemos el historial ANTES de guardar el mensaje actual,
       // history[0] es el mensaje más reciente ANTES del mensaje que acaba de llegar
-      const lastMessage = history[0];
       
-      console.log(`🔍 [DEBUG] Último mensaje del historial:`, JSON.stringify(lastMessage, null, 2));
+      // ⚠️ CRÍTICO: Buscar el ÚLTIMO MENSAJE DEL USUARIO (no del asistente)
+      // para calcular correctamente el tiempo de inactividad
+      const lastUserMessage = history.find(msg => msg.role === 'user');
       
-      if (lastMessage && lastMessage.timestamp) {
-        const lastMessageTime = new Date(lastMessage.timestamp).getTime();
+      console.log(`🔍 [DEBUG] Último mensaje del usuario en historial:`, lastUserMessage ? JSON.stringify({
+        role: lastUserMessage.role,
+        timestamp: lastUserMessage.timestamp,
+        preview: lastUserMessage.content?.substring(0, 50)
+      }, null, 2) : 'No hay mensajes previos del usuario');
+      
+      if (lastUserMessage && lastUserMessage.timestamp) {
+        const lastMessageTime = new Date(lastUserMessage.timestamp).getTime();
         const currentTime = Date.now();
         const minutesSinceLastMessage = (currentTime - lastMessageTime) / 60000;
         
-        console.log(`⏰ Último mensaje: ${lastMessage.timestamp}, Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
+        console.log(`⏰ Último mensaje del USUARIO: ${lastUserMessage.timestamp}`);
+        console.log(`⏰ Tiempo actual: ${new Date(currentTime).toISOString()}`);
+        console.log(`⏰ Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
         
-        // ✅ Notificar si han pasado más de 10 minutos (SOLO EMAIL)
+        // ✅ Notificar si han pasado más de 10 minutos desde el ÚLTIMO MENSAJE DEL USUARIO
         if (minutesSinceLastMessage > 10) {
           shouldNotifyInactive = true;
-          console.log(`🔔 >${minutesSinceLastMessage.toFixed(1)} minutos de inactividad - enviando notificación EMAIL`);
+          console.log(`🔔 >${minutesSinceLastMessage.toFixed(1)} minutos de inactividad del usuario - enviando notificación EMAIL`);
           console.log('📧 [DEBUG] Destinatarios: salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com');
           console.log('📧 [DEBUG] Teléfono cliente:', from);
           console.log('📧 [DEBUG] Minutos inactividad:', Math.floor(minutesSinceLastMessage));
@@ -442,10 +451,10 @@ async function processWhatsAppMessage(body) {
             console.error('❌ Stack:', err.stack);
           }
         } else {
-          console.log(`✅ Conversación activa (${minutesSinceLastMessage.toFixed(1)} min) - no notificar`);
+          console.log(`✅ Usuario estuvo activo recientemente (${minutesSinceLastMessage.toFixed(1)} min desde último mensaje) - no notificar`);
         }
       } else {
-        console.log('⚠️ No se pudo obtener timestamp del último mensaje');
+        console.log('⚠️ No se encontró mensaje previo del usuario en el historial (puede ser primera interacción)');
       }
     }
 
