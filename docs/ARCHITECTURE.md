@@ -139,6 +139,14 @@ Features:
 
 ### **Data Management**
 - **Centralized Products**: Single source of truth in `src/data/products.ts`
+  - Equipment & cosmetics catalog
+  - Backend adapter: `lib/products-adapter.js`
+  - Used by web + chatbot
+- **Centralized Services**: Single source of truth in `src/data/services.ts` ✨ NEW
+  - 18 medical-aesthetic services
+  - Backend adapter: `lib/services-adapter.js`
+  - Replaces duplicate treatments-data.js
+  - Used by Services.tsx + WhatsApp chatbot
 - **Component State**: No external state management (React local state)
 - **Database Queries**: Prepared statements with better-sqlite3
 - **API Integration**: Custom hooks pattern
@@ -147,6 +155,7 @@ Features:
 - **Backup Pattern**: `*backup.tsx` files for version control
 - **Image Convention**: Absolute paths from `/public/images/`
 - **Slug Generation**: Consistent URL generation with `slugify.ts`
+- **Adapter Pattern**: `lib/*-adapter.js` reads from `src/data/*.ts` (web source)
 
 ### **Error Handling**
 - **API Validation**: Input validation + error responses

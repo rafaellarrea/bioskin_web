@@ -10,6 +10,17 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 20, 2025: Unificación de Servicios (Fuente Única de Verdad)**
+- ✅ **src/data/services.ts creado**: 18 servicios completos con interface TypeScript
+- ✅ **lib/services-adapter.js creado**: Adaptador backend que lee desde services.ts
+- ✅ **Services.tsx actualizado**: Ahora importa desde fuente centralizada (elimina array hardcodeado)
+- ✅ **Chatbot actualizado**: 3 archivos (chatbot-ai-service, appointment-state-machine, chatbot-appointment-service)
+- ✅ **treatments-data.js eliminado**: 178 líneas de código duplicado removidas
+- ✅ **Inconsistencias resueltas**: Hollywood Peel ($30 vs $35), Exosomas ($150 vs $130) unificados
+- ✅ **18 servicios totales**: Combinación de web (9) + chatbot (15) con metadata completa
+- ✅ **Categorización**: evaluacion, facial, laser, corporal, inyectable, avanzado
+- ✅ **Patrón consistente**: Siguiendo products-adapter.js (fuente web + adaptador backend)
+
 ### ✅ **Nov 20, 2025: Sistema Técnico IA-First Implementado**
 - ✅ **Clasificación basada en IA**: `classifyTechnical()` con few-shot learning (6 ejemplos)
 - ✅ **Respuestas dinámicas**: `generateTechnicalReply()` usa IA + contexto de productos
