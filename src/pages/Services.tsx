@@ -1,64 +1,16 @@
 import React from 'react';
 import ServiceCard from '../components/ServiceCard';
 import Footer from '../components/Footer';
+import servicesData from '../data/services';
 
 const Services = () => {
-  const services = [
-    {
-      title: "Limpieza Facial Profunda",
-      description: "Elimina impurezas, puntos negros y células muertas. Incluye extracción, hidratación y mascarilla personalizada.",
-      price: 25,
-      image: "/images/services/limpiezaProf/limpiezaProf2.jpg"
-    },
-    {
-      title: "Tratamiento Antiaging",
-      description: "Combate los signos del envejecimiento con radiofrecuencia y activos regeneradores para reafirmar la piel.",
-      price: 25,
-      image: "/images/services/antiaging/antiaging.jpeg"
-    },
-    {
-      title: "Tratamiento Antimanchas",
-      description: "Unifica el tono de tu piel con un protocolo profesional que combina ácidos despigmentantes y aparatología avanzada. Resultados visibles desde la primera sesión.",
-      price: 30,
-      image: "/images/services/manchas/antimanchas.jpg"
-    },
-    {
-      title: "Remoción de Tatuajes",
-      description: "Eliminación progresiva de tatuajes mediante láser Nd:YAG de última generación. Sesiones personalizadas.",
-      price: 15,
-      image: "/images/services/remocionTatuajes/remocionTatuajes.jpg"
-    },
-    {
-      title: "Hidratación Profunda",
-      description: "Restaura la barrera cutánea con ácido hialurónico, péptidos y vitaminas para una piel radiante e hidratada.",
-      price: 35,
-      image: "/images/services/hidratacionProfunda/hidraProf.jpg"
-    },
-    {
-      title: "Hollywood Peel",
-      description: "Peeling de carbón con láser para rejuvenecer, eliminar impurezas y dar luminosidad inmediata a la piel.",
-      price: 30,
-      image: "/images/services/hollywoodPeel/hollywood.jpg"
-    },
-    {
-      title: "Exosomas + Mesoterapia",
-      description: "Biotecnología de última generación para regenerar, reparar y revitalizar la piel desde el interior. Ideal para pieles desvitalizadas o con signos de envejecimiento.",
-      price: 150,
-      image: "/images/services/exosomas/exosomas.jpg"
-    },
-    {
-      title: "NCTF + Mesoterapia",
-      description: "Rejuvenecimiento celular con complejo polirevitalizante: ácido hialurónico, vitaminas, minerales y antioxidantes para una piel firme, hidratada y luminosa.",
-      price: 150,
-      image: "/images/services/nctf/nctf.jpg"
-    },
-    {
-      title: "Lipopapada enzimática",
-      description: "Moldea zonas localizadas sin cirugía mediante enzimas que disuelven grasa de forma segura y eficaz. Ideal para redefinir contorno facial.",
-      price: 30,
-      image: "/images/services/lipopapada/lipopapada.jpg"
-    }
-  ];
+  // Mapear servicios desde la fuente centralizada
+  const services = servicesData.map(service => ({
+    title: service.title,
+    description: service.description,
+    price: parseInt(service.price.replace('$', '')),
+    image: service.image
+  }));
 
   return (
 <>
