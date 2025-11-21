@@ -1,4 +1,3 @@
-import React from 'react';
 import ServiceCard from '../components/ServiceCard';
 import Footer from '../components/Footer';
 import servicesData from '../data/services';
