@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 20, 2025: Refactor UX Conversacional del State Machine**
+- ✅ **Funciones helper DRY**: `formatDateFriendly()`, `formatDateShort()`, `formatAvailableSlots()` para eliminar duplicación
+- ✅ **Validación de nombres mejorada**: `isValidName()` acepta guiones, apóstrofes ("María-José", "D'Angelo")
+- ✅ **Capitalización automática**: `capitalizeName()` normaliza nombres correctamente
+- ✅ **Mensajes concisos**: Eliminadas frases redundantes, tono más natural y directo
+- ✅ **Manejo de errores robusto**: `safeCall()` wrapper para todas las llamadas externas
+- ✅ **Timeout configurable**: Constructor acepta `options.timeoutMinutes` sin modificar código
+- ✅ **8 estados mantenidos**: Flujo completo de confirmación preservado (CONFIRMING_DATE + CONFIRMING_TIME)
+- ✅ **Mejoras conversacionales**: Ejemplos claros, menos emojis, instrucciones directas
+
 ### ✅ **Nov 20, 2025: Restauración Sistema de Agendamiento WhatsApp**
 - ✅ **Notificaciones nuevas conversaciones**: Habilitado `notifyNewConversation` al detectar primer contacto
 - ✅ **Logs debug detallados**: Agregados logs en callback de agendamiento con datos completos
