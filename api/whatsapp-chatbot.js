@@ -367,12 +367,33 @@ async function processWhatsAppMessage(body) {
     );
     console.log(`✅ Historial obtenido: ${history.length} mensajes`);
 
-    // Notificar al admin si es una nueva conversación O si han pasado >10 minutos desde el último mensaje
-    const shouldNotifyNew = conversationResult?.isNew;
+    // Determinar si es una nueva conversación (historial vacío = primera vez)
+    const isNewConversation = history.length === 0;
+    console.log(`🔍 ¿Es nueva conversación? ${isNewConversation ? 'SÍ' : 'NO'} (historial: ${history.length} mensajes)`);
+    
+    // Calcular inactividad (solo si hay historial previo)
+    let inactivityMinutes = 0;
     let shouldNotifyInactive = false;
     
+    if (!isNewConversation && history.length > 0) {
+      // Buscar último mensaje del usuario (antes del actual)
+      const userMessages = history.filter(msg => msg.role === 'user');
+      if (userMessages.length > 0) {
+        const lastUserMsg = userMessages[0]; // Mensajes ordenados DESC (más reciente primero)
+        const lastMsgTime = new Date(lastUserMsg.created_at || lastUserMsg.timestamp).getTime();
+        const currentTime = Date.now();
+        inactivityMinutes = Math.floor((currentTime - lastMsgTime) / 60000);
+        
+        console.log(`⏱️ Inactividad calculada: ${inactivityMinutes} minutos desde último mensaje del usuario`);
+        
+        // Notificar si han pasado más de 10 minutos
+        shouldNotifyInactive = inactivityMinutes > 10;
+        console.log(`🔔 ¿Notificar por inactividad? ${shouldNotifyInactive ? 'SÍ' : 'NO'} (umbral: 10 min)`);
+      }
+    }
+    
     // 🔔 Notificar nueva conversación al staff (SOLO EMAIL)
-    if (shouldNotifyNew) {
+    if (isNewConversation) {
       console.log('🆕 Nueva conversación detectada - enviando notificación EMAIL al staff');
       console.log('📧 [DEBUG] Destinatarios: salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com');
       console.log('📧 [DEBUG] Teléfono cliente:', from);
@@ -405,6 +426,42 @@ async function processWhatsAppMessage(body) {
       } catch (notifyError) {
         console.error('❌ Error CRÍTICO enviando notificación de nueva conversación:', notifyError.message);
         console.error('❌ Tipo:', notifyError.name);
+        console.error('❌ Stack:', notifyError.stack);
+      }
+    }
+
+    // 🔔 Notificar reactivación de conversación inactiva (>10 minutos)
+    if (shouldNotifyInactive) {
+      console.log(`⏰ Cliente volvió después de ${inactivityMinutes} minutos - enviando notificación EMAIL al staff`);
+      console.log('📧 [DEBUG] Destinatarios: salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com');
+      console.log('📧 [DEBUG] Inactividad:', inactivityMinutes, 'minutos');
+      
+      try {
+        const response = await fetch('https://saludbioskin.vercel.app/api/sendEmail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            notificationType: 'chatbot_reactivation',
+            phone: from,
+            message: userMessage,
+            inactivityMinutes: inactivityMinutes,
+            name: 'Chatbot BIOSKIN',
+            email: 'noreply@bioskin.com'
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: 'Sin detalles' }));
+          console.error('❌ Email reactivación FALLÓ');
+          console.error('❌ Status:', response.status, response.statusText);
+          console.error('❌ Error:', errorData);
+        } else {
+          const result = await response.json().catch(() => ({ message: 'OK' }));
+          console.log('✅ Notificación EMAIL de reactivación enviada CORRECTAMENTE');
+          console.log('✅ Resultado:', result.message || 'Email enviado');
+        }
+      } catch (notifyError) {
+        console.error('❌ Error CRÍTICO enviando notificación de reactivación:', notifyError.message);
         console.error('❌ Stack:', notifyError.stack);
       }
     }
