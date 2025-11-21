@@ -388,12 +388,14 @@ async function processWhatsAppMessage(body) {
       // history[0] es el mensaje más reciente ANTES del mensaje que acaba de llegar
       const lastMessage = history[0];
       
-      if (lastMessage && lastMessage.created_at) {
-        const lastMessageTime = new Date(lastMessage.created_at).getTime();
+      console.log(`🔍 [DEBUG] Último mensaje del historial:`, JSON.stringify(lastMessage, null, 2));
+      
+      if (lastMessage && lastMessage.timestamp) {
+        const lastMessageTime = new Date(lastMessage.timestamp).getTime();
         const currentTime = Date.now();
         const minutesSinceLastMessage = (currentTime - lastMessageTime) / 60000;
         
-        console.log(`⏰ Último mensaje: ${lastMessage.created_at}, Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
+        console.log(`⏰ Último mensaje: ${lastMessage.timestamp}, Tiempo transcurrido: ${minutesSinceLastMessage.toFixed(1)} minutos`);
         
         // ✅ Notificar si han pasado más de 10 minutos (SOLO EMAIL)
         if (minutesSinceLastMessage > 10) {
