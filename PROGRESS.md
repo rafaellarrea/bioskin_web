@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Flujo Servicio Técnico Mejorado - Contexto + Confianza**
+- 🔧 **Detección de contexto**: Revisa últimos 4 mensajes para identificar equipo mencionado
+- 🔧 **Respuesta con equipo**: IA genera línea específica sobre el equipo para mostrar conocimiento
+- 🔧 **Respuesta sin equipo**: Pregunta qué equipo tiene y qué problema presenta
+- 🔧 **Siempre ofrece derivación**: Incluye pregunta de contacto con departamento técnico
+- 🔧 **Información técnica**: Genera 1-2 líneas profesionales sobre el equipo específico
+- 🔧 **Genera confianza**: Muestra experiencia con el tipo de dispositivo
+- ✅ **Dos flujos optimizados**: Con contexto (empático + específico) vs Sin contexto (pregunta equipo)
+
 ### ✅ **Nov 21, 2025: Terminología Profesional - Departamento Técnico**
 - 🔧 **Cambio terminológico**: Reemplazado "Ing. Rafael" por "departamento técnico"
 - 🔧 **Mensajes actualizados**: Oferta contacto, confirmación, notificaciones
