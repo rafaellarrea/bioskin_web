@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Fix CRÍTICO - Rutas y Saludos en Producción**
+- 🔧 **products-adapter.js path fix**: Cambiado `__dirname` → `process.cwd()` para Vercel
+- 🔧 **Error resuelto**: "ENOENT: no such file or directory, open '/var/task/src/data/products.ts'"
+- 🔧 **Saludo nocturno corregido**: "Buenos días" a 10:41 PM → "Buenas noches"
+- 🔧 **Parseo de hora mejorado**: `new Date().getHours()` en lugar de split() manual
+- 🔧 **Logs agregados**: `⏰ Hora Ecuador: HH:MM` para debugging
+- 🔧 **Aplicado en 3 lugares**: whatsapp-chatbot.js, chatbot-ai-service.js (2 funciones)
+- ✅ **Sistema técnico funcional**: Ahora carga productos correctamente desde src/data/
+
 ### ✅ **Nov 20, 2025: Unificación de Servicios (Fuente Única de Verdad)**
 - ✅ **src/data/services.ts creado**: 18 servicios completos con interface TypeScript
 - ✅ **lib/services-adapter.js creado**: Adaptador backend que lee desde services.ts
