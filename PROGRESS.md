@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Sistema de URLs para Imágenes de Productos**
+- 🖼️ **URL dinámica**: Cada imagen tiene URL única con parámetro `?img=N`
+- 🖼️ **Compartir imagen**: Botón para copiar URL de imagen específica al portapapeles
+- 🖼️ **Persistencia**: URL mantiene la imagen seleccionada al recargar página
+- 🖼️ **Notificación visual**: Mensaje de confirmación al copiar URL (2 segundos)
+- 🖼️ **Navegación mejorada**: Miniaturas actualizan URL automáticamente
+- 🖼️ **Animación suave**: Transición fadeIn para notificación de copiado
+- ✅ **Uso**: `#/products/nombre-producto?img=2` accede directamente a imagen 2
+
 ### ✅ **Nov 21, 2025: Flujo Servicio Técnico Mejorado - Contexto + Confianza**
 - 🔧 **Detección de contexto**: Revisa últimos 4 mensajes para identificar equipo mencionado
 - 🔧 **Respuesta con equipo**: IA genera línea específica sobre el equipo para mostrar conocimiento

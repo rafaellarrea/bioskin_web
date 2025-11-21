@@ -1,14 +1,40 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import products from '../data/products';
 import { slugify } from '../utils/slugify';
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const product = products.find(p => slugify(p.name) === slug);
 
+  // Obtener el índice de la imagen desde la URL (si existe)
+  const imageIndexFromUrl = searchParams.get('img');
+  const initialImageIndex = imageIndexFromUrl && product ? 
+    Math.min(Math.max(0, parseInt(imageIndexFromUrl) - 1), product.images.length - 1) : 0;
+
   // Estado para la imagen principal
-  const [mainImg, setMainImg] = useState(product?.images[0] || '');
+  const [mainImg, setMainImg] = useState(product?.images[initialImageIndex] || '');
+  const [currentImageIndex, setCurrentImageIndex] = useState(initialImageIndex);
+  const [showCopyNotification, setShowCopyNotification] = useState(false);
+
+  // Efecto para actualizar la imagen cuando cambia el parámetro URL
+  useEffect(() => {
+    if (product && imageIndexFromUrl) {
+      const index = Math.min(Math.max(0, parseInt(imageIndexFromUrl) - 1), product.images.length - 1);
+      setMainImg(product.images[index]);
+      setCurrentImageIndex(index);
+    }
+  }, [imageIndexFromUrl, product]);
+
+  // Función para copiar URL de la imagen actual
+  const copyImageUrl = () => {
+    const currentUrl = window.location.href;
+    navigator.clipboard.writeText(currentUrl).then(() => {
+      setShowCopyNotification(true);
+      setTimeout(() => setShowCopyNotification(false), 2000);
+    });
+  };
 
   if (!product) {
     return (
@@ -27,23 +53,51 @@ const ProductDetail = () => {
 
         <div className="flex flex-col items-center mb-8">
           {/* Imagen principal dinámica */}
-          <img
-            src={mainImg}
-            alt={product.name}
-            className="rounded-xl w-full max-w-md object-cover mb-4"
-            style={{ minHeight: 200 }}
-          />
+          <div className="relative w-full max-w-md">
+            <img
+              src={mainImg}
+              alt={product.name}
+              className="rounded-xl w-full object-cover mb-4 min-h-[200px]"
+            />
+            
+            {/* Botón para copiar URL de la imagen */}
+            {product.images.length > 1 && (
+              <button
+                onClick={copyImageUrl}
+                className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-700 px-3 py-2 rounded-lg shadow-md transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                title="Copiar enlace a esta imagen"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                Compartir imagen
+              </button>
+            )}
+            
+            {/* Notificación de copiado */}
+            {showCopyNotification && (
+              <div className="absolute top-14 right-2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-notification">
+                ✓ URL copiada al portapapeles
+              </div>
+            )}
+          </div>
+          
           {/* Miniaturas clickeables */}
           {product.images.length > 1 && (
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-2 flex-wrap justify-center">
               {product.images.map((img, i) => (
                 <img
                   key={i}
                   src={img}
                   alt={product.name + ' miniatura ' + (i + 1)}
                   className={`h-20 w-20 object-cover rounded shadow border cursor-pointer transition-all duration-200
-                    ${mainImg === img ? 'border-[#deb887] border-4 scale-110' : 'border-gray-200 opacity-70 hover:opacity-100'}`}
-                  onClick={() => setMainImg(img)}
+                    ${currentImageIndex === i ? 'border-[#deb887] border-4 scale-110' : 'border-gray-200 opacity-70 hover:opacity-100'}`}
+                  onClick={() => {
+                    setMainImg(img);
+                    setCurrentImageIndex(i);
+                    // Actualizar URL con el índice de la imagen (1-indexed para usuarios)
+                    setSearchParams({ img: (i + 1).toString() });
+                  }}
                 />
               ))}
             </div>
