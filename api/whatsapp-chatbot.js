@@ -677,14 +677,29 @@ async function processWhatsAppMessage(body) {
     let technicalClassification = null;
     let technicalResponse = null;
     let userConfirmsEngineerContact = false;
+    let userProvidingName = false;
     
     // Detectar confirmación de contacto con ingeniero
     const lastBotMsg = updatedHistory.filter(m => m.role === 'assistant').pop()?.content || '';
     const botOfferedEngineerContact = /le gustaría que el ing\. rafael le contacte/i.test(lastBotMsg);
-    userConfirmsEngineerContact = botOfferedEngineerContact && /^(si|sí|ok|dale|claro|por favor|quiero|me gustaría|confirmo|acepto)$/i.test(userMessage.trim());
+    const botAskedForName = /por favor, indíqueme su nombre completo/i.test(lastBotMsg);
     
+    userConfirmsEngineerContact = botOfferedEngineerContact && /^(si|sí|ok|dale|claro|por favor|quiero|me gustaría|confirmo|acepto)$/i.test(userMessage.trim());
+    userProvidingName = botAskedForName && userMessage.trim().length > 3 && !/^(no|nada|otro|otra)/i.test(userMessage.trim());
+    
+    // CASO 1: Usuario confirma que quiere contacto con ingeniero
     if (userConfirmsEngineerContact) {
       console.log('✅ [Technical] Usuario CONFIRMÓ que quiere contacto con Ing. Rafael');
+      
+      // Solicitar nombre
+      directResponse = `Perfecto 😊 Para que el Ing. Rafael pueda contactarle adecuadamente, por favor indíqueme su nombre completo.`;
+      skipAI = true;
+    }
+    // CASO 2: Usuario proporciona su nombre
+    else if (userProvidingName) {
+      console.log('✅ [Technical] Usuario proporcionó nombre:', userMessage);
+      
+      const userName = userMessage.trim();
       
       // Generar resumen de la conversación
       const engineerSummary = generateEngineerTransferSummary(
@@ -698,33 +713,30 @@ async function processWhatsAppMessage(body) {
         console.log('📱 [Technical] Enviando notificación interna a BIOSKIN...');
         
         const notificationResult = await notifyStaffGroup('technical_inquiry', {
-          name: 'Cliente (consulta técnica)',
-          reason: 'Solicitud de contacto con Ing. Rafael',
+          name: userName,
+          reason: 'Solicitud de contacto con Ing. Rafael - Servicio Técnico',
           summary: engineerSummary,
-          query: updatedHistory.filter(m => m.role === 'user').slice(-3).map(m => m.content).join('\n\n')
+          query: updatedHistory.filter(m => m.role === 'user').slice(-4).map(m => m.content).join('\n\n')
         }, from);
         
         if (notificationResult.success) {
           console.log('✅ [Technical] Notificación enviada exitosamente a BIOSKIN');
           
-          const greeting = getTimeBasedGreeting();
-          directResponse = `${greeting}, soy Salomé de BIOSKIN 😊\n\nPerfecto, he notificado al Ing. Rafael sobre su consulta técnica. Él se comunicará con usted a este número (${from}) a la brevedad posible.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
+          directResponse = `Perfecto, ${userName} 😊\n\nHe notificado al Ing. Rafael sobre su consulta técnica. Él se comunicará con usted a este número (${from}) a la brevedad posible para coordinar la revisión de su equipo.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
         } else {
           console.error('❌ [Technical] Error enviando notificación:', notificationResult.error);
-          const greeting = getTimeBasedGreeting();
-          directResponse = `${greeting}, soy Salomé de BIOSKIN 😊\n\nHe registrado su solicitud. El Ing. Rafael se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
+          directResponse = `Gracias, ${userName} 😊\n\nHe registrado su solicitud. El Ing. Rafael se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
         }
       } catch (error) {
         console.error('❌ [Technical] Error crítico en notificación:', error.message);
-        const greeting = getTimeBasedGreeting();
-        directResponse = `${greeting}, soy Salomé de BIOSKIN 😊\n\nSu solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
+        directResponse = `Gracias, ${userName} 😊\n\nSu solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
       }
       
       skipAI = true;
     }
     
     // Solo clasificar si NO estamos en flujo de agendamiento activo Y no es confirmación de contacto
-    if (!stateMachine.isActive() && !directResponse && !userConfirmsEngineerContact) {
+    if (!stateMachine.isActive() && !directResponse && !userConfirmsEngineerContact && !userProvidingName) {
       try {
         // Clasificar mensaje con IA
         technicalClassification = await classifyTechnical(userMessage, updatedHistory);
