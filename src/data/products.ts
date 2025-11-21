@@ -35,13 +35,13 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
   price: "$1,500",
   pricing: {
     current: 1500,
-    previous: 1700,
+    previous: 1765,
     currency: "USD",
     taxNote: "+ IVA",
     discount: {
       active: true,
-      percentage: 11.76,
-      savings: 200
+      percentage: 15,
+      savings: 265
     }
   },
   stock: {
@@ -101,13 +101,13 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
   "price": "$3,650",
   "pricing": {
     "current": 3650,
-    "previous": 4000,
+    "previous": 4056,
     "currency": "USD",
     "taxNote": "+ IVA",
     "discount": {
       "active": true,
-      "percentage": 8.75,
-      "savings": 350
+      "percentage": 10,
+      "savings": 406
     }
   },
   "stock": {
@@ -161,13 +161,13 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
   price: "$1,600",
   pricing: {
     current: 1600,
-    previous: 1800,
+    previous: 1882,
     currency: "USD",
     taxNote: "+ IVA",
     discount: {
       active: true,
-      percentage: 11.11,
-      savings: 200
+      percentage: 15,
+      savings: 282
     }
   },
   stock: {
@@ -219,13 +219,13 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
   price: "$2,900",
   pricing: {
     current: 2900,
-    previous: 3100,
+    previous: 3222,
     currency: "USD",
     taxNote: "+ IVA",
     discount: {
       active: true,
-      percentage: 6.45,
-      savings: 200
+      percentage: 10,
+      savings: 322
     }
   },
   stock: {
