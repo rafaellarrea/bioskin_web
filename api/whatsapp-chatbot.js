@@ -676,9 +676,52 @@ async function processWhatsAppMessage(body) {
     
     let technicalClassification = null;
     let technicalResponse = null;
+    let userConfirmsEngineerContact = false;
     
-    // Solo clasificar si NO estamos en flujo de agendamiento activo
-    if (!stateMachine.isActive() && !directResponse) {
+    // Detectar confirmación de contacto con ingeniero
+    const lastBotMsg = updatedHistory.filter(m => m.role === 'assistant').pop()?.content || '';
+    const botOfferedEngineerContact = /le gustaría que el ing\. rafael le contacte/i.test(lastBotMsg);
+    userConfirmsEngineerContact = botOfferedEngineerContact && /^(si|sí|ok|dale|claro|por favor|quiero|me gustaría|confirmo|acepto)$/i.test(userMessage.trim());
+    
+    if (userConfirmsEngineerContact) {
+      console.log('✅ [Technical] Usuario CONFIRMÓ que quiere contacto con Ing. Rafael');
+      
+      // Generar resumen de la conversación
+      const engineerSummary = generateEngineerTransferSummary(
+        updatedHistory,
+        { subtype: 'technical_transfer', question: 'solicitud_contacto', confidence: 1.0 },
+        { productsFound: 0, productIds: [] }
+      );
+      
+      // Enviar notificación INTERNA a BIOSKIN
+      try {
+        console.log('📱 [Technical] Enviando notificación interna a BIOSKIN...');
+        
+        const notificationResult = await notifyStaffGroup('technical_inquiry', {
+          name: 'Cliente (consulta técnica)',
+          reason: 'Solicitud de contacto con Ing. Rafael',
+          summary: engineerSummary,
+          query: updatedHistory.filter(m => m.role === 'user').slice(-3).map(m => m.content).join('\n\n')
+        }, from);
+        
+        if (notificationResult.success) {
+          console.log('✅ [Technical] Notificación enviada exitosamente a BIOSKIN');
+          
+          directResponse = `Perfecto 😊 He notificado al Ing. Rafael sobre su consulta. Él se comunicará con usted a este número (${from}) a la brevedad posible.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
+        } else {
+          console.error('❌ [Technical] Error enviando notificación:', notificationResult.error);
+          directResponse = `He registrado su solicitud. El Ing. Rafael se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
+        }
+      } catch (error) {
+        console.error('❌ [Technical] Error crítico en notificación:', error.message);
+        directResponse = `Su solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
+      }
+      
+      skipAI = true;
+    }
+    
+    // Solo clasificar si NO estamos en flujo de agendamiento activo Y no es confirmación de contacto
+    if (!stateMachine.isActive() && !directResponse && !userConfirmsEngineerContact) {
       try {
         // Clasificar mensaje con IA
         technicalClassification = await classifyTechnical(userMessage, updatedHistory);
@@ -707,37 +750,29 @@ async function processWhatsAppMessage(body) {
             'Guardar tracking técnico'
           );
           
-          // ⚠️ SOLO transferir al ingeniero después de interacción suficiente
+          // ⚠️ SOLO ofrecer contacto con ingeniero cuando sea ESTRICTAMENTE necesario
           // Contar mensajes técnicos previos del usuario
           const technicalMessagesCount = updatedHistory.filter(msg => 
             msg.role === 'user' && 
             (/(equipo|dispositivo|aparato|hifu|laser|ipl|yag|co2|analizador)/i.test(msg.content))
           ).length;
           
-          // Solo agregar link si:
-          // 1. Usuario ha hecho >2 preguntas técnicas consecutivas, O
-          // 2. Usuario pide explícitamente hablar con el ingeniero, O
-          // 3. Es problema complejo que requiere visita técnica
-          const shouldTransferNow = technicalMessagesCount > 2 ||
-                                   /(hablar|contactar|comunicar|llamar|ingeniero|técnico|especialista|rafael)/i.test(userMessage) ||
-                                   technicalClassification.subtype === 'warranty';
+          // Detectar si usuario pide contacto directo explícitamente
+          const userRequestsContact = /(hablar|contactar|comunicar|llamar|ingeniero|técnico|especialista|rafael|que me contacte|quiero hablar|necesito ayuda)/i.test(userMessage);
           
-          if (technicalResponse.suggestedActions.includes('transfer_engineer') && shouldTransferNow) {
-            const engineerSummary = generateEngineerTransferSummary(
-              updatedHistory,
-              technicalClassification,
-              technicalResponse.meta
-            );
-            const engineerLink = generateEngineerWhatsAppLink(engineerSummary, from);
+          // Solo OFRECER contacto (sin link directo) si:
+          // 1. Usuario pide explícitamente contacto, O
+          // 2. Es problema complejo de garantía/reparación, O
+          // 3. Más de 3 preguntas técnicas sin resolver
+          const shouldOfferContact = userRequestsContact || 
+                                    (technicalClassification.subtype === 'warranty' && technicalMessagesCount > 1) ||
+                                    (technicalMessagesCount > 3);
+          
+          if (technicalResponse.suggestedActions.includes('transfer_engineer') && shouldOfferContact) {
+            // SOLO preguntar, NO enviar link directamente
+            technicalResponse.responseText += `\n\n¿Le gustaría que el Ing. Rafael le contacte directamente para resolver esta consulta? 🔧`;
             
-            // Agregar link al final de la respuesta
-            technicalResponse.responseText += `\n\n📱 *Contacto directo con Ing. Rafael:*\n${engineerLink}`;
-            
-            console.log(`📞 [Technical] Link de transferencia agregado (${technicalMessagesCount} msgs técnicos previos)`);
-          } else if (technicalResponse.suggestedActions.includes('transfer_engineer')) {
-            // Si no debe transferir aún, agregar opción al final
-            technicalResponse.responseText += `\n\n¿Desea que le conecte con el Ing. Rafael para una asesoría personalizada? 🔧`;
-            console.log('💬 [Technical] Ofreciendo conexión con ingeniero (sin link directo aún)');
+            console.log(`📞 [Technical] Ofreciendo contacto con ingeniero (${technicalMessagesCount} msgs técnicos)`);
           }
           
           // Usar respuesta técnica como directResponse
