@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Fix CRÍTICO - Sistema de Notificaciones Email Restaurado**
+- 🔧 **Problema identificado**: `conversationResult.isNew` siempre undefined → no enviaba emails
+- 🔧 **Detección nueva conversación**: Ahora usa `history.length === 0` (historial vacío)
+- 🔧 **Notificación reactivación**: Calcula inactividad desde último mensaje del usuario
+- 🔧 **Umbral configurado**: >10 minutos = envía email de reactivación
+- 🔧 **Logs detallados**: `🔍 ¿Es nueva conversación?`, `⏱️ Inactividad: X minutos`
+- 🔧 **Dos tipos de email**: `chatbot_new_conversation` y `chatbot_reactivation`
+- ✅ **Casos cubiertos**: Primera vez, respuesta inmediata (<10min), reactivación (>10min)
+
 ### ✅ **Nov 21, 2025: Fix CRÍTICO - Rutas y Saludos en Producción**
 - 🔧 **products-adapter.js path fix**: Cambiado `__dirname` → `process.cwd()` para Vercel
 - 🔧 **Error resuelto**: "ENOENT: no such file or directory, open '/var/task/src/data/products.ts'"
