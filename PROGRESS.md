@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 21, 2025: Mejora Flujo Contacto Ing. Rafael - Notificación Interna**
+- 🔧 **Cambio requerido**: Link WhatsApp no debe mostrarse hasta que bot no pueda resolver
+- 🔧 **Nueva lógica**: Bot pregunta "¿desea que el Ing. Rafael le contacte?" primero
+- 🔧 **Confirmación usuario**: Detecta "si/sí/ok/dale/claro/por favor/confirmo/acepto"
+- 🔧 **Notificación interna**: Envía mensaje a BIOSKIN (+593969890689), NO al usuario
+- 🔧 **Mensaje compacto**: "He notificado al Ing. Rafael, él le contactará al [número]"
+- 🔧 **Condiciones estrictas**: Solo ofrece contacto cuando consulta es irresoluble por IA
+- 🔧 **Criterios**: Solicitud explícita O problema garantía O +3 msgs técnicos sin resolver
+- ✅ **Flujo mejorado**: Usuario no escribe al Ing., el Ing. contacta al usuario
+
 ### ✅ **Nov 21, 2025: Fix - Detección Contextual de Precios + Storage Error**
 - 🔧 **Problema**: Usuario dice "Si" al bot preguntando por precio → no muestra precio
 - 🔧 **Causa**: Buscaba contexto en índice -2 en lugar de último mensaje assistant
