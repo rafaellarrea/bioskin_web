@@ -599,10 +599,12 @@ async function processWhatsAppMessage(body) {
           console.log('📢 [DEBUG] appointmentData:', JSON.stringify(appointmentData, null, 2));
           console.log('📢 [DEBUG] Número paciente (from):', from);
           console.log('📢 [DEBUG] Número BIOSKIN destino: +593969890689');
+          console.log('📢 [DEBUG] WHATSAPP_ACCESS_TOKEN presente:', !!process.env.WHATSAPP_ACCESS_TOKEN);
+          console.log('📢 [DEBUG] WHATSAPP_PHONE_NUMBER_ID presente:', !!process.env.WHATSAPP_PHONE_NUMBER_ID);
           
           try {
             // 1. Notificación por WhatsApp
-            console.log('📱 [WhatsApp] Enviando notificación de agendamiento...');
+            console.log('📱 [WhatsApp] Llamando a notifyStaffNewAppointment...');
             const whatsappResult = await notifyStaffNewAppointment(appointmentData, from);
             
             // ✅ VERIFICAR RESULTADO DE WHATSAPP
@@ -1301,6 +1303,16 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
         `💬 *Chat directo:* ${patientChatLink}`;
       break;
       
+    case 'technical_inquiry':
+      message = `🔧 *CONSULTA TÉCNICA*\n` +
+        `📋 *Para:* ${recipient}\n\n` +
+        `👤 *Cliente:* ${data.name || 'Solicitó contacto'}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `🔍 *Motivo:* ${data.reason || 'Consulta técnica sobre equipos'}\n` +
+        `📝 *Resumen:*\n${data.summary || data.query}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
+      
     case 'consultation':
       message = `❓ *CONSULTA IMPORTANTE*\n` +
         `📋 *Para:* ${recipient}\n\n` +
@@ -1310,11 +1322,28 @@ async function sendToStaffIndividually(eventType, data, patientPhone) {
         `🤖 *Respuesta bot:* ${data.botResponse || 'Pendiente'}\n\n` +
         `💬 *Chat directo:* ${patientChatLink}`;
       break;
+      
+    default:
+      message = `📢 *NOTIFICACIÓN DEL CHATBOT*\n` +
+        `📋 *Para:* ${recipient}\n\n` +
+        `👤 *Cliente:* ${data.name || 'Sin identificar'}\n` +
+        `📱 *Teléfono:* ${patientPhone}\n` +
+        `📝 *Tipo:* ${eventType}\n` +
+        `📄 *Datos:* ${JSON.stringify(data, null, 2).substring(0, 200)}\n\n` +
+        `💬 *Chat directo:* ${patientChatLink}`;
+      break;
   }
 
   try {
     console.log(`📤 Enviando notificación a BIOSKIN (${recipient})...`);
     console.log(`📤 Mensaje a enviar: ${message.substring(0, 100)}...`);
+    
+    // ✅ VALIDACIÓN: Verificar que el mensaje no esté vacío
+    if (!message || message.trim().length === 0) {
+      console.error('❌ [CRÍTICO] Mensaje vacío detectado. EventType:', eventType);
+      console.error('❌ [CRÍTICO] Data recibida:', JSON.stringify(data, null, 2));
+      throw new Error(`No se generó mensaje para eventType: ${eventType}`);
+    }
     
     await sendWhatsAppMessage(BIOSKIN_NUMBER, message);
     

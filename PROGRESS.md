@@ -18,7 +18,13 @@
 - 🤖 **Entrenamiento específico**: Detecta problemas estéticos, consultas de precio, interés en tratamientos
 - 🤖 **Flujo médico**: skin_concern → treatment_interest → consultation_offer
 - 🤖 **needsConsultation flag**: Determina si requiere evaluación con Dra. Daniela
-- ✅ **Sistema completo**: Bot ahora tiene dos roles especializados con IA dedicada
+- 🤖 **Integración completa**: Clasificación dual en paralelo, enrutamiento por confianza (≥0.70), fallback a IA general
+- 🤖 **Priorización inteligente**: Sistema resuelve conflictos usando la IA con mayor confianza
+- 🤖 **Tracking analytics**: Eventos separados para medical_detected y technical_detected
+- 🔧 **Fix notificaciones**: Agregado caso 'technical_inquiry' en sistema de notificaciones
+- 🔧 **Validación mejorada**: Detecta mensajes vacíos y previene envíos fallidos
+- 🔧 **Logs adicionales**: Mejor trazabilidad de notificaciones WhatsApp al +593969890689
+- ✅ **Sistema completo**: Bot ahora tiene dos roles especializados con IA dedicada funcionando en producción
 
 ### ✅ **Nov 21, 2025: Sistema de URLs para Imágenes de Productos**
 - 🖼️ **URL dinámica**: Cada imagen tiene URL única con parámetro `?img=N`
