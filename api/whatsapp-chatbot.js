@@ -18,6 +18,12 @@ import {
   generateEngineerWhatsAppLink 
 } from '../lib/chatbot-technical-ai-service.js';
 import {
+  classifyMedical,
+  generateMedicalReply,
+  generateDoctorTransferSummary,
+  generateDoctorWhatsAppLink
+} from '../lib/chatbot-medical-ai-service.js';
+import {
   checkAvailability,
   getAvailableHours,
   createAppointment,
@@ -670,24 +676,28 @@ async function processWhatsAppMessage(body) {
     }
 
     // ============================================
-    // PASO 4.7: SISTEMA DE DETECCIÓN TÉCNICA CON IA
+    // PASO 4.7: SISTEMA DUAL DE IA ESPECIALIZADA (MÉDICO + TÉCNICO)
     // ============================================
-    console.log('🔧 Paso 4.7: Verificando si es consulta técnica...');
+    console.log('🧬 Paso 4.7: Verificando tipo de consulta (Médico-Estético vs Técnico)...');
     
     let technicalClassification = null;
-    let technicalResponse = null;
+    let medicalClassification = null;
+    let specializedResponse = null;
     let userConfirmsEngineerContact = false;
+    let userConfirmsDoctorContact = false;
     let userProvidingName = false;
     
-    // Detectar confirmación de contacto con departamento técnico
+    // Detectar confirmación de contacto con especialistas
     const lastBotMsg = updatedHistory.filter(m => m.role === 'assistant').pop()?.content || '';
     const botOfferedEngineerContact = /(departamento técnico|equipo técnico|nuestro técnico).*contacte/i.test(lastBotMsg);
+    const botOfferedDoctorContact = /(dra\.|doctora|daniela).*contacte/i.test(lastBotMsg);
     const botAskedForName = /por favor, indíqueme su nombre completo/i.test(lastBotMsg);
     
     userConfirmsEngineerContact = botOfferedEngineerContact && /^(si|sí|ok|dale|claro|por favor|quiero|me gustaría|confirmo|acepto)$/i.test(userMessage.trim());
+    userConfirmsDoctorContact = botOfferedDoctorContact && /^(si|sí|ok|dale|claro|por favor|quiero|me gustaría|confirmo|acepto)$/i.test(userMessage.trim());
     userProvidingName = botAskedForName && userMessage.trim().length > 3 && !/^(no|nada|otro|otra)/i.test(userMessage.trim());
     
-    // CASO 1: Usuario confirma que quiere contacto con departamento técnico
+    // CASO 1A: Usuario confirma que quiere contacto con departamento técnico
     if (userConfirmsEngineerContact) {
       console.log('✅ [Technical] Usuario CONFIRMÓ que quiere contacto con departamento técnico');
       
@@ -695,110 +705,223 @@ async function processWhatsAppMessage(body) {
       directResponse = `Perfecto 😊 Para que nuestro departamento técnico pueda contactarle adecuadamente, por favor indíqueme su nombre completo.`;
       skipAI = true;
     }
+    // CASO 1B: Usuario confirma que quiere contacto con doctora
+    else if (userConfirmsDoctorContact) {
+      console.log('✅ [Medical] Usuario CONFIRMÓ que quiere contacto con Dra. Daniela');
+      
+      // Solicitar nombre
+      directResponse = `Perfecto 😊 Para que la Dra. Daniela pueda contactarle adecuadamente, por favor indíqueme su nombre completo.`;
+      skipAI = true;
+    }
     // CASO 2: Usuario proporciona su nombre
     else if (userProvidingName) {
-      console.log('✅ [Technical] Usuario proporcionó nombre:', userMessage);
+      console.log('✅ Usuario proporcionó nombre:', userMessage);
       
       const userName = userMessage.trim();
       
-      // Generar resumen de la conversación
-      const engineerSummary = generateEngineerTransferSummary(
-        updatedHistory,
-        { subtype: 'technical_transfer', question: 'solicitud_contacto', confidence: 1.0 },
-        { productsFound: 0, productIds: [] }
-      );
+      // Determinar si es transferencia técnica o médica basado en historial
+      const isTechnicalTransfer = botOfferedEngineerContact;
+      const transferType = isTechnicalTransfer ? 'technical' : 'medical';
       
-      // Enviar notificación INTERNA a BIOSKIN
-      try {
-        console.log('📱 [Technical] Enviando notificación interna a BIOSKIN...');
+      console.log(`🔀 Tipo de transferencia: ${transferType}`);
+      
+      if (isTechnicalTransfer) {
+        // TRANSFERENCIA TÉCNICA
+        const engineerSummary = generateEngineerTransferSummary(
+          updatedHistory,
+          { subtype: 'technical_transfer', question: 'solicitud_contacto', confidence: 1.0 },
+          { productsFound: 0, productIds: [] }
+        );
         
-        const notificationResult = await notifyStaffGroup('technical_inquiry', {
-          name: userName,
-          reason: 'Solicitud de contacto con Departamento Técnico',
-          summary: engineerSummary,
-          query: updatedHistory.filter(m => m.role === 'user').slice(-4).map(m => m.content).join('\n\n')
-        }, from);
-        
-        if (notificationResult.success) {
-          console.log('✅ [Technical] Notificación enviada exitosamente a BIOSKIN');
+        try {
+          console.log('📱 [Technical] Enviando notificación interna a BIOSKIN...');
           
-          directResponse = `Perfecto, ${userName} 😊\n\nHe notificado a nuestro departamento técnico sobre su consulta. Se comunicarán con usted a este número (${from}) a la brevedad posible para coordinar la revisión de su equipo.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
-        } else {
-          console.error('❌ [Technical] Error enviando notificación:', notificationResult.error);
-          directResponse = `Gracias, ${userName} 😊\n\nHe registrado su solicitud. Nuestro departamento técnico se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
+          const notificationResult = await notifyStaffGroup('technical_inquiry', {
+            name: userName,
+            reason: 'Solicitud de contacto con Departamento Técnico',
+            summary: engineerSummary,
+            query: updatedHistory.filter(m => m.role === 'user').slice(-4).map(m => m.content).join('\n\n')
+          }, from);
+          
+          if (notificationResult.success) {
+            console.log('✅ [Technical] Notificación enviada exitosamente a BIOSKIN');
+            directResponse = `Perfecto, ${userName} 😊\n\nHe notificado a nuestro departamento técnico sobre su consulta. Se comunicarán con usted a este número (${from}) a la brevedad posible para coordinar la revisión de su equipo.\n\n¿Hay algo más en lo que pueda asistirle mientras tanto?`;
+          } else {
+            console.error('❌ [Technical] Error enviando notificación:', notificationResult.error);
+            directResponse = `Gracias, ${userName} 😊\n\nHe registrado su solicitud. Nuestro departamento técnico se comunicará con usted pronto al ${from}. ¿Hay algo más en lo que pueda ayudarle?`;
+          }
+        } catch (error) {
+          console.error('❌ [Technical] Error crítico en notificación:', error.message);
+          directResponse = `Gracias, ${userName} 😊\n\nSu solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
         }
-      } catch (error) {
-        console.error('❌ [Technical] Error crítico en notificación:', error.message);
-        directResponse = `Gracias, ${userName} 😊\n\nSu solicitud ha sido registrada. Nos comunicaremos con usted pronto. ¿Puedo ayudarle con algo más?`;
+      } else {
+        // TRANSFERENCIA MÉDICA
+        const doctorSummary = generateDoctorTransferSummary(
+          updatedHistory,
+          { subtype: 'medical_transfer', concern: 'solicitud_contacto', confidence: 1.0 },
+          { treatmentsFound: 0, treatmentIds: [] }
+        );
+        
+        // Generar link de WhatsApp para Dra. Daniela
+        const whatsappLink = generateDoctorWhatsAppLink(updatedHistory, userName);
+        
+        directResponse = `Perfecto, ${userName} 😊\n\nAquí está el enlace para contactar directamente con la Dra. Daniela:\n\n${whatsappLink}\n\nElla le brindará una atención personalizada y podrá resolver todas sus dudas sobre tratamientos estéticos ✨\n\n¿Hay algo más en lo que pueda asistirle?`;
+        
+        console.log('✅ [Medical] Link de WhatsApp generado para Dra. Daniela');
       }
       
       skipAI = true;
     }
     
     // Solo clasificar si NO estamos en flujo de agendamiento activo Y no es confirmación de contacto
-    if (!stateMachine.isActive() && !directResponse && !userConfirmsEngineerContact && !userProvidingName) {
+    if (!stateMachine.isActive() && !directResponse && !userConfirmsEngineerContact && !userConfirmsDoctorContact && !userProvidingName) {
       try {
-        // Clasificar mensaje con IA
-        technicalClassification = await classifyTechnical(userMessage, updatedHistory);
+        // 🔬 CLASIFICACIÓN DUAL EN PARALELO (Médico-Estético + Técnico)
+        console.log('🔄 Ejecutando clasificación dual en paralelo...');
         
-        console.log(`🔍 [Technical] Clasificación: ${technicalClassification.kind}/${technicalClassification.subtype} (${technicalClassification.confidence})`);
+        const [technicalResult, medicalResult] = await Promise.all([
+          classifyTechnical(userMessage, updatedHistory).catch(err => {
+            console.error('❌ Error en clasificación técnica:', err.message);
+            return { kind: 'general', confidence: 0, subtype: 'error' };
+          }),
+          classifyMedical(userMessage, updatedHistory).catch(err => {
+            console.error('❌ Error en clasificación médica:', err.message);
+            return { kind: 'general', confidence: 0, subtype: 'error' };
+          })
+        ]);
         
-        // Si es técnico con alta confianza, generar respuesta especializada
-        if (technicalClassification.kind === 'technical' && technicalClassification.confidence >= 0.65) {
+        technicalClassification = technicalResult;
+        medicalClassification = medicalResult;
+        
+        console.log(`🔍 [Technical] ${technicalClassification.kind}/${technicalClassification.subtype} (${technicalClassification.confidence.toFixed(2)})`);
+        console.log(`🔍 [Medical] ${medicalClassification.kind}/${medicalClassification.subtype} (${medicalClassification.confidence.toFixed(2)})`);
+        
+        // 🎯 DECISIÓN DE ENRUTAMIENTO BASADA EN CONFIANZA
+        const CONFIDENCE_THRESHOLD = 0.70;
+        const isTechnical = technicalClassification.kind === 'technical' && technicalClassification.confidence >= CONFIDENCE_THRESHOLD;
+        const isMedical = medicalClassification.kind === 'medical' && medicalClassification.confidence >= CONFIDENCE_THRESHOLD;
+        
+        // CASO 1: Ambos sistemas detectan alta confianza (conflicto) - usar el de mayor confianza
+        if (isTechnical && isMedical) {
+          console.log('⚠️ [Dual AI] Ambos sistemas detectaron alta confianza, usando el mayor...');
+          
+          if (technicalClassification.confidence > medicalClassification.confidence) {
+            console.log(`✅ [Dual AI] Priorizando TÉCNICO (${technicalClassification.confidence.toFixed(2)} > ${medicalClassification.confidence.toFixed(2)})`);
+            specializedResponse = await generateTechnicalReply(technicalClassification, updatedHistory);
+            
+            await withFallback(
+              () => saveTrackingEvent(sessionId, 'technical_detected', {
+                classification: technicalClassification.subtype,
+                confidence: technicalClassification.confidence,
+                medicalConfidence: medicalClassification.confidence,
+                conflict: true
+              }),
+              () => FallbackStorage.saveEvent(sessionId, 'technical_detected', { subtype: technicalClassification.subtype }),
+              'Guardar tracking técnico'
+            );
+          } else {
+            console.log(`✅ [Dual AI] Priorizando MÉDICO (${medicalClassification.confidence.toFixed(2)} > ${technicalClassification.confidence.toFixed(2)})`);
+            specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory);
+            
+            await withFallback(
+              () => saveTrackingEvent(sessionId, 'medical_detected', {
+                classification: medicalClassification.subtype,
+                confidence: medicalClassification.confidence,
+                technicalConfidence: technicalClassification.confidence,
+                conflict: true
+              }),
+              () => FallbackStorage.saveEvent(sessionId, 'medical_detected', { subtype: medicalClassification.subtype }),
+              'Guardar tracking médico'
+            );
+          }
+        }
+        // CASO 2: Solo técnico tiene alta confianza
+        else if (isTechnical) {
           console.log('✅ [Technical] Consulta técnica detectada, generando respuesta especializada...');
           
-          // Generar respuesta técnica con IA + contexto de productos
-          technicalResponse = await generateTechnicalReply(technicalClassification, updatedHistory);
+          specializedResponse = await generateTechnicalReply(technicalClassification, updatedHistory);
           
-          console.log(`✅ [Technical] Respuesta generada: ${technicalResponse.responseText.substring(0, 60)}...`);
-          console.log(`🎯 [Technical] Acciones sugeridas: ${technicalResponse.suggestedActions.join(', ')}`);
+          console.log(`✅ [Technical] Respuesta generada: ${specializedResponse.responseText.substring(0, 60)}...`);
+          console.log(`🎯 [Technical] Acciones sugeridas: ${specializedResponse.suggestedActions.join(', ')}`);
           
-          // Guardar evento de tracking
           await withFallback(
             () => saveTrackingEvent(sessionId, 'technical_detected', {
               classification: technicalClassification.subtype,
               confidence: technicalClassification.confidence,
-              productsFound: technicalResponse.meta.productsFound,
-              suggestedActions: technicalResponse.suggestedActions
+              productsFound: specializedResponse.meta.productsFound,
+              suggestedActions: specializedResponse.suggestedActions
             }),
             () => FallbackStorage.saveEvent(sessionId, 'technical_detected', { subtype: technicalClassification.subtype }),
             'Guardar tracking técnico'
           );
           
-          // ⚠️ SOLO ofrecer contacto con departamento técnico cuando sea ESTRICTAMENTE necesario
-          // Contar mensajes técnicos previos del usuario
+          // Contar mensajes técnicos previos
           const technicalMessagesCount = updatedHistory.filter(msg => 
             msg.role === 'user' && 
             (/(equipo|dispositivo|aparato|hifu|laser|ipl|yag|co2|analizador)/i.test(msg.content))
           ).length;
           
-          // Detectar si usuario pide contacto directo explícitamente
           const userRequestsContact = /(hablar|contactar|comunicar|llamar|técnico|especialista|que me contacte|quiero hablar|necesito ayuda)/i.test(userMessage);
-          
-          // Solo OFRECER contacto (sin link directo) si:
-          // 1. Usuario pide explícitamente contacto, O
-          // 2. Es problema complejo de garantía/reparación, O
-          // 3. Más de 3 preguntas técnicas sin resolver
           const shouldOfferContact = userRequestsContact || 
                                     (technicalClassification.subtype === 'warranty' && technicalMessagesCount > 1) ||
                                     (technicalMessagesCount > 3);
           
-          if (technicalResponse.suggestedActions.includes('transfer_engineer') && shouldOfferContact) {
-            // SOLO preguntar, NO enviar link directamente
-            technicalResponse.responseText += `\n\n¿Le gustaría que nuestro departamento técnico le contacte directamente para resolver esta consulta? 🔧`;
-            
+          if (specializedResponse.suggestedActions.includes('transfer_engineer') && shouldOfferContact) {
+            specializedResponse.responseText += `\n\n¿Le gustaría que nuestro departamento técnico le contacte directamente para resolver esta consulta? 🔧`;
             console.log(`📞 [Technical] Ofreciendo contacto con departamento técnico (${technicalMessagesCount} msgs técnicos)`);
           }
-          
-          // Usar respuesta técnica como directResponse
-          directResponse = technicalResponse.responseText;
-          skipAI = true; // No usar IA general
-          
-          console.log('✅ [Technical] Respuesta técnica establecida como directResponse');
         }
+        // CASO 3: Solo médico tiene alta confianza
+        else if (isMedical) {
+          console.log('✅ [Medical] Consulta médico-estética detectada, generando respuesta especializada...');
+          
+          specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory);
+          
+          console.log(`✅ [Medical] Respuesta generada: ${specializedResponse.responseText.substring(0, 60)}...`);
+          console.log(`🎯 [Medical] Acciones sugeridas: ${specializedResponse.suggestedActions.join(', ')}`);
+          
+          await withFallback(
+            () => saveTrackingEvent(sessionId, 'medical_detected', {
+              classification: medicalClassification.subtype,
+              confidence: medicalClassification.confidence,
+              treatmentsFound: specializedResponse.meta.treatmentsFound,
+              suggestedActions: specializedResponse.suggestedActions
+            }),
+            () => FallbackStorage.saveEvent(sessionId, 'medical_detected', { subtype: medicalClassification.subtype }),
+            'Guardar tracking médico'
+          );
+          
+          // Contar mensajes sobre tratamientos previos
+          const medicalMessagesCount = updatedHistory.filter(msg => 
+            msg.role === 'user' && 
+            (/(tratamiento|manchas|arrugas|acné|piel|rostro|rejuvenec|lifting|botox|relleno)/i.test(msg.content))
+          ).length;
+          
+          const userRequestsContact = /(hablar|contactar|comunicar|llamar|doctora|dra|especialista|que me contacte|quiero hablar|necesito consulta)/i.test(userMessage);
+          const shouldOfferContact = userRequestsContact || 
+                                    (medicalClassification.subtype === 'skin_concern' && medicalMessagesCount > 2) ||
+                                    (medicalMessagesCount > 4);
+          
+          if (specializedResponse.suggestedActions.includes('transfer_doctor') && shouldOfferContact) {
+            specializedResponse.responseText += `\n\n¿Le gustaría que la Dra. Daniela le contacte directamente para una evaluación personalizada? 👩‍⚕️✨`;
+            console.log(`📞 [Medical] Ofreciendo contacto con Dra. Daniela (${medicalMessagesCount} msgs médicos)`);
+          }
+        }
+        // CASO 4: Ninguno tiene alta confianza - continuar con IA general
+        else {
+          console.log(`ℹ️ [Dual AI] Ambas confianzas bajas (T:${technicalClassification.confidence.toFixed(2)}, M:${medicalClassification.confidence.toFixed(2)}), usando IA general`);
+        }
+        
+        // Si se generó respuesta especializada, usarla
+        if (specializedResponse) {
+          directResponse = specializedResponse.responseText;
+          skipAI = true;
+          console.log('✅ [Dual AI] Respuesta especializada establecida como directResponse');
+        }
+        
       } catch (error) {
-        console.error('❌ [Technical] Error en clasificación/generación técnica:', error.message);
-        // Continuar con flujo normal si falla el sistema técnico
+        console.error('❌ [Dual AI] Error en sistema de clasificación dual:', error.message);
+        // Continuar con flujo normal si falla el sistema dual
       }
     }
 
@@ -927,7 +1050,7 @@ async function processWhatsAppMessage(body) {
     // Guardar respuesta del asistente (con fallback)
     console.log('💾 Paso 6: Guardando respuesta del asistente...');
     
-    // 🔍 DETECTAR SI SE DEBE TRANSFERIR A LA DOCTORA
+    // 🔍 DETECTAR SI SE DEBE TRANSFERIR A LA DOCTORA (ambos sistemas de IA)
     const shouldTransfer = chatbotAI.detectIntent(userMessage) === 'transfer_doctor' ||
                           aiResult.response?.includes('[TRANSFER_TO_DOCTOR]') ||
                           (userMessage.toLowerCase().includes('sí') && 
@@ -939,8 +1062,10 @@ async function processWhatsAppMessage(body) {
     if (shouldTransfer) {
       console.log('📞 Transferencia a Dra. Daniela solicitada');
       
-      // Generar link de WhatsApp con resumen
-      const whatsappLink = chatbotAI.generateDoctorWhatsAppLink(updatedHistory);
+      // Generar link de WhatsApp con resumen (usar función del sistema médico si está disponible)
+      const whatsappLink = typeof generateDoctorWhatsAppLink === 'function' 
+        ? generateDoctorWhatsAppLink(updatedHistory)
+        : chatbotAI.generateDoctorWhatsAppLink(updatedHistory);
       
       // Reemplazar [TRANSFER_TO_DOCTOR] o agregar al final
       if (finalResponse.includes('[TRANSFER_TO_DOCTOR]')) {
