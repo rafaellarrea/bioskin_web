@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 22, 2025: Sistema Dual de IA Especializada - Médico + Técnico**
+- 🤖 **Archivo nuevo**: `lib/chatbot-medical-ai-service.js` creado
+- 🤖 **Clasificador médico**: Few-shot learning con 13 ejemplos médico-estéticos
+- 🤖 **Clasificador técnico**: Few-shot learning con 11 ejemplos técnicos
+- 🤖 **Dos especializaciones**: Medicina estética (tratamientos) vs Equipos (técnico)
+- 🤖 **Entrenamiento específico**: Detecta problemas estéticos, consultas de precio, interés en tratamientos
+- 🤖 **Flujo médico**: skin_concern → treatment_interest → consultation_offer
+- 🤖 **needsConsultation flag**: Determina si requiere evaluación con Dra. Daniela
+- ✅ **Sistema completo**: Bot ahora tiene dos roles especializados con IA dedicada
+
 ### ✅ **Nov 21, 2025: Sistema de URLs para Imágenes de Productos**
 - 🖼️ **URL dinámica**: Cada imagen tiene URL única con parámetro `?img=N`
 - 🖼️ **Compartir imagen**: Botón para copiar URL de imagen específica al portapapeles
