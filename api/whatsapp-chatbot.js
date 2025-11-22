@@ -23,6 +23,7 @@ import {
   generateDoctorTransferSummary,
   generateDoctorWhatsAppLink
 } from '../lib/chatbot-medical-ai-service.js';
+import { findServiceByKeyword as findTreatmentByKeyword } from '../lib/services-adapter.js';
 import {
   checkAvailability,
   getAvailableHours,
@@ -43,6 +44,150 @@ let useFallback = false; // ✅ Intentar Neon primero, fallback automático si f
 
 // Flag para DESACTIVAR OpenAI temporalmente (debug)
 const DISABLE_OPENAI = false; // ✅ OpenAI ACTIVADO - Sistema funcionando correctamente
+
+// ========================================
+// HELPERS PARA SISTEMA DE OPCIONES
+// ========================================
+
+/**
+ * Almacenamiento en memoria para últimas preguntas del bot (temporal)
+ * Estructura: { sessionId: { id, options, timestamp, expiresAt, type } }
+ */
+const lastBotQuestions = new Map();
+
+/**
+ * Guarda la última pregunta con opciones del bot
+ * @param {string} sessionId - ID de la sesión
+ * @param {Object} questionData - { id, options, timestamp, expiresAt, type }
+ */
+async function saveLastBotQuestion(sessionId, questionData) {
+  console.log(`💾 [Options] Guardando pregunta: ${questionData.id} (${questionData.options?.length || 0} opciones)`);
+  
+  // Guardar en memoria
+  lastBotQuestions.set(sessionId, {
+    ...questionData,
+    timestamp: questionData.timestamp || Date.now()
+  });
+  
+  // Intentar guardar en DB para persistencia
+  try {
+    await saveTrackingEvent(sessionId, 'last_question', {
+      questionId: questionData.id,
+      optionsCount: questionData.options?.length || 0,
+      expiresAt: questionData.expiresAt,
+      type: questionData.type || 'medical'
+    });
+    console.log(`✅ [Options] Pregunta guardada en tracking`);
+  } catch (error) {
+    console.warn(`⚠️ [Options] No se pudo guardar en DB (no crítico):`, error.message);
+  }
+}
+
+/**
+ * Recupera la última pregunta con opciones del bot
+ * @param {string} sessionId - ID de la sesión
+ * @returns {Object|null} questionData o null si no existe o expiró
+ */
+function getLastBotQuestion(sessionId) {
+  const question = lastBotQuestions.get(sessionId);
+  
+  if (!question) {
+    console.log(`ℹ️ [Options] No hay pregunta guardada para ${sessionId}`);
+    return null;
+  }
+  
+  // Verificar expiración
+  const now = Date.now();
+  const expiresAtMs = new Date(question.expiresAt).getTime();
+  
+  if (now > expiresAtMs) {
+    console.log(`⏰ [Options] Pregunta expirada (${Math.floor((now - expiresAtMs) / 1000 / 60)} min atrás)`);
+    lastBotQuestions.delete(sessionId);
+    return null;
+  }
+  
+  console.log(`✅ [Options] Pregunta recuperada: ${question.id} (${question.options?.length || 0} opciones)`);
+  return question;
+}
+
+/**
+ * Parsea la respuesta del usuario intentando matchear con opciones
+ * Soporta múltiples formatos: "1", "opción 1", "la 1", "uno", "primera", "1️⃣"
+ * 
+ * @param {string} userMessage - Mensaje del usuario
+ * @param {Object} lastBotQuestion - Última pregunta con opciones
+ * @returns {Object} { matched: boolean, optionId: string|null, confidence: number, option: Object|null }
+ */
+function parseOptionReply(userMessage, lastBotQuestion) {
+  if (!lastBotQuestion || !lastBotQuestion.options || lastBotQuestion.options.length === 0) {
+    return { matched: false, optionId: null, confidence: 0, option: null };
+  }
+  
+  console.log(`🔍 [Options] Parseando respuesta: \"${userMessage}\"`);
+  console.log(`🔍 [Options] Opciones disponibles: ${lastBotQuestion.options.map(o => o.id).join(', ')}`);
+  
+  // Normalizar mensaje
+  const normalized = userMessage
+    .toLowerCase()
+    .trim()
+    .replace(/[1-9]️⃣/g, match => match[0]) // Emoji digits → números
+    .replace(/[^\w\sáéíóúñ]/g, ''); // Remover puntuación
+  
+  console.log(`🔍 [Options] Mensaje normalizado: \"${normalized}\"`);
+  
+  // PRIORIDAD 1: Match exacto numérico (1, 2, 3)
+  const exactNumericMatch = normalized.match(/^(\d)$/);
+  if (exactNumericMatch) {
+    const optionId = exactNumericMatch[1];
+    const option = lastBotQuestion.options.find(opt => opt.id === optionId);
+    if (option) {
+      console.log(`✅ [Options] Match EXACTO numérico: opción ${optionId}`);
+      return { matched: true, optionId, confidence: 1.0, option };
+    }
+  }
+  
+  // PRIORIDAD 2: "opción 1", "opcion 1", "la 1", "numero 1"
+  const optionPatternMatch = normalized.match(/(?:opci[oó]n|la|n[uú]mero|respuesta)\s*(\d)/);
+  if (optionPatternMatch) {
+    const optionId = optionPatternMatch[1];
+    const option = lastBotQuestion.options.find(opt => opt.id === optionId);
+    if (option) {
+      console.log(`✅ [Options] Match PATRÓN: opción ${optionId}`);
+      return { matched: true, optionId, confidence: 0.95, option };
+    }
+  }
+  
+  // PRIORIDAD 3: Palabras numéricas (uno, dos, tres)
+  const wordToNumber = {
+    'uno': '1', 'una': '1', 'primero': '1', 'primera': '1',
+    'dos': '2', 'segundo': '2', 'segunda': '2',
+    'tres': '3', 'tercero': '3', 'tercera': '3'
+  };
+  
+  for (const [word, number] of Object.entries(wordToNumber)) {
+    if (normalized === word || normalized.includes(` ${word} `) || normalized.startsWith(`${word} `) || normalized.endsWith(` ${word}`)) {
+      const option = lastBotQuestion.options.find(opt => opt.id === number);
+      if (option) {
+        console.log(`✅ [Options] Match PALABRA: \"${word}\" → opción ${number}`);
+        return { matched: true, optionId: number, confidence: 0.90, option };
+      }
+    }
+  }
+  
+  // PRIORIDAD 4: Match fuzzy por label de la opción
+  for (const opt of lastBotQuestion.options) {
+    const labelWords = opt.label.toLowerCase().split(/\s+/);
+    const matchingWords = labelWords.filter(word => normalized.includes(word));
+    
+    if (matchingWords.length >= 2 || (matchingWords.length === 1 && labelWords.length <= 2)) {
+      console.log(`✅ [Options] Match FUZZY: label \"${opt.label}\" (palabras: ${matchingWords.join(', ')})`);
+      return { matched: true, optionId: opt.id, confidence: 0.75, option: opt };
+    }
+  }
+  
+  console.log(`❌ [Options] No se encontró match`);
+  return { matched: false, optionId: null, confidence: 0, option: null };
+}
 
 /**
  * Obtiene el saludo apropiado según la hora de Ecuador
@@ -511,6 +656,147 @@ async function processWhatsAppMessage(body) {
     console.log(`✅ Historial actualizado: ${updatedHistory.length} mensajes`);
 
     // ============================================
+    // PASO 4.3: SISTEMA DE OPCIONES Y RECONOCIMIENTO NUMÉRICO
+    // ============================================
+    console.log('🔢 Paso 4.3: Verificando si responde a opciones previas...');
+    
+    const lastBotQuestion = getLastBotQuestion(sessionId);
+    
+    if (lastBotQuestion) {
+      console.log(`✅ [Options] Última pregunta encontrada: ${lastBotQuestion.id}`);
+      
+      const parseResult = parseOptionReply(userMessage, lastBotQuestion);
+      
+      if (parseResult.matched) {
+        console.log(`✅ [Options] Match encontrado: opción ${parseResult.optionId} (confidence: ${parseResult.confidence})`);
+        
+        // Guardar evento de tracking
+        try {
+          await saveTrackingEvent(sessionId, 'option_chosen', {
+            questionId: lastBotQuestion.id,
+            optionId: parseResult.optionId,
+            optionLabel: parseResult.option.label,
+            parseConfidence: parseResult.confidence,
+            rawMessage: userMessage
+          });
+          console.log(`✅ [Options] Evento option_chosen guardado`);
+        } catch (trackError) {
+          console.warn(`⚠️ [Options] No se pudo guardar tracking (no crítico):`, trackError.message);
+        }
+        
+        // Ejecutar acción según la opción elegida
+        const action = parseResult.option.action;
+        const payload = parseResult.option.payload;
+        
+        console.log(`🎯 [Options] Ejecutando acción: ${action}`);
+        
+        // Variable para respuesta directa
+        let directResponse = null;
+        let skipAI = true; // Bypass IA cuando se ejecuta acción de opción
+        
+        if (action === 'book_treatment') {
+          console.log(`📅 [Options] Acción: Agendar tratamiento ${payload.treatmentId}`);
+          
+          // Verificar que stateMachine esté en IDLE antes de iniciar
+          const stateMachine = getStateMachine(sessionId, from);
+          
+          if (stateMachine.state === APPOINTMENT_STATES.IDLE) {
+            const result = stateMachine.start(from, {
+              treatmentId: payload.treatmentId || payload.treatmentName,
+              contextQuestionId: lastBotQuestion.id,
+              treatmentPrice: payload.treatmentPrice,
+              consultationIncluded: true
+            });
+            directResponse = result.message;
+            saveStateMachine(sessionId, stateMachine);
+            
+            // Limpiar pregunta procesada
+            lastBotQuestions.delete(sessionId);
+          } else {
+            directResponse = `Ya hay un proceso de agendamiento activo. ¿Desea cancelarlo y empezar uno nuevo?`;
+          }
+        }
+        else if (action === 'more_info') {
+          console.log(`ℹ️ [Options] Acción: Más información sobre ${payload.treatmentId}`);
+          
+          // Buscar tratamiento y devolver más detalles
+          const treatment = findServiceByKeyword(payload.treatmentId);
+          
+          if (treatment) {
+            directResponse = `📋 *${treatment.title}*\n\n`;
+            directResponse += `${treatment.description}\n\n`;
+            directResponse += `💰 Inversión: ${treatment.price}\n`;
+            directResponse += `⏱️ Duración: ${treatment.duration}\n\n`;
+            directResponse += `¿Le gustaría agendar una cita o tiene alguna otra consulta?`;
+          } else {
+            directResponse = `Lo siento, no encontré información adicional sobre ese tratamiento. ¿Puedo ayudarle con algo más?`;
+          }
+          
+          // Limpiar pregunta procesada
+          lastBotQuestions.delete(sessionId);
+        }
+        else if (action === 'transfer_doctor') {
+          console.log(`👩‍⚕️ [Options] Acción: Transferir a Dra. Daniela`);
+          
+          // Generar link de WhatsApp con contexto
+          const whatsappLink = generateDoctorWhatsAppLink(
+            updatedHistory,
+            { isTechnical: false, patientName: null }
+          );
+          
+          directResponse = `Perfecto. Aquí está el enlace para contactar directamente con la Dra. Daniela:\n\n${whatsappLink}\n\nElla le brindará una atención personalizada 😊`;
+          
+          // Limpiar pregunta procesada
+          lastBotQuestions.delete(sessionId);
+        }
+        
+        // Si hay respuesta directa, usarla y saltear el resto del flujo
+        if (directResponse) {
+          console.log(`✅ [Options] Respuesta directa generada: "${directResponse.substring(0, 60)}..."`);
+          
+          // Guardar respuesta y enviar
+          await withFallback(
+            () => saveMessage(sessionId, 'assistant', directResponse, 0),
+            () => FallbackStorage.saveMessage(sessionId, 'assistant', directResponse, 0),
+            'Guardar respuesta directa'
+          );
+          
+          await sendWhatsAppMessage(from, directResponse);
+          console.log('✅ Mensaje enviado (opción procesada)');
+          return;
+        }
+      } else {
+        // No coincidió - posible respuesta fuera de contexto
+        console.log(`❌ [Options] No match encontrado para mensaje: "${userMessage}"`);
+        
+        // Si la respuesta parece fuera de contexto, clarificar con IA
+        const seemsOffContext = userMessage.length < 30 && 
+                               !/^(hola|buenos|gracias|no)/i.test(userMessage);
+        
+        if (seemsOffContext) {
+          console.log(`🤔 [Options] Respuesta parece fuera de contexto, clarificando...`);
+          
+          const clarificationText = `Disculpe, no entendí. Estaba preguntándole sobre:\n\n` +
+            lastBotQuestion.options.map((opt, idx) => `${opt.id}. ${opt.label}`).join('\n') +
+            `\n\n¿Podría responder con el número de su opción preferida?`;
+          
+          // Enviar clarificación sin pasar por el resto del flujo
+          await withFallback(
+            () => saveMessage(sessionId, 'assistant', clarificationText, 0),
+            () => FallbackStorage.saveMessage(sessionId, 'assistant', clarificationText, 0),
+            'Guardar clarificación'
+          );
+          
+          await sendWhatsAppMessage(from, clarificationText);
+          console.log('✅ Clarificación enviada');
+          return;
+        }
+      }
+    } else {
+      console.log(`ℹ️ [Options] No hay pregunta previa guardada`);
+    }
+
+    // ============================================
     // PASO 4.5: SISTEMA DE MÁQUINA DE ESTADOS PARA AGENDAMIENTO
     // ============================================
     console.log('📅 Paso 4.5: Verificando estado de agendamiento...');
@@ -919,6 +1205,21 @@ async function processWhatsAppMessage(body) {
           directResponse = specializedResponse.responseText;
           skipAI = true;
           console.log('✅ [Dual AI] Respuesta especializada establecida como directResponse');
+          
+          // Si la respuesta médica incluye opciones, guardarlas
+          if (specializedResponse.options && specializedResponse.options.length > 0) {
+            console.log(`🔢 [Options] Respuesta con ${specializedResponse.options.length} opciones detectada`);
+            
+            await saveLastBotQuestion(sessionId, {
+              id: specializedResponse.lastQuestionId,
+              options: specializedResponse.options,
+              timestamp: Date.now(),
+              expiresAt: specializedResponse.expiresAt,
+              type: isMedical ? 'medical' : 'technical'
+            });
+            
+            console.log(`✅ [Options] Pregunta guardada para reconocimiento posterior`);
+          }
         }
         
       } catch (error) {
