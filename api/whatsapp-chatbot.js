@@ -842,21 +842,28 @@ async function processWhatsAppMessage(body) {
       // Detectar si el usuario está respondiendo a la pregunta "¿Cuál prefieres?"
       const lastBotMsg = updatedHistory.filter(m => m.role === 'assistant').pop()?.content || '';
       const botOfferedOptions = lastBotMsg.includes('Puedo ayudarte de dos formas') || 
-                                lastBotMsg.includes('¿Cuál prefieres?');
+                                lastBotMsg.includes('¿Cuál prefieres?') ||
+                                lastBotMsg.includes('Te ayudo aquí mismo') ||
+                                lastBotMsg.includes('reviso horarios disponibles');
       
       if (botOfferedOptions) {
-        const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist/i.test(userMessage);
-        const wantsLink = /opci[óo]n\s*1|la\s*1|link|directo|solo|dame/i.test(userMessage);
+        // 🔥 DETECCIÓN AGRESIVA: Capturar "2" o cualquier indicación de opción 2
+        const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist|^2$|^\s*2\s*$/i.test(userMessage);
+        const wantsLink = /opci[óo]n\s*1|la\s*1|link|directo|solo|dame|^1$|^\s*1\s*$/i.test(userMessage);
         
         console.log(`🔍 [StateMachine] Bot ofreció opciones, usuario respondió: guidance=${wantsGuidance}, link=${wantsLink}`);
+        console.log(`🔍 [StateMachine] Mensaje exacto: "${userMessage}"`);
+        console.log(`🔍 [StateMachine] Último mensaje del bot: "${lastBotMsg.substring(0, 100)}..."`);
         
         if (wantsGuidance) {
-          console.log('✅ [StateMachine] Usuario eligió guía paso a paso');
+          console.log('✅ [StateMachine] Usuario eligió guía paso a paso - ACTIVANDO MÁQUINA DE ESTADOS');
+          skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
           const result = stateMachine.start(from);
           directResponse = result.message;
           saveStateMachine(sessionId, stateMachine);
         } else if (wantsLink) {
           console.log('✅ [StateMachine] Usuario eligió link directo');
+          skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
           directResponse = `Perfecto, aquí está el link para agendar:\n\n${APPOINTMENT_LINK}\n\n¡Te esperamos! 😊`;
         }
       }
