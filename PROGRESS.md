@@ -10,6 +10,18 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: IA Inteligente con Contexto Completo de Servicios**
+- 🤖 **Catálogo completo**: IA tiene acceso a 19 servicios con todos los detalles (precio, duración, beneficios)
+- 🤖 **Respuestas diferenciadas**: Comportamiento inteligente según tipo de consulta
+- 🤖 **Consulta general**: Lista de nombres sin precios → "¿Cuál le interesa conocer en detalle?"
+- 🤖 **Consulta específica**: Detalles completos con precio, duración, beneficios → "¿Le gustaría agendar?"
+- 🤖 **Tratamiento no disponible**: Respuesta honesta + sugerencia de alternativas similares
+- 🤖 **Instrucciones detalladas**: Ejemplos concretos de respuestas esperadas en system prompt
+- 🤖 **Aumento tokens**: max_tokens de 200 → 350 para respuestas detalladas
+- 🔧 **Detección agendamiento**: Más palabras clave (agenda, reserva, appointment, book)
+- 📄 **Documentación**: CHATBOT-IA-INTELIGENTE.md con ejemplos y flujos completos
+- ✅ **Sistema completo**: IA responde contextualmente y ofrece agendamiento cuando apropiado
+
 ### ✅ **Nov 22, 2025: Sistema Dual de IA Especializada - Médico + Técnico**
 - 🤖 **Archivo nuevo**: `lib/chatbot-medical-ai-service.js` creado
 - 🤖 **Clasificador médico**: Few-shot learning con 13 ejemplos médico-estéticos
