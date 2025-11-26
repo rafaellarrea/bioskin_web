@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Máquina de Estados - Pregunta Abierta de Tratamiento**
+- 📋 **Pregunta mejorada**: Cambió "¿Qué tratamiento deseas? Ejemplos: ..." a pregunta abierta
+- ✅ **Texto simplificado**: "¿Qué tratamiento o servicio le gustaría agendar?"
+- 🔓 **Sin restricciones**: Acepta CUALQUIER texto como tratamiento válido (mínimo 3 caracteres)
+- 🔧 **Validación eliminada**: Ya no rechaza tratamientos no encontrados en catálogo
+- ✅ **UX mejorada**: Usuario puede escribir tratamiento en sus propias palabras
+
 ### ✅ **Nov 26, 2025: Fix Crítico - Agendamiento Real Funcional**
 - 🔧 **Import faltante**: Agregado `getAllServices` a `chatbot-medical-ai-service.js`
 - 🚨 **Prioridad máquina**: Dual AI ahora respeta `skipAI` flag completamente
