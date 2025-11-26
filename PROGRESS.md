@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Sistema de Promociones Unificado con Validación Automática**
+- 🎁 **Promociones en services.json**: BLACK WEEK integrada para Hollywood Peel, Microneedling, HIFU 7D
+- 📅 **Validación de fechas**: Sistema verifica automáticamente si promoción está activa (validFrom - validUntil)
+- 🤖 **IA consciente de promos**: Medical AI recibe contexto completo de promociones activas
+- 💰 **Respuesta priorizada**: Al preguntar precio, IA menciona promoción PRIMERO si está activa
+- 📋 **Estructura completa**: name, originalPrice, promoPrice, discount, savings, validFrom/Until, terms, displayMessage
+- ✅ **Respuesta directa mejorada**: price_inquiry también verifica y muestra promociones antes de precio regular
+- 🎯 **Ejemplo formato**: "🎉 BLACK WEEK: 1x$35 o 2x$55 ¡Ahorra $15! (Válida hasta 01/12/2025)"
+
 ### ✅ **Nov 26, 2025: Búsqueda Inteligente de Servicios con Normalización**
 - 🔍 **Normalización de texto**: Elimina guiones, acentos y espacios extra en búsquedas
 - ✅ **Variantes aceptadas**: "anti-aging", "antiaging", "anti aging" → mismo resultado
