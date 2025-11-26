@@ -1179,36 +1179,56 @@ async function processWhatsAppMessage(body) {
         else if (isMedical) {
           console.log('✅ [Medical] Consulta médico-estética detectada, generando respuesta especializada...');
           
-          specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory);
-          
-          console.log(`✅ [Medical] Respuesta generada: ${specializedResponse.responseText.substring(0, 60)}...`);
-          console.log(`🎯 [Medical] Acciones sugeridas: ${specializedResponse.suggestedActions.join(', ')}`);
-          
-          await withFallback(
-            () => saveTrackingEvent(sessionId, 'medical_detected', {
-              classification: medicalClassification.subtype,
-              confidence: medicalClassification.confidence,
-              treatmentsFound: specializedResponse.meta.treatmentsFound,
-              suggestedActions: specializedResponse.suggestedActions
-            }),
-            () => FallbackStorage.saveEvent(sessionId, 'medical_detected', { subtype: medicalClassification.subtype }),
-            'Guardar tracking médico'
-          );
-          
-          // Contar mensajes sobre tratamientos previos
-          const medicalMessagesCount = updatedHistory.filter(msg => 
-            msg.role === 'user' && 
-            (/(tratamiento|manchas|arrugas|acné|piel|rostro|rejuvenec|lifting|botox|relleno)/i.test(msg.content))
-          ).length;
-          
-          const userRequestsContact = /(hablar|contactar|comunicar|llamar|doctora|dra|especialista|que me contacte|quiero hablar|necesito consulta)/i.test(userMessage);
-          const shouldOfferContact = userRequestsContact || 
-                                    (medicalClassification.subtype === 'skin_concern' && medicalMessagesCount > 2) ||
-                                    (medicalMessagesCount > 4);
-          
-          if (specializedResponse.suggestedActions.includes('transfer_doctor') && shouldOfferContact) {
-            specializedResponse.responseText += `\n\n¿Le gustaría que la Dra. Daniela le contacte directamente para una evaluación personalizada? 👩‍⚕️✨`;
-            console.log(`📞 [Medical] Ofreciendo contacto con Dra. Daniela (${medicalMessagesCount} msgs médicos)`);
+          // 🚨 CRÍTICO: Si es solicitud de agendamiento, activar máquina de estados directamente
+          if (medicalClassification.subtype === 'appointment_request') {
+            console.log('🚨 [URGENT] appointment_request detectado - ACTIVANDO MÁQUINA DE ESTADOS');
+            skipAI = true; // ⚠️ CRÍTICO: Evitar generación de IA
+            const result = stateMachine.start(from);
+            directResponse = result.message;
+            saveStateMachine(sessionId, stateMachine);
+            
+            await withFallback(
+              () => saveTrackingEvent(sessionId, 'appointment_started', {
+                classification: 'appointment_request',
+                confidence: medicalClassification.confidence,
+                source: 'dual_ai_medical'
+              }),
+              () => FallbackStorage.saveEvent(sessionId, 'appointment_started', { subtype: 'appointment_request' }),
+              'Guardar tracking de inicio de agendamiento'
+            );
+          } else {
+            // Procesar normalmente otros tipos de consultas médicas
+            specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory);
+            
+            console.log(`✅ [Medical] Respuesta generada: ${specializedResponse.responseText.substring(0, 60)}...`);
+            console.log(`🎯 [Medical] Acciones sugeridas: ${specializedResponse.suggestedActions.join(', ')}`);
+            
+            await withFallback(
+              () => saveTrackingEvent(sessionId, 'medical_detected', {
+                classification: medicalClassification.subtype,
+                confidence: medicalClassification.confidence,
+                treatmentsFound: specializedResponse.meta.treatmentsFound,
+                suggestedActions: specializedResponse.suggestedActions
+              }),
+              () => FallbackStorage.saveEvent(sessionId, 'medical_detected', { subtype: medicalClassification.subtype }),
+              'Guardar tracking médico'
+            );
+            
+            // Contar mensajes sobre tratamientos previos
+            const medicalMessagesCount = updatedHistory.filter(msg => 
+              msg.role === 'user' && 
+              (/(tratamiento|manchas|arrugas|acné|piel|rostro|rejuvenec|lifting|botox|relleno)/i.test(msg.content))
+            ).length;
+            
+            const userRequestsContact = /(hablar|contactar|comunicar|llamar|doctora|dra|especialista|que me contacte|quiero hablar|necesito consulta)/i.test(userMessage);
+            const shouldOfferContact = userRequestsContact || 
+                                      (medicalClassification.subtype === 'skin_concern' && medicalMessagesCount > 2) ||
+                                      (medicalMessagesCount > 4);
+            
+            if (specializedResponse.suggestedActions.includes('transfer_doctor') && shouldOfferContact) {
+              specializedResponse.responseText += `\n\n¿Le gustaría que la Dra. Daniela le contacte directamente para una evaluación personalizada? 👩‍⚕️✨`;
+              console.log(`📞 [Medical] Ofreciendo contacto con Dra. Daniela (${medicalMessagesCount} msgs médicos)`);
+            }
           }
         }
         // CASO 4: Ninguno tiene alta confianza - continuar con IA general
