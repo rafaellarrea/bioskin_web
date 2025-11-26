@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Información de Contacto y Ubicación Actualizada**
+- 📍 **Ubicación corregida**: BIOSKIN está en Cuenca, Ecuador (no Quito)
+- 🏢 **Dirección completa**: Av. Ordoñez Lasso y calle de la Menta
+- 🕐 **Horarios agregados**: Lun-Vie 9am-7pm, Sáb 9am-4pm, Dom cerrado
+- 📞 **Contacto completo**: +593 969 890 689, salud.bioskin@gmail.com
+- 🤖 **IA actualizada**: Responde correctamente a preguntas de ubicación, horarios, contacto
+- 🎯 **Clasificador mejorado**: Detecta location_inquiry, schedule_inquiry, contact_inquiry
+
 ### ✅ **Nov 26, 2025: Sistema de Promociones Unificado con Validación Automática**
 - 🎁 **Promociones en services.json**: BLACK WEEK integrada para Hollywood Peel, Microneedling, HIFU 7D
 - 📅 **Validación de fechas**: Sistema verifica automáticamente si promoción está activa (validFrom - validUntil)
