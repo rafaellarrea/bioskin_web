@@ -825,12 +825,14 @@ async function processWhatsAppMessage(body) {
       if (wantsGuidance) {
         // Iniciar la máquina de estados
         console.log('✅ [StateMachine] Iniciando flujo guiado');
+        skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
         const result = stateMachine.start(from);
         directResponse = result.message;
         saveStateMachine(sessionId, stateMachine);
       } else {
         // Ofrecer opciones
         console.log('📋 [StateMachine] Ofreciendo opciones de agendamiento');
+        skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
         directResponse = `¡Con gusto! 😊 Puedo ayudarte de dos formas:\n\n` +
                        `1️⃣ Agenda directamente aquí: ${APPOINTMENT_LINK}\n` +
                        `2️⃣ Te ayudo aquí mismo (reviso horarios disponibles)\n\n` +
@@ -874,6 +876,7 @@ async function processWhatsAppMessage(body) {
       
       if (asksAvailability && !botOfferedOptions) {
         console.log('🔍 [StateMachine] Usuario pregunta por disponibilidad de fecha específica');
+        skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
         // Iniciar el flujo automáticamente sin ofrecer opciones
         const result = stateMachine.start(from);
         directResponse = result.message;
