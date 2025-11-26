@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Búsqueda Inteligente de Servicios con Normalización**
+- 🔍 **Normalización de texto**: Elimina guiones, acentos y espacios extra en búsquedas
+- ✅ **Variantes aceptadas**: "anti-aging", "antiaging", "anti aging" → mismo resultado
+- ✅ **Sin acentos**: "limpieza", "limpiéza" → mismo resultado
+- 🎯 **Búsqueda bidireccional**: Encuentra coincidencias parciales en ambas direcciones
+- ✅ **Precios correctos**: Ahora muestra precio específico en lugar de respuesta genérica
+
 ### ✅ **Nov 26, 2025: Máquina de Estados - Pregunta Abierta de Tratamiento**
 - 📋 **Pregunta mejorada**: Cambió "¿Qué tratamiento deseas? Ejemplos: ..." a pregunta abierta
 - ✅ **Texto simplificado**: "¿Qué tratamiento o servicio le gustaría agendar?"
