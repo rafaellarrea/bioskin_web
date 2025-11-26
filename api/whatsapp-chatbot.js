@@ -719,17 +719,68 @@ async function processWhatsAppMessage(body) {
         else if (action === 'more_info') {
           console.log(`ℹ️ [Options] Acción: Más información sobre ${payload.treatmentId}`);
           
-          // Buscar tratamiento y devolver más detalles
-          const treatment = findServiceByKeyword(payload.treatmentId);
-          
-          if (treatment) {
-            directResponse = `📋 *${treatment.title}*\n\n`;
-            directResponse += `${treatment.description}\n\n`;
-            directResponse += `💰 Inversión: ${treatment.price}\n`;
-            directResponse += `⏱️ Duración: ${treatment.duration}\n\n`;
-            directResponse += `¿Le gustaría agendar una cita o tiene alguna otra consulta?`;
-          } else {
-            directResponse = `Lo siento, no encontré información adicional sobre ese tratamiento. ¿Puedo ayudarle con algo más?`;
+          // 🤖 USAR IA CON CONTEXTO COMPLETO en lugar de respuesta predefinida
+          try {
+            // Crear prompt específico para IA con contexto completo
+            const infoRequestPrompt = `El usuario solicitó más información sobre: ${payload.treatmentName || payload.treatmentId}`;
+            
+            // Agregar mensaje del usuario al historial para contexto
+            await withFallback(
+              () => saveMessage(sessionId, 'user', infoRequestPrompt, Date.now()),
+              () => FallbackStorage.saveMessage(sessionId, 'user', infoRequestPrompt, Date.now()),
+              'Guardar solicitud de más información'
+            );
+            
+            // Actualizar historial
+            updatedHistory.push({ role: 'user', content: infoRequestPrompt });
+            
+            // Generar respuesta con IA Medical usando contexto completo
+            const medicalResponse = await generateMedicalReply(
+              {
+                subtype: 'treatment_inquiry',
+                treatment: payload.treatmentId,
+                confidence: 0.95,
+                needsConsultation: false
+              },
+              updatedHistory
+            );
+            
+            directResponse = medicalResponse.responseText;
+            console.log(`✅ [Options] Respuesta de IA generada con contexto completo`);
+            
+          } catch (error) {
+            console.error(`❌ [Options] Error generando respuesta con IA:`, error.message);
+            
+            // Fallback: buscar tratamiento básico
+            const treatment = findServiceByKeyword(payload.treatmentId);
+            
+            if (treatment) {
+              directResponse = `📋 *${treatment.title}*\n\n`;
+              directResponse += `${treatment.description}\n\n`;
+              
+              // Verificar promoción activa
+              if (treatment.promotion && treatment.promotion.active) {
+                const promo = treatment.promotion;
+                const now = new Date();
+                const validFrom = new Date(promo.validFrom);
+                const validUntil = new Date(promo.validUntil);
+                
+                if (now >= validFrom && now <= validUntil) {
+                  directResponse += `🎁 ${promo.displayMessage}\n`;
+                  directResponse += `💰 Precio promocional: ${promo.promoPrice}\n`;
+                  directResponse += `💵 Precio regular: ${treatment.price}\n\n`;
+                } else {
+                  directResponse += `💰 Inversión: ${treatment.price}\n\n`;
+                }
+              } else {
+                directResponse += `💰 Inversión: ${treatment.price}\n\n`;
+              }
+              
+              directResponse += `⏱️ Duración: ${treatment.duration}\n\n`;
+              directResponse += `¿Le gustaría agendar una cita o tiene alguna otra consulta?`;
+            } else {
+              directResponse = `Lo siento, no encontré información adicional sobre ese tratamiento. ¿Puedo ayudarle con algo más?`;
+            }
           }
           
           // Limpiar pregunta procesada
@@ -766,30 +817,45 @@ async function processWhatsAppMessage(body) {
           return;
         }
       } else {
-        // No coincidió - posible respuesta fuera de contexto
-        console.log(`❌ [Options] No match encontrado para mensaje: "${userMessage}"`);
+        // No coincidió - pero NO asumir que está fuera de contexto
+        console.log(`❌ [Options] No match de opción, pero puede ser consulta válida: "${userMessage}"`);
         
-        // Si la respuesta parece fuera de contexto, clarificar con IA
-        const seemsOffContext = userMessage.length < 30 && 
-                               !/^(hola|buenos|gracias|no)/i.test(userMessage);
+        // En lugar de forzar clarificación, verificar si es una consulta médica real
+        const seemsLikeMedicalQuery = /(tratamiento|bioestimulador|colágeno|manchas|arrugas|piel|rostro|facial|láser|hifu|botox|relleno|precio|costo|cuánto|promoción)/i.test(userMessage);
         
-        if (seemsOffContext) {
-          console.log(`🤔 [Options] Respuesta parece fuera de contexto, clarificando...`);
+        if (seemsLikeMedicalQuery) {
+          console.log(`🤖 [Options] Mensaje parece consulta médica válida, permitiendo que IA procese con contexto completo`);
+          // NO enviar clarificación, permitir que continúe el flujo normal de IA
+          // Limpiar la pregunta previa para no seguir esperando opciones
+          lastBotQuestions.delete(sessionId);
           
-          const clarificationText = `Disculpe, no entendí. Estaba preguntándole sobre:\n\n` +
-            lastBotQuestion.options.map((opt, idx) => `${opt.id}. ${opt.label}`).join('\n') +
-            `\n\n¿Podría responder con el número de su opción preferida?`;
+        } else {
+          // Solo clarificar si realmente parece fuera de contexto (mensajes muy cortos sin contenido médico)
+          const seemsOffContext = userMessage.length < 15 && 
+                                 !/^(hola|buenos|gracias|no|si|sí)/i.test(userMessage);
           
-          // Enviar clarificación sin pasar por el resto del flujo
-          await withFallback(
-            () => saveMessage(sessionId, 'assistant', clarificationText, 0),
-            () => FallbackStorage.saveMessage(sessionId, 'assistant', clarificationText, 0),
-            'Guardar clarificación'
-          );
-          
-          await sendWhatsAppMessage(from, clarificationText);
-          console.log('✅ Clarificación enviada');
-          return;
+          if (seemsOffContext) {
+            console.log(`🤔 [Options] Respuesta muy corta y sin contenido médico, clarificando opciones...`);
+            
+            const clarificationText = `Disculpe, no entendí. Estaba preguntándole sobre:\n\n` +
+              lastBotQuestion.options.map((opt, idx) => `${opt.id}. ${opt.label}`).join('\n') +
+              `\n\n¿Podría responder con el número de su opción preferida?`;
+            
+            // Enviar clarificación sin pasar por el resto del flujo
+            await withFallback(
+              () => saveMessage(sessionId, 'assistant', clarificationText, 0),
+              () => FallbackStorage.saveMessage(sessionId, 'assistant', clarificationText, 0),
+              'Guardar clarificación'
+            );
+            
+            await sendWhatsAppMessage(from, clarificationText);
+            console.log('✅ Clarificación enviada');
+            return;
+          } else {
+            console.log(`✅ [Options] Mensaje tiene contenido, permitiendo procesamiento normal con IA`);
+            // Limpiar la pregunta previa
+            lastBotQuestions.delete(sessionId);
+          }
         }
       }
     } else {
