@@ -975,6 +975,11 @@ async function processWhatsAppMessage(body) {
     // ============================================
     console.log('🧬 Paso 4.7: Verificando tipo de consulta (Médico-Estético vs Técnico)...');
     
+    // 🚨 CRÍTICO: Si skipAI está activado (máquina de estados activa), saltar toda la clasificación
+    if (skipAI) {
+      console.log('⏭️ [Dual AI] skipAI=true detectado, saltando clasificación y respuesta de IA');
+    }
+    
     let technicalClassification = null;
     let medicalClassification = null;
     let specializedResponse = null;
@@ -1068,8 +1073,9 @@ async function processWhatsAppMessage(body) {
       skipAI = true;
     }
     
-    // Solo clasificar si NO estamos en flujo de agendamiento activo Y no es confirmación de contacto
-    if (!stateMachine.isActive() && !directResponse && !userConfirmsEngineerContact && !userConfirmsDoctorContact && !userProvidingName) {
+    // 🚨 CRÍTICO: Solo clasificar si skipAI NO está activado
+    // (skipAI se activa cuando la máquina de estados toma control o hay directResponse)
+    if (!skipAI && !directResponse && !userConfirmsEngineerContact && !userConfirmsDoctorContact && !userProvidingName) {
       try {
         // 🔬 CLASIFICACIÓN DUAL EN PARALELO (Médico-Estético + Técnico)
         console.log('🔄 Ejecutando clasificación dual en paralelo...');

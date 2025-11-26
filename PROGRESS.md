@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Fix Crítico - Agendamiento Real Funcional**
+- 🔧 **Import faltante**: Agregado `getAllServices` a `chatbot-medical-ai-service.js`
+- 🚨 **Prioridad máquina**: Dual AI ahora respeta `skipAI` flag completamente
+- 🚨 **Condición correcta**: Cambió verificación de `!stateMachine.isActive()` a `!skipAI`
+- 🚨 **Control total**: Máquina de estados tiene prioridad absoluta sobre IA
+- ✅ **Agendamiento real**: Usuario puede completar flujo de agendamiento sin interferencia de IA
+
 ### ✅ **Nov 26, 2025: IA Inteligente con Contexto Completo de Servicios**
 - 🤖 **Catálogo completo**: IA tiene acceso a 19 servicios con todos los detalles (precio, duración, beneficios)
 - 🤖 **Respuestas diferenciadas**: Comportamiento inteligente según tipo de consulta
