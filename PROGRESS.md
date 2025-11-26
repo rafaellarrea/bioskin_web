@@ -10,6 +10,17 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: IA Inteligente con Contexto Completo del Catálogo**
+- 🤖 **Uso obligatorio del catálogo**: IA SIEMPRE revisa services.json antes de responder
+- 🔍 **Búsqueda por sinónimos**: "Bioestimuladores" encuentra HIFU, Bioestimuladores inyectables, Microneedling
+- 🔍 **Keywords inteligentes**: Usa keywords de cada servicio para búsquedas precisas
+- 💬 **Respuestas naturales**: NO más mensajes predefinidos robóticos cuando no entiende opción
+- ✅ **Contexto en opciones**: Opción "2" (más info) ahora usa IA con contexto completo en lugar de texto fijo
+- 📋 **Información completa**: Respuestas incluyen precio, duración, beneficios y promociones activas
+- 🎯 **Ejemplo**: Usuario dice "Bioestimuladores" → IA lista HIFU 7D, Bioestimuladores inyectables, Microneedling con precios/promos
+- 📈 **Tokens aumentados**: 350 → 500 para respuestas más completas
+- 🧠 **Reglas mejoradas**: 12 reglas específicas de comportamiento para contexto primero
+
 ### ✅ **Nov 26, 2025: Información de Contacto y Ubicación Actualizada**
 - 📍 **Ubicación corregida**: BIOSKIN está en Cuenca, Ecuador (no Quito)
 - 🏢 **Dirección completa**: Av. Ordoñez Lasso y calle de la Menta
