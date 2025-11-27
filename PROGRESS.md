@@ -10,6 +10,15 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Fix Crítico - IA Lista TODOS los Tratamientos por Categoría**
+- 🔍 **Detección inteligente**: Distingue entre consulta general ("bioestimuladores") vs específica ("HIFU")
+- 📋 **Respuesta completa**: Cuando usuario dice "bioestimuladores", lista TODOS (HIFU, Bioestimuladores inyectables, Microneedling)
+- ❌ **Eliminado**: Código predefinido que solo mostraba un tratamiento
+- 🤖 **Delegación a IA**: Consultas generales ahora siempre van a IA con contexto completo
+- 📝 **Ejemplo agregado**: Prompt incluye respuesta exacta esperada para "bioestimuladores"
+- ✅ **Clasificador mejorado**: 3 ejemplos nuevos para consultas de categoría (bioestimuladores, láser, colágeno)
+- 🎯 **Resultado**: Usuario ve TODAS las opciones con precios y promociones, puede elegir informadamente
+
 ### ✅ **Nov 26, 2025: IA Inteligente con Contexto Completo del Catálogo**
 - 🤖 **Uso obligatorio del catálogo**: IA SIEMPRE revisa services.json antes de responder
 - 🔍 **Búsqueda por sinónimos**: "Bioestimuladores" encuentra HIFU, Bioestimuladores inyectables, Microneedling
