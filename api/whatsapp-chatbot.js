@@ -6,7 +6,8 @@ import {
   saveTrackingEvent,
   upsertTemplate,
   saveAppState,
-  updateUserPreferences
+  updateUserPreferences,
+  getGlobalSettings
 } from '../lib/neon-chatbot-db-vercel.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
 import { chatbotAI } from '../lib/chatbot-ai-service.js';
@@ -342,6 +343,17 @@ export default async function handler(req, res) {
 async function processWhatsAppMessage(body) {
   try {
     console.log('📱 Procesando mensaje de WhatsApp...');
+
+    // 0. Verificar si el chatbot está habilitado globalmente
+    try {
+      const settings = await getGlobalSettings();
+      if (settings && settings.chatbotEnabled === false) {
+        console.log('🛑 Chatbot DESHABILITADO globalmente. Ignorando mensaje.');
+        return;
+      }
+    } catch (settingsError) {
+      console.error('⚠️ Error verificando configuración global (continuando por seguridad):', settingsError);
+    }
 
     // Extraer datos del webhook de WhatsApp
     const entry = body.entry?.[0];

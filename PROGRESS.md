@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Control de Chatbot y Mejoras en Consultas**
+- 🤖 **Toggle Admin**: Nuevo control para activar/desactivar chatbot desde panel
+- 🧠 **IA Mejorada**: Distingue preguntas sobre costos de consulta vs agendamiento
+- 💰 **Respuesta Inteligente**: Explica política de abono de consulta ($10) antes de agendar
+- 🛠️ **API Settings**: Nuevo endpoint para gestión de configuración global
+
 ### ✅ **Nov 26, 2025: Refactor Radical - IA Verdaderamente Inteligente**
 - 🔥 **Eliminadas 282 líneas**: Código predefinido y casos especiales removidos
 - 🤖 **IA con contexto completo**: TODAS las consultas procesadas por IA con catálogo completo

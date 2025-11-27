@@ -299,6 +299,67 @@
       gap: 10px;
     }
 
+    /* Switch Toggle */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #10b981;
+    }
+
+    input:focus + .slider {
+      box-shadow: 0 0 1px #10b981;
+    }
+
+    input:checked + .slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+
     .message.user {
       flex-direction: row-reverse;
     }
@@ -641,6 +702,16 @@
     <div class="header">
       <h1>💬 Gestión de Chats WhatsApp</h1>
       <div style="display: flex; align-items: center; gap: 20px;">
+        <!-- Chatbot Toggle -->
+        <div class="chatbot-control" style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(5px);">
+          <span style="font-size: 14px; font-weight: 500;">🤖 Chatbot IA:</span>
+          <label class="switch">
+            <input type="checkbox" id="chatbotToggle" onchange="toggleChatbot()">
+            <span class="slider round"></span>
+          </label>
+          <span id="chatbotStatusText" style="font-size: 12px; font-weight: 700; min-width: 60px;">ACTIVO</span>
+        </div>
+
         <button id="notificationBtn" class="notification-btn" onclick="toggleNotifications()">
           <span class="notification-status" id="notificationStatus"></span>
           <span id="notificationText">🔔 Activar Notificaciones</span>
@@ -1204,8 +1275,79 @@
       }
     }
 
+    // ==========================================
+    // GESTIÓN DE ESTADO DEL CHATBOT
+    // ==========================================
+    
+    async function initChatbotToggle() {
+      try {
+        const response = await fetch('/api/chatbot-settings', {
+          headers: {
+            'Authorization': `Bearer ${sessionToken}`
+          }
+        });
+        
+        if (!response.ok) return;
+        
+        const settings = await response.json();
+        const toggle = document.getElementById('chatbotToggle');
+        
+        if (toggle) {
+          toggle.checked = settings.chatbotEnabled;
+          updateToggleUI(settings.chatbotEnabled);
+        }
+      } catch (error) {
+        console.error('Error loading chatbot settings:', error);
+      }
+    }
+
+    function updateToggleUI(enabled) {
+      const statusText = document.getElementById('chatbotStatusText');
+      if (statusText) {
+        if (enabled) {
+          statusText.textContent = 'ACTIVO';
+          statusText.style.color = '#10b981'; // Greenish
+        } else {
+          statusText.textContent = 'INACTIVO';
+          statusText.style.color = '#ef4444'; // Reddish
+        }
+      }
+    }
+
+    async function toggleChatbot() {
+      const toggle = document.getElementById('chatbotToggle');
+      const enabled = toggle.checked;
+      
+      // Optimistic UI update
+      updateToggleUI(enabled);
+      
+      try {
+        const response = await fetch('/api/chatbot-settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`
+          },
+          body: JSON.stringify({ chatbotEnabled: enabled })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update settings');
+        }
+        
+        console.log(`Chatbot ${enabled ? 'enabled' : 'disabled'}`);
+      } catch (error) {
+        console.error('Error toggling chatbot:', error);
+        // Revert UI on error
+        toggle.checked = !enabled;
+        updateToggleUI(!enabled);
+        alert('Error al cambiar el estado del chatbot');
+      }
+    }
+
     // Verificar estado de notificaciones al cargar
     document.addEventListener('DOMContentLoaded', () => {
+      initChatbotToggle();
       const btn = document.getElementById('notificationBtn');
       const status = document.getElementById('notificationStatus');
       

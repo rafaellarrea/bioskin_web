@@ -96,6 +96,7 @@ api/sendEmail.js          // POST - Email + WhatsApp notifications
 // WhatsApp Chatbot with AI (Noviembre 2025)
 api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API
 api/chatbot-stats.js      // GET/POST - Monitoring and maintenance
+api/chatbot-settings.js   // GET/POST - Global chatbot configuration (toggle)
 ```
 
 #### **Database Layer**
