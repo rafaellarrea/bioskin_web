@@ -344,17 +344,6 @@ async function processWhatsAppMessage(body) {
   try {
     console.log('📱 Procesando mensaje de WhatsApp...');
 
-    // 0. Verificar si el chatbot está habilitado globalmente
-    try {
-      const settings = await getGlobalSettings();
-      if (settings && settings.chatbotEnabled === false) {
-        console.log('🛑 Chatbot DESHABILITADO globalmente. Ignorando mensaje.');
-        return;
-      }
-    } catch (settingsError) {
-      console.error('⚠️ Error verificando configuración global (continuando por seguridad):', settingsError);
-    }
-
     // Extraer datos del webhook de WhatsApp
     const entry = body.entry?.[0];
     const changes = entry?.changes?.[0];
@@ -666,6 +655,19 @@ async function processWhatsAppMessage(body) {
       'Actualizar historial'
     );
     console.log(`✅ Historial actualizado: ${updatedHistory.length} mensajes`);
+
+    // ============================================
+    // CHECK GLOBAL SETTINGS (AFTER SAVING MESSAGE)
+    // ============================================
+    try {
+      const settings = await getGlobalSettings();
+      if (settings && settings.chatbotEnabled === false) {
+        console.log('🛑 Chatbot DESHABILITADO globalmente. Mensaje guardado, pero no se generará respuesta automática.');
+        return;
+      }
+    } catch (settingsError) {
+      console.error('⚠️ Error verificando configuración global (continuando por seguridad):', settingsError);
+    }
 
     // ============================================
     // PASO 4.3: SISTEMA DE OPCIONES Y RECONOCIMIENTO NUMÉRICO
