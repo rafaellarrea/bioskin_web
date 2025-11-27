@@ -215,6 +215,40 @@
     }
   },
   {
+    "id": "tratamiento-acne",
+    "title": "Tratamiento Integral Anti-Acné",
+    "shortDescription": "Control y eliminación de acné activo",
+    "description": "Tratamiento personalizado para combatir el acné activo y sus secuelas. Combina técnicas como mesoterapia con activos seborreguladores y bactericidas, IPL y Crioradiofrecuencia según la necesidad del paciente.",
+    "price": "$25 (variable según evaluación)",
+    "duration": "1 hora 45 minutos",
+    "category": "facial",
+    "keywords": [
+      "acne",
+      "acné",
+      "granos",
+      "espinillas",
+      "barros",
+      "brotes",
+      "imperfecciones",
+      "seborrea",
+      "grasa",
+      "pustulas"
+    ],
+    "image": "/images/services/tratamiento-acne.jpg",
+    "popular": true,
+    "benefits": [
+      "Control de la producción de grasa",
+      "Eliminación de bacterias causantes del acné",
+      "Reducción de inflamación y rojeces",
+      "Prevención de cicatrices y marcas"
+    ],
+    "indications": [
+      "Acné activo (leve, moderado o severo)",
+      "Piel grasa o seborreica",
+      "Poros dilatados y obstruidos"
+    ]
+  },
+  {
     "id": "laser-co2",
     "title": "Láser CO2 Fraccionado",
     "shortDescription": "Rejuvenecimiento láser avanzado",
