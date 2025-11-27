@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 26, 2025: Refactor Radical - IA Verdaderamente Inteligente**
+- 🔥 **Eliminadas 282 líneas**: Código predefinido y casos especiales removidos
+- 🤖 **IA con contexto completo**: TODAS las consultas procesadas por IA con catálogo completo
+- 🎯 **Filosofía**: Confiar en GPT-4o-mini + contexto en lugar de lógica programada
+- ✅ **Sistema simplificado**: Solo 1 flujo - IA analiza y responde
+- 📋 **Contexto enriquecido**: Servicios con ID, keywords, beneficios, promociones
+- 🚫 **Sin casos especiales**: NO más if/else para tratamientos específicos
+- 💡 **Resultado**: "Bioestimuladores" → IA busca en keywords/beneficios y lista TODOS los tratamientos relacionados
+- 🎨 **Prompt mejorado**: Instrucciones claras para búsqueda por sinónimos y categorías
+
 ### ✅ **Nov 26, 2025: Fix Crítico - IA Lista TODOS los Tratamientos por Categoría**
 - 🔍 **Detección inteligente**: Distingue entre consulta general ("bioestimuladores") vs específica ("HIFU")
 - 📋 **Respuesta completa**: Cuando usuario dice "bioestimuladores", lista TODOS (HIFU, Bioestimuladores inyectables, Microneedling)
