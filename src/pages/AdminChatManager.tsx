@@ -49,6 +49,7 @@ export default function AdminChatManager() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [chatbotEnabled, setChatbotEnabled] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -68,6 +69,7 @@ export default function AdminChatManager() {
     if (isAuthenticated) {
       loadConversations();
       loadStats();
+      loadChatbotSettings();
       
       // Auto-refresh cada 30 segundos
       const interval = setInterval(() => {
@@ -81,6 +83,48 @@ export default function AdminChatManager() {
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, selectedPhone]);
+
+  const loadChatbotSettings = async () => {
+    try {
+      const token = localStorage.getItem('admin_session_token');
+      const response = await fetch('/api/chatbot-settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChatbotEnabled(data.chatbotEnabled);
+      }
+    } catch (error) {
+      console.error('Error loading chatbot settings:', error);
+    }
+  };
+
+  const toggleChatbot = async () => {
+    const newState = !chatbotEnabled;
+    setChatbotEnabled(newState); // Optimistic update
+    
+    try {
+      const token = localStorage.getItem('admin_session_token');
+      const response = await fetch('/api/chatbot-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ chatbotEnabled: newState })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update settings');
+      }
+    } catch (error) {
+      console.error('Error toggling chatbot:', error);
+      setChatbotEnabled(!newState); // Revert on error
+      alert('Error al cambiar el estado del chatbot');
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -314,6 +358,27 @@ export default function AdminChatManager() {
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Chatbot Toggle */}
+              <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
+                <span className="text-sm font-medium text-gray-700 hidden sm:inline">🤖 IA:</span>
+                <button
+                  onClick={toggleChatbot}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#deb887] ${
+                    chatbotEnabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                  title={chatbotEnabled ? 'Desactivar Chatbot' : 'Activar Chatbot'}
+                >
+                  <span
+                    className={`${
+                      chatbotEnabled ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </button>
+                <span className={`text-xs font-bold w-8 ${chatbotEnabled ? 'text-green-600' : 'text-red-500'}`}>
+                  {chatbotEnabled ? 'ON' : 'OFF'}
+                </span>
+              </div>
+
               {/* Stats */}
               <div className="hidden md:flex items-center gap-6">
                 <div className="text-center">
