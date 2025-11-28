@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Actualización de Dirección y Flujo Conversacional**
+- 📍 **Dirección Actualizada**: Nueva ubicación en Centro Médico Santa María.
+- 🗺️ **Enlaces Permitidos**: Habilitado envío de links de Google Maps en chatbot.
+- 💬 **Mejora Conversacional**: Reducción de repetitividad en mención de costo de consulta ($10).
+
 ### ✅ **Nov 27, 2025: Fix Import JSON (Node.js Compatibility)**
 - 🐛 **Fix SyntaxError**: Reemplazado `import ... assert` por `createRequire` para compatibilidad con Vercel/Node.js.
 - ⚡ **Estabilidad**: Solucionado crash del proceso por sintaxis no soportada.

@@ -32,7 +32,7 @@ const Contact: React.FC = () => {
                       <div>
                         <h4 className="font-semibold mb-1">Dirección</h4>
                         <p className="text-gray-600">Cuenca, Ecuador</p>
-                        <p className="text-gray-500 text-sm mt-1">Av. Ordoñez Lasso y calle de la Menta</p>
+                        <p className="text-gray-500 text-sm mt-1">Av. Ordoñez Lasso y calle de la Menta, Centro Médico Santa María, 2do piso, Cons. 203</p>
                       </div>
                     </div>
 
