@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Corrección de Errores Críticos (Logs Vercel)**
+- 🐛 **Fix Debounce**: Corregido error `res is not defined` al abortar respuestas duplicadas.
+- 🐛 **Fix Technical AI**: Agregado import faltante `getOpenAIClient` en servicio técnico.
+- ⚡ **Estabilidad**: El sistema ahora maneja correctamente la concurrencia de mensajes sin crashear.
+
 ### ✅ **Nov 27, 2025: Debounce y Agrupación de Mensajes**
 - ⏳ **Espera Inteligente**: El bot espera 10 segundos antes de responder para agrupar mensajes consecutivos.
 - 🛑 **Prevención de Conflictos**: Si llega un nuevo mensaje durante la espera, el proceso anterior se cancela.

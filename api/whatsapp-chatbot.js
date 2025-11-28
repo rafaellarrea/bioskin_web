@@ -692,7 +692,7 @@ async function processWhatsAppMessage(body) {
       
       if (!isLatest) {
          console.log(`🛑 DEBOUNCE: Detectado mensaje más reciente en DB. Abortando respuesta para mensaje anterior.`);
-         return res.status(200).send('OK'); // Salir silenciosamente, el otro proceso responderá
+         return; // Salir silenciosamente, el otro proceso responderá
       }
       console.log(`✅ DEBOUNCE: Este es el último mensaje. Procediendo a responder.`);
     }
