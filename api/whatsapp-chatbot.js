@@ -647,6 +647,57 @@ async function processWhatsAppMessage(body) {
     );
     console.log('✅ Mensaje del usuario guardado');
 
+    // =================================================================================
+    // ⏳ DEBOUNCE / ESPERA INTELIGENTE (NUEVO)
+    // =================================================================================
+    // Esperar un momento para permitir que el usuario envíe mensajes consecutivos
+    // y evitar respuestas fragmentadas.
+    const DEBOUNCE_TIME_MS = 4000; // 4 segundos de espera (ajustable)
+    console.log(`⏳ Iniciando espera de ${DEBOUNCE_TIME_MS}ms para agrupar mensajes...`);
+    
+    // Simular espera (sleep)
+    await new Promise(resolve => setTimeout(resolve, DEBOUNCE_TIME_MS));
+
+    // Verificar si este proceso sigue siendo el "último"
+    // Obtenemos el historial MÁS RECIENTE (solo el último mensaje)
+    const latestMessages = await withFallback(
+      () => getConversationHistory(sessionId, 1),
+      () => FallbackStorage.getConversationHistory(sessionId, 1),
+      'Verificar último mensaje'
+    );
+
+    if (latestMessages && latestMessages.length > 0) {
+      const lastDbMessage = latestMessages[0]; // El más reciente (orden DESC en DB, pero getConversationHistory devuelve reverse... espera)
+      
+      // getConversationHistory devuelve [oldest, ..., newest]
+      // Así que el último elemento del array es el más reciente.
+      // Pero si pedimos LIMIT 1, devuelve un array de 1 elemento.
+      
+      // Verifiquemos la implementación de getConversationHistory:
+      // return messages.rows.reverse();
+      // Si DB devuelve [Newest], reverse es [Newest].
+      // Así que latestMessages[0] es el mensaje más reciente.
+      
+      // Comparamos IDs si existen, o contenido/timestamp
+      let isLatest = false;
+      
+      if (messageId && lastDbMessage.message_id) {
+        isLatest = lastDbMessage.message_id === messageId;
+        console.log(`🔍 Comparando IDs: Local=${messageId} vs DB=${lastDbMessage.message_id} -> ${isLatest}`);
+      } else {
+        // Fallback a contenido si no hay IDs (ej. FallbackStorage)
+        isLatest = lastDbMessage.content === userMessage;
+        console.log(`🔍 Comparando Contenido: Local="${userMessage.substring(0,20)}" vs DB="${lastDbMessage.content?.substring(0,20)}" -> ${isLatest}`);
+      }
+      
+      if (!isLatest) {
+         console.log(`🛑 DEBOUNCE: Detectado mensaje más reciente en DB. Abortando respuesta para mensaje anterior.`);
+         return res.status(200).send('OK'); // Salir silenciosamente, el otro proceso responderá
+      }
+      console.log(`✅ DEBOUNCE: Este es el último mensaje. Procediendo a responder.`);
+    }
+    // =================================================================================
+
     // Actualizar historial después de guardar el mensaje del usuario
     console.log('💾 Paso 5: Actualizando historial...');
     const updatedHistory = await withFallback(
