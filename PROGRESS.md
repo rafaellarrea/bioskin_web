@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Ultra-Mejora Chatbot Médico (Triage + Jerga)**
+- 🚑 **Triage Clínico**: Detección automática de urgencias (sangrado, infección) -> Escalamiento inmediato
+- 🗣️ **Mapeo de Jerga**: "Vampiro" -> PRP, "Baby Botox" -> Preventiva, etc.
+- 🛡️ **Seguridad**: Política estricta de NO diagnóstico y NO receta por chat
+- 🧠 **Prompt Médico**: Empatía + Venta Consultiva + Cierre ($10 abono)
+- 📊 **Metadata**: Respuestas incluyen nivel de triage y tratamientos sugeridos
+
 ### ✅ **Nov 27, 2025: Control de Chatbot y Mejoras en Consultas**
 - 🤖 **Toggle Admin**: Nuevo control para activar/desactivar chatbot desde panel
 - 🧠 **IA Mejorada**: Distingue preguntas sobre costos de consulta vs agendamiento
