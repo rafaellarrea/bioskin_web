@@ -1390,6 +1390,12 @@ async function processWhatsAppMessage(body) {
             
             console.log(`✅ [Options] Pregunta guardada para reconocimiento posterior`);
           }
+
+          // Si la respuesta incluye información extraída del usuario, guardarla
+          if (specializedResponse.extractedInfo) {
+            console.log('👤 [Dual AI] Información de usuario extraída:', specializedResponse.extractedInfo);
+            await updateUserInfo(sessionId, specializedResponse.extractedInfo);
+          }
         }
         
       } catch (error) {
