@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Fix Import JSON (Node.js Compatibility)**
+- 🐛 **Fix SyntaxError**: Reemplazado `import ... assert` por `createRequire` para compatibilidad con Vercel/Node.js.
+- ⚡ **Estabilidad**: Solucionado crash del proceso por sintaxis no soportada.
+
 ### ✅ **Nov 27, 2025: Fix JSON Leak en Respuestas**
 - 🛡️ **Sanitización**: Implementada limpieza automática de JSON anidado en `responseText`.
 - 🧠 **Recuperación**: Si el modelo mezcla texto y JSON, el sistema ahora extrae correctamente la parte útil.
