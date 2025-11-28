@@ -7,6 +7,7 @@ import {
   upsertTemplate,
   saveAppState,
   updateUserPreferences,
+  updateUserInfo,
   getGlobalSettings
 } from '../lib/neon-chatbot-db-vercel.js';
 import { cleanupService } from '../lib/chatbot-cleanup.js';
@@ -509,6 +510,10 @@ async function processWhatsAppMessage(body) {
       'Upsert conversación'
     );
     console.log('✅ Conversación actualizada');
+    
+    // Obtener info del usuario si existe
+    const userInfo = conversationResult?.conversation?.user_info || {};
+    console.log('👤 Info de usuario:', userInfo);
 
     // Obtener historial de conversación ANTES de la notificación (con fallback)
     console.log('💾 Paso 3: Obteniendo historial...');
@@ -1467,7 +1472,7 @@ async function processWhatsAppMessage(body) {
       
       try {
         console.log('🚀 [WEBHOOK] Iniciando generación de respuesta...');
-        aiResult = await chatbotAI.generateResponse(userMessage, updatedHistory, calendarTools);
+        aiResult = await chatbotAI.generateResponse(userMessage, updatedHistory, calendarTools, userInfo);
         clearTimeout(globalTimeoutId); // Limpiar timeout si se resuelve
         
         if (timeoutReached) {
@@ -1476,6 +1481,12 @@ async function processWhatsAppMessage(body) {
         }
         
         console.log(`✅ Respuesta generada: "${aiResult.response.substring(0, 50)}..." (${aiResult.tokensUsed || 0} tokens)`);
+        
+        // Actualizar info de usuario si la IA extrajo datos nuevos
+        if (aiResult.userInfoUpdate) {
+          console.log('👤 [AI] Actualizando info de usuario:', aiResult.userInfoUpdate);
+          await updateUserInfo(sessionId, aiResult.userInfoUpdate);
+        }
         
         if (aiResult.error) {
           console.error('⚠️ Error en generación de respuesta:', aiResult.error);
