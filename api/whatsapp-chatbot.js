@@ -652,7 +652,7 @@ async function processWhatsAppMessage(body) {
     // =================================================================================
     // Esperar un momento para permitir que el usuario envíe mensajes consecutivos
     // y evitar respuestas fragmentadas.
-    const DEBOUNCE_TIME_MS = 4000; // 4 segundos de espera (ajustable)
+    const DEBOUNCE_TIME_MS = 10000; // 10 segundos de espera (ajustado para mayor naturalidad)
     console.log(`⏳ Iniciando espera de ${DEBOUNCE_TIME_MS}ms para agrupar mensajes...`);
     
     // Simular espera (sleep)

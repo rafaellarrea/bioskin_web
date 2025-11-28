@@ -11,7 +11,7 @@
 ## 🎯 Últimas Actualizaciones
 
 ### ✅ **Nov 27, 2025: Debounce y Agrupación de Mensajes**
-- ⏳ **Espera Inteligente**: El bot espera 4 segundos antes de responder para agrupar mensajes consecutivos.
+- ⏳ **Espera Inteligente**: El bot espera 10 segundos antes de responder para agrupar mensajes consecutivos.
 - 🛑 **Prevención de Conflictos**: Si llega un nuevo mensaje durante la espera, el proceso anterior se cancela.
 - 🧠 **Contexto Completo**: La IA recibe todos los mensajes acumulados para dar una respuesta coherente.
 - ⚡ **Optimización**: Reduce respuestas fragmentadas y mejora la experiencia de usuario en WhatsApp.
