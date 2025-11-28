@@ -948,9 +948,9 @@ async function processWhatsAppMessage(body) {
     if (intent === 'appointment' && stateMachine.state === APPOINTMENT_STATES.IDLE) {
       console.log('🎯 [StateMachine] Usuario solicita agendamiento');
       
-      // Verificar si el usuario ya eligió la opción 2 (guía paso a paso)
-      // Patrones: "por aquí", "aquí", "opción 2", "la 2", "guíame", "ayúdame", "paso a paso"
-      const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist/i.test(userMessage);
+      // Verificar si el usuario ya eligió la opción 2 (guía paso a paso) o muestra intención clara de agendar en el chat
+      // Patrones ampliados para capturar "agendemos", "reservar ya", "hazlo tú", etc.
+      const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist|agendemos|reservar\s*ya|hazme\s*la\s*cita|an[óo]tame|ap[úu]ntame|dale\s*de\s*una|hazlo\s*t[úu]|quiero\s*la\s*cita/i.test(userMessage);
       
       console.log(`🔍 [StateMachine] ¿Usuario quiere guía? ${wantsGuidance} (mensaje: "${userMessage}")`);
       
@@ -979,7 +979,7 @@ async function processWhatsAppMessage(body) {
       
       if (botOfferedOptions) {
         // 🔥 DETECCIÓN AGRESIVA: Capturar "2" o cualquier indicación de opción 2
-        const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist|^2$|^\s*2\s*$/i.test(userMessage);
+        const wantsGuidance = /(por\s+)?aqu[íi]|opci[óo]n\s*2|la\s*2|gu[íi]a|ayuda|paso\s+a\s+paso|contigo|asist|^2$|^\s*2\s*$|agendemos|reservar\s*ya|hazme\s*la\s*cita|an[óo]tame|ap[úu]ntame|dale\s*de\s*una|hazlo\s*t[úu]|quiero\s*la\s*cita/i.test(userMessage);
         const wantsLink = /opci[óo]n\s*1|la\s*1|link|directo|solo|dame|^1$|^\s*1\s*$/i.test(userMessage);
         
         console.log(`🔍 [StateMachine] Bot ofreció opciones, usuario respondió: guidance=${wantsGuidance}, link=${wantsLink}`);
