@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Fix JSON Leak en Respuestas**
+- 🛡️ **Sanitización**: Implementada limpieza automática de JSON anidado en `responseText`.
+- 🧠 **Recuperación**: Si el modelo mezcla texto y JSON, el sistema ahora extrae correctamente la parte útil.
+- 🚫 **Prevención**: Evita que los usuarios vean metadatos técnicos como `{ "responseText": ... }`.
+
 ### ✅ **Nov 27, 2025: Corrección de Errores Críticos (Logs Vercel)**
 - 🐛 **Fix Debounce**: Corregido error `res is not defined` al abortar respuestas duplicadas.
 - 🐛 **Fix Technical AI**: Agregado import faltante `getOpenAIClient` en servicio técnico.
