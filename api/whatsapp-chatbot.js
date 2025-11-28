@@ -886,7 +886,7 @@ async function processWhatsAppMessage(body) {
         console.log(`❌ [Options] No match de opción, pero puede ser consulta válida: "${userMessage}"`);
         
         // En lugar de forzar clarificación, verificar si es una consulta médica real
-        const seemsLikeMedicalQuery = /(tratamiento|bioestimulador|colágeno|manchas|arrugas|piel|rostro|facial|láser|hifu|botox|relleno|precio|costo|cuánto|promoción)/i.test(userMessage);
+        const seemsLikeMedicalQuery = /(tratamiento|bioestimulador|colágeno|manchas|arrugas|piel|rostro|facial|láser|hifu|botox|relleno|precio|costo|cuánto|promoción|valor|cuesta|dólares|usd)/i.test(userMessage);
         
         if (seemsLikeMedicalQuery) {
           console.log(`🤖 [Options] Mensaje parece consulta médica válida, permitiendo que IA procese con contexto completo`);
@@ -896,8 +896,9 @@ async function processWhatsAppMessage(body) {
           
         } else {
           // Solo clarificar si realmente parece fuera de contexto (mensajes muy cortos sin contenido médico)
-          const seemsOffContext = userMessage.length < 15 && 
-                                 !/^(hola|buenos|gracias|no|si|sí)/i.test(userMessage);
+          // AUMENTADO UMBRAL: Mensajes de menos de 4 caracteres son sospechosos, pero "cuanto cuesta" tiene 13
+          const seemsOffContext = userMessage.length < 4 && 
+                                 !/^(hola|buenos|gracias|no|si|sí|ok|ya)/i.test(userMessage);
           
           if (seemsOffContext) {
             console.log(`🤔 [Options] Respuesta muy corta y sin contenido médico, clarificando opciones...`);
