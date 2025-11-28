@@ -812,7 +812,9 @@ async function processWhatsAppMessage(body) {
                 confidence: 0.95,
                 needsConsultation: false
               },
-              updatedHistory
+              updatedHistory,
+              null,
+              userInfo
             );
             
             directResponse = medicalResponse.responseText;
@@ -1259,7 +1261,7 @@ async function processWhatsAppMessage(body) {
             );
           } else {
             console.log(`✅ [Dual AI] Priorizando MÉDICO (${medicalClassification.confidence.toFixed(2)} > ${technicalClassification.confidence.toFixed(2)})`);
-            specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory);
+            specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory, null, userInfo);
             
             await withFallback(
               () => saveTrackingEvent(sessionId, 'medical_detected', {
@@ -1332,7 +1334,7 @@ async function processWhatsAppMessage(body) {
             );
           } else {
             // Procesar normalmente otros tipos de consultas médicas
-            specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory);
+            specializedResponse = await generateMedicalReply(medicalClassification, updatedHistory, null, userInfo);
             
             console.log(`✅ [Medical] Respuesta generada: ${specializedResponse.responseText.substring(0, 60)}...`);
             console.log(`🎯 [Medical] Acciones sugeridas: ${specializedResponse.suggestedActions.join(', ')}`);
