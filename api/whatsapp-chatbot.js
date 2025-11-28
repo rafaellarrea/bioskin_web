@@ -962,13 +962,10 @@ async function processWhatsAppMessage(body) {
         directResponse = result.message;
         saveStateMachine(sessionId, stateMachine);
       } else {
-        // Ofrecer opciones
-        console.log('📋 [StateMachine] Ofreciendo opciones de agendamiento');
-        skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
-        directResponse = `¡Con gusto! 😊 Puedo ayudarte de dos formas:\n\n` +
-                       `1️⃣ Agenda directamente aquí: ${APPOINTMENT_LINK}\n` +
-                       `2️⃣ Te ayudo aquí mismo (reviso horarios disponibles)\n\n` +
-                       `¿Cuál prefieres?`;
+        // ⚠️ CAMBIO: NO ofrecer opciones inmediatamente si es un mensaje genérico.
+        // Dejar que la IA converse primero para obtener contexto (tratamiento de interés).
+        console.log('🤖 [StateMachine] Usuario quiere agendar pero dejaremos que la IA converse primero para obtener contexto');
+        skipAI = false; 
       }
     }
     // CASO 1.5: Usuario está en IDLE pero responde con preferencia de opción (sin mencionar "agendar")
