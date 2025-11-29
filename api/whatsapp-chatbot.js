@@ -675,9 +675,9 @@ async function processWhatsAppMessage(body) {
     // =================================================================================
     // Esperar un momento para permitir que el usuario envíe mensajes consecutivos
     // y evitar respuestas fragmentadas.
-    // ⚠️ NOTA: WhatsApp requiere respuesta en < 10s. Usar 30s causa timeouts y reintentos infinitos.
-    // Se ajusta a 5s que es el máximo seguro para Vercel Hobby + WhatsApp.
-    const DEBOUNCE_TIME_MS = 5000; 
+    // ✅ AHORA SEGURO: La detección de duplicados (arriba) maneja los reintentos de WhatsApp.
+    // Restauramos a 10s como solicitó el usuario (tiempo probado que funciona bien).
+    const DEBOUNCE_TIME_MS = 10000; 
     console.log(`⏳ Iniciando espera de ${DEBOUNCE_TIME_MS}ms para agrupar mensajes...`);
     
     // Simular espera (sleep)
