@@ -1538,9 +1538,10 @@ async function processWhatsAppMessage(body) {
     // Si la IA dice "Con gusto le ayudo a agendar...", activamos la máquina de estados
     if (aiResult && aiResult.response && 
         (aiResult.response.includes('Con gusto le ayudo a agendar') || 
-         (aiResult.response.includes('Un momento por favor') && aiResult.response.includes('agendar')))) {
+         aiResult.response.includes('Con gusto le ayudo a gestionar su cita') ||
+         (aiResult.response.includes('Un momento por favor') && (aiResult.response.includes('agendar') || aiResult.response.includes('gestionar'))))) {
         
-        console.log('🔄 [Handoff] IA indica inicio de agendamiento. Transfiriendo a Máquina de Estados...');
+        console.log('🔄 [Handoff] IA indica inicio de agendamiento/gestión. Transfiriendo a Máquina de Estados...');
         
         // Iniciar máquina de estados
         const result = stateMachine.start(from);
