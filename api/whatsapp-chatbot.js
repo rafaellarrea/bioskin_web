@@ -1534,6 +1534,26 @@ async function processWhatsAppMessage(body) {
       }
     }
 
+    // 🔄 DETECCIÓN DE HANDOFF DE AGENDAMIENTO (IA -> STATE MACHINE)
+    // Si la IA dice "Con gusto le ayudo a agendar...", activamos la máquina de estados
+    if (aiResult && aiResult.response && 
+        (aiResult.response.includes('Con gusto le ayudo a agendar') || 
+         (aiResult.response.includes('Un momento por favor') && aiResult.response.includes('agendar')))) {
+        
+        console.log('🔄 [Handoff] IA indica inicio de agendamiento. Transfiriendo a Máquina de Estados...');
+        
+        // Iniciar máquina de estados
+        const result = stateMachine.start(from);
+        
+        // Reemplazar respuesta de IA con la de la máquina de estados
+        aiResult.response = result.message;
+        
+        // Guardar estado
+        saveStateMachine(sessionId, stateMachine);
+        
+        console.log(`✅ [Handoff] Respuesta reemplazada por StateMachine: "${aiResult.response.substring(0, 50)}..."`);
+    }
+
     // Guardar respuesta del asistente (con fallback)
     console.log('💾 Paso 6: Guardando respuesta del asistente...');
     
