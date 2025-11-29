@@ -1321,7 +1321,7 @@ async function processWhatsAppMessage(body) {
             skipAI = true; // ⚠️ CRÍTICO: Evitar generación de IA
             const result = stateMachine.start(from);
             // ✅ FIX: Agregar mensaje de transición amigable antes del menú
-            directResponse = `¡Perfecto! Te ayudo a agendar tu cita 😊\n\n${result.message}`;
+            directResponse = `¡Perfecto! Te comunico con nuestro *Asistente Virtual* para agendar tu cita paso a paso. 🤖📅\n\n${result.message}`;
             saveStateMachine(sessionId, stateMachine);
             
             await withFallback(
@@ -1549,7 +1549,7 @@ async function processWhatsAppMessage(body) {
         
         // Combinar respuesta de transición de IA con el inicio de la máquina
         // Esto asegura que el usuario vea "Con gusto le ayudo..." antes de las opciones
-        aiResult.response = `${aiResult.response}\n\n${result.message}`;
+        aiResult.response = `${aiResult.response}\n\n🤖 *Transfiriendo al Asistente Virtual de Reservas...*\n\n${result.message}`;
         
         // Guardar estado
         saveStateMachine(sessionId, stateMachine);
