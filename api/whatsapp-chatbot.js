@@ -1320,7 +1320,8 @@ async function processWhatsAppMessage(body) {
             console.log('🚨 [URGENT] appointment_request detectado - ACTIVANDO MÁQUINA DE ESTADOS');
             skipAI = true; // ⚠️ CRÍTICO: Evitar generación de IA
             const result = stateMachine.start(from);
-            directResponse = result.message;
+            // ✅ FIX: Agregar mensaje de transición amigable antes del menú
+            directResponse = `¡Perfecto! Te ayudo a agendar tu cita 😊\n\n${result.message}`;
             saveStateMachine(sessionId, stateMachine);
             
             await withFallback(
