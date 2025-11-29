@@ -1546,13 +1546,14 @@ async function processWhatsAppMessage(body) {
         // Iniciar máquina de estados
         const result = stateMachine.start(from);
         
-        // Reemplazar respuesta de IA con la de la máquina de estados
-        aiResult.response = result.message;
+        // Combinar respuesta de transición de IA con el inicio de la máquina
+        // Esto asegura que el usuario vea "Con gusto le ayudo..." antes de las opciones
+        aiResult.response = `${aiResult.response}\n\n${result.message}`;
         
         // Guardar estado
         saveStateMachine(sessionId, stateMachine);
         
-        console.log(`✅ [Handoff] Respuesta reemplazada por StateMachine: "${aiResult.response.substring(0, 50)}..."`);
+        console.log(`✅ [Handoff] Respuesta combinada (IA + StateMachine): "${aiResult.response.substring(0, 50)}..."`);
     }
 
     // Guardar respuesta del asistente (con fallback)
