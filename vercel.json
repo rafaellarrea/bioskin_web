@@ -3,5 +3,10 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
-  ]
+  ],
+  "functions": {
+    "api/whatsapp-chatbot.js": {
+      "maxDuration": 60
+    }
+  }
 }
