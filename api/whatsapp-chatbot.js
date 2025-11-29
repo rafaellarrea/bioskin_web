@@ -645,6 +645,24 @@ async function processWhatsAppMessage(body) {
 
     // Guardar mensaje del usuario (con fallback)
     console.log('💾 Paso 4: Guardando mensaje del usuario...');
+    
+    // 🛡️ PREVENCIÓN DE DUPLICADOS (REINTENTOS DE WHATSAPP)
+    // Si el mensaje ya existe en la DB (mismo ID), es un reintento.
+    // Debemos ignorarlo para evitar respuestas duplicadas.
+    if (messageId) {
+      const existingMessages = await withFallback(
+        () => getConversationHistory(sessionId, 5), // Revisar últimos 5
+        () => FallbackStorage.getConversationHistory(sessionId, 5),
+        'Verificar duplicados'
+      );
+      
+      const isDuplicate = existingMessages.some(m => m.message_id === messageId);
+      if (isDuplicate) {
+        console.log(`🛑 DUPLICADO DETECTADO: Mensaje ${messageId} ya procesado. Ignorando reintento.`);
+        return; // Salir silenciosamente, ya se procesó
+      }
+    }
+
     await withFallback(
       () => saveMessage(sessionId, 'user', userMessage, 0, messageId),
       () => FallbackStorage.saveMessage(sessionId, 'user', userMessage, 0, messageId),
@@ -657,7 +675,9 @@ async function processWhatsAppMessage(body) {
     // =================================================================================
     // Esperar un momento para permitir que el usuario envíe mensajes consecutivos
     // y evitar respuestas fragmentadas.
-    const DEBOUNCE_TIME_MS = 30000; // 30 segundos de espera (ajustado a petición del usuario)
+    // ⚠️ NOTA: WhatsApp requiere respuesta en < 10s. Usar 30s causa timeouts y reintentos infinitos.
+    // Se ajusta a 5s que es el máximo seguro para Vercel Hobby + WhatsApp.
+    const DEBOUNCE_TIME_MS = 5000; 
     console.log(`⏳ Iniciando espera de ${DEBOUNCE_TIME_MS}ms para agrupar mensajes...`);
     
     // Simular espera (sleep)
