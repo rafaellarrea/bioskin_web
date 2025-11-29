@@ -795,7 +795,8 @@ async function processWhatsAppMessage(body) {
               treatmentId: payload.treatmentId || payload.treatmentName,
               contextQuestionId: lastBotQuestion.id,
               treatmentPrice: payload.treatmentPrice,
-              consultationIncluded: true
+              consultationIncluded: true,
+              name: userInfo?.name
             });
             directResponse = result.message;
             saveStateMachine(sessionId, stateMachine);
@@ -985,7 +986,7 @@ async function processWhatsAppMessage(body) {
         // Iniciar la máquina de estados
         console.log('✅ [StateMachine] Iniciando flujo guiado');
         skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
-        const result = stateMachine.start(from);
+        const result = stateMachine.start(from, { name: userInfo?.name });
         directResponse = result.message;
         saveStateMachine(sessionId, stateMachine);
       } else {
@@ -1016,7 +1017,7 @@ async function processWhatsAppMessage(body) {
         if (wantsGuidance) {
           console.log('✅ [StateMachine] Usuario eligió guía paso a paso - ACTIVANDO MÁQUINA DE ESTADOS');
           skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
-          const result = stateMachine.start(from);
+          const result = stateMachine.start(from, { name: userInfo?.name });
           directResponse = result.message;
           saveStateMachine(sessionId, stateMachine);
         } else if (wantsLink) {
@@ -1034,7 +1035,7 @@ async function processWhatsAppMessage(body) {
         console.log('🔍 [StateMachine] Usuario pregunta por disponibilidad de fecha específica');
         skipAI = true; // 🔥 CRÍTICO: Evitar que la IA responda
         // Iniciar el flujo automáticamente sin ofrecer opciones
-        const result = stateMachine.start(from);
+        const result = stateMachine.start(from, { name: userInfo?.name });
         directResponse = result.message;
         saveStateMachine(sessionId, stateMachine);
       }
@@ -1339,7 +1340,7 @@ async function processWhatsAppMessage(body) {
           if (medicalClassification.subtype === 'appointment_request') {
             console.log('🚨 [URGENT] appointment_request detectado - ACTIVANDO MÁQUINA DE ESTADOS');
             skipAI = true; // ⚠️ CRÍTICO: Evitar generación de IA
-            const result = stateMachine.start(from);
+            const result = stateMachine.start(from, { name: userInfo?.name });
             // ✅ FIX: Agregar mensaje de transición amigable antes del menú
             directResponse = `¡Perfecto! Te comunico con nuestro *Asistente Virtual* para agendar tu cita paso a paso. 🤖📅\n\n${result.message}`;
             saveStateMachine(sessionId, stateMachine);
@@ -1565,7 +1566,7 @@ async function processWhatsAppMessage(body) {
         console.log('🔄 [Handoff] IA indica inicio de agendamiento/gestión. Transfiriendo a Máquina de Estados...');
         
         // Iniciar máquina de estados
-        const result = stateMachine.start(from);
+        const result = stateMachine.start(from, { name: userInfo?.name });
         
         // Combinar respuesta de transición de IA con el inicio de la máquina
         // Esto asegura que el usuario vea "Con gusto le ayudo..." antes de las opciones

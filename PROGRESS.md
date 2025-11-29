@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Mejora Flujo Agendamiento (Nombre Primero)**
+- 🔄 **Reordenamiento**: El bot ahora pide Nombre -> Fecha -> Hora -> Servicio.
+- 👤 **Captura de Datos**: Garantiza que se solicite el nombre antes de iniciar la selección de fecha.
+- 🧩 **Nombre Parcial**: Soporte para usuarios que envían solo el primer nombre (pide apellido).
+- 🛠️ **Fix Handoff**: Corregida la transferencia de IA a Máquina de Estados para pasar información de usuario existente.
+
 ### ✅ **Nov 27, 2025: Actualización de Dirección y Flujo Conversacional**
 - 📍 **Dirección Actualizada**: Nueva ubicación en Centro Médico Santa María.
 - 🗺️ **Enlaces Permitidos**: Habilitado envío de links de Google Maps en chatbot.
