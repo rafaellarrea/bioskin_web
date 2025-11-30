@@ -26,6 +26,16 @@ export interface Service {
   preCare?: string[];
   postCare?: string[];
   contraindications?: string[];
+  promotion?: {
+    name: string;
+    description: string;
+    validFrom: string;
+    validUntil: string;
+    promoPrice: number;
+    discountPercentage: number;
+    savings: number;
+    active: boolean;
+  };
 }
 
 export const services: Service[] = [
@@ -163,24 +173,6 @@ export const services: Service[] = [
       "Mejora textura de la piel",
       "Reduce cicatrices y poros"
     ],
-    "promotion": {
-      "active": true,
-      "name": "BLACK WEEK - Microneedling",
-      "originalPrice": "$60",
-      "promoPrice": "$30 (1 sesión) o $50 (2 sesiones)",
-      "discount": "17%",
-      "savings": "$10 en paquete de 2",
-      "validFrom": "2025-11-24",
-      "validUntil": "2025-12-01",
-      "durationDays": 8,
-      "terms": [
-        "1 sesión: $30 | 2 sesiones: $50",
-        "Ahorra $10 en paquete de 2",
-        "Las 2 sesiones deben usarse en 60 días",
-        "No acumulable con otras promociones"
-      ],
-      "displayMessage": "💉 BLACK WEEK: 1x$30 o 2x$50 ¡Ahorra $10!"
-    },
     "preCare": [
       "No AINEs 72 h",
       "Evitar sol intenso"
@@ -327,24 +319,6 @@ export const services: Service[] = [
       "Reduce poros y controla grasa",
       "Sin tiempo de recuperación"
     ],
-    "promotion": {
-      "active": true,
-      "name": "BLACK WEEK - Hollywood Peel",
-      "originalPrice": "$70",
-      "promoPrice": "$35 (1 sesión) o $55 (2 sesiones)",
-      "discount": "21%",
-      "savings": "$15 en paquete de 2",
-      "validFrom": "2025-11-24",
-      "validUntil": "2025-12-01",
-      "durationDays": 8,
-      "terms": [
-        "1 sesión: $35 | 2 sesiones: $55",
-        "Ahorra $15 en paquete de 2",
-        "Las 2 sesiones deben usarse en 60 días",
-        "No acumulable con otras promociones"
-      ],
-      "displayMessage": "⭐ BLACK WEEK: 1x$35 o 2x$55 ¡Ahorra $15!"
-    },
     "preCare": [
       "Evitar bronceado reciente"
     ],
@@ -1277,24 +1251,6 @@ export const services: Service[] = [
       "Alternativa a cirugía",
       "Resultados naturales"
     ],
-    "promotion": {
-      "active": true,
-      "name": "BLACK WEEK - HIFU 7D",
-      "originalPrice": "$120",
-      "promoPrice": "$60 (1 sesión) o $100 (2 sesiones)",
-      "discount": "17%",
-      "savings": "$20 en paquete de 2",
-      "validFrom": "2025-11-24",
-      "validUntil": "2025-12-01",
-      "durationDays": 8,
-      "terms": [
-        "1 sesión: $60 | 2 sesiones: $100",
-        "Ahorra $20 en paquete de 2",
-        "Las 2 sesiones deben usarse en 90 días",
-        "No acumulable con otras promociones"
-      ],
-      "displayMessage": "🔥 BLACK WEEK: 1x$60 o 2x$100 ¡Ahorra $20!"
-    }
   },
   {
     "id": "lipopapada",

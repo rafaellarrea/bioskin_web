@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Refactorización de Promociones**
+- 🔄 **Centralización**: Promociones movidas directamente a `services.ts` y `products.json`.
+- 🗑️ **Limpieza**: Eliminado `promotions.json` obsoleto.
+- 🧩 **Adaptadores**: Actualizados `products-adapter.js` y `services-adapter.js` para leer promociones nativas.
+- 🧠 **Servicio Dinámico**: `PromotionsService` ahora agrega promociones en tiempo real desde los catálogos.
+
 ### ✅ **Nov 27, 2025: Mejora Flujo Agendamiento (Nombre Primero)**
 - 🔄 **Reordenamiento**: El bot ahora pide Nombre -> Fecha -> Hora -> Servicio.
 - 👤 **Captura de Datos**: Garantiza que se solicite el nombre antes de iniciar la selección de fecha.

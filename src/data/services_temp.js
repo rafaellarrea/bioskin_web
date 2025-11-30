@@ -1,4 +1,19 @@
-[
+/**
+ * BIOSKIN - Catálogo Centralizado de Servicios Médico-Estéticos
+ * 
+ * FUENTE ÚNICA DE VERDAD para todos los servicios
+ * - Usado por la página web (Services.tsx)
+ * - Usado por el chatbot de WhatsApp (via services-adapter.js)
+ * 
+ * Reemplaza:
+ * - Array hardcodeado en src/pages/Services.tsx
+ * - lib/treatments-data.js
+ */
+
+;
+}
+
+module.exports.services = [
   {
     "id": "consulta-escaner",
     "title": "Consulta + Escáner Facial",
@@ -1210,7 +1225,7 @@
       "Flacidez facial o corporal",
       "Alternativa a cirugía",
       "Resultados naturales"
-    ]
+    ],
   },
   {
     "id": "lipopapada",
@@ -1258,4 +1273,4 @@
       "Efecto antiedad inmediato"
     ]
   }
-]
+];

@@ -54,7 +54,17 @@
       "/images/productos/dispositivos/analizador/analizador2.jpg",
       "/images/productos/dispositivos/analizador/analizador3.jpg"
     ],
-    "category": "equipment"
+    "category": "equipment",
+    "promotion": {
+      "name": "Oferta Especial",
+      "description": "Descuento del 15%",
+      "validFrom": "2025-11-30",
+      "validUntil": "2025-12-31",
+      "promoPrice": 1500,
+      "discountPercentage": 15,
+      "savings": 265,
+      "active": true
+    }
   },
   {
     "name": "Láser CO₂ Fraccionado",
@@ -120,7 +130,17 @@
       "/images/productos/dispositivos/laserco2/laser2.jpg",
       "/images/productos/dispositivos/laserco2/laser3.jpg"
     ],
-    "category": "equipment"
+    "category": "equipment",
+    "promotion": {
+      "name": "Oferta Especial",
+      "description": "Descuento del 10%",
+      "validFrom": "2025-11-30",
+      "validUntil": "2025-12-31",
+      "promoPrice": 3650,
+      "discountPercentage": 10,
+      "savings": 406,
+      "active": true
+    }
   },
   {
     "name": "HIFU 7D con Doble manija",
@@ -181,7 +201,17 @@
       "/images/productos/dispositivos/hifu/hifu4.jpg",
       "/images/productos/dispositivos/hifu/hifu5.jpg"
     ],
-    "category": "equipment"
+    "category": "equipment",
+    "promotion": {
+      "name": "Oferta Especial",
+      "description": "Descuento del 15%",
+      "validFrom": "2025-11-30",
+      "validUntil": "2025-12-31",
+      "promoPrice": 1600,
+      "discountPercentage": 15,
+      "savings": 282,
+      "active": true
+    }
   },
   {
     "name": "3 en 1 IPL + LASER YAG + RADIOFRECUENCIA",
@@ -234,6 +264,16 @@
       "/images/productos/dispositivos/multifuncional/multifuncional1.jpg",
       "/images/productos/dispositivos/multifuncional/multifuncional2.jpg"
     ],
-    "category": "equipment"
+    "category": "equipment",
+    "promotion": {
+      "name": "Oferta Especial",
+      "description": "Descuento del 10%",
+      "validFrom": "2025-11-30",
+      "validUntil": "2025-12-31",
+      "promoPrice": 2900,
+      "discountPercentage": 10,
+      "savings": 322,
+      "active": true
+    }
   }
 ]

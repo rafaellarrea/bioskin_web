@@ -1,4 +1,4 @@
-[
+module.exports.services = [
   {
     "id": "consulta-escaner",
     "title": "Consulta + Escáner Facial",
@@ -1210,7 +1210,7 @@
       "Flacidez facial o corporal",
       "Alternativa a cirugía",
       "Resultados naturales"
-    ]
+    ],
   },
   {
     "id": "lipopapada",
@@ -1258,4 +1258,4 @@
       "Efecto antiedad inmediato"
     ]
   }
-]
+];
