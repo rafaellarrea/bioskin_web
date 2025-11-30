@@ -1,6 +1,6 @@
 import ServiceCard from '../components/ServiceCard';
 import Footer from '../components/Footer';
-import servicesData from '../data/services';
+import { services as servicesData } from '../data/services';
 
 const Services = () => {
   // Mapear servicios desde la fuente centralizada
