@@ -1,5 +1,996 @@
 [
   {
+    "id": "consulta-escaner",
+    "title": "Consulta + Escáner Facial",
+    "shortDescription": "Evaluación avanzada con tecnología",
+    "description": "Consulta médica con análisis facial computarizado que evalúa manchas, arrugas, poros, hidratación y otros parámetros de la piel. Evaluación diagnóstica y plan de tratamiento.",
+    "price": "$10",
+    "duration": "30 minutos",
+    "category": "evaluacion",
+    "keywords": [
+      "consulta",
+      "escaner",
+      "analizador",
+      "facial",
+      "diagnostico",
+      "tecnologia",
+      "Analizador facial"
+    ],
+    "image": "/images/services/escaner-facial.jpg",
+    "popular": false,
+    "benefits": [
+      "Análisis computarizado de la piel",
+      "Detección de manchas y arrugas",
+      "Medición de hidratación y elasticidad"
+    ],
+    "preCare": [
+      "Sin maquillaje el día de la cita",
+      "Traer historial clínico si existe"
+    ],
+    "postCare": [
+      "Enviar plan por WhatsApp/email",
+      "Registrar fotos en ficha"
+    ],
+    "contraindications": [
+      "Ninguna específica (evaluación)"
+    ]
+  },
+  {
+    "id": "limpieza-facial",
+    "title": "Limpieza Facial Profunda",
+    "shortDescription": "Limpieza profesional de cutis",
+    "description": "Limpieza facial profunda con extracción de impurezas, exfoliación, tonificación y mascarilla revitalizante. Deja la piel limpia, fresca y radiante. Higiene, desobstrucción y mejora de textura.",
+    "price": "$25",
+    "duration": "90 minutos",
+    "category": "facial",
+    "keywords": [
+      "limpieza",
+      "facial",
+      "cutis",
+      "exfoliacion",
+      "mascarilla",
+      "poros",
+      "Vaporizador",
+      "Extractores manuales"
+    ],
+    "image": "/images/services/limpieza-facial.jpg",
+    "popular": true,
+    "benefits": [
+      "Eliminación profunda de impurezas",
+      "Desobstrucción de poros",
+      "Piel más luminosa y fresca"
+    ],
+    "indications": [
+      "Todo tipo de piel",
+      "Piel con impurezas o puntos negros",
+      "Mantenimiento mensual recomendado"
+    ],
+    "preCare": [
+      "Evitar exfoliantes 3 días antes"
+    ],
+    "postCare": [
+      "Protector solar, evitar maquillaje 24 h"
+    ],
+    "contraindications": [
+      "Infecciones cutáneas activas"
+    ]
+  },
+  {
+    "id": "dermaplaning",
+    "title": "Dermaplaning + limpieza",
+    "shortDescription": "Exfoliación mecánica superficial y suavizado",
+    "description": "Exfoliación mecánica superficial y suavizado. Útil previo a peel superficial; documentar tolerancia",
+    "price": "$20",
+    "duration": "45 minutos",
+    "category": "facial",
+    "keywords": [
+      "dermaplaning",
+      "+",
+      "limpieza",
+      "Hoja dermaplaning",
+      "Equipo de limpieza"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Exfoliación mecánica superficial y suavizado"
+    ],
+    "indications": [
+      "Evitar retinoides 3 días antes",
+      "Hidratación y protector solar inmediata"
+    ],
+    "preCare": [
+      "Evitar retinoides 3 días antes"
+    ],
+    "postCare": [
+      "Hidratación y protector solar inmediata"
+    ],
+    "contraindications": [
+      "Lesión cutánea activa"
+    ]
+  },
+  {
+    "id": "microneedling",
+    "title": "Microneedling",
+    "shortDescription": "Regeneración celular avanzada",
+    "description": "Tratamiento de microagujas que estimula la producción natural de colágeno y elastina, mejorando textura, cicatrices y arrugas. Estimulación de colágeno, mejora de cicatrices y textura.",
+    "price": "$30",
+    "duration": "60 minutos",
+    "category": "facial",
+    "keywords": [
+      "microneedling",
+      "microagujas",
+      "colageno",
+      "cicatrices",
+      "textura",
+      "Dermapen / Roller",
+      "Serums (ácido hialurónico, PRP opcional)"
+    ],
+    "image": "/images/services/microneedling.jpg",
+    "popular": false,
+    "benefits": [
+      "Estimula colágeno natural",
+      "Mejora textura de la piel",
+      "Reduce cicatrices y poros"
+    ],
+    "promotion": {
+      "active": true,
+      "name": "BLACK WEEK - Microneedling",
+      "originalPrice": "$60",
+      "promoPrice": "$30 (1 sesión) o $50 (2 sesiones)",
+      "discount": "17%",
+      "savings": "$10 en paquete de 2",
+      "validFrom": "2025-11-24",
+      "validUntil": "2025-12-01",
+      "durationDays": 8,
+      "terms": [
+        "1 sesión: $30 | 2 sesiones: $50",
+        "Ahorra $10 en paquete de 2",
+        "Las 2 sesiones deben usarse en 60 días",
+        "No acumulable con otras promociones"
+      ],
+      "displayMessage": "💉 BLACK WEEK: 1x$30 o 2x$50 ¡Ahorra $10!"
+    },
+    "preCare": [
+      "No AINEs 72 h",
+      "Evitar sol intenso"
+    ],
+    "postCare": [
+      "Hidratación intensiva, protector solar, evitar ejercicio 48 h"
+    ],
+    "contraindications": [
+      "Infección activa, isotretinoína en últimos 6 meses"
+    ]
+  },
+  {
+    "id": "meso-mesotherapy",
+    "title": "Mesoterapia (vitaminas / ácido hialurónico)",
+    "shortDescription": "Nutrición dérmica, hidratación y mejora de textura",
+    "description": "Nutrición dérmica, hidratación y mejora de textura. Registrar lote y composición del cocktail aplicado",
+    "price": "variable según activos colocados y zona",
+    "duration": "45 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "mesoterapia",
+      "(vitaminas",
+      "/",
+      "ácido",
+      "hialurónico)",
+      "Jeringas",
+      "Cocktails mesoterapéuticos"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Nutrición dérmica, hidratación y mejora de textura"
+    ],
+    "indications": [
+      "Revisar alergias y medicación (anticoagulantes)",
+      "Evitar calor y ejercicio intenso 48 h"
+    ],
+    "preCare": [
+      "Revisar alergias y medicación (anticoagulantes)"
+    ],
+    "postCare": [
+      "Evitar calor y ejercicio intenso 48 h"
+    ],
+    "contraindications": [
+      "Trastornos de coagulación, alergias conocidas"
+    ]
+  },
+  {
+    "id": "prp",
+    "title": "Plasma rico en plaquetas (PRP)",
+    "shortDescription": "Regeneración, mejora de textura y densidad dérmica",
+    "description": "Regeneración, mejora de textura y densidad dérmica. Registrar kit/lote en ficha del paciente",
+    "price": "$35",
+    "duration": "45 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "plasma",
+      "rico",
+      "en",
+      "plaquetas",
+      "(prp)",
+      "Centrífuga PRP",
+      "Kits estériles PRP"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Regeneración, mejora de textura y densidad dérmica"
+    ],
+    "indications": [
+      "Evitar AINEs antes de la sesión",
+      "Ayuno ligero si indicado",
+      "Higiene local, evitar ejercicio intenso 48 h"
+    ],
+    "preCare": [
+      "Evitar AINEs antes de la sesión",
+      "Ayuno ligero si indicado"
+    ],
+    "postCare": [
+      "Higiene local, evitar ejercicio intenso 48 h"
+    ],
+    "contraindications": [
+      "Trastornos plaquetarios, anticoagulantes"
+    ]
+  },
+  {
+    "id": "exosomas",
+    "title": "Exosomas (aplicación tópica o mesoterapia)",
+    "shortDescription": "Regeneración celular avanzada y rejuvenecimiento",
+    "description": "Regeneración celular avanzada y rejuvenecimiento. Cadena de frío crítica control estricto de stock",
+    "price": "$130",
+    "duration": "60 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "exosomas",
+      "(aplicación",
+      "tópica",
+      "o",
+      "mesoterapia)",
+      "Exosomas (producto), aplicador tópico o mesoterapia"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Regeneración celular avanzada y rejuvenecimiento"
+    ],
+    "indications": [
+      "Evaluación de alergias",
+      "No anticoagulantes si mesoterapia",
+      "Protección solar, evitar AINEs si indicado"
+    ],
+    "preCare": [
+      "Evaluación de alergias",
+      "No anticoagulantes si mesoterapia"
+    ],
+    "postCare": [
+      "Protección solar, evitar AINEs si indicado"
+    ],
+    "contraindications": [
+      "Reacciones alérgicas conocidas"
+    ]
+  },
+  {
+    "id": "hollywood-peel",
+    "title": "Hollywood Peel",
+    "shortDescription": "El tratamiento de las estrellas",
+    "description": "Láser de carbón activado que elimina impurezas, reduce poros, controla grasa y proporciona luminosidad instantánea. Luminosidad y control de sebo.",
+    "price": "$35",
+    "duration": "90 minutos",
+    "category": "laser",
+    "keywords": [
+      "hollywood",
+      "peel",
+      "laser",
+      "carbon",
+      "poros",
+      "luminosidad",
+      "Láser NDYAG o sistema específico para Hollywood Peel"
+    ],
+    "image": "/images/services/hollywood-peel.jpg",
+    "popular": true,
+    "benefits": [
+      "Luminosidad instantánea",
+      "Reduce poros y controla grasa",
+      "Sin tiempo de recuperación"
+    ],
+    "promotion": {
+      "active": true,
+      "name": "BLACK WEEK - Hollywood Peel",
+      "originalPrice": "$70",
+      "promoPrice": "$35 (1 sesión) o $55 (2 sesiones)",
+      "discount": "21%",
+      "savings": "$15 en paquete de 2",
+      "validFrom": "2025-11-24",
+      "validUntil": "2025-12-01",
+      "durationDays": 8,
+      "terms": [
+        "1 sesión: $35 | 2 sesiones: $55",
+        "Ahorra $15 en paquete de 2",
+        "Las 2 sesiones deben usarse en 60 días",
+        "No acumulable con otras promociones"
+      ],
+      "displayMessage": "⭐ BLACK WEEK: 1x$35 o 2x$55 ¡Ahorra $15!"
+    },
+    "preCare": [
+      "Evitar bronceado reciente"
+    ],
+    "postCare": [
+      "Hidratación y protector solar"
+    ],
+    "contraindications": [
+      "Embarazo (según equipo), lesión activa"
+    ]
+  },
+  {
+    "id": "laser-co2-superf",
+    "title": "Láser CO₂ fraccionado (superficial)",
+    "shortDescription": "Resurfacing leve a moderado, mejora de textura y cicatrices",
+    "description": "Resurfacing leve a moderado, mejora de textura y cicatrices. Analizar intensidad para reducir riesgos; consentimiento obligatorio",
+    "price": "$140",
+    "duration": "60 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "láser",
+      "co₂",
+      "fraccionado",
+      "(superficial)",
+      "Láser CO₂ fraccionado"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Resurfacing leve a moderado, mejora de textura y cicatrices"
+    ],
+    "indications": [
+      "Evaluar historia de herpes; considerar profilaxis",
+      "No isotretinoína reciente",
+      "Cuidado de heridas, alta protección solar",
+      "Downtime 7-14 días según intensidad"
+    ],
+    "preCare": [
+      "Evaluar historia de herpes; considerar profilaxis",
+      "No isotretinoína reciente"
+    ],
+    "postCare": [
+      "Cuidado de heridas, alta protección solar",
+      "Downtime 7-14 días según intensidad"
+    ],
+    "contraindications": [
+      "Isotretinoína reciente, infección activa"
+    ]
+  },
+  {
+    "id": "laser-co2-profound",
+    "title": "Láser CO₂ ablativo profundo",
+    "shortDescription": "Rejuvenecimiento profundo y corrección de cicatrices profundas",
+    "description": "Rejuvenecimiento profundo y corrección de cicatrices profundas. Solo en candidatos seleccionados; alto riesgo y analgesia necesaria",
+    "price": "variable según zona y tipo",
+    "duration": "90 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "láser",
+      "co₂",
+      "ablativo",
+      "profundo",
+      "Láser CO₂ ablativo"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Rejuvenecimiento profundo y corrección de cicatrices profundas"
+    ],
+    "indications": [
+      "Profilaxis herpética, evaluación completa",
+      "No isotretinoína",
+      "Reposo, curas, protección solar estricta",
+      "Seguimiento estrecho"
+    ],
+    "preCare": [
+      "Profilaxis herpética, evaluación completa",
+      "No isotretinoína"
+    ],
+    "postCare": [
+      "Reposo, curas, protección solar estricta",
+      "Seguimiento estrecho"
+    ],
+    "contraindications": [
+      "Isotretinoína reciente, infecciones activas"
+    ]
+  },
+  {
+    "id": "ndyag-tattoo",
+    "title": "Eliminación de tatuajes (Nd :YAG )",
+    "shortDescription": "Fragmentación de pigmento de tatuaje",
+    "description": "Fragmentación de pigmento de tatuaje. Precio variable por tamaño y color; documental zona y tinta",
+    "price": "desde $15 por sesión",
+    "duration": "45 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "eliminación",
+      "de",
+      "tatuajes",
+      "(nd",
+      ":yag",
+      ")",
+      "Láser Nd :YAG 1064/532 nm"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Fragmentación de pigmento de tatuaje"
+    ],
+    "indications": [
+      "Fotos previas; evitar bronceado antes de sesión",
+      "Cuidado de herida, evitar exposición solar prolongada"
+    ],
+    "preCare": [
+      "Fotos previas; evitar bronceado antes de sesión"
+    ],
+    "postCare": [
+      "Cuidado de herida, evitar exposición solar prolongada"
+    ],
+    "contraindications": [
+      "Embarazo, infección activa, piel muy bronceada sin evaluación"
+    ]
+  },
+  {
+    "id": "ndyag-vascular",
+    "title": "Tratamiento vascular / lesiones (Nd :YAG )",
+    "shortDescription": "Tratamiento de telangiectasias y lesiones vasculares superficiales",
+    "description": "Tratamiento de telangiectasias y lesiones vasculares superficiales. Parametrizar energía según tipo de lesión y fototipo",
+    "price": "$50",
+    "duration": "45 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "tratamiento",
+      "vascular",
+      "/",
+      "lesiones",
+      "(nd",
+      ":yag",
+      ")",
+      "Láser Nd :YAG (long pulse)"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Tratamiento de telangiectasias y lesiones vasculares superficiales"
+    ],
+    "indications": [
+      "Evitar anticoagulantes 48 h si es posible",
+      "Protección solar y frío local"
+    ],
+    "preCare": [
+      "Evitar anticoagulantes 48 h si es posible"
+    ],
+    "postCare": [
+      "Protección solar y frío local"
+    ],
+    "contraindications": [
+      "Infección activa, piel bronceada sin ajuste de parámetros"
+    ]
+  },
+  {
+    "id": "ipl-fotofacial",
+    "title": "IPL (Elight) – Fotofacial / Rejuvenecimiento",
+    "shortDescription": "Mejorar pigmentación, vasculatura superficial y textura",
+    "description": "Mejorar pigmentación, vasculatura superficial y textura. Ajustes según fototipo y zona a tratar",
+    "price": "$25",
+    "duration": "60 minutos",
+    "category": "facial",
+    "keywords": [
+      "ipl",
+      "(elight)",
+      "–",
+      "fotofacial",
+      "/",
+      "rejuvenecimiento",
+      "IPL Elight"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Mejorar pigmentación, vasculatura superficial y textura"
+    ],
+    "indications": [
+      "Evitar bronceado y productos fotosensibilizantes",
+      "Protector solar, posible leve eritema transitorio"
+    ],
+    "preCare": [
+      "Evitar bronceado y productos fotosensibilizantes"
+    ],
+    "postCare": [
+      "Protector solar, posible leve eritema transitorio"
+    ],
+    "contraindications": [
+      "Fotosensibilidad,piel bronceada reciente"
+    ]
+  },
+  {
+    "id": "ipl-depilation",
+    "title": "Depilación con IPL (Elight)",
+    "shortDescription": "Reducción de vello a largo plazo",
+    "description": "Reducción de vello a largo plazo. Programar según fase anágena del folículo",
+    "price": "variable según zona",
+    "duration": "30 minutos",
+    "category": "laser",
+    "keywords": [
+      "depilación",
+      "con",
+      "ipl",
+      "(elight)",
+      "IPL Elight",
+      "Gel conductor si aplica"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Reducción de vello a largo plazo"
+    ],
+    "indications": [
+      "Afeitar 24 h antes; evitar bronceado",
+      "Evitar exposición solar y calor 7 días"
+    ],
+    "preCare": [
+      "Afeitar 24 h antes; evitar bronceado"
+    ],
+    "postCare": [
+      "Evitar exposición solar y calor 7 días"
+    ],
+    "contraindications": [
+      "Piel bronceada, tatuajes en zona, fotosensibilidad"
+    ]
+  },
+  {
+    "id": "ipl-pigmentation",
+    "title": "IPL despigmentante",
+    "shortDescription": "Reducción de manchas superficiales por pigmento",
+    "description": "Reducción de manchas superficiales por pigmento. Combinar con tópicos para mejorar respuesta",
+    "price": "$35",
+    "duration": "45 minutos",
+    "category": "laser",
+    "keywords": [
+      "ipl",
+      "despigmentante",
+      "IPL Elight",
+      "Activos tópicos despigmentantes"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Reducción de manchas superficiales por pigmento"
+    ],
+    "indications": [
+      "Evitar sol y bronceado al menos 2 semanas",
+      "Protector solar alto y rutinas despigmentantes prescritas"
+    ],
+    "preCare": [
+      "Evitar sol y bronceado al menos 2 semanas"
+    ],
+    "postCare": [
+      "Protector solar alto y rutinas despigmentantes prescritas"
+    ],
+    "contraindications": [
+      "Isotretinoína reciente, fotosensibilidad"
+    ]
+  },
+  {
+    "id": "hifu-full",
+    "title": "HIFU full face",
+    "shortDescription": "Lifting no invasivo y estimulación profunda de colágeno",
+    "description": "Lifting no invasivo y estimulación profunda de colágeno. Registrar cartucho y parámetros por paciente",
+    "price": "$60",
+    "duration": "120 minutos",
+    "category": "laser",
+    "keywords": [
+      "hifu",
+      "full",
+      "face",
+      "HIFU (cartuchos 4.5 mm, 3.0 mm, 1.5 mm)"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Lifting no invasivo y estimulación profunda de colágeno"
+    ],
+    "indications": [
+      "No maquillaje; informar sobre implants o hardware facial",
+      "Leve enrojecimiento; evitar calor extremo 48 h"
+    ],
+    "preCare": [
+      "No maquillaje; informar sobre implants o hardware facial"
+    ],
+    "postCare": [
+      "Leve enrojecimiento; evitar calor extremo 48 h"
+    ],
+    "contraindications": [
+      "Embarazo, implantes metálicos en zona tratada"
+    ]
+  },
+  {
+    "id": "hifu-target",
+    "title": "HIFU zona específica (papada/óvalo/ojos)",
+    "shortDescription": "Reafirmación localizada y contorno",
+    "description": "Reafirmación localizada y contorno. Ajustar número de líneas y energía según zona",
+    "price": "variable según zona",
+    "duration": "60 minutos",
+    "category": "laser",
+    "keywords": [
+      "hifu",
+      "zona",
+      "específica",
+      "(papada/óvalo/ojos)",
+      "HIFU con cartuchos focalizados"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Reafirmación localizada y contorno"
+    ],
+    "indications": [
+      "Informar sensibilidad y antecedentes de implants",
+      "Evitar masaje y calor 1 semana"
+    ],
+    "preCare": [
+      "Informar sensibilidad y antecedentes de implants"
+    ],
+    "postCare": [
+      "Evitar masaje y calor 1 semana"
+    ],
+    "contraindications": [
+      "Implantes, embarazo"
+    ]
+  },
+  {
+    "id": "crio-rf-face",
+    "title": "Crio-Radiofrecuencia facial",
+    "shortDescription": "Reafirmación y remodelado facial",
+    "description": "Reafirmación y remodelado facial. Compatible como complemento de HIFU",
+    "price": "$30",
+    "duration": "45 minutos",
+    "category": "facial",
+    "keywords": [
+      "crio-radiofrecuencia",
+      "facial",
+      "Crio+RF (handpiece facial)"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Reafirmación y remodelado facial"
+    ],
+    "indications": [
+      "Evaluar historial de marcapasos o dispositivos eléctricos",
+      "Hidratación; actividad normal permitida"
+    ],
+    "preCare": [
+      "Evaluar historial de marcapasos o dispositivos eléctricos"
+    ],
+    "postCare": [
+      "Hidratación; actividad normal permitida"
+    ],
+    "contraindications": [
+      "Marcapasos, embarazo"
+    ]
+  },
+  {
+    "id": "crio-rf-body",
+    "title": "Crio-Radiofrecuencia corporal",
+    "shortDescription": "Reafirmación y modelado corporal",
+    "description": "Reafirmación y modelado corporal. Combinar con cavitación si disponible para eficiencia",
+    "price": "$60",
+    "duration": "60 minutos",
+    "category": "corporal",
+    "keywords": [
+      "crio-radiofrecuencia",
+      "corporal",
+      "Crio+RF (handpiece corporal)"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Reafirmación y modelado corporal"
+    ],
+    "indications": [
+      "Evaluar circulación y condiciones vasculares",
+      "Actividad normal; hidratación"
+    ],
+    "preCare": [
+      "Evaluar circulación y condiciones vasculares"
+    ],
+    "postCare": [
+      "Actividad normal; hidratación"
+    ],
+    "contraindications": [
+      "Marcapasos, trombosis"
+    ]
+  },
+  {
+    "id": "relleno-labios",
+    "title": "Relleno de Labios",
+    "shortDescription": "Labios perfectos y naturales",
+    "description": "Aumento y perfilado de labios con ácido hialurónico para lograr labios más voluminosos y definidos de forma natural. Volumen y contorno labial.",
+    "price": "desde 160",
+    "duration": "60 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "relleno",
+      "labios",
+      "acido",
+      "hialuronico",
+      "aumento",
+      "perfilado",
+      "Ácido hialurónico (varias marcas), agujas/cánulas"
+    ],
+    "image": "/images/services/relleno-labios.jpg",
+    "popular": false,
+    "benefits": [
+      "Aumento de volumen",
+      "Perfilado natural",
+      "Resultados inmediatos"
+    ],
+    "preCare": [
+      "No AINEs 72 h; evitar alcohol 24 h"
+    ],
+    "postCare": [
+      "Aplicar hielo, evitar masaje 7 días"
+    ],
+    "contraindications": [
+      "Infección local, alergias a componentes"
+    ]
+  },
+  {
+    "id": "bioestimuladores",
+    "title": "Bioestimuladores de Colágeno",
+    "shortDescription": "Estimulación profunda de colágeno",
+    "description": "Inyección de bioestimuladores (Sculptra, Radiesse) que activan la producción de colágeno propio para rejuvenecimiento progresivo. Estimulación profunda y sostenida de colágeno.",
+    "price": "desde 200",
+    "duration": "45 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "bioestimuladores",
+      "colageno",
+      "sculptra",
+      "radiesse",
+      "rejuvenecimiento",
+      "Radiesse, Sculptra u otros bioestimuladores inyectables"
+    ],
+    "image": "/images/services/bioestimuladores.jpg",
+    "popular": false,
+    "benefits": [
+      "Rejuvenecimiento progresivo",
+      "Resultados naturales",
+      "Efecto duradero"
+    ],
+    "preCare": [
+      "Evaluación de alergias y medicación",
+      "No anticoagulantes si posible"
+    ],
+    "postCare": [
+      "Evitar masaje intenso y calor 2 semanas"
+    ],
+    "contraindications": [
+      "Embarazo, infección activa"
+    ]
+  },
+  {
+    "id": "prf-plasma",
+    "title": "Plasma rico en fibrina (PRF)",
+    "shortDescription": "Regeneración dérmica con PRF (variante de PRP)",
+    "description": "Regeneración dérmica con PRF (variante de PRP). Registro de kit/lote obligatorio",
+    "price": "$35",
+    "duration": "45 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "plasma",
+      "rico",
+      "en",
+      "fibrina",
+      "(prf)",
+      "Centrífuga PRF, kits estériles"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Regeneración dérmica con PRF (variante de PRP)"
+    ],
+    "indications": [
+      "No AINEs; revisar historia clínica",
+      "Higiene local, evitar ejercicio intenso 48 h"
+    ],
+    "preCare": [
+      "No AINEs; revisar historia clínica"
+    ],
+    "postCare": [
+      "Higiene local, evitar ejercicio intenso 48 h"
+    ],
+    "contraindications": [
+      "Trastornos plaquetarios"
+    ]
+  },
+  {
+    "id": "fillers-facial",
+    "title": "Rellenos faciales (surcos, pómulos, etc.)",
+    "shortDescription": "Restaurar volúmenes faciales y contornos",
+    "description": "Restaurar volúmenes faciales y contornos. Consentimiento y registro de lote/ marca obligatoria",
+    "price": "desde 180",
+    "duration": "60 minutos",
+    "category": "facial",
+    "keywords": [
+      "rellenos",
+      "faciales",
+      "(surcos,",
+      "pómulos,",
+      "etc.)",
+      "Ácido hialurónico u otros rellenos reabsorbibles"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Restaurar volúmenes faciales y contornos"
+    ],
+    "indications": [
+      "No AINEs 72 h; evaluar historial de reacciones",
+      "Hielo, evitar masaje 7 días"
+    ],
+    "preCare": [
+      "No AINEs 72 h; evaluar historial de reacciones"
+    ],
+    "postCare": [
+      "Hielo, evitar masaje 7 días"
+    ],
+    "contraindications": [
+      "Infección local, alergias conocidas"
+    ]
+  },
+  {
+    "id": "thread-lift",
+    "title": "Lifting con hilos DOP",
+    "shortDescription": "Efecto mecánico de reafirmación y soporte",
+    "description": "Efecto mecánico de reafirmación y soporte. Debe realizar profesional entrenado; documentar cantidad y tipo de hilos",
+    "price": "$200",
+    "duration": "90 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "lifting",
+      "con",
+      "hilos",
+      "dop",
+      "Hilos PDO, cánulas y material estéril"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Efecto mecánico de reafirmación y soporte"
+    ],
+    "indications": [
+      "Evaluar anticoagulación y condiciones sistémicas",
+      "Evitar masaje y actividad intensa 2 semanas"
+    ],
+    "preCare": [
+      "Evaluar anticoagulación y condiciones sistémicas"
+    ],
+    "postCare": [
+      "Evitar masaje y actividad intensa 2 semanas"
+    ],
+    "contraindications": [
+      "Infección activa, coagulopatía"
+    ]
+  },
+  {
+    "id": "rejoven-ndyag",
+    "title": "Rejuvenecimiento con Nd :YAG ",
+    "shortDescription": "Mejora de textura y tratamiento de lesiones vasculares profundas",
+    "description": "Mejora de textura y tratamiento de lesiones vasculares profundas. Ajustar parámetros según fototipo y zona",
+    "price": "$35",
+    "duration": "45 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "rejuvenecimiento",
+      "con",
+      "nd",
+      ":yag",
+      "Nd :YAG (long pulse)"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Mejora de textura y tratamiento de lesiones vasculares profundas"
+    ],
+    "indications": [
+      "Evitar bronceado; evaluación de fototipo",
+      "Protector solar; leve posible eritema"
+    ],
+    "preCare": [
+      "Evitar bronceado; evaluación de fototipo"
+    ],
+    "postCare": [
+      "Protector solar; leve posible eritema"
+    ],
+    "contraindications": [
+      "Fototipos altos sin ajuste de parámetros"
+    ]
+  },
+  {
+    "id": "anti-acne-protocol",
+    "title": "Protocolo Anti-acné (combinado)",
+    "shortDescription": "Control de inflamación, control de sebo y prevención de cicatrices",
+    "description": "Control de inflamación, control de sebo y prevención de cicatrices. Protocolo combinado con seguimiento estrecho y ajuste según respuesta",
+    "price": "$30",
+    "duration": "60 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "protocolo",
+      "anti-acné",
+      "(combinado)",
+      "IPL Elight / Nd :YAG (según lesión)",
+      "Microneedling con serums",
+      "Peelings suaves"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Control de inflamación, control de sebo y prevención de cicatrices"
+    ],
+    "indications": [
+      "Fotografiar lesiones; revisar medicación (isotretinoína)",
+      "Rutina tópica prescrita; evitar productos oclusivos 24 h"
+    ],
+    "preCare": [
+      "Fotografiar lesiones; revisar medicación (isotretinoína)"
+    ],
+    "postCare": [
+      "Rutina tópica prescrita; evitar productos oclusivos 24 h"
+    ],
+    "contraindications": [
+      "Isotretinoína reciente; activa"
+    ]
+  },
+  {
+    "id": "scars-fractional",
+    "title": "Tratamiento de cicatrices (fractional CO₂ / RF)",
+    "shortDescription": "Mejora de cicatrices atróficas y textura",
+    "description": "Mejora de cicatrices atróficas y textura. Protocolizar intensidad según profundidad de cicatrización",
+    "price": "$150-250",
+    "duration": "60 minutos",
+    "category": "avanzado",
+    "keywords": [
+      "tratamiento",
+      "de",
+      "cicatrices",
+      "(fractional",
+      "co₂",
+      "/",
+      "rf)",
+      "Láser CO₂ fraccionado",
+      "RF fraccional si disponible"
+    ],
+    "image": "/images/services/default.jpg",
+    "popular": false,
+    "benefits": [
+      "Mejora de cicatrices atróficas y textura"
+    ],
+    "indications": [
+      "Fotos previas; evaluar historia de isotretinoína",
+      "Curas y protector solar alto",
+      "Seguimiento por 2-4 semanas"
+    ],
+    "preCare": [
+      "Fotos previas; evaluar historia de isotretinoína"
+    ],
+    "postCare": [
+      "Curas y protector solar alto",
+      "Seguimiento por 2-4 semanas"
+    ],
+    "contraindications": [
+      "Isotretino recienteína, infecciones activas"
+    ]
+  },
+  {
     "id": "consulta-medica",
     "title": "Consulta Médica Estética",
     "shortDescription": "Evaluación profesional personalizada",
@@ -21,59 +1012,6 @@
       "Diagnóstico profesional de tu piel",
       "Plan de tratamiento personalizado",
       "Recomendaciones de especialistas"
-    ]
-  },
-  {
-    "id": "consulta-escaner",
-    "title": "Consulta + Escáner Facial",
-    "shortDescription": "Evaluación avanzada con tecnología",
-    "description": "Consulta médica con análisis facial computarizado que evalúa manchas, arrugas, poros, hidratación y otros parámetros de la piel.",
-    "price": "$10",
-    "duration": "45 minutos",
-    "category": "evaluacion",
-    "keywords": [
-      "consulta",
-      "escaner",
-      "analizador",
-      "facial",
-      "diagnostico",
-      "tecnologia"
-    ],
-    "image": "/images/services/escaner-facial.jpg",
-    "popular": false,
-    "benefits": [
-      "Análisis computarizado de la piel",
-      "Detección de manchas y arrugas",
-      "Medición de hidratación y elasticidad"
-    ]
-  },
-  {
-    "id": "limpieza-facial",
-    "title": "Limpieza Facial Profunda",
-    "shortDescription": "Limpieza profesional de cutis",
-    "description": "Limpieza facial profunda con extracción de impurezas, exfoliación, tonificación y mascarilla revitalizante. Deja la piel limpia, fresca y radiante.",
-    "price": "$25",
-    "duration": "90 minutos",
-    "category": "facial",
-    "keywords": [
-      "limpieza",
-      "facial",
-      "cutis",
-      "exfoliacion",
-      "mascarilla",
-      "poros"
-    ],
-    "image": "/images/services/limpieza-facial.jpg",
-    "popular": true,
-    "benefits": [
-      "Eliminación profunda de impurezas",
-      "Desobstrucción de poros",
-      "Piel más luminosa y fresca"
-    ],
-    "indications": [
-      "Todo tipo de piel",
-      "Piel con impurezas o puntos negros",
-      "Mantenimiento mensual recomendado"
     ]
   },
   {
@@ -174,47 +1112,6 @@
     ]
   },
   {
-    "id": "microneedling",
-    "title": "Microneedling",
-    "shortDescription": "Regeneración celular avanzada",
-    "description": "Tratamiento de microagujas que estimula la producción natural de colágeno y elastina, mejorando textura, cicatrices y arrugas.",
-    "price": "$30",
-    "duration": "60 minutos",
-    "category": "facial",
-    "keywords": [
-      "microneedling",
-      "microagujas",
-      "colageno",
-      "cicatrices",
-      "textura"
-    ],
-    "image": "/images/services/microneedling.jpg",
-    "popular": false,
-    "benefits": [
-      "Estimula colágeno natural",
-      "Mejora textura de la piel",
-      "Reduce cicatrices y poros"
-    ],
-    "promotion": {
-      "active": true,
-      "name": "BLACK WEEK - Microneedling",
-      "originalPrice": "$60",
-      "promoPrice": "$30 (1 sesión) o $50 (2 sesiones)",
-      "discount": "17%",
-      "savings": "$10 en paquete de 2",
-      "validFrom": "2025-11-24",
-      "validUntil": "2025-12-01",
-      "durationDays": 8,
-      "terms": [
-        "1 sesión: $30 | 2 sesiones: $50",
-        "Ahorra $10 en paquete de 2",
-        "Las 2 sesiones deben usarse en 60 días",
-        "No acumulable con otras promociones"
-      ],
-      "displayMessage": "💉 BLACK WEEK: 1x$30 o 2x$50 ¡Ahorra $10!"
-    }
-  },
-  {
     "id": "tratamiento-acne",
     "title": "Tratamiento Integral Anti-Acné",
     "shortDescription": "Control y eliminación de acné activo",
@@ -299,48 +1196,6 @@
       "Reduce venitas faciales",
       "Mejora textura general"
     ]
-  },
-  {
-    "id": "hollywood-peel",
-    "title": "Hollywood Peel",
-    "shortDescription": "El tratamiento de las estrellas",
-    "description": "Láser de carbón activado que elimina impurezas, reduce poros, controla grasa y proporciona luminosidad instantánea.",
-    "price": "$30",
-    "duration": "90 minutos",
-    "category": "laser",
-    "keywords": [
-      "hollywood",
-      "peel",
-      "laser",
-      "carbon",
-      "poros",
-      "luminosidad"
-    ],
-    "image": "/images/services/hollywood-peel.jpg",
-    "popular": true,
-    "benefits": [
-      "Luminosidad instantánea",
-      "Reduce poros y controla grasa",
-      "Sin tiempo de recuperación"
-    ],
-    "promotion": {
-      "active": true,
-      "name": "BLACK WEEK - Hollywood Peel",
-      "originalPrice": "$70",
-      "promoPrice": "$35 (1 sesión) o $55 (2 sesiones)",
-      "discount": "21%",
-      "savings": "$15 en paquete de 2",
-      "validFrom": "2025-11-24",
-      "validUntil": "2025-12-01",
-      "durationDays": 8,
-      "terms": [
-        "1 sesión: $35 | 2 sesiones: $55",
-        "Ahorra $15 en paquete de 2",
-        "Las 2 sesiones deben usarse en 60 días",
-        "No acumulable con otras promociones"
-      ],
-      "displayMessage": "⭐ BLACK WEEK: 1x$35 o 2x$55 ¡Ahorra $15!"
-    }
   },
   {
     "id": "remocion-tatuajes",
@@ -432,99 +1287,6 @@
       "Elimina grasa de papada",
       "Sin cirugía ni anestesia",
       "Define el contorno facial"
-    ]
-  },
-  {
-    "id": "prp",
-    "title": "PRP (Plasma Rico en Plaquetas)",
-    "shortDescription": "Regeneración con tu propia sangre",
-    "description": "Tratamiento de bioestimulación con plasma rico en plaquetas para regenerar la piel, reducir arrugas y mejorar calidad cutánea.",
-    "price": "$30",
-    "duration": "60 minutos",
-    "category": "inyectable",
-    "keywords": [
-      "prp",
-      "plasma",
-      "plaquetas",
-      "bioestimulacion",
-      "regeneracion"
-    ],
-    "image": "/images/services/prp.jpg",
-    "popular": false,
-    "benefits": [
-      "Estimula regeneración natural",
-      "Mejora calidad de la piel",
-      "Tratamiento biocompatible"
-    ]
-  },
-  {
-    "id": "bioestimuladores",
-    "title": "Bioestimuladores de Colágeno",
-    "shortDescription": "Estimulación profunda de colágeno",
-    "description": "Inyección de bioestimuladores (Sculptra, Radiesse) que activan la producción de colágeno propio para rejuvenecimiento progresivo.",
-    "price": "$250",
-    "duration": "45 minutos",
-    "category": "inyectable",
-    "keywords": [
-      "bioestimuladores",
-      "colageno",
-      "sculptra",
-      "radiesse",
-      "rejuvenecimiento"
-    ],
-    "image": "/images/services/bioestimuladores.jpg",
-    "popular": false,
-    "benefits": [
-      "Rejuvenecimiento progresivo",
-      "Resultados naturales",
-      "Efecto duradero"
-    ]
-  },
-  {
-    "id": "relleno-labios",
-    "title": "Relleno de Labios",
-    "shortDescription": "Labios perfectos y naturales",
-    "description": "Aumento y perfilado de labios con ácido hialurónico para lograr labios más voluminosos y definidos de forma natural.",
-    "price": "$160",
-    "duration": "30 minutos",
-    "category": "inyectable",
-    "keywords": [
-      "relleno",
-      "labios",
-      "acido",
-      "hialuronico",
-      "aumento",
-      "perfilado"
-    ],
-    "image": "/images/services/relleno-labios.jpg",
-    "popular": false,
-    "benefits": [
-      "Aumento de volumen",
-      "Perfilado natural",
-      "Resultados inmediatos"
-    ]
-  },
-  {
-    "id": "exosomas",
-    "title": "Exosomas + Mesoterapia",
-    "shortDescription": "Regeneración celular avanzada",
-    "description": "Tratamiento de última generación con exosomas para regeneración celular profunda, combinado con mesoterapia para máxima efectividad.",
-    "price": "$150",
-    "duration": "60 minutos",
-    "category": "avanzado",
-    "keywords": [
-      "exosomas",
-      "mesoterapia",
-      "regeneracion",
-      "celular",
-      "avanzado"
-    ],
-    "image": "/images/services/exosomas.jpg",
-    "popular": true,
-    "benefits": [
-      "Regeneración celular profunda",
-      "Tecnología de vanguardia",
-      "Resultados visibles rápidamente"
     ]
   },
   {

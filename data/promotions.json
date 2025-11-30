@@ -7,7 +7,12 @@
       "botName": "Salomé de BIOSKIN",
       "description": "Asistente de medicina estética y tratamientos faciales/corporales",
       "greeting": "Buenos días, soy Salomé de BIOSKIN Salud & Estética. 😊 ¿En qué puedo asistirle hoy?",
-      "expertise": ["tratamientos faciales", "tratamientos corporales", "consultas médicas", "agendamiento de citas"],
+      "expertise": [
+        "tratamientos faciales",
+        "tratamientos corporales",
+        "consultas médicas",
+        "agendamiento de citas"
+      ],
       "contact": {
         "name": "Dra. Daniela Creamer",
         "role": "Médico Estético",
@@ -18,7 +23,13 @@
       "botName": "Asistente Técnico BIOSKIN",
       "description": "Especialista en equipos médicos estéticos y tecnología",
       "greeting": "Buenos días, soy el Asistente Técnico de BIOSKIN. 😊 ¿Le interesa información sobre nuestros equipos médicos estéticos?",
-      "expertise": ["equipos HIFU", "tecnología láser", "dispositivos médicos", "cotizaciones", "capacitación técnica"],
+      "expertise": [
+        "equipos HIFU",
+        "tecnología láser",
+        "dispositivos médicos",
+        "cotizaciones",
+        "capacitación técnica"
+      ],
       "contact": {
         "name": "Ing. Rafael Larrea",
         "role": "Ingeniero de Equipos Médicos",
@@ -27,96 +38,7 @@
     }
   },
   "promotions": {
-    "services": [
-      {
-        "id": "blackweek-hollywood-peel",
-        "name": "BLACK WEEK - Hollywood Peel",
-        "service": "Hollywood Peel Láser ND YAG",
-        "serviceId": "hollywood-peel",
-        "type": "package",
-        "role": "medico",
-        "active": true,
-        "description": "Tratamiento Hollywood Peel con Láser ND YAG - BLACK WEEK",
-        "prices": {
-          "single": 35,
-          "double": 55,
-          "savings": 15
-        },
-        "originalPrice": 70,
-        "promoPrice": 55,
-        "discount": 21.43,
-        "discountType": "percentage",
-        "validFrom": "2025-11-24",
-        "validUntil": "2025-12-01",
-        "terms": [
-          "Promoción válida del 24 de noviembre al 1 de diciembre 2025",
-          "Hollywood Peel con Láser ND YAG de última generación",
-          "1 sesión: $35 | 2 sesiones: $55 (ahorra $15)",
-          "Las 2 sesiones deben usarse en un plazo de 60 días",
-          "No acumulable con otras promociones"
-        ],
-        "displayMessage": "⭐ BLACK WEEK: Hollywood Peel Láser ND YAG 1x$35 o 2x$55 ¡Ahorra $15!"
-      },
-      {
-        "id": "blackweek-microneedling",
-        "name": "BLACK WEEK - Microneedling",
-        "service": "Microneedling Estimulador de Colágeno",
-        "serviceId": "microneedling",
-        "type": "package",
-        "role": "medico",
-        "active": true,
-        "description": "Microneedling estimulador de colágeno - BLACK WEEK",
-        "prices": {
-          "single": 30,
-          "double": 50,
-          "savings": 10
-        },
-        "originalPrice": 60,
-        "promoPrice": 50,
-        "discount": 16.67,
-        "discountType": "percentage",
-        "validFrom": "2025-11-24",
-        "validUntil": "2025-12-01",
-        "terms": [
-          "Promoción válida del 24 de noviembre al 1 de diciembre 2025",
-          "Estimula la producción natural de colágeno",
-          "1 sesión: $30 | 2 sesiones: $50 (ahorra $10)",
-          "Las 2 sesiones deben usarse en un plazo de 60 días",
-          "No acumulable con otras promociones"
-        ],
-        "displayMessage": "💉 BLACK WEEK: Microneedling Estimula Colágeno 1x$30 o 2x$50 ¡Ahorra $10!"
-      },
-      {
-        "id": "blackweek-hifu-7d",
-        "name": "BLACK WEEK - HIFU 7D",
-        "service": "HIFU 7D Bioestimulador de Colágeno",
-        "serviceId": "hifu-7d",
-        "type": "package",
-        "role": "medico",
-        "active": true,
-        "description": "HIFU 7D tecnología de bioestimulación de colágeno - BLACK WEEK",
-        "prices": {
-          "single": 60,
-          "double": 100,
-          "savings": 20
-        },
-        "originalPrice": 120,
-        "promoPrice": 100,
-        "discount": 16.67,
-        "discountType": "percentage",
-        "validFrom": "2025-11-24",
-        "validUntil": "2025-12-01",
-        "terms": [
-          "Promoción válida del 24 de noviembre al 1 de diciembre 2025",
-          "HIFU 7D - Tecnología de última generación",
-          "Bioestimulador natural de colágeno",
-          "1 sesión: $60 | 2 sesiones: $100 (ahorra $20)",
-          "Las 2 sesiones deben usarse en un plazo de 90 días",
-          "No acumulable con otras promociones"
-        ],
-        "displayMessage": "🔥 BLACK WEEK: HIFU 7D Bioestimulador Colágeno 1x$60 o 2x$100 ¡Ahorra $20!"
-      }
-    ],
+    "services": [],
     "products": [],
     "equipment": [],
     "upcoming": []
@@ -124,14 +46,40 @@
   "general_rules": {
     "stackable": false,
     "requireAppointment": true,
-    "paymentMethods": ["efectivo", "transferencia", "tarjeta"],
+    "paymentMethods": [
+      "efectivo",
+      "transferencia",
+      "tarjeta"
+    ],
     "cancellationPolicy": "48 horas de anticipación"
   },
   "bot_instructions": {
     "detectRole": true,
     "roleDetectionKeywords": {
-      "medico": ["tratamiento", "facial", "limpieza", "consulta", "cita", "piel", "acné", "manchas", "arrugas", "rejuvenecimiento"],
-      "tecnico": ["equipo", "aparato", "dispositivo", "máquina", "laser", "hifu", "tecnología", "compra", "precio equipo", "cotización"]
+      "medico": [
+        "tratamiento",
+        "facial",
+        "limpieza",
+        "consulta",
+        "cita",
+        "piel",
+        "acné",
+        "manchas",
+        "arrugas",
+        "rejuvenecimiento"
+      ],
+      "tecnico": [
+        "equipo",
+        "aparato",
+        "dispositivo",
+        "máquina",
+        "laser",
+        "hifu",
+        "tecnología",
+        "compra",
+        "precio equipo",
+        "cotización"
+      ]
     },
     "checkBeforePrice": true,
     "alwaysMentionIfActive": true,
