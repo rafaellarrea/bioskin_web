@@ -972,8 +972,14 @@ async function processWhatsAppMessage(body) {
     // Detectar intención básica
     const intent = chatbotAI.detectIntent(userMessage);
     
+    // CASO 0: Usuario quiere cancelar una cita existente
+    if (intent === 'cancellation') {
+      console.log('🚫 [StateMachine] Usuario quiere cancelar cita');
+      directResponse = "Entiendo completamente, son cosas que pasan. No te preocupes. 🍃\n\nCuando desees retomar tu tratamiento, estaré aquí para ayudarte. Si gustas, podemos buscar otro espacio ahora mismo, o puedes escribirme cuando tengas disponibilidad.\n\n¿Prefieres que busquemos un nuevo horario ahora o lo dejamos para después?";
+      skipAI = true;
+    }
     // CASO 1: Usuario quiere iniciar agendamiento y está en IDLE
-    if (intent === 'appointment' && stateMachine.state === APPOINTMENT_STATES.IDLE) {
+    else if (intent === 'appointment' && stateMachine.state === APPOINTMENT_STATES.IDLE) {
       console.log('🎯 [StateMachine] Usuario solicita agendamiento');
       
       // Verificar si el usuario ya eligió la opción 2 (guía paso a paso) o muestra intención clara de agendar en el chat
