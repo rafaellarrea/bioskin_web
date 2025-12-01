@@ -16,8 +16,8 @@
     "hialurónico",
     "mesoterapia"
   ],
-  "image": "",
-  "imagenPrincipal": "",
+  "image": "/images/blog/mesoterapia-facial/main.png",
+  "imagenPrincipal": "/images/blog/mesoterapia-facial/main.png",
   "imagenConclusion": "",
   "featured": false,
   "source": "local-generator",

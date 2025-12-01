@@ -16,8 +16,8 @@
     "láser",
     "peeling"
   ],
-  "image": "",
-  "imagenPrincipal": "",
+  "image": "/images/blog/peeling-quimico/main.png",
+  "imagenPrincipal": "/images/blog/peeling-quimico/main.png",
   "imagenConclusion": "",
   "featured": false,
   "source": "local-generator",
