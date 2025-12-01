@@ -10,6 +10,14 @@ const execAsync = promisify(exec);
 const app = express();
 const PORT = 3335;
 
+// Cargar variables de entorno desde la raíz del proyecto
+try {
+  require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+  console.log('✅ Variables de entorno cargadas desde .env raíz');
+} catch (e) {
+  console.log('⚠️ No se pudo cargar .env (puede que no exista o falte dotenv)');
+}
+
 // ✅ FUNCIÓN AGRESIVA: Acortar slugs para evitar errores de Git en Windows
 function shortenSlug(slug, maxLength = 30) {  // Reducido de 60 a 30
   // Extraer partes importantes
@@ -195,6 +203,62 @@ app.post('/api/generate-blog', async (req, res) => {
       }
     }
     
+    // 🔄 FALLBACK LOCAL: Generación de Blog
+    console.log('⚠️ APIs remotas fallaron. Intentando generación local de BLOG con OpenAI...');
+    if (process.env.OPENAI_API_KEY) {
+        try {
+            let OpenAI;
+            try { OpenAI = require('openai'); } catch (e) { OpenAI = require(path.join(__dirname, '..', 'node_modules', 'openai')); }
+            
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            
+            // Prompt simplificado
+            const systemPrompt = `Eres un experto redactor de blogs médicos para la clínica BIOSKIN.
+            Escribe un blog completo sobre: "${customTopic || category}".
+            Usa formato Markdown.
+            Incluye: Título (#), Introducción, Desarrollo (##), Conclusión y Call to Action.
+            Tono: Profesional, empático y educativo.`;
+            
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `Escribe un blog sobre: ${customTopic || category}` }
+                ]
+            });
+            
+            const content = completion.choices[0].message.content;
+            
+            // Extraer título
+            const titleMatch = content.match(/^#\s+(.+)$/m);
+            const title = titleMatch ? titleMatch[1] : (customTopic || `Blog sobre ${category}`);
+            
+            // Generar slug
+            const slug = `blog-${category}-${Date.now()}`;
+            
+            console.log('✅ Blog generado LOCALMENTE');
+            return res.json({
+                success: true,
+                blog: {
+                    title,
+                    content,
+                    slug,
+                    category,
+                    excerpt: content.substring(0, 150) + '...',
+                    readTime: 5,
+                    tags: [category, 'bioskin'],
+                    date: new Date().toISOString().split('T')[0],
+                    author: 'IA Local (BIOSKIN)'
+                },
+                source: 'local-ai-fallback'
+            });
+            
+        } catch (localErr) {
+             console.error('❌ Fallo fallback local blog:', localErr.message);
+             lastError = new Error(`Local Error: ${localErr.message}`);
+        }
+    }
+
     // Si llegamos aquí, todas las URLs fallaron
     throw new Error(`Todos los endpoints fallaron. Último error: ${lastError.message}`);
 
@@ -361,6 +425,50 @@ Responde SOLO con la lista numerada 1-8:`
       } catch (error) {
         console.error(`❌ Error en ${apiUrl}:`, error);
         lastError = error.message;
+      }
+    }
+
+    // 🔄 FALLBACK LOCAL: Si Vercel falla, intentar usar OpenAI localmente
+    console.log('⚠️ APIs remotas fallaron. Intentando generación local con OpenAI...');
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        let OpenAI;
+        try {
+          OpenAI = require('openai');
+        } catch (e) {
+          // Intentar buscar en node_modules padre
+          OpenAI = require(path.join(__dirname, '..', 'node_modules', 'openai'));
+        }
+
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "Eres un experto en marketing médico." },
+            { role: "user", content: payload.customPrompt }
+          ]
+        });
+        
+        const content = completion.choices[0].message.content;
+        const suggestions = content.split('\n')
+            .filter(line => /^\d+\./.test(line.trim()))
+            .map(line => line.replace(/^\d+\.\s*/, '').replace(/["']/g, '').trim())
+            .filter(l => l.length > 0)
+            .slice(0, 8);
+
+        if (suggestions.length > 0) {
+            console.log('✅ Sugerencias IA generadas LOCALMENTE');
+            return res.json({
+                success: true,
+                suggestions,
+                category,
+                source: 'local-ai-fallback',
+                note: 'Generado localmente por fallo en Vercel'
+            });
+        }
+      } catch (localErr) {
+        console.error('❌ Fallo fallback local:', localErr.message);
+        lastError += ` | Local: ${localErr.message}`;
       }
     }
     
