@@ -1,9 +1,33 @@
 {
-  "lastUpdated": "2025-11-07T01:31:21.757Z",
-  "total": 13,
-  "organized": 13,
+  "lastUpdated": "2025-12-01T21:56:44.728Z",
+  "total": 14,
+  "organized": 14,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1764626204727",
+      "title": "Tratamientos Preventivos: La Clave para una Belleza Sostenible",
+      "slug": "tratamientos-1764626204685",
+      "category": "medico-estetico",
+      "author": "IA Local (BIOSKIN)",
+      "publishedAt": "2025-12-01T21:56:44.728Z",
+      "savedAt": "2025-12-01T21:56:44.728Z",
+      "readTime": 5,
+      "tags": [
+        "medico-estetico",
+        "bioskin"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/tratamientos-1764626204685/index.json",
+        "images": "public/images/blog/tratamientos-1764626204685/",
+        "metadata": "src/data/blogs/tratamientos-1764626204685/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
     {
       "id": "blog-1762479081757",
       "title": "Cuidado Personalizado: Cómo la Inteligencia Artificial Está Transformando los Tratamientos Estéticos",
