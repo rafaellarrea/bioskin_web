@@ -52,11 +52,12 @@ const storage = multer.diskStorage({
     
     let uploadPath;
     if (blogSlug) {
-      // Crear directorio específico para el blog
-      uploadPath = path.join(__dirname, 'public', 'images', 'blog', blogSlug);
+      // Crear directorio específico para el blog en la estructura del proyecto principal
+      // NOTA: __dirname apunta a blog-generator-interface, necesitamos subir un nivel
+      uploadPath = path.join(__dirname, '..', 'public', 'images', 'blog', blogSlug);
     } else {
       // Fallback al directorio general
-      uploadPath = path.join(__dirname, 'public', 'images', 'blog');
+      uploadPath = path.join(__dirname, '..', 'public', 'images', 'blog');
     }
     
     try {
@@ -298,7 +299,9 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     const finalPath = req.file.path;
     const imageFilename = req.file.filename;
     
-    // URL final de la imagen relativa al proyecto
+    // URL final de la imagen relativa al proyecto (CORREGIDO)
+    // Como estamos guardando en ../public/images/blog/slug/
+    // La URL pública debe ser /images/blog/slug/filename
     const imageUrl = `/images/blog/${blogSlug}/${imageFilename}`;
     
     console.log(`📸 Imagen guardada en: ${finalPath}`);
