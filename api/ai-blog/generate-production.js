@@ -8,6 +8,11 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 
+// Configurar OpenAI fuera del handler para reutilizar conexión si es posible
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export default async function handler(req, res) {
   // Headers CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -66,20 +71,21 @@ CRITERIOS:
 FORMATO: Solo lista numerada con títulos específicos y atractivos.`;
 
       try {
+        // ✅ OPTIMIZACIÓN: Usar modelo más rápido y reducir tokens para evitar timeout en Vercel Hobby (10s)
         const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-3.5-turbo", // Cambiado de gpt-4o-mini a gpt-3.5-turbo para velocidad si es necesario, o mantener mini si es rápido
           messages: [
             {
               role: "system",
-              content: "Eres un experto en medicina estética. SIEMPRE generas EXACTAMENTE 8 sugerencias numeradas del 1 al 8. No devuelvas más ni menos de 8 elementos. Cada sugerencia debe ser un título específico e innovador."
+              content: "Eres un experto en medicina estética. Genera EXACTAMENTE 8 títulos de blog breves y atractivos. Solo la lista numerada."
             },
             {
               role: "user",
-              content: suggestionsPrompt
+              content: `Genera 8 temas de blog sobre: ${category || blogType}. Solo títulos.`
             }
           ],
-          max_tokens: 1200,  // ✅ Aumentado para asegurar 8 sugerencias completas
-          temperature: 0.7   // ✅ Reducido para más consistencia
+          max_tokens: 300,  // Reducido drásticamente para velocidad
+          temperature: 0.7
         });
 
         const suggestionsText = completion.choices[0].message.content;
