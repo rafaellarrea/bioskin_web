@@ -3,7 +3,7 @@ import React from 'react';
 type ServiceCardProps = {
   title: string;
   description: string;
-  price: number;
+  price: string | number;
   image: string;
   index: number;
 };
@@ -27,7 +27,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute top-0 right-0 bg-[#deb887] text-white py-1 px-3 font-semibold">
-          ${price} USD
+          {typeof price === 'number' ? `$${price} USD` : price}
         </div>
       </div>
       <div className="p-5">

@@ -7,7 +7,7 @@ const Services = () => {
   const services = servicesData.map(service => ({
     title: service.title,
     description: service.description,
-    price: parseInt(service.price.replace('$', '')),
+    price: service.price,
     image: service.image
   }));
 

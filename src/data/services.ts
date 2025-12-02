@@ -56,7 +56,7 @@ export const services: Service[] = [
       "tecnologia",
       "Analizador facial"
     ],
-    "image": "/images/services/escaner-facial.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Análisis computarizado de la piel",
@@ -93,7 +93,7 @@ export const services: Service[] = [
       "Vaporizador",
       "Extractores manuales"
     ],
-    "image": "/images/services/limpieza-facial.jpg",
+    "image": "/images/services/limpiezaProf/limpiezaProf.jpg",
     "popular": true,
     "benefits": [
       "Eliminación profunda de impurezas",
@@ -166,7 +166,7 @@ export const services: Service[] = [
       "Dermapen / Roller",
       "Serums (ácido hialurónico, PRP opcional)"
     ],
-    "image": "/images/services/microneedling.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Estimula colágeno natural",
@@ -274,7 +274,7 @@ export const services: Service[] = [
       "mesoterapia)",
       "Exosomas (producto), aplicador tópico o mesoterapia"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/exosomas/exosomas.jpg",
     "popular": false,
     "benefits": [
       "Regeneración celular avanzada y rejuvenecimiento"
@@ -312,7 +312,7 @@ export const services: Service[] = [
       "luminosidad",
       "Láser NDYAG o sistema específico para Hollywood Peel"
     ],
-    "image": "/images/services/hollywood-peel.jpg",
+    "image": "/images/services/hollywoodPeel/hollywood.jpg",
     "popular": true,
     "benefits": [
       "Luminosidad instantánea",
@@ -331,7 +331,7 @@ export const services: Service[] = [
   },
   {
     "id": "laser-co2-superf",
-    "title": "Láser CO₂ fraccionado (superficial)",
+    "title": "Láser CO₂ Fraccionado (Superficial)",
     "shortDescription": "Resurfacing leve a moderado, mejora de textura y cicatrices",
     "description": "Resurfacing leve a moderado, mejora de textura y cicatrices. Analizar intensidad para reducir riesgos; consentimiento obligatorio",
     "price": "$140",
@@ -344,7 +344,7 @@ export const services: Service[] = [
       "(superficial)",
       "Láser CO₂ fraccionado"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/laser-co2-superficial/main.jpg",
     "popular": false,
     "benefits": [
       "Resurfacing leve a moderado, mejora de textura y cicatrices"
@@ -369,7 +369,7 @@ export const services: Service[] = [
   },
   {
     "id": "laser-co2-profound",
-    "title": "Láser CO₂ ablativo profundo",
+    "title": "Láser CO₂ Ablativo (Profundo)",
     "shortDescription": "Rejuvenecimiento profundo y corrección de cicatrices profundas",
     "description": "Rejuvenecimiento profundo y corrección de cicatrices profundas. Solo en candidatos seleccionados; alto riesgo y analgesia necesaria",
     "price": "variable según zona y tipo",
@@ -382,7 +382,7 @@ export const services: Service[] = [
       "profundo",
       "Láser CO₂ ablativo"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/laser-co2-profundo/main.jpg",
     "popular": false,
     "benefits": [
       "Rejuvenecimiento profundo y corrección de cicatrices profundas"
@@ -584,7 +584,7 @@ export const services: Service[] = [
   },
   {
     "id": "hifu-full",
-    "title": "HIFU full face",
+    "title": "HIFU Facial Completo (7D)",
     "shortDescription": "Lifting no invasivo y estimulación profunda de colágeno",
     "description": "Lifting no invasivo y estimulación profunda de colágeno. Registrar cartucho y parámetros por paciente",
     "price": "$60",
@@ -596,7 +596,7 @@ export const services: Service[] = [
       "face",
       "HIFU (cartuchos 4.5 mm, 3.0 mm, 1.5 mm)"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/hifu-facial/main.jpg",
     "popular": false,
     "benefits": [
       "Lifting no invasivo y estimulación profunda de colágeno"
@@ -617,7 +617,7 @@ export const services: Service[] = [
   },
   {
     "id": "hifu-target",
-    "title": "HIFU zona específica (papada/óvalo/ojos)",
+    "title": "HIFU Zona Específica (Papada/Óvalo/Ojos)",
     "shortDescription": "Reafirmación localizada y contorno",
     "description": "Reafirmación localizada y contorno. Ajustar número de líneas y energía según zona",
     "price": "variable según zona",
@@ -630,7 +630,7 @@ export const services: Service[] = [
       "(papada/óvalo/ojos)",
       "HIFU con cartuchos focalizados"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/hifu-zona/main.jpg",
     "popular": false,
     "benefits": [
       "Reafirmación localizada y contorno"
@@ -730,7 +730,7 @@ export const services: Service[] = [
       "perfilado",
       "Ácido hialurónico (varias marcas), agujas/cánulas"
     ],
-    "image": "/images/services/relleno-labios.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Aumento de volumen",
@@ -763,7 +763,7 @@ export const services: Service[] = [
       "rejuvenecimiento",
       "Radiesse, Sculptra u otros bioestimuladores inyectables"
     ],
-    "image": "/images/services/bioestimuladores.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Rejuvenecimiento progresivo",
@@ -1010,7 +1010,7 @@ export const services: Service[] = [
       "estetica",
       "valoracion"
     ],
-    "image": "/images/services/consulta-medica.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Diagnóstico profesional de tu piel",
@@ -1033,7 +1033,7 @@ export const services: Service[] = [
       "reafirmante",
       "tensor"
     ],
-    "image": "/images/services/crioradio.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Limpieza profunda + reafirmación",
@@ -1056,7 +1056,7 @@ export const services: Service[] = [
       "vitaminas",
       "humectante"
     ],
-    "image": "/images/services/hidratacion.jpg",
+    "image": "/images/services/hidratacionProfunda/hidraProf.jpg",
     "popular": true,
     "benefits": [
       "Hidratación profunda de la piel",
@@ -1079,7 +1079,7 @@ export const services: Service[] = [
       "rejuvenecimiento",
       "lineas"
     ],
-    "image": "/images/services/antiaging.jpg",
+    "image": "/images/services/antiaging/antiaging.jpeg",
     "popular": true,
     "benefits": [
       "Reducción de arrugas y líneas",
@@ -1102,7 +1102,7 @@ export const services: Service[] = [
       "melasma",
       "despigmentante"
     ],
-    "image": "/images/services/antimanchas.jpg",
+    "image": "/images/services/manchas/antimanchas.jpg",
     "popular": true,
     "benefits": [
       "Reduce manchas oscuras",
@@ -1135,7 +1135,7 @@ export const services: Service[] = [
       "grasa",
       "pustulas"
     ],
-    "image": "/images/services/tratamiento-acne.jpg",
+    "image": "/images/services/default.jpg",
     "popular": true,
     "benefits": [
       "Control de la producción de grasa",
@@ -1151,7 +1151,7 @@ export const services: Service[] = [
   },
   {
     "id": "laser-co2",
-    "title": "Láser CO2 Fraccionado",
+    "title": "Láser CO2 Fraccionado (Estándar)",
     "shortDescription": "Rejuvenecimiento láser avanzado",
     "description": "Tratamiento láser CO2 fraccionado para rejuvenecimiento profundo, eliminación de cicatrices, arrugas y manchas.",
     "price": "$150",
@@ -1164,7 +1164,7 @@ export const services: Service[] = [
       "rejuvenecimiento",
       "cicatrices"
     ],
-    "image": "/images/services/laser-co2.jpg",
+    "image": "/images/services/laser-co2-estandar/main.jpg",
     "popular": false,
     "benefits": [
       "Rejuvenecimiento profundo",
@@ -1193,7 +1193,7 @@ export const services: Service[] = [
       "manchas",
       "venitas"
     ],
-    "image": "/images/services/ipl.jpg",
+    "image": "/images/services/default.jpg",
     "popular": false,
     "benefits": [
       "Elimina manchas y rojeces",
@@ -1216,7 +1216,7 @@ export const services: Service[] = [
       "qswitched",
       "eliminacion"
     ],
-    "image": "/images/services/remocion-tatuajes.jpg",
+    "image": "/images/services/remocionTatuajes/remocionTatuajes.jpg",
     "popular": false,
     "benefits": [
       "Eliminación efectiva",
@@ -1226,7 +1226,7 @@ export const services: Service[] = [
   },
   {
     "id": "hifu",
-    "title": "HIFU 7D",
+    "title": "HIFU Corporal (7D)",
     "shortDescription": "Lifting sin cirugía",
     "description": "Ultrasonido focalizado de alta intensidad para lifting facial y corporal no invasivo, con resultados similares a cirugía.",
     "price": "$60",
@@ -1239,7 +1239,7 @@ export const services: Service[] = [
       "tensor",
       "flacidez"
     ],
-    "image": "/images/services/hifu.jpg",
+    "image": "/images/services/hifu-corporal/main.jpg",
     "popular": false,
     "benefits": [
       "Lifting sin cirugía",
@@ -1267,7 +1267,7 @@ export const services: Service[] = [
       "grasa",
       "contorno"
     ],
-    "image": "/images/services/lipopapada.jpg",
+    "image": "/images/services/lipopapada/lipopapada.jpg",
     "popular": true,
     "benefits": [
       "Elimina grasa de papada",
@@ -1290,7 +1290,7 @@ export const services: Service[] = [
       "coctel",
       "antiedad"
     ],
-    "image": "/images/services/nctf.jpg",
+    "image": "/images/services/nctf/nctf.jpg",
     "popular": true,
     "benefits": [
       "Revitalización profunda",
@@ -1314,7 +1314,7 @@ export const services: Service[] = [
       "hidratacion",
       "luminosidad"
     ],
-    "image": "/images/services/skin-booster.jpg",
+    "image": "/images/services/default.jpg",
     "popular": true,
     "benefits": [
       "Hidratación profunda y duradera",
@@ -1358,7 +1358,7 @@ export const services: Service[] = [
       "celulas madre",
       "rejuvenecimiento"
     ],
-    "image": "/images/services/skin-booster.jpg",
+    "image": "/images/services/default.jpg",
     "popular": true,
     "benefits": [
       "Potente regeneración celular",
