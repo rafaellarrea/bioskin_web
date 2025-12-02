@@ -1347,7 +1347,7 @@ export const services: Service[] = [
     "title": "Skin Booster (Exosomas)",
     "shortDescription": "Regeneración celular avanzada",
     "description": "Terapia regenerativa con exosomas que estimula la comunicación celular para reparar tejidos, aumentar el colágeno y rejuvenecer la piel desde el interior.",
-    "price": "Desde $90 (variable según zona)",
+    "price": "Desde $130 (variable según zona)",
     "duration": "90 minutos",
     "category": "inyectable",
     "keywords": [
