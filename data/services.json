@@ -1257,5 +1257,52 @@
       "Hidratación intensa",
       "Efecto antiedad inmediato"
     ]
+  },
+  {
+    "id": "skin-booster",
+    "title": "Skin Booster (Ácido Hialurónico + Exosomas)",
+    "shortDescription": "Hidratación profunda y regeneración celular",
+    "description": "Tratamiento avanzado de revitalización cutánea que combina ácido hialurónico de bajo peso molecular con el poder regenerativo de los exosomas. Mejora la hidratación, elasticidad y luminosidad de la piel desde las capas profundas.",
+    "price": "Desde $90 (variable según zona)",
+    "duration": "90 minutos",
+    "category": "inyectable",
+    "keywords": [
+      "skinbooster",
+      "skin booster",
+      "exosomas",
+      "acido hialuronico",
+      "bajo peso molecular",
+      "hidratacion",
+      "rejuvenecimiento",
+      "luminosidad"
+    ],
+    "image": "/images/services/skin-booster.jpg",
+    "popular": true,
+    "benefits": [
+      "Hidratación profunda y duradera",
+      "Estimulación de colágeno y elastina",
+      "Mejora la textura y luminosidad de la piel",
+      "Regeneración celular mediante exosomas"
+    ],
+    "indications": [
+      "Pieles deshidratadas o apagadas",
+      "Signos de envejecimiento prematuro",
+      "Líneas finas de expresión",
+      "Cicatrices de acné"
+    ],
+    "preCare": [
+      "Evitar aspirina o anticoagulantes 3 días antes",
+      "Acudir con la piel limpia"
+    ],
+    "postCare": [
+      "No maquillarse por 24 horas",
+      "Usar protector solar FPS 50+",
+      "Evitar ejercicio intenso por 48 horas"
+    ],
+    "contraindications": [
+      "Embarazo y lactancia",
+      "Infecciones activas en la zona",
+      "Alergia al ácido hialurónico"
+    ]
   }
 ]
