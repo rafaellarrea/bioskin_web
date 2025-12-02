@@ -10,8 +10,7 @@ import {
   Calendar, 
   Users, 
   HelpCircle, 
-  MessageCircle, 
-  Settings,
+  MessageCircle,
   Menu,
   X,
   Sparkles,
@@ -43,13 +42,11 @@ export default function Navbar() {
     { path: '/appointment', label: 'Agenda', icon: Calendar, color: 'from-red-500 to-pink-500' },
     { path: '/about', label: 'Nosotros', icon: Users, color: 'from-green-500 to-emerald-500' },
     { path: '/faq', label: 'FAQ', icon: HelpCircle, color: 'from-yellow-500 to-amber-500' },
-    { path: '/contact', label: 'Contacto', icon: MessageCircle, color: 'from-indigo-500 to-blue-500' },
-    { path: '/admin', label: 'Admin', icon: Settings, color: 'from-gray-500 to-slate-500' }
+    { path: '/contact', label: 'Contacto', icon: MessageCircle, color: 'from-indigo-500 to-blue-500' }
   ];
 
   const isActive = (path: string) => {
     if (path === '/blogs') return pathname.startsWith('/blogs');
-    if (path === '/admin') return pathname.startsWith('/admin');
     return pathname === path;
   };
 
