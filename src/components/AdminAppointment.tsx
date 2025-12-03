@@ -461,8 +461,7 @@ const AdminAppointment: React.FC<AdminAppointmentProps> = ({ onBack }) => {
                   <option value="Hidratación Profunda">Hidratación Profunda</option>
                   <option value="Hollywood Peel">Hollywood Peel</option>
                   <option value="Exosomas + Mesoterapia">Exosomas + Mesoterapia</option>
-                  <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
-                  <option value="Lipopapada enzimática">Lipopapada enzimática</option>
+                  <option value="Lipopapada sin cirugía">Lipopapada sin cirugía</option>
                 </select>
 
                 <div className="relative">

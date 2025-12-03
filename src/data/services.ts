@@ -899,7 +899,7 @@ export const services: Service[] = [
     "id": "lipopapada",
     "title": "Lipopapada sin cirugía (3 sesiones mesoterapia+1 sesion hifu+ 3 sesiones crioradiofrecuencia bipolar)",
     "shortDescription": "Elimina grasa de papada",
-    "description": "Tratamiento enzimático no invasivo para eliminar grasa localizada en papada y definir el contorno facial.",
+    "description": "Tratamiento no invasivo para eliminar grasa localizada en región submentoniana el cual incluyen enzimas lipolíticas y ultrasonido de alta intensidad, además incluye crioradiofrecuencia bipolar para la producción de colágeno y elastina y mejorar la flacidez.",
     "price": "$120",
     "duration": "60 minutos",
     "category": "corporal",

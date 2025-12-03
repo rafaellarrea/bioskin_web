@@ -386,8 +386,7 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                     <option value="Hidratación Profunda">Hidratación Profunda</option>
                     <option value="Hollywood Peel">Hollywood Peel</option>
                     <option value="Exosomas + Mesoterapia">Exosomas + Mesoterapia</option>
-                    <option value="NCTF + Mesoterapia">NCTF + Mesoterapia</option>
-                    <option value="Lipopapada enzimática">Lipopapada enzimática</option>
+                    <option value="Lipopapada sin cirugía">Lipopapada sin cirugía</option>
                   </select>
                   <textarea
                     name="message" placeholder="Mensaje adicional (opcional)" rows={3}
