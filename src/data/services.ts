@@ -103,7 +103,7 @@ export const services: Service[] = [
     "title": "Dermaplaning + limpieza",
     "shortDescription": "Exfoliación mecánica superficial y suavizado",
     "description": "Exfoliación mecánica superficial y suavizado. Útil previo a peel superficial; documentar tolerancia",
-    "price": "$20",
+    "price": "$25",
     "duration": "45 minutos",
     "category": "facial",
     "keywords": [
@@ -389,47 +389,11 @@ export const services: Service[] = [
     ]
   },
   {
-    "id": "ndyag-tattoo",
-    "title": "Eliminación de tatuajes (Nd :YAG )",
-    "shortDescription": "Fragmentación de pigmento de tatuaje",
-    "description": "Fragmentación de pigmento de tatuaje. Precio variable por tamaño y color; documental zona y tinta",
-    "price": "desde $15 por sesión",
-    "duration": "45 minutos",
-    "category": "avanzado",
-    "keywords": [
-      "eliminación",
-      "de",
-      "tatuajes",
-      "(nd",
-      ":yag",
-      ")",
-      "Láser Nd :YAG 1064/532 nm"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Fragmentación de pigmento de tatuaje"
-    ],
-    "indications": [
-      "Fotos previas; evitar bronceado antes de sesión",
-      "Cuidado de herida, evitar exposición solar prolongada"
-    ],
-    "preCare": [
-      "Fotos previas; evitar bronceado antes de sesión"
-    ],
-    "postCare": [
-      "Cuidado de herida, evitar exposición solar prolongada"
-    ],
-    "contraindications": [
-      "Embarazo, infección activa, piel muy bronceada sin evaluación"
-    ]
-  },
-  {
     "id": "ndyag-vascular",
     "title": "Tratamiento vascular / lesiones (Nd :YAG )",
     "shortDescription": "Tratamiento de telangiectasias y lesiones vasculares superficiales",
     "description": "Tratamiento de telangiectasias y lesiones vasculares superficiales. Parametrizar energía según tipo de lesión y fototipo",
-    "price": "$50",
+    "price": "desde $20 variable según zona, tipo y tamaño",
     "duration": "45 minutos",
     "category": "avanzado",
     "keywords": [
@@ -537,7 +501,7 @@ export const services: Service[] = [
     "title": "IPL despigmentante",
     "shortDescription": "Reducción de manchas superficiales por pigmento",
     "description": "Reducción de manchas superficiales por pigmento. Combinar con tópicos para mejorar respuesta",
-    "price": "$35",
+    "price": "a partir de $20 por sesión, variable según zona y tamaño / variable número de sesiones",
     "duration": "45 minutos",
     "category": "laser",
     "keywords": [
@@ -665,38 +629,6 @@ export const services: Service[] = [
     ]
   },
   {
-    "id": "crio-rf-body",
-    "title": "Crio-Radiofrecuencia corporal",
-    "shortDescription": "Reafirmación y modelado corporal",
-    "description": "Reafirmación y modelado corporal. Combinar con cavitación si disponible para eficiencia",
-    "price": "$60",
-    "duration": "60 minutos",
-    "category": "corporal",
-    "keywords": [
-      "crio-radiofrecuencia",
-      "corporal",
-      "Crio+RF (handpiece corporal)"
-    ],
-    "image": "/images/services/crio-rf-body/criorf_corporal.jpg",
-    "popular": false,
-    "benefits": [
-      "Reafirmación y modelado corporal"
-    ],
-    "indications": [
-      "Evaluar circulación y condiciones vasculares",
-      "Actividad normal; hidratación"
-    ],
-    "preCare": [
-      "Evaluar circulación y condiciones vasculares"
-    ],
-    "postCare": [
-      "Actividad normal; hidratación"
-    ],
-    "contraindications": [
-      "Marcapasos, trombosis"
-    ]
-  },
-  {
     "id": "relleno-labios",
     "title": "Relleno de Labios",
     "shortDescription": "Labios perfectos y naturales",
@@ -735,7 +667,7 @@ export const services: Service[] = [
     "title": "Bioestimuladores de Colágeno",
     "shortDescription": "Estimulación profunda de colágeno",
     "description": "Inyección de bioestimuladores (Sculptra, Radiesse) que activan la producción de colágeno propio para rejuvenecimiento progresivo. Estimulación profunda y sostenida de colágeno.",
-    "price": "desde 200",
+    "price": "desde $300",
     "duration": "45 minutos",
     "category": "inyectable",
     "keywords": [
@@ -801,10 +733,10 @@ export const services: Service[] = [
   },
   {
     "id": "scars-fractional",
-    "title": "Tratamiento de cicatrices (fractional CO₂ / RF)",
+    "title": "Tratamiento de cicatrices con láser CO2",
     "shortDescription": "Mejora de cicatrices atróficas y textura",
     "description": "Mejora de cicatrices atróficas y textura. Protocolizar intensidad según profundidad de cicatrización",
-    "price": "$150-250",
+    "price": "$100-$250 variable según zona y tamaño",
     "duration": "60 minutos",
     "category": "avanzado",
     "keywords": [
@@ -815,8 +747,7 @@ export const services: Service[] = [
       "co₂",
       "/",
       "rf)",
-      "Láser CO₂ fraccionado",
-      "RF fraccional si disponible"
+      "Láser CO₂ fraccionado"
     ],
     "image": "/images/services/scars-fractional/co2_cicatrices.jpg",
     "popular": false,
@@ -844,7 +775,7 @@ export const services: Service[] = [
     "title": "Hidratación Profunda",
     "shortDescription": "Hidratación intensiva para tu piel",
     "description": "Tratamiento de hidratación profunda con ácido hialurónico y vitaminas que devuelve la luminosidad y suavidad a la piel.",
-    "price": "$35",
+    "price": "$30",
     "duration": "60 minutos",
     "category": "facial",
     "keywords": [
@@ -867,7 +798,7 @@ export const services: Service[] = [
     "title": "Tratamiento Antiaging",
     "shortDescription": "Combate los signos del envejecimiento",
     "description": "Tratamiento completo antiedad con productos de última generación que reducen arrugas, líneas de expresión y mejoran la elasticidad de la piel.",
-    "price": "$25",
+    "price": "desde $30",
     "duration": "60 minutos",
     "category": "facial",
     "keywords": [
@@ -966,10 +897,10 @@ export const services: Service[] = [
   },
   {
     "id": "lipopapada",
-    "title": "Lipopapada Enzimática",
+    "title": "Lipopapada sin cirugía (3 sesiones mesoterapia+1 sesion hifu+ 3 sesiones crioradiofrecuencia bipolar)",
     "shortDescription": "Elimina grasa de papada",
     "description": "Tratamiento enzimático no invasivo para eliminar grasa localizada en papada y definir el contorno facial.",
-    "price": "$30",
+    "price": "$120",
     "duration": "60 minutos",
     "category": "corporal",
     "keywords": [
@@ -985,29 +916,6 @@ export const services: Service[] = [
       "Elimina grasa de papada",
       "Sin cirugía ni anestesia",
       "Define el contorno facial"
-    ]
-  },
-  {
-    "id": "nctf",
-    "title": "NCTF + Mesoterapia",
-    "shortDescription": "Revitalización integral",
-    "description": "Cóctel revitalizante NCTF con 55 ingredientes activos combinado con mesoterapia para una revitalización profunda de la piel.",
-    "price": "$150",
-    "duration": "60 minutos",
-    "category": "avanzado",
-    "keywords": [
-      "nctf",
-      "mesoterapia",
-      "revitalizacion",
-      "coctel",
-      "antiedad"
-    ],
-    "image": "/images/services/nctf/nctf.jpg",
-    "popular": true,
-    "benefits": [
-      "Revitalización profunda",
-      "Hidratación intensa",
-      "Efecto antiedad inmediato"
     ]
   },
   {
