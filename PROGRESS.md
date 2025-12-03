@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Nov 27, 2025: Actualización de Servicios (Lipopapada)**
+- 📝 **Contenido**: Actualizada descripción de "Lipopapada sin cirugía" para incluir crioradiofrecuencia bipolar.
+- 🧹 **Limpieza**: Eliminadas referencias a servicios obsoletos (NCTF) en dropdowns de agendamiento.
+- 🔄 **Sincronización**: Actualizado `services.json` para reflejar cambios en el bot.
+
 ### ✅ **Nov 27, 2025: Refactorización de Promociones**
 - 🔄 **Centralización**: Promociones movidas directamente a `services.ts` y `products.json`.
 - 🗑️ **Limpieza**: Eliminado `promotions.json` obsoleto.
