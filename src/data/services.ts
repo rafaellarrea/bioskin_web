@@ -56,7 +56,7 @@ export const services: Service[] = [
       "tecnologia",
       "Analizador facial"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/consulta-escaner/consulta_escaner.jpeg",
     "popular": false,
     "benefits": [
       "Análisis computarizado de la piel",
@@ -77,42 +77,25 @@ export const services: Service[] = [
   },
   {
     "id": "limpieza-facial",
-    "title": "Limpieza Facial Profunda",
-    "shortDescription": "Limpieza profesional de cutis",
-    "description": "Limpieza facial profunda con extracción de impurezas, exfoliación, tonificación y mascarilla revitalizante. Deja la piel limpia, fresca y radiante. Higiene, desobstrucción y mejora de textura.",
-    "price": "$25",
-    "duration": "90 minutos",
+    "title": "Limpieza Facial",
+    "shortDescription": "Limpieza con tecnología reafirmante",
+    "description": "Limpieza facial profunda combinada con crioradiofrecuencia para reafirmar, tensar y rejuvenecer la piel del rostro.",
+    "price": "$30",
+    "duration": "120 minutos",
     "category": "facial",
     "keywords": [
       "limpieza",
-      "facial",
-      "cutis",
-      "exfoliacion",
-      "mascarilla",
-      "poros",
-      "Vaporizador",
-      "Extractores manuales"
+      "crioradio",
+      "radiofrecuencia",
+      "reafirmante",
+      "tensor"
     ],
-    "image": "/images/services/limpiezaProf/limpiezaProf.jpg",
-    "popular": true,
+    "image": "/images/services/limpieza-facial/limpiezaFacial.jpg",
+    "popular": false,
     "benefits": [
-      "Eliminación profunda de impurezas",
-      "Desobstrucción de poros",
-      "Piel más luminosa y fresca"
-    ],
-    "indications": [
-      "Todo tipo de piel",
-      "Piel con impurezas o puntos negros",
-      "Mantenimiento mensual recomendado"
-    ],
-    "preCare": [
-      "Evitar exfoliantes 3 días antes"
-    ],
-    "postCare": [
-      "Protector solar, evitar maquillaje 24 h"
-    ],
-    "contraindications": [
-      "Infecciones cutáneas activas"
+      "Limpieza profunda + reafirmación",
+      "Efecto tensor inmediato",
+      "Estimula producción de colágeno"
     ]
   },
   {
@@ -130,7 +113,7 @@ export const services: Service[] = [
       "Hoja dermaplaning",
       "Equipo de limpieza"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/dermaplaning/dermaplaning.jpeg",
     "popular": false,
     "benefits": [
       "Exfoliación mecánica superficial y suavizado"
@@ -166,7 +149,7 @@ export const services: Service[] = [
       "Dermapen / Roller",
       "Serums (ácido hialurónico, PRP opcional)"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/microneedling/microneedling.jpeg",
     "popular": false,
     "benefits": [
       "Estimula colágeno natural",
@@ -201,7 +184,7 @@ export const services: Service[] = [
       "Jeringas",
       "Cocktails mesoterapéuticos"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/meso-mesotherapy/mesoterapia.jpeg",
     "popular": false,
     "benefits": [
       "Nutrición dérmica, hidratación y mejora de textura"
@@ -237,7 +220,7 @@ export const services: Service[] = [
       "Centrífuga PRP",
       "Kits estériles PRP"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/prp/prp.jpg",
     "popular": false,
     "benefits": [
       "Regeneración, mejora de textura y densidad dérmica"
@@ -344,7 +327,7 @@ export const services: Service[] = [
       "(superficial)",
       "Láser CO₂ fraccionado"
     ],
-    "image": "/images/services/laser-co2-superficial/main.jpg",
+    "image": "/images/services/laser-co2-superficial/co2_superficial.jpeg",
     "popular": false,
     "benefits": [
       "Resurfacing leve a moderado, mejora de textura y cicatrices"
@@ -382,7 +365,7 @@ export const services: Service[] = [
       "profundo",
       "Láser CO₂ ablativo"
     ],
-    "image": "/images/services/laser-co2-profundo/main.jpg",
+    "image": "/images/services/laser-co2-profundo/co2 profundo.jpg",
     "popular": false,
     "benefits": [
       "Rejuvenecimiento profundo y corrección de cicatrices profundas"
@@ -459,7 +442,7 @@ export const services: Service[] = [
       ")",
       "Láser Nd :YAG (long pulse)"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/ndyag-vascular/ndyag_vascular.jpg",
     "popular": false,
     "benefits": [
       "Tratamiento de telangiectasias y lesiones vasculares superficiales"
@@ -495,7 +478,7 @@ export const services: Service[] = [
       "rejuvenecimiento",
       "IPL Elight"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/ipl-fotofacial/ipl_fotorejuvenecimiento.jpeg",
     "popular": false,
     "benefits": [
       "Mejorar pigmentación, vasculatura superficial y textura"
@@ -530,7 +513,7 @@ export const services: Service[] = [
       "IPL Elight",
       "Gel conductor si aplica"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/ipl-depilation/ipl_depilacion.jpg",
     "popular": false,
     "benefits": [
       "Reducción de vello a largo plazo"
@@ -563,7 +546,7 @@ export const services: Service[] = [
       "IPL Elight",
       "Activos tópicos despigmentantes"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/ipl-pigmentation/ipl_despigmentacion.jpg",
     "popular": false,
     "benefits": [
       "Reducción de manchas superficiales por pigmento"
@@ -596,7 +579,7 @@ export const services: Service[] = [
       "face",
       "HIFU (cartuchos 4.5 mm, 3.0 mm, 1.5 mm)"
     ],
-    "image": "/images/services/hifu-facial/main.jpg",
+    "image": "/images/services/hifu-facial/hifu_facial.jpg",
     "popular": false,
     "benefits": [
       "Lifting no invasivo y estimulación profunda de colágeno"
@@ -630,7 +613,7 @@ export const services: Service[] = [
       "(papada/óvalo/ojos)",
       "HIFU con cartuchos focalizados"
     ],
-    "image": "/images/services/hifu-zona/main.jpg",
+    "image": "/images/services/hifu-zona/hifu_zona.jpg",
     "popular": false,
     "benefits": [
       "Reafirmación localizada y contorno"
@@ -662,7 +645,7 @@ export const services: Service[] = [
       "facial",
       "Crio+RF (handpiece facial)"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/crio-rf-face/criorf_facial.jpg",
     "popular": false,
     "benefits": [
       "Reafirmación y remodelado facial"
@@ -694,7 +677,7 @@ export const services: Service[] = [
       "corporal",
       "Crio+RF (handpiece corporal)"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/crio-rf-body/criorf_corporal.jpg",
     "popular": false,
     "benefits": [
       "Reafirmación y modelado corporal"
@@ -730,7 +713,7 @@ export const services: Service[] = [
       "perfilado",
       "Ácido hialurónico (varias marcas), agujas/cánulas"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/relleno-labios/rellenoLabios.jpg",
     "popular": false,
     "benefits": [
       "Aumento de volumen",
@@ -763,7 +746,7 @@ export const services: Service[] = [
       "rejuvenecimiento",
       "Radiesse, Sculptra u otros bioestimuladores inyectables"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/bioestimuladores/bioestimuladores.jpg",
     "popular": false,
     "benefits": [
       "Rejuvenecimiento progresivo",
@@ -782,144 +765,6 @@ export const services: Service[] = [
     ]
   },
   {
-    "id": "prf-plasma",
-    "title": "Plasma rico en fibrina (PRF)",
-    "shortDescription": "Regeneración dérmica con PRF (variante de PRP)",
-    "description": "Regeneración dérmica con PRF (variante de PRP). Registro de kit/lote obligatorio",
-    "price": "$35",
-    "duration": "45 minutos",
-    "category": "avanzado",
-    "keywords": [
-      "plasma",
-      "rico",
-      "en",
-      "fibrina",
-      "(prf)",
-      "Centrífuga PRF, kits estériles"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Regeneración dérmica con PRF (variante de PRP)"
-    ],
-    "indications": [
-      "No AINEs; revisar historia clínica",
-      "Higiene local, evitar ejercicio intenso 48 h"
-    ],
-    "preCare": [
-      "No AINEs; revisar historia clínica"
-    ],
-    "postCare": [
-      "Higiene local, evitar ejercicio intenso 48 h"
-    ],
-    "contraindications": [
-      "Trastornos plaquetarios"
-    ]
-  },
-  {
-    "id": "fillers-facial",
-    "title": "Rellenos faciales (surcos, pómulos, etc.)",
-    "shortDescription": "Restaurar volúmenes faciales y contornos",
-    "description": "Restaurar volúmenes faciales y contornos. Consentimiento y registro de lote/ marca obligatoria",
-    "price": "desde 180",
-    "duration": "60 minutos",
-    "category": "facial",
-    "keywords": [
-      "rellenos",
-      "faciales",
-      "(surcos,",
-      "pómulos,",
-      "etc.)",
-      "Ácido hialurónico u otros rellenos reabsorbibles"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Restaurar volúmenes faciales y contornos"
-    ],
-    "indications": [
-      "No AINEs 72 h; evaluar historial de reacciones",
-      "Hielo, evitar masaje 7 días"
-    ],
-    "preCare": [
-      "No AINEs 72 h; evaluar historial de reacciones"
-    ],
-    "postCare": [
-      "Hielo, evitar masaje 7 días"
-    ],
-    "contraindications": [
-      "Infección local, alergias conocidas"
-    ]
-  },
-  {
-    "id": "thread-lift",
-    "title": "Lifting con hilos DOP",
-    "shortDescription": "Efecto mecánico de reafirmación y soporte",
-    "description": "Efecto mecánico de reafirmación y soporte. Debe realizar profesional entrenado; documentar cantidad y tipo de hilos",
-    "price": "$200",
-    "duration": "90 minutos",
-    "category": "inyectable",
-    "keywords": [
-      "lifting",
-      "con",
-      "hilos",
-      "dop",
-      "Hilos PDO, cánulas y material estéril"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Efecto mecánico de reafirmación y soporte"
-    ],
-    "indications": [
-      "Evaluar anticoagulación y condiciones sistémicas",
-      "Evitar masaje y actividad intensa 2 semanas"
-    ],
-    "preCare": [
-      "Evaluar anticoagulación y condiciones sistémicas"
-    ],
-    "postCare": [
-      "Evitar masaje y actividad intensa 2 semanas"
-    ],
-    "contraindications": [
-      "Infección activa, coagulopatía"
-    ]
-  },
-  {
-    "id": "rejoven-ndyag",
-    "title": "Rejuvenecimiento con Nd :YAG ",
-    "shortDescription": "Mejora de textura y tratamiento de lesiones vasculares profundas",
-    "description": "Mejora de textura y tratamiento de lesiones vasculares profundas. Ajustar parámetros según fototipo y zona",
-    "price": "$35",
-    "duration": "45 minutos",
-    "category": "avanzado",
-    "keywords": [
-      "rejuvenecimiento",
-      "con",
-      "nd",
-      ":yag",
-      "Nd :YAG (long pulse)"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Mejora de textura y tratamiento de lesiones vasculares profundas"
-    ],
-    "indications": [
-      "Evitar bronceado; evaluación de fototipo",
-      "Protector solar; leve posible eritema"
-    ],
-    "preCare": [
-      "Evitar bronceado; evaluación de fototipo"
-    ],
-    "postCare": [
-      "Protector solar; leve posible eritema"
-    ],
-    "contraindications": [
-      "Fototipos altos sin ajuste de parámetros"
-    ]
-  },
-  {
     "id": "anti-acne-protocol",
     "title": "Protocolo Anti-acné (combinado)",
     "shortDescription": "Control de inflamación, control de sebo y prevención de cicatrices",
@@ -935,7 +780,7 @@ export const services: Service[] = [
       "Microneedling con serums",
       "Peelings suaves"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/anti-acne-protocol/protocolo_Antiacne.jpg",
     "popular": false,
     "benefits": [
       "Control de inflamación, control de sebo y prevención de cicatrices"
@@ -973,7 +818,7 @@ export const services: Service[] = [
       "Láser CO₂ fraccionado",
       "RF fraccional si disponible"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/scars-fractional/co2_cicatrices.jpg",
     "popular": false,
     "benefits": [
       "Mejora de cicatrices atróficas y textura"
@@ -992,53 +837,6 @@ export const services: Service[] = [
     ],
     "contraindications": [
       "Isotretino recienteína, infecciones activas"
-    ]
-  },
-  {
-    "id": "consulta-medica",
-    "title": "Consulta Médica Estética",
-    "shortDescription": "Evaluación profesional personalizada",
-    "description": "Consulta médica completa con evaluación de piel, diagnóstico personalizado y plan de tratamiento recomendado por nuestros especialistas.",
-    "price": "$10",
-    "duration": "30 minutos",
-    "category": "evaluacion",
-    "keywords": [
-      "consulta",
-      "evaluacion",
-      "diagnostico",
-      "medica",
-      "estetica",
-      "valoracion"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Diagnóstico profesional de tu piel",
-      "Plan de tratamiento personalizado",
-      "Recomendaciones de especialistas"
-    ]
-  },
-  {
-    "id": "limpieza-crioradio",
-    "title": "Limpieza Facial + Crioradiofrecuencia",
-    "shortDescription": "Limpieza con tecnología reafirmante",
-    "description": "Limpieza facial profunda combinada con crioradiofrecuencia para reafirmar, tensar y rejuvenecer la piel del rostro.",
-    "price": "$30",
-    "duration": "120 minutos",
-    "category": "facial",
-    "keywords": [
-      "limpieza",
-      "crioradio",
-      "radiofrecuencia",
-      "reafirmante",
-      "tensor"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Limpieza profunda + reafirmación",
-      "Efecto tensor inmediato",
-      "Estimula producción de colágeno"
     ]
   },
   {
@@ -1116,92 +914,6 @@ export const services: Service[] = [
     ]
   },
   {
-    "id": "tratamiento-acne",
-    "title": "Tratamiento Integral Anti-Acné",
-    "shortDescription": "Control y eliminación de acné activo",
-    "description": "Tratamiento personalizado para combatir el acné activo y sus secuelas. Combina técnicas como mesoterapia con activos seborreguladores y bactericidas, IPL y Crioradiofrecuencia según la necesidad del paciente.",
-    "price": "$25 (variable según evaluación)",
-    "duration": "1 hora 45 minutos",
-    "category": "facial",
-    "keywords": [
-      "acne",
-      "acné",
-      "granos",
-      "espinillas",
-      "barros",
-      "brotes",
-      "imperfecciones",
-      "seborrea",
-      "grasa",
-      "pustulas"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": true,
-    "benefits": [
-      "Control de la producción de grasa",
-      "Eliminación de bacterias causantes del acné",
-      "Reducción de inflamación y rojeces",
-      "Prevención de cicatrices y marcas"
-    ],
-    "indications": [
-      "Acné activo (leve, moderado o severo)",
-      "Piel grasa o seborreica",
-      "Poros dilatados y obstruidos"
-    ]
-  },
-  {
-    "id": "laser-co2",
-    "title": "Láser CO2 Fraccionado (Estándar)",
-    "shortDescription": "Rejuvenecimiento láser avanzado",
-    "description": "Tratamiento láser CO2 fraccionado para rejuvenecimiento profundo, eliminación de cicatrices, arrugas y manchas.",
-    "price": "$150",
-    "duration": "90 minutos",
-    "category": "laser",
-    "keywords": [
-      "laser",
-      "co2",
-      "fraccionado",
-      "rejuvenecimiento",
-      "cicatrices"
-    ],
-    "image": "/images/services/laser-co2-estandar/main.jpg",
-    "popular": false,
-    "benefits": [
-      "Rejuvenecimiento profundo",
-      "Elimina cicatrices de acné",
-      "Resultados duraderos"
-    ],
-    "indications": [
-      "Cicatrices de acné",
-      "Arrugas profundas",
-      "Manchas resistentes"
-    ]
-  },
-  {
-    "id": "ipl",
-    "title": "IPL (Luz Pulsada Intensa)",
-    "shortDescription": "Fotorrejuvenecimiento avanzado",
-    "description": "Tratamiento de luz pulsada intensa para manchas, rojeces, venitas y fotorrejuvenecimiento facial.",
-    "price": "$25",
-    "duration": "45 minutos",
-    "category": "laser",
-    "keywords": [
-      "ipl",
-      "luz",
-      "pulsada",
-      "fotorrejuvenecimiento",
-      "manchas",
-      "venitas"
-    ],
-    "image": "/images/services/default.jpg",
-    "popular": false,
-    "benefits": [
-      "Elimina manchas y rojeces",
-      "Reduce venitas faciales",
-      "Mejora textura general"
-    ]
-  },
-  {
     "id": "remocion-tatuajes",
     "title": "Remoción de Tatuajes",
     "shortDescription": "Eliminación segura de tatuajes",
@@ -1239,7 +951,7 @@ export const services: Service[] = [
       "tensor",
       "flacidez"
     ],
-    "image": "/images/services/hifu-corporal/main.jpg",
+    "image": "/images/services/hifu-corporal/hifuCorporal.jpg",
     "popular": false,
     "benefits": [
       "Lifting sin cirugía",
@@ -1314,7 +1026,7 @@ export const services: Service[] = [
       "hidratacion",
       "luminosidad"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/skin-booster-ha/skinBoosterHA.jpg",
     "popular": true,
     "benefits": [
       "Hidratación profunda y duradera",
@@ -1358,7 +1070,7 @@ export const services: Service[] = [
       "celulas madre",
       "rejuvenecimiento"
     ],
-    "image": "/images/services/default.jpg",
+    "image": "/images/services/skin-booster-exosomas/skinBoosterExosomas.jpg",
     "popular": true,
     "benefits": [
       "Potente regeneración celular",
