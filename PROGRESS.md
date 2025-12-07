@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 07, 2025: Buscador Inteligente con IA**
+- 🔍 **Búsqueda Semántica**: Implementado buscador flotante con IA (OpenAI) para consultas naturales.
+- ⚡ **Autocompletado**: Sugerencias locales instantáneas de productos y servicios.
+- 🚀 **API Serverless**: Nuevo endpoint `/api/search.js` para procesar consultas de forma segura.
+- 🎨 **UI/UX**: Botón flotante animado y modal de búsqueda responsivo.
+
 ### ✅ **Nov 27, 2025: Actualización de Servicios (Lipopapada)**
 - 📝 **Contenido**: Actualizada descripción de "Lipopapada sin cirugía" para incluir crioradiofrecuencia bipolar.
 - 🧹 **Limpieza**: Eliminadas referencias a servicios obsoletos (NCTF) en dropdowns de agendamiento.

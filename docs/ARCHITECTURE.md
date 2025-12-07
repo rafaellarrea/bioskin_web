@@ -21,6 +21,7 @@ project2.0/
 │   └── utils/                    # Utilidades helper
 ├── api/                          # Vercel Serverless Functions
 │   ├── ai-blog/                  # Endpoints generación IA
+│   ├── search.js                 # Endpoint búsqueda IA
 │   ├── getEvents.js             # Google Calendar API
 │   └── sendEmail.js             # Email/WhatsApp integration
 ├── lib/                          # Lógica de negocio
