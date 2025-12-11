@@ -23,9 +23,9 @@ const Services = () => {
     <section id="services" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-12">
-          <h2 className="section-title">Nuestros Servicios</h2>
+          <h2 className="section-title">Nuestros Servicios en Cuenca</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Ofrecemos tratamientos personalizados con tecnología de vanguardia para resolver tus necesidades específicas.
+            Ofrecemos tratamientos personalizados con tecnología de vanguardia para resolver tus necesidades específicas en nuestra clínica en Cuenca, Ecuador.
           </p>
         </div>
 

@@ -46,9 +46,9 @@ const About = () => {
     <section id="about" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-16">
-          <h2 className="section-title">Nosotros</h2>
+          <h2 className="section-title">Nosotros - Clínica Estética en Cuenca</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Bio Skin es un espacio especializado en tratamientos faciales personalizados, donde combinamos tecnología de vanguardia con una atención profesional, cercana y enfocada en resultados visibles desde la primera sesión.
+            Bio Skin es un espacio especializado en tratamientos faciales personalizados en Cuenca, donde combinamos tecnología de vanguardia con una atención profesional, cercana y enfocada en resultados visibles desde la primera sesión.
           </p>
         </div>
 

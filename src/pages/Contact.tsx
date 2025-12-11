@@ -13,9 +13,9 @@ const Contact: React.FC = () => {
       <section id="contact" className="py-24 bg-gray-50">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="section-title">Contacto</h2>
+            <h2 className="section-title">Contacto en Cuenca</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Estamos aquí para responder tus preguntas y atender tus necesidades. No dudes en ponerte en contacto con nosotros.
+              Visítanos en nuestra clínica estética en Cuenca. Estamos aquí para responder tus preguntas y atender tus necesidades.
             </p>
           </div>
 

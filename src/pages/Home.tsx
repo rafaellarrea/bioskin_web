@@ -31,10 +31,10 @@ const Home = () => {
         <div className="container-custom relative z-10 mt-2 md:mt-12">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-5">
-              Descubre Tu Mejor Versión con Bio Skin
+              Descubre Tu Mejor Versión con Bio Skin en Cuenca
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-6">
-              Tratamientos faciales avanzados, personalizados y con resultados visibles.
+              Tratamientos faciales avanzados, personalizados y con resultados visibles en nuestra clínica estética en Cuenca, Ecuador.
             </p>
             {/* === BOTONES ACCIÓN SIEMPRE VISIBLES Y COMPACTOS === */}
             <div className="flex flex-col w-full max-w-lg mx-auto gap-2 px-4 mt-4">

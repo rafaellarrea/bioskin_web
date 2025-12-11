@@ -42,8 +42,8 @@ export const services: Service[] = [
   {
     "id": "consulta-escaner",
     "title": "Consulta + Escáner Facial",
-    "shortDescription": "Evaluación avanzada con tecnología",
-    "description": "Consulta médica con análisis facial computarizado que evalúa manchas, arrugas, poros, hidratación y otros parámetros de la piel. Evaluación diagnóstica y plan de tratamiento.",
+    "shortDescription": "Evaluación avanzada con tecnología en Cuenca",
+    "description": "Consulta médica con análisis facial computarizado en Cuenca que evalúa manchas, arrugas, poros, hidratación y otros parámetros de la piel. Evaluación diagnóstica y plan de tratamiento personalizado en Ecuador.",
     "price": "$10",
     "duration": "30 minutos",
     "category": "evaluacion",
@@ -78,8 +78,8 @@ export const services: Service[] = [
   {
     "id": "limpieza-facial",
     "title": "Limpieza Facial",
-    "shortDescription": "Limpieza facial profunda personalizada",
-    "description": "Limpieza facial profunda para eliminar impurezas, células muertas y mejorar la textura de la piel.",
+    "shortDescription": "Limpieza facial profunda personalizada en Cuenca",
+    "description": "Limpieza facial profunda en Cuenca para eliminar impurezas, células muertas y mejorar la textura de la piel. Tratamiento profesional en BIOSKIN.",
     "price": "$30",
     "duration": "120 minutos",
     "category": "facial",
