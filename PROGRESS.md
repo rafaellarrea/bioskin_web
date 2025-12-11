@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 11, 2025: Actualización Contenido Limpieza Facial**
+- 📝 **Precisión**: Actualizada descripción de "Limpieza Facial" para aclarar que la crioradiofrecuencia es opcional según diagnóstico.
+- 🔄 **Sincronización**: Actualizados `src/data/services.ts` y `data/services.json`.
+
 ### ✅ **Dec 11, 2025: Fix Chatbot Fallback & Regex**
 - 🐛 **Fix Regex**: Corregida detección de intención para evitar falso positivo de "no" en "Buenos días".
 - 🛡️ **Robustez**: Mejorada la limpieza de mensajes (`trim`) antes del análisis de intenciones.

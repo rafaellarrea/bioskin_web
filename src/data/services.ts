@@ -78,8 +78,8 @@ export const services: Service[] = [
   {
     "id": "limpieza-facial",
     "title": "Limpieza Facial",
-    "shortDescription": "Limpieza con tecnología reafirmante",
-    "description": "Limpieza facial profunda combinada con crioradiofrecuencia para reafirmar, tensar y rejuvenecer la piel del rostro.",
+    "shortDescription": "Limpieza facial profunda personalizada",
+    "description": "Limpieza facial profunda personalizada. Según evaluación profesional, puede incluir crioradiofrecuencia para reafirmar y rejuvenecer la piel.",
     "price": "$30",
     "duration": "120 minutos",
     "category": "facial",
