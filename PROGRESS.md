@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 11, 2025: Fix Chatbot Fallback & Regex**
+- 🐛 **Fix Regex**: Corregida detección de intención para evitar falso positivo de "no" en "Buenos días".
+- 🛡️ **Robustez**: Mejorada la limpieza de mensajes (`trim`) antes del análisis de intenciones.
+
 ### ✅ **Dec 07, 2025: Buscador Inteligente con IA**
 - 🔍 **Búsqueda Semántica**: Implementado buscador flotante con IA (OpenAI) para consultas naturales.
 - ⚡ **Autocompletado**: Sugerencias locales instantáneas de productos y servicios.
