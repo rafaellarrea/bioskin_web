@@ -5,12 +5,53 @@ import { Link } from "react-router-dom";
 import { SEO } from '../components/SEO';
 
 const Home = () => {
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    "name": "BIOSKIN - Clínica Estética",
+    "image": "https://bioskin.ec/images/logo/logo1.jpg",
+    "@id": "https://bioskin.ec",
+    "url": "https://bioskin.ec",
+    "telephone": "+593969890689",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Av. Ordoñez Lasso y calle de la Menta, Centro Médico Santa María, 2do piso, Cons. 203",
+      "addressLocality": "Cuenca",
+      "addressRegion": "Azuay",
+      "postalCode": "010107",
+      "addressCountry": "EC"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -2.900128,
+      "longitude": -79.005896
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+      ],
+      "opens": "09:00",
+      "closes": "19:00"
+    },
+    "sameAs": [
+      "https://www.facebook.com/share/1BWcENMrip/",
+      "https://www.instagram.com/salud.bioskin?igsh=dnN2djR6dm94OGFq"
+    ],
+    "priceRange": "$$"
+  };
+
   return (
     <>
       <SEO 
         title="BIOSKIN - Clínica Estética en Cuenca"
         description="Descubre tu mejor versión en BIOSKIN. Tratamientos faciales y corporales avanzados en Cuenca, Ecuador. Dra. Daniela Creamer. Agenda tu cita hoy."
         keywords="Clínica estética Cuenca, tratamientos faciales Cuenca, dermatología estética, rejuvenecimiento facial, BIOSKIN, Dra. Daniela Creamer"
+        schema={localBusinessSchema}
       />
       {/* HERO principal: fondo, overlay, título, subtítulo, botones */}
       <section

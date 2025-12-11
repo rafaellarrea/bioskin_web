@@ -46,6 +46,29 @@ const ProductDetail = () => {
     );
   }
 
+  const productSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.images.map(img => `https://bioskin.ec${img}`),
+    "description": product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "BIOSKIN"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "USD",
+      "price": product.price.replace(/[^0-9.]/g, ''),
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "BIOSKIN"
+      }
+    }
+  };
+
   return (
     <>
       <SEO 
@@ -53,6 +76,7 @@ const ProductDetail = () => {
         description={product.shortDescription}
         keywords={`${product.name}, ${product.category === 'equipment' ? 'equipo médico' : 'cosmético'}, BIOSKIN Cuenca`}
         image={product.images[0]}
+        schema={productSchema}
       />
       <section className="py-16 bg-white min-h-screen">
         <div className="container-custom max-w-3xl mx-auto">

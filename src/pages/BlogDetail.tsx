@@ -83,6 +83,31 @@ const BlogDetail = () => {
     );
   }
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": blog.title,
+    "image": [
+      `https://bioskin.ec${blog.image}`
+    ],
+    "datePublished": blog.publishedAt,
+    "dateModified": blog.publishedAt,
+    "author": [{
+      "@type": "Person",
+      "name": blog.author,
+      "url": "https://bioskin.ec/about"
+    }],
+    "publisher": {
+      "@type": "Organization",
+      "name": "BIOSKIN",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://bioskin.ec/images/logo/logo1.jpg"
+      }
+    },
+    "description": blog.excerpt
+  };
+
   return (
     <>
       <SEO 
@@ -91,6 +116,7 @@ const BlogDetail = () => {
         keywords={blog.tags.join(', ')}
         image={blog.image}
         type="article"
+        schema={articleSchema}
       />
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}

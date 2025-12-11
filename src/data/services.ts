@@ -101,22 +101,23 @@ export const services: Service[] = [
   {
     "id": "dermaplaning",
     "title": "Dermaplaning + limpieza",
-    "shortDescription": "Exfoliación mecánica superficial y suavizado",
-    "description": "Exfoliación mecánica superficial y suavizado. Útil previo a peel superficial; documentar tolerancia",
+    "shortDescription": "Exfoliación mecánica superficial en Cuenca",
+    "description": "Exfoliación mecánica superficial y suavizado de la piel en Cuenca. Tratamiento ideal para eliminar vello facial fino y células muertas. Útil previo a peel superficial.",
     "price": "$25",
     "duration": "45 minutos",
     "category": "facial",
     "keywords": [
       "dermaplaning",
-      "+",
-      "limpieza",
+      "limpieza facial Cuenca",
+      "exfoliacion",
       "Hoja dermaplaning",
       "Equipo de limpieza"
     ],
     "image": "/images/services/dermaplaning/dermaplaning.jpeg",
     "popular": false,
     "benefits": [
-      "Exfoliación mecánica superficial y suavizado"
+      "Exfoliación mecánica superficial y suavizado",
+      "Piel más suave y luminosa al instante"
     ],
     "indications": [
       "Evitar retinoides 3 días antes",
@@ -135,19 +136,18 @@ export const services: Service[] = [
   {
     "id": "microneedling",
     "title": "Microneedling",
-    "shortDescription": "Regeneración celular avanzada",
-    "description": "Tratamiento de microagujas que estimula la producción natural de colágeno y elastina, mejorando textura, cicatrices y arrugas. Estimulación de colágeno, mejora de cicatrices y textura.",
+    "shortDescription": "Regeneración celular avanzada en Cuenca",
+    "description": "Tratamiento de microagujas (Dermapen) en Cuenca que estimula la producción natural de colágeno y elastina. Mejora textura, cicatrices de acné y arrugas finas en BIOSKIN.",
     "price": "$30",
     "duration": "60 minutos",
     "category": "facial",
     "keywords": [
-      "microneedling",
+      "microneedling Cuenca",
       "microagujas",
       "colageno",
-      "cicatrices",
-      "textura",
-      "Dermapen / Roller",
-      "Serums (ácido hialurónico, PRP opcional)"
+      "cicatrices acne",
+      "textura piel",
+      "Dermapen Ecuador"
     ],
     "image": "/images/services/microneedling/microneedling.jpeg",
     "popular": false,
@@ -169,25 +169,25 @@ export const services: Service[] = [
   },
   {
     "id": "meso-mesotherapy",
-    "title": "Mesoterapia (vitaminas / ácido hialurónico)",
-    "shortDescription": "Nutrición dérmica, hidratación y mejora de textura",
-    "description": "Nutrición dérmica, hidratación y mejora de textura. Registrar lote y composición del cocktail aplicado",
+    "title": "Mesoterapia Facial",
+    "shortDescription": "Nutrición dérmica e hidratación en Cuenca",
+    "description": "Mesoterapia facial en Cuenca con vitaminas y ácido hialurónico para nutrición dérmica profunda, hidratación y mejora de textura. Tratamiento personalizado según necesidades de tu piel.",
     "price": "variable según activos colocados y zona",
     "duration": "45 minutos",
     "category": "inyectable",
     "keywords": [
-      "mesoterapia",
-      "(vitaminas",
-      "/",
-      "ácido",
-      "hialurónico)",
-      "Jeringas",
-      "Cocktails mesoterapéuticos"
+      "mesoterapia facial Cuenca",
+      "vitaminas faciales",
+      "ácido hialurónico",
+      "hidratacion profunda",
+      "rejuvenecimiento facial"
     ],
     "image": "/images/services/meso-mesotherapy/mesoterapia.jpeg",
     "popular": false,
     "benefits": [
-      "Nutrición dérmica, hidratación y mejora de textura"
+      "Nutrición dérmica profunda",
+      "Hidratación y luminosidad",
+      "Mejora de textura y firmeza"
     ],
     "indications": [
       "Revisar alergias y medicación (anticoagulantes)",

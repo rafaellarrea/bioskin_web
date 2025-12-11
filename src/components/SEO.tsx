@@ -8,6 +8,7 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  schema?: object;
 }
 
 export const SEO: React.FC<SEOProps> = ({ 
@@ -16,7 +17,8 @@ export const SEO: React.FC<SEOProps> = ({
   keywords, 
   image = '/images/logo-bioskin.png', 
   url = 'https://bioskin.ec', 
-  type = 'website' 
+  type = 'website',
+  schema
 }) => {
   const siteTitle = 'BIOSKIN - Clínica Estética en Cuenca';
   const fullTitle = title === siteTitle ? title : `${title} | BIOSKIN Cuenca`;
@@ -46,6 +48,13 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="geo.placename" content="Cuenca" />
       <meta name="geo.position" content="-2.900128;-79.005896" />
       <meta name="ICBM" content="-2.900128, -79.005896" />
+
+      {/* Structured Data (JSON-LD) */}
+      {schema && (
+        <script type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      )}
     </Helmet>
   );
 };
