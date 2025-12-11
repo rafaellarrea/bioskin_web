@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import products from '../data/products';
 import { slugify } from '../utils/slugify';
+import { SEO } from '../components/SEO';
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -46,8 +47,15 @@ const ProductDetail = () => {
   }
 
   return (
-    <section className="py-16 bg-white min-h-screen">
-      <div className="container-custom max-w-3xl mx-auto">
+    <>
+      <SEO 
+        title={product.name}
+        description={product.shortDescription}
+        keywords={`${product.name}, ${product.category === 'equipment' ? 'equipo médico' : 'cosmético'}, BIOSKIN Cuenca`}
+        image={product.images[0]}
+      />
+      <section className="py-16 bg-white min-h-screen">
+        <div className="container-custom max-w-3xl mx-auto">
         <Link to="/products" className="text-blue-500 underline mb-6 inline-block">&larr; Volver</Link>
         <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
 
@@ -190,6 +198,7 @@ const ProductDetail = () => {
         )}
       </div>
     </section>
+    </>
   );
 };
 

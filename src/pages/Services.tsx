@@ -1,6 +1,7 @@
 import ServiceCard from '../components/ServiceCard';
 import Footer from '../components/Footer';
 import { services as servicesData } from '../data/services';
+import { SEO } from '../components/SEO';
 
 const Services = () => {
   // Mapear servicios desde la fuente centralizada
@@ -14,6 +15,11 @@ const Services = () => {
 
   return (
 <>
+    <SEO 
+      title="Servicios Estéticos"
+      description="Conoce nuestros tratamientos faciales y corporales en BIOSKIN Cuenca. Tecnología avanzada para el cuidado de tu piel."
+      keywords="Servicios estéticos Cuenca, tratamientos faciales, corporales, láser, BIOSKIN"
+    />
     <section id="services" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-12">

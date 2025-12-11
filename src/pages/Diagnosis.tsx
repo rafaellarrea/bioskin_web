@@ -2,6 +2,7 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import ImageCarousel from '../components/ImageCarousel';
+import { SEO } from '../components/SEO';
 
 const Diagnosis = () => {
   const steps = [
@@ -52,6 +53,11 @@ const Diagnosis = () => {
 
   return (
  <>
+    <SEO 
+      title="Diagnóstico Facial Computarizado"
+      description="Análisis de piel avanzado con tecnología de escáner facial en BIOSKIN Cuenca. Descubre el estado real de tu piel."
+      keywords="Diagnóstico facial, escáner facial, análisis de piel, dermatología Cuenca, BIOSKIN"
+    />
     <section id="diagnosis" className="py-24 bg-gray-50">
       <div className="container-custom">
         <div className="text-center mb-16">

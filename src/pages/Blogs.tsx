@@ -3,6 +3,7 @@ import { Search, Filter, BookOpen, TrendingUp, Loader2 } from 'lucide-react';
 import BlogCard from '../components/BlogCard';
 import Footer from '../components/Footer';
 import { useBlogs } from '../hooks/useBlogs';
+import { SEO } from '../components/SEO';
 
 const Blogs = () => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'medico-estetico' | 'tecnico'>('all');
@@ -49,6 +50,11 @@ const Blogs = () => {
 
   return (
     <>
+      <SEO 
+        title="Blog de Estética y Tecnología"
+        description="Artículos sobre tratamientos estéticos, cuidado de la piel y tecnología médica en BIOSKIN Cuenca."
+        keywords="Blog estética, consejos belleza, tecnología médica, BIOSKIN blog"
+      />
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-[#deb887] to-[#c9a677] text-white py-16">

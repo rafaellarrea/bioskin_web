@@ -6,6 +6,7 @@ import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
 import { slugify } from '../utils/slugify';
 import { Link, useLocation } from 'react-router-dom';
+import { SEO } from '../components/SEO';
 
 type ProductsProps = {
   initialCategory?: 'all' | 'equipment' | 'cosmetic';
@@ -28,8 +29,36 @@ const Products: React.FC<ProductsProps> = ({ initialCategory = 'all' }) => {
     ? products
     : products.filter(product => product.category === activeCategory);
 
+  const getSEOMetadata = () => {
+    if (activeCategory === 'equipment') {
+      return {
+        title: 'Aparatología Estética',
+        description: 'Equipos médicos y estéticos de alta tecnología en Cuenca. HIFU, Láser, Radiofrecuencia y más.',
+        keywords: 'Aparatología estética Cuenca, equipos médicos, HIFU, láser, radiofrecuencia'
+      };
+    } else if (activeCategory === 'cosmetic') {
+      return {
+        title: 'Cosméticos Profesionales',
+        description: 'Productos cosméticos de alta calidad para el cuidado de la piel. Venta en Cuenca, Ecuador.',
+        keywords: 'Cosméticos Cuenca, cuidado de la piel, productos dermatológicos, skincare'
+      };
+    }
+    return {
+      title: 'Productos y Equipos',
+      description: 'Catálogo completo de equipos estéticos y productos cosméticos en BIOSKIN Cuenca.',
+      keywords: 'Productos estéticos, equipos médicos, cosméticos, BIOSKIN Cuenca'
+    };
+  };
+
+  const seoData = getSEOMetadata();
+
   return (
     <>
+      <SEO 
+        title={seoData.title}
+        description={seoData.description}
+        keywords={seoData.keywords}
+      />
       {/* Modal Oferta HIFU */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">

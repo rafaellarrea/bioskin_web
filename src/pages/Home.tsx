@@ -2,10 +2,16 @@ import React from 'react';
 import Footer from '../components/Footer';
 import Faq from '../pages/Faq';
 import { Link } from "react-router-dom";
+import { SEO } from '../components/SEO';
 
 const Home = () => {
   return (
     <>
+      <SEO 
+        title="BIOSKIN - Clínica Estética en Cuenca"
+        description="Descubre tu mejor versión en BIOSKIN. Tratamientos faciales y corporales avanzados en Cuenca, Ecuador. Dra. Daniela Creamer. Agenda tu cita hoy."
+        keywords="Clínica estética Cuenca, tratamientos faciales Cuenca, dermatología estética, rejuvenecimiento facial, BIOSKIN, Dra. Daniela Creamer"
+      />
       {/* HERO principal: fondo, overlay, título, subtítulo, botones */}
       <section
         id="home"

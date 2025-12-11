@@ -1,9 +1,15 @@
 import React from 'react';
 import Footer from '../components/Footer';
+import { SEO } from '../components/SEO';
 
 const Contact: React.FC = () => {
   return (
     <>
+      <SEO 
+        title="Contacto - BIOSKIN"
+        description="Contáctanos para agendar tu cita en BIOSKIN Cuenca. Teléfono, dirección y horarios de atención."
+        keywords="Contacto BIOSKIN, agendar cita, teléfono clínica estética Cuenca, dirección BIOSKIN"
+      />
       <section id="contact" className="py-24 bg-gray-50">
         <div className="container-custom">
           <div className="text-center mb-16">

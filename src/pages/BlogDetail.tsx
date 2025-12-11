@@ -3,6 +3,7 @@ import { Calendar, Clock, User, Tag, ArrowLeft, Share2, ChevronRight, Loader2 } 
 import Footer from '../components/Footer';
 import BlogContent from '../components/BlogContent';
 import { useBlog, useBlogs } from '../hooks/useBlogs';
+import { SEO } from '../components/SEO';
 
 const BlogDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -84,6 +85,13 @@ const BlogDetail = () => {
 
   return (
     <>
+      <SEO 
+        title={blog.title}
+        description={blog.excerpt}
+        keywords={blog.tags.join(', ')}
+        image={blog.image}
+        type="article"
+      />
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b">

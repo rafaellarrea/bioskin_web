@@ -2,6 +2,7 @@ import React from 'react';
 import BeforeAfterCard from '../components/BeforeAfterCard';
 import TestimonialCard from '../components/TestimonialCard';
 import Footer from '../components/Footer';
+import { SEO } from '../components/SEO';
 
 const Results = () => {
   const beforeAfterResults = [
@@ -48,8 +49,12 @@ const Results = () => {
 
   return (
 	 <>
-
-    <section id="results" className="py-24">
+    <SEO 
+      title="Resultados y Testimonios"
+      description="Mira los resultados reales de nuestros tratamientos estéticos en BIOSKIN Cuenca. Antes y después, testimonios de pacientes satisfechos."
+      keywords="Resultados tratamientos estéticos, antes y después, testimonios BIOSKIN, casos de éxito"
+    />
+    <section id="results" className="py-24 bg-white">
       <div className="container-custom">
         <div className="text-center mb-16">
           <h2 className="section-title">Resultados Reales</h2>
