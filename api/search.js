@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         description: p.shortDescription,
         category: p.category,
         price: p.price,
-        url: `/products/${p.name.toLowerCase().replace(/ /g, '-')}` // Simple slug approximation, ideally use slugify
+        url: `/products/${p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`
       }));
     }
 
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
         description: s.shortDescription,
         category: s.category,
         price: s.price,
-        url: `/services` // Services might not have individual pages, or they do?
+        url: `/services#${s.id || s.title.toLowerCase().replace(/ /g, '-')}`
       }));
     }
 

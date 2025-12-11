@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 11, 2025: Mejora Buscador y Navegación**
+- 🎨 **UI/UX**: Eliminada marca visual "IA" del buscador para una experiencia más integrada.
+- 🔗 **Navegación**: Implementado scroll automático a servicios específicos desde resultados de búsqueda.
+- 🛠️ **Fix URLs**: Generación robusta de enlaces para productos y servicios en API de búsqueda.
+
 ### ✅ **Dec 11, 2025: Actualización Contenido Limpieza Facial**
 - 📝 **Precisión**: Eliminada mención de crioradiofrecuencia en "Limpieza Facial" para evitar falsas expectativas.
 - 🔄 **Sincronización**: Actualizados `src/data/services.ts` y `data/services.json` con descripción genérica.

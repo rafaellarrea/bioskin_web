@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, X, Sparkles, ArrowRight, Loader2, Bot } from 'lucide-react';
+import { Search, X, ArrowRight, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { slugify } from '../utils/slugify';
 import products from '../data/products';
@@ -70,7 +70,7 @@ export default function AISearch() {
         name: s.title,
         type: 'service' as const,
         description: s.shortDescription,
-        url: `/services` // Ideally link to specific service anchor or page
+        url: `/services#${s.id}`
       }))
       .slice(0, 3);
 
@@ -114,8 +114,24 @@ export default function AISearch() {
   const handleNavigate = (result: SearchResult) => {
     setIsOpen(false);
     if (result.url) {
-      navigate(result.url);
+      if (result.url.includes('#')) {
+        const [path, hash] = result.url.split('#');
+        navigate(path);
+        // Small delay to allow navigation to complete before scrolling
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add highlight effect
+            element.classList.add('ring-4', 'ring-gold-400', 'transition-all', 'duration-500');
+            setTimeout(() => element.classList.remove('ring-4', 'ring-gold-400'), 2000);
+          }
+        }, 100);
+      } else {
+        navigate(result.url);
+      }
     } else {
+      // Fallback logic
       if (result.type === 'product') {
         navigate(`/products/${slugify(result.name)}`);
       } else if (result.type === 'service') {
@@ -133,12 +149,9 @@ export default function AISearch() {
         className={`fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group ${
           isOpen ? 'bg-gray-200 text-gray-600 scale-0 opacity-0' : 'bg-gold-500 text-white scale-100 opacity-100'
         }`}
-        aria-label="Búsqueda IA"
+        aria-label="Buscar"
       >
-        <Sparkles className="w-6 h-6 animate-pulse" />
-        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          Búsqueda IA
-        </span>
+        <Search className="w-6 h-6" />
       </button>
 
       {isOpen && (
@@ -148,14 +161,14 @@ export default function AISearch() {
             className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200"
           >
             <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
-              <Bot className="w-6 h-6 text-gold-500" />
+              <Search className="w-6 h-6 text-gold-500" />
               <form onSubmit={handleSearch} className="flex-1 relative">
                 <input
                   ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Pregunta sobre tratamientos, productos o dudas..."
+                  placeholder="Buscar tratamientos, productos..."
                   className="w-full bg-transparent border-none outline-none text-lg text-gray-800 placeholder-gray-400"
                 />
                 {query && (
@@ -182,7 +195,7 @@ export default function AISearch() {
               {answer && (
                 <div className="bg-gold-50/50 p-4 rounded-xl border border-gold-100">
                   <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-gold-500 mt-1 flex-shrink-0" />
+                    <Search className="w-5 h-5 text-gold-500 mt-1 flex-shrink-0" />
                     <p className="text-gray-700 leading-relaxed">{answer}</p>
                   </div>
                 </div>
@@ -191,7 +204,7 @@ export default function AISearch() {
               {/* Local Suggestions (Autocomplete) */}
               {!loading && !answer && localSuggestions.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Sugerencias Rápidas</h3>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Sugerencias</h3>
                   <div className="grid gap-3">
                     {localSuggestions.map((result, index) => (
                       <button
@@ -220,7 +233,7 @@ export default function AISearch() {
               {/* AI Results */}
               {results.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Resultados de IA</h3>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Resultados</h3>
                   <div className="grid gap-3">
                     {results.map((result, index) => (
                       <button
@@ -256,8 +269,8 @@ export default function AISearch() {
 
               {!loading && !answer && results.length === 0 && localSuggestions.length === 0 && (
                 <div className="text-center py-12 text-gray-400">
-                  <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p>Escribe tu consulta para buscar con IA</p>
+                  <Search className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <p>Escribe tu consulta para buscar</p>
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {['Tratamientos faciales', 'Cremas hidratantes', 'Depilación láser', 'Rejuvenecimiento'].map(tag => (
                       <button

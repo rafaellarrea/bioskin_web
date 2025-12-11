@@ -1,6 +1,7 @@
 import React from 'react';
 
 type ServiceCardProps = {
+  id?: string;
   title: string;
   description: string;
   price: string | number;
@@ -9,6 +10,7 @@ type ServiceCardProps = {
 };
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
+  id,
   title,
   description,
   price,
@@ -17,7 +19,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   return (
     <div
-      className="card group"
+      id={id}
+      className="card group scroll-mt-24"
       style={{ animationDelay: (index * 150) + 'ms' }}
     >
       <div className="relative overflow-hidden h-48">

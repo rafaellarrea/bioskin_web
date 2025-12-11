@@ -5,6 +5,7 @@ import { services as servicesData } from '../data/services';
 const Services = () => {
   // Mapear servicios desde la fuente centralizada
   const services = servicesData.map(service => ({
+    id: service.id,
     title: service.title,
     description: service.description,
     price: service.price,
@@ -26,6 +27,7 @@ const Services = () => {
           {services.map((service, index) => (
             <ServiceCard
               key={index}
+              id={service.id}
               title={service.title}
               description={service.description}
               price={service.price}
