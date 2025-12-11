@@ -79,23 +79,23 @@ export const services: Service[] = [
     "id": "limpieza-facial",
     "title": "Limpieza Facial",
     "shortDescription": "Limpieza facial profunda personalizada",
-    "description": "Limpieza facial profunda personalizada. Según evaluación profesional, puede incluir crioradiofrecuencia para reafirmar y rejuvenecer la piel.",
+    "description": "Limpieza facial profunda para eliminar impurezas, células muertas y mejorar la textura de la piel.",
     "price": "$30",
     "duration": "120 minutos",
     "category": "facial",
     "keywords": [
       "limpieza",
-      "crioradio",
-      "radiofrecuencia",
-      "reafirmante",
-      "tensor"
+      "facial",
+      "profunda",
+      "impurezas",
+      "puntos negros"
     ],
     "image": "/images/services/limpieza-facial/limpiezaFacial.jpg",
     "popular": false,
     "benefits": [
-      "Limpieza profunda + reafirmación",
-      "Efecto tensor inmediato",
-      "Estimula producción de colágeno"
+      "Eliminación de impurezas",
+      "Mejora textura y luminosidad",
+      "Piel fresca y saludable"
     ]
   },
   {
