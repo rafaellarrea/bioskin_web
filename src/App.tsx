@@ -34,38 +34,40 @@ function App() {
           <Navbar />
           <BlogSyncManager />
           <WhatsAppButton />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/results" element={<Results />} />
-            <Route path="/diagnosis" element={<Diagnosis />} />
+          <main className="pt-40 md:pt-44">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/diagnosis" element={<Diagnosis />} />
 
-            {/* RUTAS DE PRODUCTOS - el orden importa */}
-            <Route path="/products/aparatologia" element={<Products initialCategory="equipment" />} />
-            <Route path="/products/cosmeticos" element={<Products initialCategory="cosmetic" />} />
-            <Route path="/products/:slug" element={<ProductDetail />} />
-            <Route path="/products" element={<Products />} />
+              {/* RUTAS DE PRODUCTOS - el orden importa */}
+              <Route path="/products/aparatologia" element={<Products initialCategory="equipment" />} />
+              <Route path="/products/cosmeticos" element={<Products initialCategory="cosmetic" />} />
+              <Route path="/products/:slug" element={<ProductDetail />} />
+              <Route path="/products" element={<Products />} />
 
-            {/* RUTAS DE BLOG */}
-            <Route path="/blogs/:slug" element={<BlogDetail />} />
-            <Route path="/blogs" element={<Blogs />} />
-            <Route path="/blog-admin" element={<BlogAdminPage />} />
+              {/* RUTAS DE BLOG */}
+              <Route path="/blogs/:slug" element={<BlogDetail />} />
+              <Route path="/blogs" element={<Blogs />} />
+              <Route path="/blog-admin" element={<BlogAdminPage />} />
 
-            {/* RUTAS ADMINISTRATIVAS CHATBOT */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/chats" element={<AdminChatManager />} />
-            <Route path="/admin/calendar" element={<AdminCalendarManager />} />
-            <Route path="/admin/block-schedule" element={<AdminBlockSchedule />} />
-            <Route path="/admin/appointment" element={<AdminAppointment />} />
-            <Route path="/admin/monitor" element={<AdminMonitor />} />
-            <Route path="/admin/stats" element={<AdminStats />} />
+              {/* RUTAS ADMINISTRATIVAS CHATBOT */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/chats" element={<AdminChatManager />} />
+              <Route path="/admin/calendar" element={<AdminCalendarManager />} />
+              <Route path="/admin/block-schedule" element={<AdminBlockSchedule />} />
+              <Route path="/admin/appointment" element={<AdminAppointment />} />
+              <Route path="/admin/monitor" element={<AdminMonitor />} />
+              <Route path="/admin/stats" element={<AdminStats />} />
 
-            <Route path="/appointment" element={<Appointment />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<Faq />} />
-          </Routes>
+              <Route path="/appointment" element={<Appointment />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/faq" element={<Faq />} />
+            </Routes>
+          </main>
         </AuthProvider>
       </HashRouter>
     </ErrorBoundary>
