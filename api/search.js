@@ -51,7 +51,7 @@ export default async function handler(req, res) {
         description: p.shortDescription,
         category: p.category,
         price: p.price,
-        url: `/products/${p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`
+        url: `/products/${p.name.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/₂/g, '2').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-')}`
       }));
     }
 
