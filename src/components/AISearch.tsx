@@ -7,7 +7,7 @@ import { services } from '../data/services';
 
 interface SearchResult {
   name: string;
-  type: 'product' | 'service';
+  type: 'product' | 'service' | 'page' | 'blog';
   description: string;
   url?: string;
 }
@@ -17,6 +17,15 @@ interface AISearchProps {
   variant?: 'floating' | 'icon' | 'bar';
   className?: string;
 }
+
+const staticPages = [
+  { name: 'Agenda / Reserva', keywords: ['agenda', 'reserva', 'cita', 'turno', 'agendar'], url: '/appointment', description: 'Agenda tu cita médica o estética' },
+  { name: 'Contacto / Ubicación', keywords: ['contacto', 'ubicacion', 'direccion', 'donde', 'telefono', 'email'], url: '/contact', description: 'Información de contacto y ubicación' },
+  { name: 'Nosotros', keywords: ['nosotros', 'equipo', 'doctora', 'quienes', 'somos'], url: '/about', description: 'Conoce a nuestro equipo y la Dra. Daniela Creamer' },
+  { name: 'Blog', keywords: ['blog', 'articulos', 'noticias', 'consejos', 'tips'], url: '/blogs', description: 'Artículos sobre salud y estética' },
+  { name: 'Resultados', keywords: ['resultados', 'antes', 'despues', 'casos', 'fotos'], url: '/results', description: 'Galería de resultados de tratamientos' },
+  { name: 'Diagnóstico', keywords: ['diagnostico', 'evaluacion', 'test', 'piel'], url: '/diagnosis', description: 'Realiza un diagnóstico de piel en línea' },
+];
 
 export default function AISearch({ inline = false, variant = 'floating', className = '' }: AISearchProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +80,20 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
 
     const lowerQuery = query.toLowerCase();
     
+    // 1. Search Static Pages
+    const matchedPages = staticPages
+      .filter(page => 
+        page.name.toLowerCase().includes(lowerQuery) || 
+        page.keywords.some(k => k.includes(lowerQuery))
+      )
+      .map(page => ({
+        name: page.name,
+        type: 'page' as const,
+        description: page.description,
+        url: page.url
+      }));
+
+    // 2. Search Products
     const matchedProducts = products
       .filter(p => p.name.toLowerCase().includes(lowerQuery))
       .map(p => ({
@@ -81,6 +104,7 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
       }))
       .slice(0, 3);
 
+    // 3. Search Services
     const matchedServices = services
       .filter(s => s.title.toLowerCase().includes(lowerQuery))
       .map(s => ({
@@ -91,7 +115,7 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
       }))
       .slice(0, 3);
 
-    setLocalSuggestions([...matchedProducts, ...matchedServices]);
+    setLocalSuggestions([...matchedPages, ...matchedProducts, ...matchedServices]);
   }, [query, actualVariant]);
 
   const handleSearch = async (e?: React.FormEvent) => {
@@ -156,6 +180,8 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
         navigate(`/products/${slugify(result.name)}`);
       } else if (result.type === 'service') {
         navigate(`/services`);
+      } else if (result.type === 'page' && result.url) {
+        navigate(result.url);
       }
     }
   };
@@ -204,9 +230,14 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
                       className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 transition-colors text-left group"
                     >
                       <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 ${
-                        result.type === 'product' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
+                        result.type === 'product' ? 'bg-blue-50 text-blue-500' : 
+                        result.type === 'service' ? 'bg-purple-50 text-purple-500' :
+                        result.type === 'page' ? 'bg-green-50 text-green-500' :
+                        'bg-orange-50 text-orange-500'
                       }`}>
-                        {result.type === 'product' ? '🛍️' : '💆‍♀️'}
+                        {result.type === 'product' ? '🛍️' : 
+                         result.type === 'service' ? '💆‍♀️' :
+                         result.type === 'page' ? '🔗' : '📝'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-gray-900 truncate group-hover:text-gold-600">
@@ -306,9 +337,14 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
                         className="flex items-start gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left group border border-transparent hover:border-gray-100"
                       >
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          result.type === 'product' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
+                          result.type === 'product' ? 'bg-blue-50 text-blue-500' : 
+                          result.type === 'service' ? 'bg-purple-50 text-purple-500' :
+                          result.type === 'page' ? 'bg-green-50 text-green-500' :
+                          'bg-orange-50 text-orange-500'
                         }`}>
-                          {result.type === 'product' ? '🛍️' : '💆‍♀️'}
+                          {result.type === 'product' ? '🛍️' : 
+                           result.type === 'service' ? '💆‍♀️' :
+                           result.type === 'page' ? '🔗' : '📝'}
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900 group-hover:text-gold-600 transition-colors">
@@ -335,9 +371,14 @@ export default function AISearch({ inline = false, variant = 'floating', classNa
                         className="flex items-start gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors text-left group border border-transparent hover:border-gray-100"
                       >
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          result.type === 'product' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
+                          result.type === 'product' ? 'bg-blue-50 text-blue-500' : 
+                          result.type === 'service' ? 'bg-purple-50 text-purple-500' :
+                          result.type === 'page' ? 'bg-green-50 text-green-500' :
+                          'bg-orange-50 text-orange-500'
                         }`}>
-                          {result.type === 'product' ? '🛍️' : '💆‍♀️'}
+                          {result.type === 'product' ? '🛍️' : 
+                           result.type === 'service' ? '💆‍♀️' :
+                           result.type === 'page' ? '🔗' : '📝'}
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900 group-hover:text-gold-600 transition-colors">

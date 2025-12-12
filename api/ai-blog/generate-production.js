@@ -1,7 +1,6 @@
 // api/ai-blog/generate-production.js
-// Versión de producción CON guardado en base de datos SQLite
+// Versión de producción CON guardado en archivos JSON
 
-import { createCompleteBlog } from '../../lib/database.js';
 import { generateBlogImage, getReliableImageUrl } from '../../lib/image-search-service.js';
 import { searchRealImage } from '../../lib/real-image-search.js';
 import OpenAI from 'openai';
@@ -723,38 +722,72 @@ TAGS_BLOG: láser CO2, rejuvenecimiento facial, medicina estética, tratamiento 
       featured: false
     };
 
-    // Guardar en la base de datos SQLite (si es posible)
+    // Guardar en archivos JSON (Sistema Organizado)
     let blogId;
     let saveError = null;
     let savedToDynamic = false;
     
     try {
-      blogId = createCompleteBlog(blogData, tags, []);
-      console.log(`✅ Blog guardado en BD con ID: ${blogId}`);
+      // Usar el endpoint de gestión de blogs para guardar
+      const protocol = req.headers['x-forwarded-proto'] || 'http';
+      const host = req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
+      
+      // Preparar datos para el endpoint de gestión
+      const blogPayload = {
+        ...blogData,
+        tags,
+        is_ai_generated: true,
+        ai_prompt_version: 'v2.0-production',
+        week_year: getCurrentWeekYear()
+      };
+
+      // Llamada interna al endpoint de gestión de blogs
+      // Nota: En Vercel, las llamadas a la propia API pueden ser tricky, 
+      // pero intentaremos usar fetch al endpoint local
+      const saveResponse = await fetch(`${baseUrl}/api/blogs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'manage',
+          operation: 'create',
+          blog: blogPayload 
+        })
+      });
+      
+      if (saveResponse.ok) {
+        const saveResult = await saveResponse.json();
+        blogId = saveResult.id || Date.now();
+        console.log(`✅ Blog guardado en JSON con ID: ${blogId}`);
+      } else {
+        const errorText = await saveResponse.text();
+        throw new Error(`Error guardando blog: ${errorText}`);
+      }
+
     } catch (dbError) {
-      console.error('❌ Error guardando en BD:', dbError);
+      console.error('❌ Error guardando en JSON:', dbError);
       saveError = dbError.message;
       
-      // Fallback: guardar dinámicamente en memoria del endpoint estático
+      // Fallback: Intentar guardar directamente en disco si estamos en entorno local
+      // (Esto no funcionará en Vercel para persistencia a largo plazo, pero sirve para dev)
       try {
-        const protocol = req.headers['x-forwarded-proto'] || 'http';
-        const host = req.headers.host;
-        const baseUrl = `${protocol}://${host}`;
-        
-        const fallbackResponse = await fetch(`${baseUrl}/api/blogs/manage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ blog: blogData })
-        });
-        
-        if (fallbackResponse.ok) {
-          const fallbackResult = await fallbackResponse.json();
-          savedToDynamic = true;
-          blogId = fallbackResult.blogId;
-          console.log('✅ Blog guardado dinámicamente como fallback');
+        if (!process.env.VERCEL) {
+          const blogsDir = path.join(process.cwd(), 'src', 'data', 'blogs');
+          if (!fs.existsSync(blogsDir)) fs.mkdirSync(blogsDir, { recursive: true });
+          
+          const blogPath = path.join(blogsDir, `${slug}.json`);
+          fs.writeFileSync(blogPath, JSON.stringify({
+            ...blogData,
+            tags,
+            id: Date.now(),
+            is_ai_generated: true
+          }, null, 2));
+          
+          blogId = Date.now();
+          console.log('✅ Blog guardado localmente en disco (fallback)');
         }
       } catch (fallbackError) {
-        console.error('❌ Error en fallback dinámico:', fallbackError);
+        console.error('❌ Error en fallback local:', fallbackError);
       }
     }
 

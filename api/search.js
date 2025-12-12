@@ -24,9 +24,24 @@ export default async function handler(req, res) {
     const dataDir = path.join(process.cwd(), 'data');
     const productsPath = path.join(dataDir, 'products.json');
     const servicesPath = path.join(dataDir, 'services.json');
+    
+    // Blog paths
+    const blogsDir = path.join(process.cwd(), 'src', 'data', 'blogs');
+    const blogsIndexPath = path.join(blogsDir, 'index.json');
 
     let products = [];
     let services = [];
+    let blogs = [];
+
+    // Static Pages Definition
+    const staticPages = [
+      { name: 'Agenda / Reserva', type: 'page', description: 'Agenda tu cita médica o estética', url: '/appointment', keywords: ['agenda', 'reserva', 'cita', 'turno'] },
+      { name: 'Contacto / Ubicación', type: 'page', description: 'Información de contacto y ubicación', url: '/contact', keywords: ['contacto', 'ubicacion', 'direccion', 'telefono'] },
+      { name: 'Nosotros', type: 'page', description: 'Conoce a nuestro equipo y la Dra. Daniela Creamer', url: '/about', keywords: ['nosotros', 'equipo', 'doctora'] },
+      { name: 'Blog', type: 'page', description: 'Artículos sobre salud y estética', url: '/blogs', keywords: ['blog', 'articulos'] },
+      { name: 'Resultados', type: 'page', description: 'Galería de resultados de tratamientos', url: '/results', keywords: ['resultados', 'antes', 'despues'] },
+      { name: 'Diagnóstico', type: 'page', description: 'Realiza un diagnóstico de piel en línea', url: '/diagnosis', keywords: ['diagnostico', 'test'] },
+    ];
 
     if (fs.existsSync(productsPath)) {
       const productsData = fs.readFileSync(productsPath, 'utf8');
@@ -52,10 +67,69 @@ export default async function handler(req, res) {
       }));
     }
 
+    // Load Blogs from JSON Files
+    if (fs.existsSync(blogsIndexPath)) {
+      try {
+        const indexContent = fs.readFileSync(blogsIndexPath, 'utf8');
+        const indexData = JSON.parse(indexContent);
+        
+        if (indexData.blogs && Array.isArray(indexData.blogs)) {
+          // Limit to 20 most recent blogs to save processing/tokens
+          const recentBlogs = indexData.blogs.slice(0, 20);
+          
+          for (const blogMeta of recentBlogs) {
+            if (blogMeta.paths && blogMeta.paths.blog) {
+              const blogPath = path.join(process.cwd(), blogMeta.paths.blog);
+              if (fs.existsSync(blogPath)) {
+                const blogContent = fs.readFileSync(blogPath, 'utf8');
+                const fullBlog = JSON.parse(blogContent);
+                
+                blogs.push({
+                  type: 'blog',
+                  name: fullBlog.title,
+                  description: fullBlog.excerpt,
+                  category: fullBlog.category,
+                  url: `/blogs/${fullBlog.slug}`
+                });
+              }
+            }
+          }
+        }
+      } catch (blogError) {
+        console.error('Error reading blogs JSON:', blogError);
+      }
+    } else {
+      // Fallback: Read individual JSON files if index doesn't exist
+      try {
+        if (fs.existsSync(blogsDir)) {
+          const files = fs.readdirSync(blogsDir);
+          const jsonFiles = files.filter(file => file.endsWith('.json') && file !== 'index.json');
+          
+          for (const file of jsonFiles.slice(0, 20)) {
+            const blogPath = path.join(blogsDir, file);
+            const content = fs.readFileSync(blogPath, 'utf8');
+            const blogData = JSON.parse(content);
+            
+            blogs.push({
+              type: 'blog',
+              name: blogData.title,
+              description: blogData.excerpt,
+              category: blogData.category,
+              url: `/blogs/${blogData.slug || file.replace('.json', '')}`
+            });
+          }
+        }
+      } catch (fallbackError) {
+        console.error('Error reading fallback blogs:', fallbackError);
+      }
+    }
+
     // Combine data for context (limit to essential info to save tokens)
     const contextData = [
+      ...staticPages,
       ...products,
-      ...services
+      ...services,
+      ...blogs
     ];
 
     // Create prompt
@@ -63,7 +137,7 @@ export default async function handler(req, res) {
       Eres un asistente de búsqueda inteligente para la clínica estética BIOSKIN.
       El usuario está buscando: "${query}"
       
-      Aquí tienes la lista de productos y servicios disponibles:
+      Aquí tienes la lista de elementos disponibles (Productos, Servicios, Páginas, Blogs):
       ${JSON.stringify(contextData)}
       
       Tu tarea es:
@@ -74,7 +148,7 @@ export default async function handler(req, res) {
       Responde SOLAMENTE con un objeto JSON con este formato:
       {
         "results": [
-          { "name": "Nombre", "type": "product/service", "description": "Breve descripción", "url": "url" }
+          { "name": "Nombre", "type": "product/service/page/blog", "description": "Breve descripción", "url": "url" }
         ],
         "answer": "Respuesta corta y amable si aplica, o null si es solo búsqueda",
         "suggestion": "Sugerencia de búsqueda si no hay resultados claros"
