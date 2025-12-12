@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './pages/ErrorBoundary';
 import Navbar from './components/Navbar';
+import WhatsAppButton from './components/WhatsAppButton';
 import BlogSyncManager from './components/BlogSyncManager';
 import { AuthProvider } from './context/AuthContext';
 import Home from './pages/Home';
@@ -32,6 +33,7 @@ function App() {
         <AuthProvider>
           <Navbar />
           <BlogSyncManager />
+          <WhatsAppButton />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />

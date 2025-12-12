@@ -83,7 +83,7 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* Right Section - Icons & Search */}
+            {/* Right Section - Icons */}
             <div className="hidden lg:flex items-center space-x-6">
               {/* Social Icons */}
               <div className="flex items-center space-x-4 border-r border-gray-200 pr-6">
@@ -103,16 +103,11 @@ export default function Navbar() {
                 <Link to="/products" className="text-gray-400 hover:text-[#deb887] transition-colors">
                   <ShoppingCart className="w-4 h-4" />
                 </Link>
-                {/* Search Component */}
-                <div className="w-64">
-                  <AISearch inline={true} variant="bar" className="scale-90 origin-right" />
-                </div>
               </div>
             </div>
 
             {/* Mobile Menu Button */}
             <div className="lg:hidden flex items-center gap-4">
-              <AISearch inline={true} variant="icon" />
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="text-gray-600 hover:text-[#deb887] transition-colors p-2"
@@ -120,6 +115,11 @@ export default function Navbar() {
                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
+          </div>
+
+          {/* Search Bar Row - Full Width & Responsive */}
+          <div className="pb-4 px-2 md:px-0 flex justify-center w-full">
+             <AISearch variant="bar" className="w-full max-w-2xl" />
           </div>
         </div>
       </nav>
