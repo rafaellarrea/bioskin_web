@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 12, 2025: Rediseño Buscador y SEO Local**
+- 🎨 **UI/UX**: Nuevo diseño de barra de búsqueda estilo "KOAJ" integrada bajo el navbar.
+- 🌍 **SEO Local**: Implementación de Schema.org `LocalBusiness` y `BlogPosting` con ubicación explícita en Cuenca.
+- 📍 **Geo-Tags**: Actualización de coordenadas exactas del Centro Médico Santa María.
+- 📱 **Responsive**: Barra visible en escritorio y botón compacto en móvil.
+
 ### ✅ **Dec 12, 2025: Reubicación Buscador**
 - 🎨 **UI/UX**: Movido el buscador de botón flotante a la barra de navegación superior.
 - 📱 **Responsive**: Integración adaptativa en Navbar (escritorio) y menú móvil.

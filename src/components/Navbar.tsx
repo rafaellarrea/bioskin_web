@@ -60,6 +60,7 @@ export default function Navbar() {
           : 'bg-white/90 backdrop-blur-md shadow-lg'
       }`}>
         <div className="container mx-auto px-4">
+          {/* Main Row */}
           <div className="flex items-center justify-between h-16">
             
             {/* Logo con efecto brillante */}
@@ -122,10 +123,10 @@ export default function Navbar() {
               })}
             </div>
 
-            {/* Search Button (Desktop) */}
-            <div className="hidden lg:block mx-2">
+            {/* Search Button (Desktop) - REMOVED in favor of bar below */}
+            {/* <div className="hidden lg:block mx-2">
               <AISearch inline={true} />
-            </div>
+            </div> */}
 
             {/* Botón CTA especial */}
             <div className="hidden lg:flex">
@@ -143,7 +144,8 @@ export default function Navbar() {
 
             {/* Mobile Menu Button */}
             <div className="lg:hidden flex items-center gap-2">
-              <AISearch inline={true} />
+              {/* Mobile Search Icon */}
+              <AISearch inline={true} variant="icon" />
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 rounded-lg bg-gradient-to-r from-[#deb887] to-amber-500 text-white transition-all duration-300 hover:shadow-lg"
@@ -152,7 +154,10 @@ export default function Navbar() {
               </button>
             </div>
           </div>
-        </div>
+          {/* Search Bar Row (Desktop Only) */}
+          <div className="hidden lg:block pb-3 px-4 max-w-3xl mx-auto">
+            <AISearch variant="bar" />
+          </div>        </div>
       </nav>
 
       {/* Mobile Menu Overlay */}
@@ -200,8 +205,8 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Espaciador para el contenido */}
-      <div className="h-16"></div>
+      {/* Espaciador para el contenido - Aumentado para compensar la barra de búsqueda */}
+      <div className="h-28 lg:h-32"></div>
     </>
   );
 }

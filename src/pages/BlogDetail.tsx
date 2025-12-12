@@ -85,7 +85,7 @@ const BlogDetail = () => {
 
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     "headline": blog.title,
     "image": [
       `https://bioskin.ec${blog.image}`
@@ -98,14 +98,23 @@ const BlogDetail = () => {
       "url": "https://bioskin.ec/about"
     }],
     "publisher": {
-      "@type": "Organization",
+      "@type": "LocalBusiness",
       "name": "BIOSKIN",
       "logo": {
         "@type": "ImageObject",
         "url": "https://bioskin.ec/images/logo/logo1.jpg"
       }
     },
-    "description": blog.excerpt
+    "description": blog.excerpt,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://bioskin.ec/blogs/${slug}`
+    },
+    "contentLocation": {
+      "@type": "Place",
+      "name": "Cuenca, Ecuador"
+    },
+    "keywords": blog.tags.join(', ')
   };
 
   return (

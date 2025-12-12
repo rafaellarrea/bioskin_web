@@ -48,12 +48,30 @@ const Blogs = () => {
     setCurrentPage(1);
   };
 
+  const blogListingSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Blog de Estética y Tecnología - BIOSKIN",
+    "description": "Artículos especializados sobre tratamientos estéticos, cuidado de la piel y tecnología médica en Cuenca, Ecuador.",
+    "url": "https://bioskin.ec/blogs",
+    "publisher": {
+      "@type": "LocalBusiness",
+      "name": "BIOSKIN",
+      "image": "https://bioskin.ec/images/logo-bioskin.png"
+    },
+    "about": {
+      "@type": "Thing",
+      "name": "Medicina Estética y Tecnología"
+    }
+  };
+
   return (
     <>
       <SEO 
         title="Blog de Estética y Tecnología"
         description="Artículos sobre tratamientos estéticos, cuidado de la piel y tecnología médica en BIOSKIN Cuenca."
         keywords="Blog estética, consejos belleza, tecnología médica, BIOSKIN blog"
+        schema={blogListingSchema}
       />
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}

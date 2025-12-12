@@ -46,8 +46,8 @@ export const SEO: React.FC<SEOProps> = ({
       {/* Geo tags for Local SEO (Cuenca, Ecuador) */}
       <meta name="geo.region" content="EC-A" />
       <meta name="geo.placename" content="Cuenca" />
-      <meta name="geo.position" content="-2.900128;-79.005896" />
-      <meta name="ICBM" content="-2.900128, -79.005896" />
+      <meta name="geo.position" content="-2.881417;-79.061972" />
+      <meta name="ICBM" content="-2.881417, -79.061972" />
 
       {/* Structured Data (JSON-LD) */}
       {schema && (

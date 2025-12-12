@@ -14,10 +14,11 @@ interface SearchResult {
 
 interface AISearchProps {
   inline?: boolean;
+  variant?: 'floating' | 'icon' | 'bar';
   className?: string;
 }
 
-export default function AISearch({ inline = false, className = '' }: AISearchProps) {
+export default function AISearch({ inline = false, variant = 'floating', className = '' }: AISearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -27,35 +28,46 @@ export default function AISearch({ inline = false, className = '' }: AISearchPro
   const [localSuggestions, setLocalSuggestions] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // Determine actual variant based on inline prop for backward compatibility
+  const actualVariant = inline ? 'icon' : variant;
+
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (isOpen && inputRef.current && actualVariant !== 'bar') {
       inputRef.current.focus();
     }
-  }, [isOpen]);
+  }, [isOpen, actualVariant]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      if (actualVariant === 'bar') {
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      } else {
+        if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, actualVariant]);
 
   // Local Autocomplete
   useEffect(() => {
     if (!query.trim()) {
       setLocalSuggestions([]);
+      if (actualVariant === 'bar') setIsOpen(false);
       return;
     }
+
+    if (actualVariant === 'bar') setIsOpen(true);
 
     const lowerQuery = query.toLowerCase();
     
@@ -80,7 +92,7 @@ export default function AISearch({ inline = false, className = '' }: AISearchPro
       .slice(0, 3);
 
     setLocalSuggestions([...matchedProducts, ...matchedServices]);
-  }, [query]);
+  }, [query, actualVariant]);
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -92,6 +104,7 @@ export default function AISearch({ inline = false, className = '' }: AISearchPro
     setSuggestion(null);
     // Clear local suggestions to show AI results
     setLocalSuggestions([]);
+    setIsOpen(true);
 
     try {
       const response = await fetch('/api/search', {
@@ -118,6 +131,8 @@ export default function AISearch({ inline = false, className = '' }: AISearchPro
 
   const handleNavigate = (result: SearchResult) => {
     setIsOpen(false);
+    if (actualVariant === 'bar') setQuery(''); // Clear query in bar mode after nav
+    
     if (result.url) {
       if (result.url.includes('#')) {
         const [path, hash] = result.url.split('#');
@@ -147,11 +162,81 @@ export default function AISearch({ inline = false, className = '' }: AISearchPro
 
   if (window.location.pathname.startsWith('/admin')) return null;
 
+  // Render Bar Variant
+  if (actualVariant === 'bar') {
+    return (
+      <div ref={containerRef} className={`relative w-full max-w-2xl mx-auto ${className}`}>
+        <form onSubmit={handleSearch} className="relative flex items-center">
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => { if (query.trim()) setIsOpen(true); }}
+            placeholder="Buscar..."
+            className="w-full py-2 pl-4 pr-10 bg-gray-100 border border-transparent focus:bg-white focus:border-gray-200 rounded-md text-gray-700 placeholder-gray-400 outline-none transition-all duration-200"
+          />
+          <button 
+            type="submit"
+            className="absolute right-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+          </button>
+        </form>
+
+        {/* Dropdown Results for Bar Variant */}
+        {isOpen && (query.trim() || results.length > 0 || answer) && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50 max-h-[60vh] overflow-y-auto">
+            <div className="p-2">
+              {answer && (
+                <div className="bg-gold-50/50 p-3 rounded-lg mb-2 text-sm text-gray-700">
+                  {answer}
+                </div>
+              )}
+
+              {(localSuggestions.length > 0 || results.length > 0) ? (
+                <div className="space-y-1">
+                  {[...localSuggestions, ...results].map((result, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleNavigate(result)}
+                      className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 transition-colors text-left group"
+                    >
+                      <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 ${
+                        result.type === 'product' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
+                      }`}>
+                        {result.type === 'product' ? '🛍️' : '💆‍♀️'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 truncate group-hover:text-gold-600">
+                          {result.name}
+                        </h4>
+                        <p className="text-xs text-gray-500 truncate">{result.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                !loading && query.trim() && !answer && (
+                  <div className="p-4 text-center text-gray-400 text-sm">
+                    No se encontraron resultados
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Render Icon/Floating Variant
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={inline 
+        className={actualVariant === 'icon'
           ? `p-2 text-gray-600 hover:text-[#deb887] transition-colors ${className}`
           : `fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group ${
               isOpen ? 'bg-gray-200 text-gray-600 scale-0 opacity-0' : 'bg-gold-500 text-white scale-100 opacity-100'
