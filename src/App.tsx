@@ -24,7 +24,6 @@ import AdminBlockSchedule from './pages/AdminBlockSchedule';
 import AdminAppointment from './pages/AdminAppointment';
 import AdminMonitor from './pages/AdminMonitor';
 import AdminStats from './pages/AdminStats';
-import AISearch from './components/AISearch';
 
 function App() {
   return (
@@ -33,7 +32,6 @@ function App() {
         <AuthProvider>
           <Navbar />
           <BlogSyncManager />
-          <AISearch />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/services" element={<Services />} />

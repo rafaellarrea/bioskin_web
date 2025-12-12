@@ -16,6 +16,7 @@ import {
   Sparkles,
   Star
 } from 'lucide-react';
+import AISearch from './AISearch';
 
 export default function Navbar() {
   const { pathname } = useLocation();
@@ -121,6 +122,11 @@ export default function Navbar() {
               })}
             </div>
 
+            {/* Search Button (Desktop) */}
+            <div className="hidden lg:block mx-2">
+              <AISearch inline={true} />
+            </div>
+
             {/* Botón CTA especial */}
             <div className="hidden lg:flex">
               <Link
@@ -136,12 +142,15 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg bg-gradient-to-r from-[#deb887] to-amber-500 text-white transition-all duration-300 hover:shadow-lg"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            <div className="lg:hidden flex items-center gap-2">
+              <AISearch inline={true} />
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg bg-gradient-to-r from-[#deb887] to-amber-500 text-white transition-all duration-300 hover:shadow-lg"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </nav>

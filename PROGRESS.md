@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 12, 2025: Reubicación Buscador**
+- 🎨 **UI/UX**: Movido el buscador de botón flotante a la barra de navegación superior.
+- 📱 **Responsive**: Integración adaptativa en Navbar (escritorio) y menú móvil.
+- 🛠️ **Refactor**: Actualizado `AISearch.tsx` para soportar modo `inline` y limpiado `App.tsx`.
+
 ### ✅ **Dec 11, 2025: Mejora Buscador y Navegación**
 - 🎨 **UI/UX**: Eliminada marca visual "IA" del buscador para una experiencia más integrada.
 - 🔗 **Navegación**: Implementado scroll automático a servicios específicos desde resultados de búsqueda.

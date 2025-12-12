@@ -12,7 +12,12 @@ interface SearchResult {
   url?: string;
 }
 
-export default function AISearch() {
+interface AISearchProps {
+  inline?: boolean;
+  className?: string;
+}
+
+export default function AISearch({ inline = false, className = '' }: AISearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -146,9 +151,12 @@ export default function AISearch() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group ${
-          isOpen ? 'bg-gray-200 text-gray-600 scale-0 opacity-0' : 'bg-gold-500 text-white scale-100 opacity-100'
-        }`}
+        className={inline 
+          ? `p-2 text-gray-600 hover:text-[#deb887] transition-colors ${className}`
+          : `fixed bottom-6 right-6 z-40 p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group ${
+              isOpen ? 'bg-gray-200 text-gray-600 scale-0 opacity-0' : 'bg-gold-500 text-white scale-100 opacity-100'
+            } ${className}`
+        }
         aria-label="Buscar"
       >
         <Search className="w-6 h-6" />
