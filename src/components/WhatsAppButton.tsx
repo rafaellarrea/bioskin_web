@@ -1,9 +1,14 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 
 export default function WhatsAppButton() {
+  const { pathname } = useLocation();
   const phoneNumber = "593969890689";
   const message = "Hola, me gustaría obtener más información sobre sus tratamientos.";
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+  // No mostrar en rutas de administración
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <a
