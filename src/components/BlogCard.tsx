@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Tag, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, Clock, Tag, User, ArrowRight } from 'lucide-react';
 
 interface BlogCardProps {
   id: string | number;
@@ -35,7 +36,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
 
   const categoryColors = {
     'medico-estetico': 'bg-[#deb887] text-white',
-    'tecnico': 'bg-blue-600 text-white'
+    'tecnico': 'bg-gray-800 text-white'
   };
 
   const formatDate = (dateString: string) => {
@@ -48,98 +49,94 @@ const BlogCard: React.FC<BlogCardProps> = ({
   };
 
   return (
-    <article className={`card group ${featured ? 'ring-2 ring-[#deb887]' : ''}`}>
+    <motion.article 
+      whileHover={{ y: -10 }}
+      className={`bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full ${featured ? 'ring-2 ring-[#deb887]' : ''}`}
+    >
       {featured && (
-        <div className="absolute top-4 left-4 z-10 bg-[#deb887] text-white px-3 py-1 rounded-full text-sm font-medium">
+        <div className="absolute top-4 left-4 z-10 bg-[#deb887] text-white px-4 py-1.5 rounded-full text-sm font-medium shadow-lg">
           Destacado
         </div>
       )}
       
       {/* Imagen del blog */}
-      <div className="relative h-48 overflow-hidden">
-        <img
+      <div className="relative h-56 overflow-hidden">
+        <motion.img
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.6 }}
           src={image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover"
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/images/logo/logo1.jpg';
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
         
         {/* Categoría */}
-        <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${categoryColors[category]}`}>
+        <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg ${categoryColors[category]}`}>
           {categoryLabels[category]}
         </div>
       </div>
 
       {/* Contenido */}
-      <div className="p-6">
+      <div className="p-8 flex flex-col flex-grow">
+        {/* Meta info */}
+        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4 font-medium uppercase tracking-wide">
+          <div className="flex items-center gap-1.5">
+            <Calendar size={14} className="text-[#deb887]" />
+            {formatDate(publishedAt)}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock size={14} className="text-[#deb887]" />
+            {readTime} min lectura
+          </div>
+        </div>
+
         {/* Título */}
-        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#deb887] transition-colors font-['Playfair_Display'] leading-tight">
-          <Link to={`/blogs/${slug}`} className="hover:underline">
+        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#deb887] transition-colors font-serif leading-tight">
+          <Link to={`/blogs/${slug}`} className="hover:text-[#deb887] transition-colors">
             {title}
           </Link>
         </h3>
 
         {/* Excerpt */}
-        <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed font-['Poppins'] text-base">
+        <p className="text-gray-600 mb-6 line-clamp-3 leading-relaxed text-sm flex-grow">
           {excerpt}
         </p>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-6">
           {tags.slice(0, 3).map((tag, index) => (
             <span
               key={index}
-              className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
+              className="inline-flex items-center gap-1 bg-gray-50 text-gray-600 px-3 py-1 rounded-full text-xs font-medium border border-gray-100"
             >
-              <Tag size={10} />
+              <Tag size={10} className="text-[#deb887]" />
               {tag}
             </span>
           ))}
-          {tags.length > 3 && (
-            <span className="text-gray-500 text-xs">+{tags.length - 3} más</span>
-          )}
         </div>
 
-        {/* Metadata */}
-        <div className="flex items-center justify-between text-sm text-gray-500 border-t pt-4 font-['Poppins']">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
+        {/* Footer del card */}
+        <div className="pt-6 border-t border-gray-100 flex items-center justify-between mt-auto">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
               <User size={14} />
-              <span className="font-medium">{author}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar size={14} />
-              <span>{formatDate(publishedAt)}</span>
-            </div>
+            <span className="text-xs font-medium text-gray-500">{author}</span>
           </div>
-          <div className="flex items-center gap-1 text-[#deb887] font-medium">
-            <Clock size={14} />
-            <span>{readTime} min</span>
-          </div>
-        </div>
-
-        {/* Botón Leer más */}
-        <div className="mt-4">
-          <Link
+          
+          <Link 
             to={`/blogs/${slug}`}
-            className="inline-flex items-center text-[#deb887] hover:text-[#c9a677] font-medium transition-all duration-200 hover:gap-3 gap-2 font-['Poppins']"
+            className="inline-flex items-center gap-2 text-[#deb887] font-semibold text-sm hover:text-[#c9a677] transition-colors group"
           >
-            Continuar leyendo
-            <svg
-              className="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            Leer más
+            <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };
 

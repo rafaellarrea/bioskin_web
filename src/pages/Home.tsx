@@ -1,8 +1,10 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import Footer from '../components/Footer';
 import Faq from '../pages/Faq';
 import { Link } from "react-router-dom";
 import { SEO } from '../components/SEO';
+import { Activity, Star, Shield, ArrowRight, ChevronDown } from 'lucide-react';
 
 const Home = () => {
   const localBusinessSchema = {
@@ -53,106 +55,156 @@ const Home = () => {
         keywords="Clínica estética Cuenca, tratamientos faciales Cuenca, dermatología estética, rejuvenecimiento facial, BIOSKIN, Dra. Daniela Creamer"
         schema={localBusinessSchema}
       />
-      {/* HERO principal: fondo, overlay, título, subtítulo, botones */}
-      <section
-        id="home"
-        className="relative flex items-center py-12 md:py-20"
-      >
-        {/* Imagen de fondo + overlay oscuro */}
+      
+      {/* HERO SECTION FUTURISTA */}
+      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Dinámico */}
         <div className="absolute inset-0 z-0">
-          <img
-            src="/images/logo/logo1.jpg"
-            alt="BIOSKIN BY DRA DANIELA CREAMER"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          <motion.div 
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 20, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
+            className="w-full h-full"
+          >
+            <img
+              src="/images/logo/logo1.jpg"
+              alt="BIOSKIN Background"
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
+          
+          {/* Efecto de partículas o textura sutil (opcional) */}
+          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
         </div>
 
-        {/* Contenido hero centrado */}
-        <div className="container-custom relative z-10 mt-2 md:mt-12">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-5">
-              Descubre Tu Mejor Versión con Bio Skin en Cuenca
+        {/* Contenido Hero */}
+        <div className="container-custom relative z-10 px-6 text-center mt-16">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="max-w-5xl mx-auto"
+          >
+            <motion.span 
+              initial={{ opacity: 0, letterSpacing: "0.5em" }}
+              animate={{ opacity: 1, letterSpacing: "0.2em" }}
+              transition={{ duration: 1.5, delay: 0.5 }}
+              className="block text-[#deb887] text-sm md:text-base uppercase tracking-[0.2em] mb-6 font-medium"
+            >
+              Medicina Estética Avanzada
+            </motion.span>
+
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium text-white mb-8 leading-tight">
+              Descubre tu <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#deb887] via-[#f5d0a9] to-[#deb887] italic">
+                Mejor Versión
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-6">
-              Tratamientos faciales avanzados, personalizados y con resultados visibles en nuestra clínica estética en Cuenca, Ecuador.
+
+            <p className="text-lg md:text-2xl text-gray-300 mb-12 font-light max-w-3xl mx-auto leading-relaxed">
+              Fusionamos ciencia, tecnología y arte para revelar tu belleza natural en Cuenca, Ecuador.
             </p>
-            {/* === BOTONES ACCIÓN SIEMPRE VISIBLES Y COMPACTOS === */}
-            <div className="flex flex-col w-full max-w-lg mx-auto gap-2 px-4 mt-4">
-              {/* Botón: Servicios */}
-              <a
-                href="#services"
-                className="btn-primary w-full text-center text-lg"
-                style={{ minHeight: 48 }}
-              >
-                Nuestros Servicios
-              </a>
-              {/* Botón: Agendar cita */}
-              <a
+
+            {/* Botones Interactivos */}
+            <div className="flex flex-col md:flex-row gap-6 justify-center items-center w-full max-w-2xl mx-auto">
+              <motion.a
+                whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(222, 184, 135, 0.4)" }}
+                whileTap={{ scale: 0.95 }}
                 href="#appointment"
-                className="border-2 border-white text-white hover:bg-white hover:text-gray-900 font-medium py-2 px-6 rounded-md transition-all duration-300 w-full text-center text-lg"
-                style={{ minHeight: 48 }}
+                className="w-full md:w-auto px-8 py-4 bg-[#deb887] text-white rounded-full font-medium text-lg transition-all flex items-center justify-center gap-2 group"
               >
-                Agenda tu Cita
-              </a>
-              {/* Botón: Aparatología */}
-              <Link
-                to="/products/aparatologia"
-                className="btn-primary w-full text-center text-lg"
-                style={{ minHeight: 48 }}
-              >
-                Ver Aparatología
-              </Link>
+                Agendar Cita
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </motion.a>
+              
+              <motion.div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <Link to="/services" className="w-full md:w-auto">
+                  <motion.button
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full px-8 py-4 bg-transparent border border-white/30 backdrop-blur-sm text-white rounded-full font-medium text-lg transition-all"
+                  >
+                    Servicios
+                  </motion.button>
+                </Link>
+                <Link to="/products/aparatologia" className="w-full md:w-auto">
+                  <motion.button
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full px-8 py-4 bg-transparent border border-white/30 backdrop-blur-sm text-white rounded-full font-medium text-lg transition-all"
+                  >
+                    Aparatología
+                  </motion.button>
+                </Link>
+              </motion.div>
             </div>
-            {/* === FIN BOTONES === */}
-          </div>
+          </motion.div>
         </div>
+
+        {/* Scroll Indicator */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, delay: 2 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 flex flex-col items-center gap-2"
+        >
+          <span className="text-xs uppercase tracking-widest">Descubre más</span>
+          <ChevronDown className="w-6 h-6" />
+        </motion.div>
       </section>
 
-      {/* SECCIÓN DE BENEFICIOS: tecnología, atención, resultados. FUERA del hero */}
-      <section className="bg-white py-10">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Bloque: Tecnología */}
-            <div className="flex items-start space-x-4">
-              <div className="bg-[#deb887]/10 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Tecnología Avanzada</h3>
-                <p className="text-gray-600 text-sm">Equipos de última generación para tratamientos efectivos.</p>
-              </div>
-            </div>
-            {/* Bloque: Atención */}
-            <div className="flex items-start space-x-4">
-              <div className="bg-[#deb887]/10 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="8.5" cy="7" r="4"></circle>
-                  <line x1="20" y1="8" x2="20" y2="14"></line>
-                  <line x1="23" y1="11" x2="17" y2="11"></line>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Atención Personalizada</h3>
-                <p className="text-gray-600 text-sm">Cada tratamiento adaptado a tus necesidades específicas.</p>
-              </div>
-            </div>
-            {/* Bloque: Resultados */}
-            <div className="flex items-start space-x-4">
-              <div className="bg-[#deb887]/10 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#deb887]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Resultados Garantizados</h3>
-                <p className="text-gray-600 text-sm">Protocolos de tratamiento con eficacia comprobada.</p>
-              </div>
-            </div>
+      {/* SECCIÓN DE BENEFICIOS FUTURISTA */}
+      <section className="py-24 bg-white relative overflow-hidden">
+        {/* Elementos decorativos de fondo */}
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-gray-50 to-transparent opacity-50 pointer-events-none" />
+        
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+            {[
+              { 
+                icon: Activity, 
+                title: "Tecnología Avanzada", 
+                desc: "Equipos de última generación con IA para diagnósticos precisos y resultados superiores.",
+                delay: 0
+              },
+              { 
+                icon: Star, 
+                title: "Atención Premium", 
+                desc: "Experiencia personalizada centrada en tu bienestar, desde la consulta hasta el post-tratamiento.",
+                delay: 0.2
+              },
+              { 
+                icon: Shield, 
+                title: "Resultados Garantizados", 
+                desc: "Protocolos médicos probados y seguros, respaldados por la experiencia de la Dra. Daniela Creamer.",
+                delay: 0.4
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.6, delay: item.delay }}
+                whileHover={{ y: -10 }}
+                className="group p-8 rounded-3xl bg-white border border-gray-100 shadow-lg hover:shadow-2xl hover:border-[#deb887]/30 transition-all duration-500 relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#deb887]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative z-10">
+                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#deb887] transition-colors duration-500 shadow-inner">
+                    <item.icon className="w-8 h-8 text-[#deb887] group-hover:text-white transition-colors duration-500" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold mb-4 text-gray-900 group-hover:text-[#deb887] transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-700">
+                    {item.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

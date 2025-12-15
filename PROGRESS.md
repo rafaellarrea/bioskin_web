@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 15, 2025: Rediseño Visual Futurista (Framer Motion)**
+- 🎨 **UI/UX**: Rediseño completo de páginas principales (Home, Services, Products, About, Contact, Blogs, Appointment) con animaciones framer-motion.
+- ✨ **Estilo**: Implementación de estética "futurista elegante" con glassmorphism, degradados oscuros y acentos dorados.
+- 📱 **Interacción**: Mejoras en transiciones, efectos hover y feedback visual en formularios y tarjetas.
+
 ### ✅ **Dec 12, 2025: Rediseño Buscador y SEO Local**
 - 🎨 **UI/UX**: Nuevo diseño de barra de búsqueda estilo "KOAJ" integrada bajo el navbar.
 - 🌍 **SEO Local**: Implementación de Schema.org `LocalBusiness` y `BlogPosting` con ubicación explícita en Cuenca.
