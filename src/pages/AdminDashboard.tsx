@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface UpcomingAppointment {
@@ -191,6 +191,13 @@ export default function AdminDashboard() {
       icon: Brain,
       path: '/admin/diagnosis',
       color: 'from-teal-500 to-teal-600'
+    },
+    {
+      title: 'Protocolos Clínicos',
+      description: 'Asistente IA para protocolos de aparatología médica',
+      icon: Zap,
+      path: '/admin/protocols',
+      color: 'from-yellow-500 to-yellow-600'
     }
   ];
 
