@@ -2,7 +2,7 @@
 # Copia y pega este código en una NUEVA celda en tu notebook de Colab, DEBAJO del script de configuración.
 
 import torch
-from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, BitsAndBytesConfig
+from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, BitsAndBytesConfig, AutoModelForCausalLM, AutoTokenizer
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -17,20 +17,19 @@ import os
 import os
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-# Variable global para el modelo y procesador
-model = None
-processor = None
+# Variables globales
+vision_model = None
+vision_processor = None
+text_model = None
+text_tokenizer = None
 
-def load_medgemma_model():
-    global model, processor
+def load_models():
+    global vision_model, vision_processor, text_model, text_tokenizer
     
-    # ID del modelo
-    # Usamos el modelo base de PaliGemma que es multimodal (Imagen + Texto)
-    # El modelo anterior 'medgemma' parece ser solo de texto y causaba error.
-    model_id = "google/paligemma-3b-mix-224" 
+    # --- MODELO 1: VISIÓN (PaliGemma) ---
+    vision_model_id = "google/paligemma-3b-mix-224"
+    print(f"👁️ Cargando modelo de visión: {vision_model_id}...")
     
-    # Configuración de Cuantización
-    # NF4 es teóricamente óptimo para pesos distribuidos normalmente (como en redes neuronales)
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
@@ -38,40 +37,50 @@ def load_medgemma_model():
         bnb_4bit_compute_dtype=torch.bfloat16
     )
 
-    print(f"🔄 Cargando {model_id} con cuantización 4-bit...")
-    
     try:
-        model = PaliGemmaForConditionalGeneration.from_pretrained(
-            model_id,
+        vision_model = PaliGemmaForConditionalGeneration.from_pretrained(
+            vision_model_id,
             quantization_config=bnb_config,
             device_map="auto",
             token=HF_TOKEN
         )
-        
-        # Intentar cargar con PaliGemmaProcessor, si falla usar AutoProcessor
-        try:
-            from transformers import PaliGemmaProcessor
-            processor = PaliGemmaProcessor.from_pretrained(model_id, token=HF_TOKEN)
-        except ImportError:
-            processor = AutoProcessor.from_pretrained(model_id, token=HF_TOKEN)
-            
-        print("✅ Modelo cargado en GPU.")
-        return True
+        vision_processor = AutoProcessor.from_pretrained(vision_model_id, token=HF_TOKEN)
+        print("✅ PaliGemma (Visión) cargado.")
     except Exception as e:
-        print(f"❌ Error crítico cargando el modelo: {e}")
-        print("⚠️ Si el modelo 'medgemma' no existe, intenta cambiar model_id a 'google/paligemma-3b-mix-224'")
+        print(f"❌ Error cargando PaliGemma: {e}")
         return False
 
+    # --- MODELO 2: DIAGNÓSTICO (MedGemma/Gemma) ---
+    # Usamos AutoModelForCausalLM porque MedGemma es un modelo de texto (LLM)
+    text_model_id = "google/medgemma-4b-it" # O el ID correcto si es diferente
+    print(f"🧠 Cargando modelo de diagnóstico: {text_model_id}...")
+
+    try:
+        text_model = AutoModelForCausalLM.from_pretrained(
+            text_model_id,
+            quantization_config=bnb_config, # Reusamos config 4-bit para ahorrar VRAM
+            device_map="auto",
+            token=HF_TOKEN
+        )
+        text_tokenizer = AutoTokenizer.from_pretrained(text_model_id, token=HF_TOKEN)
+        print("✅ MedGemma (Texto) cargado.")
+    except Exception as e:
+        print(f"⚠️ No se pudo cargar MedGemma ({e}).")
+        print("   -> Se usará solo PaliGemma para el análisis.")
+        text_model = None
+
+    return True
+
 # Cargar al inicio
-load_medgemma_model()
+load_models()
 
 # 2. Definir la API con FastAPI
 app = FastAPI()
 
-# Configurar CORS para permitir peticiones desde el frontend (Vercel/Localhost)
+# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permitir todos los orígenes (para desarrollo/pruebas)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,26 +88,55 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"status": "online", "model": "PaliGemma-3b-mix-224"}
+    return {
+        "status": "online", 
+        "vision_model": "PaliGemma-3b", 
+        "text_model": "MedGemma-4b" if text_model else "None"
+    }
 
 @app.post("/analyze")
 async def analyze_image(prompt: str = Form(...), file: UploadFile = File(...)):
     try:
-        # Leer imagen
+        # 1. Leer imagen
         contents = await file.read()
         image = Image.open(io.BytesIO(contents)).convert("RGB")
         
-        # Preprocesar
-        inputs = processor(text=prompt, images=image, return_tensors="pt").to(model.device)
+        # 2. Análisis Visual con PaliGemma
+        # Prompt para PaliGemma: Describir la imagen clínicamente
+        vision_prompt = "describe the skin condition in this image detailedly"
+        
+        inputs = vision_processor(text=vision_prompt, images=image, return_tensors="pt").to(vision_model.device)
         input_len = inputs["input_ids"].shape[-1]
         
-        # Generar
         with torch.inference_mode():
-            generation = model.generate(**inputs, max_new_tokens=100, do_sample=False)
+            generation = vision_model.generate(**inputs, max_new_tokens=100, do_sample=False)
             generation = generation[0][input_len:]
-            decoded = processor.decode(generation, skip_special_tokens=True)
+            visual_description = vision_processor.decode(generation, skip_special_tokens=True)
+        
+        print(f"👁️ Descripción Visual: {visual_description}")
+
+        # 3. Generación de Diagnóstico con MedGemma (si está disponible)
+        final_result = visual_description
+        
+        if text_model:
+            # Construir prompt para el experto médico
+            medical_prompt = f"""
+            Act as a dermatologist. Based on the following visual description of a patient's skin, provide a preliminary diagnosis and recommendations.
             
-        return {"result": decoded}
+            Visual Description: {visual_description}
+            User Query: {prompt}
+            
+            Diagnosis (in Spanish):
+            """
+            
+            text_inputs = text_tokenizer(medical_prompt, return_tensors="pt").to(text_model.device)
+            
+            with torch.inference_mode():
+                text_gen = text_model.generate(**text_inputs, max_new_tokens=300, do_sample=True, temperature=0.7)
+                # Decodificar solo la parte nueva
+                final_result = text_tokenizer.decode(text_gen[0][text_inputs.input_ids.shape[1]:], skip_special_tokens=True)
+
+        return {"result": final_result}
         
     except Exception as e:
         print(f"Error en análisis: {e}")
