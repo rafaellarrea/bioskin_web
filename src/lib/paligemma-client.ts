@@ -21,19 +21,26 @@ export class PaliGemmaClient {
   }
 
   /**
-   * Analiza una imagen utilizando el modelo PaliGemma.
-   * @param {File | Blob} imageFile - El archivo de imagen a analizar.
-   * @param {string} prompt - El prompt para el modelo (ej: "describe esta imagen en español").
+   * Analiza una o múltiples imágenes utilizando el modelo PaliGemma.
+   * @param {File[]} imageFiles - Lista de archivos de imagen a analizar.
+   * @param {string} prompt - El prompt para el modelo.
+   * @param {string} context - Contexto adicional del paciente (opcional).
    * @returns {Promise<string>} - La respuesta generada por el modelo.
    */
-  async analyzeImage(imageFile: File | Blob, prompt: string = "describe esta imagen detalladamente en español"): Promise<string> {
+  async analyzeImage(imageFiles: File[], prompt: string = "describe esta imagen detalladamente en español", context?: string): Promise<string> {
     if (!this.baseUrl) {
       throw new Error("La URL de la API de PaliGemma no está configurada.");
     }
 
     const formData = new FormData();
-    formData.append('file', imageFile);
+    // Enviar múltiples archivos con la misma clave 'files'
+    imageFiles.forEach((file) => {
+        formData.append('files', file);
+    });
     formData.append('prompt', prompt);
+    if (context) {
+        formData.append('context', context);
+    }
 
     try {
       const response = await axios.post(`${this.baseUrl}/analyze`, formData, {
