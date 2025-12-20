@@ -4,6 +4,7 @@
 import torch
 from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, BitsAndBytesConfig
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from PIL import Image
 import io
@@ -66,6 +67,15 @@ load_medgemma_model()
 
 # 2. Definir la API con FastAPI
 app = FastAPI()
+
+# Configurar CORS para permitir peticiones desde el frontend (Vercel/Localhost)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permitir todos los orígenes (para desarrollo/pruebas)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():

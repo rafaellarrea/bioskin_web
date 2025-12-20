@@ -14,6 +14,13 @@ export class PaliGemmaClient {
   }
 
   /**
+   * Permite actualizar la URL base dinámicamente (útil para Ngrok que cambia de URL).
+   */
+  setBaseUrl(url: string) {
+    this.baseUrl = url;
+  }
+
+  /**
    * Analiza una imagen utilizando el modelo PaliGemma.
    * @param {File | Blob} imageFile - El archivo de imagen a analizar.
    * @param {string} prompt - El prompt para el modelo (ej: "describe esta imagen en español").

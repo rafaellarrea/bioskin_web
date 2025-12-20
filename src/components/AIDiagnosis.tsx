@@ -8,6 +8,7 @@ export const AIDiagnosis = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customUrl, setCustomUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,11 +124,37 @@ export const AIDiagnosis = () => {
                     <h4 className="text-lg font-medium text-red-800">Error en el análisis</h4>
                     <p className="text-red-600 text-sm mt-1">{error}</p>
                   </div>
+
+                  <div className="w-full max-w-xs bg-white p-3 rounded-lg border border-red-200 mt-2">
+                    <label className="block text-xs text-left text-gray-600 mb-1 font-medium">Actualizar URL del Servidor (Ngrok):</label>
+                    <div className="flex gap-2">
+                        <input 
+                            type="text" 
+                            placeholder="https://xxxx.ngrok-free.app"
+                            className="flex-1 text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#deb887]"
+                            value={customUrl}
+                            onChange={(e) => setCustomUrl(e.target.value)}
+                        />
+                        <button 
+                            onClick={() => {
+                                if(customUrl) {
+                                    paligemmaClient.setBaseUrl(customUrl);
+                                    handleAnalyze();
+                                }
+                            }}
+                            className="bg-gray-800 text-white text-xs px-3 py-1 rounded hover:bg-gray-700 transition-colors"
+                        >
+                            Reintentar
+                        </button>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1 text-left">Copia la URL 'public_url' de la salida de Colab.</p>
+                  </div>
+
                   <button 
                     onClick={handleAnalyze}
                     className="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
                   >
-                    Intentar de nuevo
+                    Intentar de nuevo (Misma URL)
                   </button>
                 </div>
               ) : analysis ? (
