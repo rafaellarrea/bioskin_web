@@ -38,8 +38,8 @@ export class PaliGemmaClient {
     try {
       const response = await axios.post(`${this.baseUrl}/analyze`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-          'ngrok-skip-browser-warning': 'true', // Bypass Ngrok warning page
+          // No establecer Content-Type manualmente con FormData, axios lo hace automáticamente con el boundary correcto
+          'ngrok-skip-browser-warning': 'true', 
         },
       });
 

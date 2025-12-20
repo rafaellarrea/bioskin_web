@@ -34,9 +34,10 @@ export const AIDiagnosis = () => {
       
       const result = await paligemmaClient.analyzeImage(selectedImage, prompt);
       setAnalysis(result);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("No se pudo conectar con el servidor de IA. Asegúrate de que el servidor en Google Colab esté activo.");
+      const errorMessage = err.response?.data?.detail || err.message || "Error desconocido";
+      setError(`Error: ${errorMessage}. Asegúrate de que el servidor en Colab esté activo y la URL sea correcta.`);
     } finally {
       setLoading(false);
     }
