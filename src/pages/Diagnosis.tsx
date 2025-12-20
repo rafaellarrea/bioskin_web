@@ -130,10 +130,10 @@ const Diagnosis = () => {
           </div>
         </div>
 
-        {/* Sección de Diagnóstico IA */}
-        <div className="mt-20">
+        {/* Sección de Diagnóstico IA - MOVIDO A ADMIN */}
+        {/* <div className="mt-20">
           <AIDiagnosis />
-        </div>
+        </div> */}
       </div>
     </section>
 

@@ -40,7 +40,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
               <Route path="/results" element={<Results />} />
-              {/* <Route path="/diagnosis" element={<Diagnosis />} /> */}
+              <Route path="/diagnosis" element={<Diagnosis />} />
 
               {/* RUTAS DE PRODUCTOS - el orden importa */}
               <Route path="/products/aparatologia" element={<Products initialCategory="equipment" />} />
