@@ -1,8 +1,16 @@
 # Código del Servidor PaliGemma para Google Colab
 # Copia y pega este código en una NUEVA celda en tu notebook de Colab, DEBAJO del script de configuración.
+#
+# ⚠️ IMPORTANTE: Si recibes un error "RuntimeError: Only a single TORCH_LIBRARY..."
+# VE A: ENTORNO DE EJECUCIÓN > REINICIAR SESIÓN (Restart Session) y vuelve a ejecutar esta celda.
 
 import torch
-from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, BitsAndBytesConfig, AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, AutoModelForCausalLM, AutoTokenizer
+try:
+    from transformers import BitsAndBytesConfig
+except ImportError:
+    BitsAndBytesConfig = None
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
