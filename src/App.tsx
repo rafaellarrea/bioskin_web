@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Services from './pages/Services';
 import Results from './pages/Results';
 import Diagnosis from './pages/Diagnosis';
+import Protocols from './pages/Protocols';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Blogs from './pages/Blogs';
@@ -41,6 +42,7 @@ function App() {
               <Route path="/services" element={<Services />} />
               <Route path="/results" element={<Results />} />
               <Route path="/diagnosis" element={<Diagnosis />} />
+              <Route path="/protocols" element={<Protocols />} />
 
               {/* RUTAS DE PRODUCTOS - el orden importa */}
               <Route path="/products/aparatologia" element={<Products initialCategory="equipment" />} />

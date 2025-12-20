@@ -94,6 +94,30 @@ export class PaliGemmaClient {
       return false;
     }
   }
+  /**
+   * Realiza una consulta sobre protocolos médicos de aparatología.
+   * @param {string} question - La pregunta sobre el protocolo (ej: "Protocolo para manchas con IPL").
+   * @returns {Promise<string>} - La respuesta detallada del modelo.
+   */
+  async askProtocol(question: string): Promise<string> {
+    if (!this.baseUrl) {
+      throw new Error("La URL de la API de PaliGemma no está configurada.");
+    }
+
+    try {
+      const response = await axios.post(`${this.baseUrl}/ask-protocol`, { question }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true', 
+        },
+      });
+
+      return response.data.result;
+    } catch (error) {
+      console.error('Error al consultar protocolo:', error);
+      throw error;
+    }
+  }
 }
 
 export const paligemmaClient = new PaliGemmaClient();
