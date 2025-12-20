@@ -33,19 +33,26 @@ def load_models():
     vision_model_id = "google/paligemma-3b-mix-224"
     print(f"👁️ Cargando modelo de visión: {vision_model_id}...")
     
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.float16 # Cambiado a float16 para mayor estabilidad en T4
-    )
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"🖥️ Usando dispositivo: {device.upper()}")
+
+    if device == "cuda":
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.float16
+        )
+        model_kwargs = {"quantization_config": bnb_config, "device_map": "auto"}
+    else:
+        print("⚠️ MODO CPU DETECTADO: La carga será lenta y sin cuantización 4-bit.")
+        model_kwargs = {"device_map": "cpu", "torch_dtype": torch.float32}
 
     try:
         vision_model = PaliGemmaForConditionalGeneration.from_pretrained(
             vision_model_id,
-            quantization_config=bnb_config,
-            device_map="auto",
-            token=HF_TOKEN
+            token=HF_TOKEN,
+            **model_kwargs
         )
         vision_processor = AutoProcessor.from_pretrained(vision_model_id, token=HF_TOKEN)
         print("✅ PaliGemma (Visión) cargado.")
@@ -54,16 +61,14 @@ def load_models():
         return False
 
     # --- MODELO 2: DIAGNÓSTICO (MedGemma/Gemma) ---
-    # Usamos AutoModelForCausalLM porque MedGemma es un modelo de texto (LLM)
-    text_model_id = "google/medgemma-4b-it" # O el ID correcto si es diferente
+    text_model_id = "google/medgemma-4b-it" 
     print(f"🧠 Cargando modelo de diagnóstico: {text_model_id}...")
 
     try:
         text_model = AutoModelForCausalLM.from_pretrained(
             text_model_id,
-            quantization_config=bnb_config, # Reusamos config 4-bit para ahorrar VRAM
-            device_map="auto",
-            token=HF_TOKEN
+            token=HF_TOKEN,
+            **model_kwargs
         )
         text_tokenizer = AutoTokenizer.from_pretrained(text_model_id, token=HF_TOKEN)
         print("✅ MedGemma (Texto) cargado.")
