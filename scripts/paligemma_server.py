@@ -24,10 +24,10 @@ processor = None
 def load_medgemma_model():
     global model, processor
     
-    # ID del modelo (Cambiar a "google/paligemma-3b-mix-224" si no hay acceso a MedGemma)
-    # Nota: "google/medgemma-4b-it" es el ID sugerido por el usuario. 
-    # Si este modelo no existe, usar "google/paligemma-3b-mix-224"
-    model_id = "google/medgemma-4b-it" 
+    # ID del modelo
+    # Usamos el modelo base de PaliGemma que es multimodal (Imagen + Texto)
+    # El modelo anterior 'medgemma' parece ser solo de texto y causaba error.
+    model_id = "google/paligemma-3b-mix-224" 
     
     # Configuración de Cuantización
     # NF4 es teóricamente óptimo para pesos distribuidos normalmente (como en redes neuronales)
