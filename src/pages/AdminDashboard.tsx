@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface UpcomingAppointment {
@@ -184,6 +184,13 @@ export default function AdminDashboard() {
       icon: TrendingUp,
       path: '/admin/stats',
       color: 'from-green-500 to-green-600'
+    },
+    {
+      title: 'Diagnóstico IA',
+      description: 'Herramienta de análisis dermatológico asistido por IA',
+      icon: Brain,
+      path: '/admin/diagnosis',
+      color: 'from-teal-500 to-teal-600'
     }
   ];
 

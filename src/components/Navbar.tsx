@@ -28,7 +28,7 @@ export default function Navbar() {
   const navItems = [
     { path: '/', label: 'Inicio' },
     { path: '/services', label: 'Servicios' },
-    { path: '/diagnosis', label: 'Diagnóstico' },
+    // { path: '/diagnosis', label: 'Diagnóstico' },
     { path: '/products', label: 'Productos' },
     { path: '/blogs', label: 'Blog' },
     { path: '/about', label: 'Nosotros' },

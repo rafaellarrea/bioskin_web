@@ -25,6 +25,7 @@ import AdminBlockSchedule from './pages/AdminBlockSchedule';
 import AdminAppointment from './pages/AdminAppointment';
 import AdminMonitor from './pages/AdminMonitor';
 import AdminStats from './pages/AdminStats';
+import AdminDiagnosis from './pages/AdminDiagnosis';
 
 function App() {
   return (
@@ -39,7 +40,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
               <Route path="/results" element={<Results />} />
-              <Route path="/diagnosis" element={<Diagnosis />} />
+              {/* <Route path="/diagnosis" element={<Diagnosis />} /> */}
 
               {/* RUTAS DE PRODUCTOS - el orden importa */}
               <Route path="/products/aparatologia" element={<Products initialCategory="equipment" />} />
@@ -61,6 +62,7 @@ function App() {
               <Route path="/admin/appointment" element={<AdminAppointment />} />
               <Route path="/admin/monitor" element={<AdminMonitor />} />
               <Route path="/admin/stats" element={<AdminStats />} />
+              <Route path="/admin/diagnosis" element={<AdminDiagnosis />} />
 
               <Route path="/appointment" element={<Appointment />} />
               <Route path="/about" element={<About />} />
