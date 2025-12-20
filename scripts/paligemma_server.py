@@ -4,6 +4,9 @@
 # ⚠️ IMPORTANTE: Si recibes un error "RuntimeError: Only a single TORCH_LIBRARY..."
 # VE A: ENTORNO DE EJECUCIÓN > REINICIAR SESIÓN (Restart Session) y vuelve a ejecutar esta celda.
 
+# 🛠️ CORRECCIÓN DE ERROR: Instalamos una versión específica de uvicorn compatible con Colab
+!pip install uvicorn==0.29.0 starlette pyngrok nest_asyncio -q
+
 import torch
 from transformers import AutoProcessor, PaliGemmaForConditionalGeneration, AutoModelForCausalLM, AutoTokenizer
 try:
