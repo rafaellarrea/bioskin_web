@@ -3,6 +3,7 @@ import React from 'react';
 import Footer from '../components/Footer';
 import ImageCarousel from '../components/ImageCarousel';
 import { SEO } from '../components/SEO';
+import { AIDiagnosis } from '../components/AIDiagnosis';
 
 const Diagnosis = () => {
   const steps = [
@@ -127,6 +128,11 @@ const Diagnosis = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Sección de Diagnóstico IA */}
+        <div className="mt-20">
+          <AIDiagnosis />
         </div>
       </div>
     </section>
