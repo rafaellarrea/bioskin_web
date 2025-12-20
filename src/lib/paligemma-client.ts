@@ -7,9 +7,12 @@ export class PaliGemmaClient {
   private baseUrl: string | undefined;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || import.meta.env.VITE_PALIGEMMA_API_URL || process.env.NEXT_PUBLIC_PALIGEMMA_API_URL;
+    // URL por defecto hardcodeada según solicitud
+    const DEFAULT_URL = "https://suffocatingly-unlunate-tonya.ngrok-free.dev";
+    this.baseUrl = baseUrl || import.meta.env.VITE_PALIGEMMA_API_URL || process.env.NEXT_PUBLIC_PALIGEMMA_API_URL || DEFAULT_URL;
+    
     if (!this.baseUrl) {
-      console.warn('⚠️ PaliGemmaClient: URL base no configurada. Asegúrate de definir VITE_PALIGEMMA_API_URL o NEXT_PUBLIC_PALIGEMMA_API_URL.');
+      console.warn('⚠️ PaliGemmaClient: URL base no configurada.');
     }
   }
 

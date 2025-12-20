@@ -20,7 +20,7 @@ export const MedicalProtocols = () => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [customUrl, setCustomUrl] = useState('');
+  const [customUrl, setCustomUrl] = useState('https://suffocatingly-unlunate-tonya.ngrok-free.dev');
   const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -107,33 +107,60 @@ export const MedicalProtocols = () => {
         </div>
         
         {/* Configuración Rápida */}
-        <div className="relative group">
-            <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                <Settings className="h-5 w-5" />
-            </button>
-            <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl p-4 border border-gray-100 hidden group-hover:block z-50">
-                <p className="text-xs text-gray-500 mb-2">URL del Servidor (Ngrok):</p>
-                <div className="flex gap-2">
-                    <input 
-                        type="text" 
-                        placeholder="https://..."
-                        className="flex-1 text-xs border border-gray-300 rounded px-2 py-1 text-gray-800"
-                        value={customUrl}
-                        onChange={(e) => setCustomUrl(e.target.value)}
-                    />
-                    <button 
-                        onClick={handleTestConnection}
-                        className="bg-gray-800 text-white text-xs px-2 py-1 rounded"
-                    >
-                        OK
-                    </button>
-                </div>
-                {connectionStatus && (
-                    <p className={`text-[10px] mt-1 ${connectionStatus.success ? 'text-green-600' : 'text-red-600'}`}>
-                        {connectionStatus.message}
-                    </p>
+        <div className="flex items-center gap-2">
+            <button 
+                onClick={handleTestConnection}
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    connectionStatus?.success 
+                        ? 'bg-green-500/20 text-green-100 border border-green-500/30' 
+                        : connectionStatus?.success === false
+                            ? 'bg-red-500/20 text-red-100 border border-red-500/30'
+                            : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                }`}
+                title="Verificar conexión con servidor IA"
+            >
+                {loading && !messages.length ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                ) : connectionStatus?.success ? (
+                    <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
+                ) : connectionStatus?.success === false ? (
+                    <div className="h-2 w-2 rounded-full bg-red-400" />
+                ) : (
+                    <div className="h-2 w-2 rounded-full bg-gray-400" />
                 )}
-            </div>
+                <span className="hidden sm:inline">
+                    {connectionStatus?.success ? 'Conectado' : 'Verificar Conexión'}
+                </span>
+            </button>
+
+            <details className="relative group">
+                <summary className="list-none cursor-pointer p-2 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white">
+                    <Settings className="h-5 w-5" />
+                </summary>
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl p-4 border border-gray-100 z-50 text-gray-800">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        <Settings className="h-4 w-4 text-[#deb887]" />
+                        Configuración del Servidor
+                    </h3>
+                    <div className="space-y-3">
+                        <div>
+                            <label className="text-xs text-gray-500 block mb-1">URL del Servidor (Ngrok):</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder="https://..."
+                                    className="flex-1 text-xs border border-gray-300 rounded px-2 py-2 text-gray-600 bg-gray-50 focus:bg-white focus:border-[#deb887] outline-none transition-all"
+                                    value={customUrl}
+                                    onChange={(e) => setCustomUrl(e.target.value)}
+                                />
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-1">
+                                * URL por defecto configurada para el servidor de producción.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
       </div>
 

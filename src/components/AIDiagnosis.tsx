@@ -9,7 +9,7 @@ export const AIDiagnosis = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [customUrl, setCustomUrl] = useState('');
+  const [customUrl, setCustomUrl] = useState('https://suffocatingly-unlunate-tonya.ngrok-free.dev');
   const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -23,12 +23,12 @@ export const AIDiagnosis = () => {
         const result = await paligemmaClient.testConnection();
         setConnectionStatus({
             success: true,
-            message: `✅ Conectado: ${result.status} (Visión: ${result.vision_model}, Texto: ${result.text_model})`
+            message: `✅ Conectado: ${result.status}`
         });
     } catch (err: any) {
         setConnectionStatus({
             success: false,
-            message: `❌ Error de conexión: ${err.message}. Verifica la URL de Ngrok.`
+            message: `❌ Error: ${err.message}`
         });
     } finally {
         setLoading(false);
@@ -111,38 +111,54 @@ export const AIDiagnosis = () => {
 
       {/* Configuración de Conexión */}
       <div className="bg-gray-50 border-b border-gray-200 p-4">
-        <details className="group">
-            <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-700 hover:text-[#deb887]">
-                <span>⚙️ Configuración del Servidor (Google Colab)</span>
-                <span className="text-xs text-gray-500 group-open:hidden">Click para configurar</span>
-            </summary>
-            <div className="mt-3 space-y-3">
-                <p className="text-xs text-gray-500">
-                    Ingresa la URL pública generada por Ngrok en tu notebook de Google Colab (ej: https://xxxx.ngrok-free.app).
-                </p>
-                <div className="flex gap-2">
-                    <input 
-                        type="text" 
-                        placeholder="https://xxxx.ngrok-free.app"
-                        className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#deb887] focus:ring-1 focus:ring-[#deb887]"
-                        value={customUrl}
-                        onChange={(e) => setCustomUrl(e.target.value)}
-                    />
-                    <button 
-                        onClick={handleTestConnection}
-                        disabled={loading}
-                        className="bg-gray-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
-                    >
-                        {loading ? 'Probando...' : 'Probar Conexión'}
-                    </button>
-                </div>
-                {connectionStatus && (
-                    <div className={`text-xs p-2 rounded ${connectionStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {connectionStatus.message}
-                    </div>
-                )}
+        <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Estado del Servidor:</span>
+                <button 
+                    onClick={handleTestConnection}
+                    disabled={loading}
+                    className={`text-xs px-3 py-1 rounded-full border ${connectionStatus?.success ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'} hover:bg-gray-200 transition-colors`}
+                >
+                    {loading ? 'Verificando...' : connectionStatus?.success ? '✅ Conectado' : '🔄 Verificar Conexión'}
+                </button>
             </div>
-        </details>
+            
+            <details className="group">
+                <summary className="flex items-center gap-2 cursor-pointer text-xs text-gray-500 hover:text-[#deb887]">
+                    <span>⚙️ Configurar URL del Servidor</span>
+                </summary>
+                <div className="mt-3 space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                    <label className="text-xs text-gray-600 block">URL de Ngrok (Google Colab):</label>
+                    <div className="flex gap-2">
+                        <input 
+                            type="text" 
+                            placeholder="https://xxxx.ngrok-free.app"
+                            className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-[#deb887]"
+                            value={customUrl}
+                            onChange={(e) => setCustomUrl(e.target.value)}
+                        />
+                        <button 
+                            onClick={() => {
+                                paligemmaClient.setBaseUrl(customUrl);
+                                handleTestConnection();
+                            }}
+                            className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded hover:bg-gray-700"
+                        >
+                            Guardar
+                        </button>
+                    </div>
+                    <p className="text-[10px] text-gray-400">
+                        Si la URL cambia, actualízala aquí. Valor por defecto: https://suffocatingly-unlunate-tonya.ngrok-free.dev
+                    </p>
+                </div>
+            </details>
+
+            {connectionStatus && !connectionStatus.success && (
+                <div className="text-xs p-2 rounded bg-red-50 text-red-600 border border-red-100">
+                    {connectionStatus.message}
+                </div>
+            )}
+        </div>
       </div>
 
       <div className="p-8">
