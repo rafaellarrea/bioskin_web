@@ -39,6 +39,7 @@ export class PaliGemmaClient {
       const response = await axios.post(`${this.baseUrl}/analyze`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'ngrok-skip-browser-warning': 'true', // Bypass Ngrok warning page
         },
       });
 
@@ -55,7 +56,11 @@ export class PaliGemmaClient {
   async checkStatus(): Promise<boolean> {
     if (!this.baseUrl) return false;
     try {
-      const response = await axios.get(`${this.baseUrl}/`);
+      const response = await axios.get(`${this.baseUrl}/`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        }
+      });
       return response.data.status === 'online';
     } catch (error) {
       return false;
