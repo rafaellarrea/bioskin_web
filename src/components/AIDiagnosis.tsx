@@ -9,7 +9,30 @@ export const AIDiagnosis = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [customUrl, setCustomUrl] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTestConnection = async () => {
+    setLoading(true);
+    setConnectionStatus(null);
+    try {
+        if (customUrl) {
+            paligemmaClient.setBaseUrl(customUrl);
+        }
+        const result = await paligemmaClient.testConnection();
+        setConnectionStatus({
+            success: true,
+            message: `✅ Conectado: ${result.status} (Visión: ${result.vision_model}, Texto: ${result.text_model})`
+        });
+    } catch (err: any) {
+        setConnectionStatus({
+            success: false,
+            message: `❌ Error de conexión: ${err.message}. Verifica la URL de Ngrok.`
+        });
+    } finally {
+        setLoading(false);
+    }
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,6 +88,42 @@ export const AIDiagnosis = () => {
         <p className="text-white/90 mt-2">
           Sube una imagen de la zona a tratar para obtener un análisis preliminar impulsado por Inteligencia Artificial (MedGemma).
         </p>
+      </div>
+
+      {/* Configuración de Conexión */}
+      <div className="bg-gray-50 border-b border-gray-200 p-4">
+        <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-gray-700 hover:text-[#deb887]">
+                <span>⚙️ Configuración del Servidor (Google Colab)</span>
+                <span className="text-xs text-gray-500 group-open:hidden">Click para configurar</span>
+            </summary>
+            <div className="mt-3 space-y-3">
+                <p className="text-xs text-gray-500">
+                    Ingresa la URL pública generada por Ngrok en tu notebook de Google Colab (ej: https://xxxx.ngrok-free.app).
+                </p>
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        placeholder="https://xxxx.ngrok-free.app"
+                        className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#deb887] focus:ring-1 focus:ring-[#deb887]"
+                        value={customUrl}
+                        onChange={(e) => setCustomUrl(e.target.value)}
+                    />
+                    <button 
+                        onClick={handleTestConnection}
+                        disabled={loading}
+                        className="bg-gray-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                        {loading ? 'Probando...' : 'Probar Conexión'}
+                    </button>
+                </div>
+                {connectionStatus && (
+                    <div className={`text-xs p-2 rounded ${connectionStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {connectionStatus.message}
+                    </div>
+                )}
+            </div>
+        </details>
       </div>
 
       <div className="p-8">

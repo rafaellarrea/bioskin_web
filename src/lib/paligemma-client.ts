@@ -51,6 +51,27 @@ export class PaliGemmaClient {
   }
 
   /**
+   * Verifica la conexión con el servidor y devuelve detalles.
+   */
+  async testConnection(): Promise<any> {
+    if (!this.baseUrl) {
+      throw new Error("URL no configurada");
+    }
+    try {
+      const response = await axios.get(`${this.baseUrl}/`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        timeout: 5000
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Verifica si el servidor está en línea.
    */
   async checkStatus(): Promise<boolean> {
