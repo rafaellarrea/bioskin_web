@@ -13,48 +13,56 @@ import nest_asyncio
 import os
 
 # 1. Configuración del Modelo
-# OPCIÓN A: PaliGemma (Generalista - 3B)
-def load_paligemma_model():
-    print("⏳ Cargando modelo PaliGemma (google/paligemma-3b-mix-224)...")
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16
-    )
-    model_id = "google/paligemma-3b-mix-224"
-    processor = AutoProcessor.from_pretrained(model_id)
-    model = PaliGemmaForConditionalGeneration.from_pretrained(
-        model_id,
-        quantization_config=quantization_config,
-        device_map="auto"
-    )
-    print("✅ Modelo PaliGemma cargado.")
-    return model, processor
+import os
+HF_TOKEN = os.environ.get("HF_TOKEN")
 
-# OPCIÓN B: MedGemma (Médico - 4B)
-# Nota: Asegúrate de que este modelo exista y tengas acceso en Hugging Face
+# Variable global para el modelo y procesador
+model = None
+processor = None
+
 def load_medgemma_model():
-    print("⏳ Cargando modelo MedGemma (google/medgemma-4b-it)...")
-    quantization_config = BitsAndBytesConfig(
+    global model, processor
+    
+    # ID del modelo (Cambiar a "google/paligemma-3b-mix-224" si no hay acceso a MedGemma)
+    # Nota: "google/medgemma-4b-it" es el ID sugerido por el usuario. 
+    # Si este modelo no existe, usar "google/paligemma-3b-mix-224"
+    model_id = "google/medgemma-4b-it" 
+    
+    # Configuración de Cuantización
+    # NF4 es teóricamente óptimo para pesos distribuidos normalmente (como en redes neuronales)
+    bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16 # Usar float16 para T4, bfloat16 para Ampere
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.bfloat16
     )
-    model_id = "google/medgemma-4b-it" 
-    processor = AutoProcessor.from_pretrained(model_id)
-    model = PaliGemmaForConditionalGeneration.from_pretrained(
-        model_id,
-        quantization_config=quantization_config,
-        device_map="auto"
-    )
-    print("✅ Modelo MedGemma cargado.")
-    return model, processor
 
-# --- SELECCIÓN DE MODELO ---
-# Descomenta la línea del modelo que quieras usar:
-model, processor = load_paligemma_model()
-# model, processor = load_medgemma_model()
-# ---------------------------
+    print(f"🔄 Cargando {model_id} con cuantización 4-bit...")
+    
+    try:
+        model = PaliGemmaForConditionalGeneration.from_pretrained(
+            model_id,
+            quantization_config=bnb_config,
+            device_map="auto",
+            token=HF_TOKEN
+        )
+        
+        # Intentar cargar con PaliGemmaProcessor, si falla usar AutoProcessor
+        try:
+            from transformers import PaliGemmaProcessor
+            processor = PaliGemmaProcessor.from_pretrained(model_id, token=HF_TOKEN)
+        except ImportError:
+            processor = AutoProcessor.from_pretrained(model_id, token=HF_TOKEN)
+            
+        print("✅ Modelo cargado en GPU.")
+        return True
+    except Exception as e:
+        print(f"❌ Error crítico cargando el modelo: {e}")
+        print("⚠️ Si el modelo 'medgemma' no existe, intenta cambiar model_id a 'google/paligemma-3b-mix-224'")
+        return False
+
+# Cargar al inicio
+load_medgemma_model()
 
 # 2. Definir la API con FastAPI
 app = FastAPI()
