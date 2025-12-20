@@ -13,6 +13,9 @@ from pyngrok import ngrok
 import nest_asyncio
 import os
 
+# Configuración para depuración de errores CUDA
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+
 # 1. Configuración del Modelo
 import os
 HF_TOKEN = os.environ.get("HF_TOKEN")
@@ -34,7 +37,7 @@ def load_models():
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.bfloat16
+        bnb_4bit_compute_dtype=torch.float16 # Cambiado a float16 para mayor estabilidad en T4
     )
 
     try:
