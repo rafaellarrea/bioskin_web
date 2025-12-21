@@ -38,12 +38,14 @@ export default function NewPatientForm() {
 
       if (response.ok) {
         const newPatient = await response.json();
-        navigate(`/admin/clinical-records/${newPatient.id}`);
+        navigate(`/admin/ficha-clinica/paciente/${newPatient.id}`);
       } else {
-        throw new Error('Error al crear paciente');
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido del servidor' }));
+        throw new Error(errorData.error || 'Error al crear paciente');
       }
-    } catch (err) {
-      setError('No se pudo crear el paciente. Verifique los datos.');
+    } catch (err: any) {
+      console.error('Error creating patient:', err);
+      setError(err.message || 'No se pudo crear el paciente. Verifique los datos.');
     } finally {
       setSaving(false);
     }

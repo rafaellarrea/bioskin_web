@@ -67,10 +67,15 @@ export default async function handler(req, res) {
 
       case 'createPatient':
         const { first_name, last_name, rut, email, phone, birth_date, gender, address, occupation } = body;
+        
+        // Handle empty strings as null for optional fields to avoid unique constraint violations (RUT) or date errors
+        const cleanRut = rut && rut.trim() !== '' ? rut.trim() : null;
+        const cleanBirthDate = birth_date && birth_date.trim() !== '' ? birth_date : null;
+        
         const newPatient = await pool.query(
           `INSERT INTO patients (first_name, last_name, rut, email, phone, birth_date, gender, address, occupation) 
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-          [first_name, last_name, rut, email, phone, birth_date, gender, address, occupation]
+          [first_name, last_name, cleanRut, email, phone, cleanBirthDate, gender, address, occupation]
         );
         // Create an initial clinical record for the patient
         await pool.query('INSERT INTO clinical_records (patient_id) VALUES ($1)', [newPatient.rows[0].id]);
