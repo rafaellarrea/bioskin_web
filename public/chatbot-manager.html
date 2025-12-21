@@ -1342,7 +1342,7 @@
     
     async function initChatbotToggle() {
       try {
-        const response = await fetch('/api/chatbot-settings', {
+        const response = await fetch('/api/chatbot-api?type=settings', {
           headers: {
             'Authorization': `Bearer ${sessionToken}`
           }
@@ -1383,7 +1383,7 @@
       updateToggleUI(enabled);
       
       try {
-        const response = await fetch('/api/chatbot-settings', {
+        const response = await fetch('/api/chatbot-api?type=settings', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

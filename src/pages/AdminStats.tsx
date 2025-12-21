@@ -36,7 +36,7 @@ export default function AdminStats() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/chatbot-stats');
+      const response = await fetch('/api/chatbot-api?type=stats');
       if (response.ok) {
         const data = await response.json();
         setStats(data);

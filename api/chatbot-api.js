@@ -4,8 +4,14 @@ import {
   saveMessage,
   getTrackingEvents,
   getWhatsAppTemplates,
-  getUserPreferences
+  getUserPreferences,
+  getGlobalSettings,
+  updateGlobalSettings,
+  getDatabaseStats
 } from '../lib/neon-chatbot-db-vercel.js';
+import { cleanupService } from '../lib/chatbot-cleanup.js';
+import { FallbackStorage } from '../lib/fallback-storage.js';
+import { sql } from '@vercel/postgres';
 
 /**
  * API UNIFICADA PARA CHATBOT WHATSAPP
@@ -40,6 +46,20 @@ export default async function handler(req, res) {
   try {
     const { type, action, limit = '50' } = req.query;
     const limitNum = parseInt(limit, 10);
+
+    // ==========================================
+    // SECCIÓN: SETTINGS (Configuración Global)
+    // ==========================================
+    if (type === 'settings') {
+      return await handleSettingsEndpoints(req, res);
+    }
+
+    // ==========================================
+    // SECCIÓN: STATS (Estadísticas Detalladas)
+    // ==========================================
+    if (type === 'stats') {
+      return await handleStatsEndpoints(req, res);
+    }
 
     // ==========================================
     // SECCIÓN: MANAGER (Gestión de Conversaciones)
@@ -526,6 +546,122 @@ async function handleMonitorEndpoints(req, res, action, limitNum) {
     error: 'Acción no válida para type=monitor',
     validActions: ['webhooks', 'tracking', 'templates', 'preferences', 'conversations']
   });
+}
+
+// ==========================================
+// HANDLER: SETTINGS ENDPOINTS
+// ==========================================
+async function handleSettingsEndpoints(req, res) {
+  // 1. Verify Auth
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const token = authHeader.split(' ')[1];
+  
+  try {
+    const session = await sql`
+      SELECT * FROM admin_sessions 
+      WHERE session_token = ${token} 
+      AND is_active = true 
+      AND expires_at > NOW()
+    `;
+    
+    if (session.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or expired session' });
+    }
+  } catch (error) {
+    console.error('Auth error:', error);
+    if (req.method === 'POST') {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  // 2. Handle Request
+  try {
+    if (req.method === 'GET') {
+      const settings = await getGlobalSettings();
+      return res.status(200).json(settings);
+    } else if (req.method === 'POST') {
+      const { chatbotEnabled } = req.body;
+      if (typeof chatbotEnabled !== 'boolean') {
+        return res.status(400).json({ error: 'Invalid payload' });
+      }
+      
+      await updateGlobalSettings({ chatbotEnabled });
+      return res.status(200).json({ success: true, chatbotEnabled });
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('Settings error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+// ==========================================
+// HANDLER: STATS ENDPOINTS
+// ==========================================
+async function handleStatsEndpoints(req, res) {
+  try {
+    if (req.method === 'GET') {
+      console.log('📊 Obteniendo estadísticas del chatbot...');
+
+      let dbStats;
+      let usedFallback = false;
+      
+      try {
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        );
+        dbStats = await Promise.race([getDatabaseStats(), timeoutPromise]);
+      } catch (error) {
+        console.warn('⚠️ Base de datos no disponible, usando fallback:', error.message);
+        dbStats = FallbackStorage.getStats();
+        usedFallback = true;
+      }
+
+      const storageCheck = usedFallback 
+        ? { needsCleanup: false, currentMB: 0, maxMB: 512, percentUsed: 0, sizePretty: '0 MB' }
+        : await cleanupService.checkStorageUsage();
+
+      const stats = {
+        timestamp: new Date().toISOString(),
+        status: storageCheck.needsCleanup ? 'warning' : (usedFallback ? 'fallback' : 'healthy'),
+        dataSource: usedFallback ? 'memory (database unavailable)' : 'database',
+        storage: {
+          current: `${storageCheck.currentMB} MB`,
+          limit: `${storageCheck.maxMB} MB`,
+          percentUsed: `${storageCheck.percentUsed}%`,
+          needsCleanup: storageCheck.needsCleanup
+        },
+        database: dbStats,
+        system: {
+          nodeVersion: process.version,
+          memoryUsage: process.memoryUsage(),
+          uptime: process.uptime()
+        }
+      };
+
+      return res.status(200).json(stats);
+    } else if (req.method === 'POST') {
+      // Mantenimiento manual
+      const { action } = req.body;
+      
+      if (action === 'cleanup') {
+        console.log('🧹 Ejecutando limpieza manual...');
+        const result = await cleanupService.runCleanup();
+        return res.status(200).json(result);
+      }
+      
+      return res.status(400).json({ error: 'Acción no válida' });
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+  } catch (error) {
+    console.error('Stats error:', error);
+    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
 }
 
 // ==========================================

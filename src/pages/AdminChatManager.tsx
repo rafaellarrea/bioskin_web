@@ -87,7 +87,7 @@ export default function AdminChatManager() {
   const loadChatbotSettings = async () => {
     try {
       const token = localStorage.getItem('adminSessionToken');
-      const response = await fetch('/api/chatbot-settings', {
+      const response = await fetch('/api/chatbot-api?type=settings', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -107,7 +107,7 @@ export default function AdminChatManager() {
     
     try {
       const token = localStorage.getItem('adminSessionToken');
-      const response = await fetch('/api/chatbot-settings', {
+      const response = await fetch('/api/chatbot-api?type=settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
