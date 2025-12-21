@@ -1,11 +1,100 @@
 import React, { useState } from 'react';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle, Plus } from 'lucide-react';
+import historyItems from '../../data/history_items.json';
 
 interface HistoryTabProps {
   recordId: number;
   initialData: any;
   onSave: () => void;
 }
+
+interface HistoryFieldProps {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder: string;
+  categoryId?: string;
+}
+
+const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }: HistoryFieldProps) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const items = categoryId 
+    ? historyItems.filter((item: any) => item.categoria_id === categoryId && item.activo === 1)
+    : [];
+
+  const handleAdd = (val: string) => {
+    if (!val) return;
+    
+    const currentValue = value || '';
+    const separator = currentValue.length > 0 ? ', ' : '';
+    const newValue = `${currentValue}${separator}${val}`;
+    
+    // Create a synthetic event to propagate change
+    const event = {
+      target: {
+        name,
+        value: newValue
+      }
+    } as React.ChangeEvent<HTMLTextAreaElement>;
+    
+    onChange(event);
+    setInputValue('');
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      
+      {items.length > 0 && (
+        <div className="flex gap-2 mb-2">
+          <input
+            list={`list-${name}`}
+            type="text"
+            className="flex-1 p-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+            placeholder="Buscar y agregar..."
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              // If the value matches an option exactly, add it? 
+              // Better to let user click a button or press enter, but datalist selection is tricky to detect reliably without a library.
+              // We'll add a button.
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAdd(inputValue);
+              }
+            }}
+          />
+          <datalist id={`list-${name}`}>
+            {items.map((item: any) => (
+              <option key={item.id} value={item.elemento} />
+            ))}
+          </datalist>
+          <button
+            type="button"
+            onClick={() => handleAdd(inputValue)}
+            className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            title="Agregar"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      <textarea
+        name={name}
+        rows={4}
+        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={onChange}
+      />
+    </div>
+  );
+};
 
 export default function HistoryTab({ recordId, initialData, onSave }: HistoryTabProps) {
   const [formData, setFormData] = useState(initialData || {});
@@ -14,7 +103,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,101 +143,77 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Antecedentes Patológicos</label>
-          <textarea
-            name="pathological"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Enfermedades crónicas, hospitalizaciones previas..."
-            value={formData.pathological || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Antecedentes Patológicos"
+          name="pathological"
+          value={formData.pathological}
+          onChange={handleChange}
+          placeholder="Enfermedades crónicas, hospitalizaciones previas..."
+          categoryId="antecedente_personal"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Antecedentes No Patológicos</label>
-          <textarea
-            name="non_pathological"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Tabaco, alcohol, actividad física, alimentación..."
-            value={formData.non_pathological || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Antecedentes No Patológicos"
+          name="non_pathological"
+          value={formData.non_pathological}
+          onChange={handleChange}
+          placeholder="Tabaco, alcohol, actividad física, alimentación..."
+          categoryId="habito"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Antecedentes Familiares</label>
-          <textarea
-            name="family_history"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Enfermedades hereditarias, antecedentes de cáncer..."
-            value={formData.family_history || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Antecedentes Familiares"
+          name="family_history"
+          value={formData.family_history}
+          onChange={handleChange}
+          placeholder="Enfermedades hereditarias, antecedentes de cáncer..."
+          categoryId="antecedente_familiar"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Antecedentes Quirúrgicos</label>
-          <textarea
-            name="surgical_history"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Cirugías previas, fechas aproximadas..."
-            value={formData.surgical_history || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Antecedentes Quirúrgicos"
+          name="surgical_history"
+          value={formData.surgical_history}
+          onChange={handleChange}
+          placeholder="Cirugías previas, fechas aproximadas..."
+          categoryId="quirurgico"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Alergias</label>
-          <textarea
-            name="allergies"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Medicamentos, alimentos, látex..."
-            value={formData.allergies || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Alergias"
+          name="allergies"
+          value={formData.allergies}
+          onChange={handleChange}
+          placeholder="Medicamentos, alimentos, látex..."
+          categoryId="alergia"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Medicamentos Actuales</label>
-          <textarea
-            name="current_medications"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Nombre, dosis, frecuencia..."
-            value={formData.current_medications || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Medicamentos Actuales"
+          name="current_medications"
+          value={formData.current_medications}
+          onChange={handleChange}
+          placeholder="Nombre, dosis, frecuencia..."
+          categoryId="medicacion"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Antecedentes Estéticos</label>
-          <textarea
-            name="aesthetic_history"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Tratamientos previos, reacciones adversas..."
-            value={formData.aesthetic_history || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Antecedentes Estéticos"
+          name="aesthetic_history"
+          value={formData.aesthetic_history}
+          onChange={handleChange}
+          placeholder="Tratamientos previos, reacciones adversas..."
+          categoryId="otros"
+        />
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Antecedentes Ginecológicos</label>
-          <textarea
-            name="gynecological_history"
-            rows={4}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="FUM, anticonceptivos, embarazos..."
-            value={formData.gynecological_history || ''}
-            onChange={handleChange}
-          />
-        </div>
+        <HistoryField
+          label="Antecedentes Ginecológicos"
+          name="gynecological_history"
+          value={formData.gynecological_history}
+          onChange={handleChange}
+          placeholder="FUM, anticonceptivos, embarazos..."
+          categoryId="obstetrico"
+        />
       </div>
 
       <div className="flex justify-end pt-4">
