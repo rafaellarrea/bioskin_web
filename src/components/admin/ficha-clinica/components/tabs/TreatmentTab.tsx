@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Calendar, DollarSign, Clock } from 'lucide-react';
+import treatmentOptions from '../../data/treatment_options.json';
 
 interface Treatment {
   id: number;
@@ -80,21 +81,33 @@ export default function TreatmentTab({ recordId, treatments, onSave }: Treatment
               <input
                 type="text"
                 required
+                list="procedures-list"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
                 value={newTreatment.procedure_name}
                 onChange={e => setNewTreatment({...newTreatment, procedure_name: e.target.value})}
                 placeholder="Ej: Limpieza Facial Profunda"
               />
+              <datalist id="procedures-list">
+                {Object.values(treatmentOptions.procedures).flat().map((p: string, i: number) => (
+                  <option key={i} value={p} />
+                ))}
+              </datalist>
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Equipo Utilizado</label>
               <input
                 type="text"
+                list="equipment-list"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
                 value={newTreatment.equipment_used}
                 onChange={e => setNewTreatment({...newTreatment, equipment_used: e.target.value})}
                 placeholder="Ej: Hydrafacial, Laser CO2"
               />
+              <datalist id="equipment-list">
+                {treatmentOptions.equipment.map((e: string, i: number) => (
+                  <option key={i} value={e} />
+                ))}
+              </datalist>
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Zona Tratada</label>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Save, AlertCircle, Plus } from 'lucide-react';
-import historyItems from '../../data/history_items.json';
+import historyOptions from '../../data/history_options.json';
 
 interface HistoryTabProps {
   recordId: number;
@@ -14,15 +14,13 @@ interface HistoryFieldProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder: string;
-  categoryId?: string;
+  categoryId?: keyof typeof historyOptions;
 }
 
 const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }: HistoryFieldProps) => {
   const [inputValue, setInputValue] = useState('');
 
-  const items = categoryId 
-    ? historyItems.filter((item: any) => item.categoria_id === categoryId && item.activo === 1)
-    : [];
+  const items = categoryId ? (historyOptions[categoryId] || []) : [];
 
   const handleAdd = (val: string) => {
     if (!val) return;
@@ -69,8 +67,8 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }:
             }}
           />
           <datalist id={`list-${name}`}>
-            {items.map((item: any) => (
-              <option key={item.id} value={item.elemento} />
+            {items.map((item: string, index: number) => (
+              <option key={index} value={item} />
             ))}
           </datalist>
           <button

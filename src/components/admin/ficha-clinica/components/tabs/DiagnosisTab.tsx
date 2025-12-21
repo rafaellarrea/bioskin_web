@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
-import diagnosesList from '../../data/diagnoses.json';
+import diagnosisOptions from '../../data/diagnosis_options.json';
 
 interface Diagnosis {
   id: number;
@@ -85,8 +85,8 @@ export default function DiagnosisTab({ recordId, diagnoses, onSave }: DiagnosisT
                 placeholder="Ej: Acné Vulgar"
               />
               <datalist id="diagnoses-list">
-                {diagnosesList.map((d: any) => (
-                  <option key={d.id} value={d.nombre} />
+                {Object.values(diagnosisOptions).flat().map((d: string, i: number) => (
+                  <option key={i} value={d} />
                 ))}
               </datalist>
             </div>

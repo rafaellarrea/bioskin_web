@@ -14,9 +14,7 @@ export default function PhysicalExamTab({ recordId, initialData, onSave }: Physi
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const getOptions = (category: string) => 
-    physicalExamOptions
-      .filter((opt: any) => opt.categoria === category)
-      .map((opt: any) => opt.elemento);
+    (physicalExamOptions as any)[category] || [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -99,7 +97,7 @@ export default function PhysicalExamTab({ recordId, initialData, onSave }: Physi
             onChange={handleChange}
           >
             <option value="">Seleccionar...</option>
-            {getOptions('glogau').map((opt: string) => (
+            {getOptions('clasificacion_glogau').map((opt: string) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
@@ -114,9 +112,9 @@ export default function PhysicalExamTab({ recordId, initialData, onSave }: Physi
             onChange={handleChange}
           >
             <option value="">Seleccionar...</option>
-            <option value="Baja">Baja</option>
-            <option value="Media">Media</option>
-            <option value="Alta">Alta</option>
+            {getOptions('hidratacion').map((opt: string) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
           </select>
         </div>
 
@@ -129,9 +127,9 @@ export default function PhysicalExamTab({ recordId, initialData, onSave }: Physi
             onChange={handleChange}
           >
             <option value="">Seleccionar...</option>
-            <option value="Baja">Baja</option>
-            <option value="Media">Media</option>
-            <option value="Buena">Buena</option>
+            {getOptions('elasticidad').map((opt: string) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
           </select>
         </div>
       </div>
