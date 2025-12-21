@@ -27,6 +27,10 @@ import AdminMonitor from './pages/AdminMonitor';
 import AdminStats from './pages/AdminStats';
 import AdminDiagnosis from './pages/AdminDiagnosis';
 import AdminProtocols from './pages/AdminProtocols';
+import PatientList from './components/admin/ficha-clinica/components/PatientList';
+import NewPatientForm from './components/admin/ficha-clinica/components/NewPatientForm';
+import PatientDetail from './components/admin/ficha-clinica/components/PatientDetail';
+import ClinicalRecordManager from './components/admin/ficha-clinica/components/ClinicalRecordManager';
 
 function App() {
   return (
@@ -65,6 +69,10 @@ function App() {
               <Route path="/admin/stats" element={<AdminStats />} />
               <Route path="/admin/diagnosis" element={<AdminDiagnosis />} />
               <Route path="/admin/protocols" element={<AdminProtocols />} />
+              <Route path="/admin/clinical-records" element={<PatientList />} />
+              <Route path="/admin/clinical-records/new" element={<NewPatientForm />} />
+              <Route path="/admin/ficha-clinica/paciente/:patientId" element={<PatientDetail />} />
+              <Route path="/admin/ficha-clinica/expediente/:recordId" element={<ClinicalRecordManager />} />
 
               <Route path="/appointment" element={<Appointment />} />
               <Route path="/about" element={<About />} />

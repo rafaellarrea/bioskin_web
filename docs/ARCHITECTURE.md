@@ -21,10 +21,12 @@ project2.0/
 │   └── utils/                    # Utilidades helper
 ├── api/                          # Vercel Serverless Functions
 │   ├── ai-blog/                  # Endpoints generación IA
+│   ├── clinical-records.js       # Endpoint Fichas Clínicas (Neon DB)
 │   ├── search.js                 # Endpoint búsqueda IA
 │   ├── getEvents.js             # Google Calendar API
 │   └── sendEmail.js             # Email/WhatsApp integration
 ├── lib/                          # Lógica de negocio
+│   ├── neon-clinical-db.js      # Neon PostgreSQL connection
 │   ├── database.js              # SQLite management
 │   └── ai-service.js            # OpenAI integration
 ├── public/                       # Assets estáticos

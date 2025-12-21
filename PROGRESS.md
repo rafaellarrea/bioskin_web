@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 20, 2025: Módulo Ficha Clínica (Admin)**
+- 🏥 **Nueva Funcionalidad**: Implementado sistema completo de Fichas Clínicas en panel administrativo.
+- 🗄️ **Base de Datos**: Integración con Neon PostgreSQL (tablas: patients, clinical_records, medical_history, etc.).
+- 🔄 **Migración**: Script de extracción de datos desde `centro.db` (SQLite) para catálogos de diagnósticos y tratamientos.
+- 🎨 **UI/UX**: Nueva interfaz con pestañas (Antecedentes, Examen Físico, Diagnóstico) y perfil de paciente.
+- 🚀 **API**: Endpoints CRUD en `/api/clinical-records.js` para gestión de expedientes.
+
 ### ✅ **Dec 15, 2025: Fix Build Error (Appointment.tsx)**
 - 🐛 **Bug Fix**: Corregido error de sintaxis en `Appointment.tsx` causado por duplicación de código.
 - 🧹 **Limpieza**: Eliminado código residual de versiones anteriores en el archivo de agendamiento.

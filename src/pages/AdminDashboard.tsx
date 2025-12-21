@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface UpcomingAppointment {
@@ -198,6 +198,13 @@ export default function AdminDashboard() {
       icon: Zap,
       path: '/admin/protocols',
       color: 'from-yellow-500 to-yellow-600'
+    },
+    {
+      title: 'Fichas Clínicas',
+      description: 'Gestión de pacientes, antecedentes y tratamientos',
+      icon: ClipboardList,
+      path: '/admin/clinical-records',
+      color: 'from-pink-500 to-pink-600'
     }
   ];
 
