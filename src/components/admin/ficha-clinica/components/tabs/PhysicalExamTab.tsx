@@ -104,12 +104,6 @@ export default function PhysicalExamTab({ recordId, initialData, onSave }: Physi
             ))}
           </select>
         </div>
-            <option value="I">I - Leve (20-30 años)</option>
-            <option value="II">II - Moderado (30-40 años)</option>
-            <option value="III">III - Avanzado (50+ años)</option>
-            <option value="IV">IV - Severo (60-70+ años)</option>
-          </select>
-        </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Hidratación</label>
