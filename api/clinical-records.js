@@ -1,5 +1,8 @@
 import pool, { initClinicalDatabase } from '../lib/neon-clinical-db.js';
 
+// Global flag to track initialization in the current container instance
+let dbInitialized = false;
+
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,16 +14,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Ensure DB is initialized (lazy init)
-    // In production, this should be done via a migration script, but for this setup we'll check/run it.
-    // To avoid running it every time, we could check a flag or just rely on IF NOT EXISTS.
-    // For now, we'll assume it's initialized or call it on specific 'init' action.
-
     const { action } = req.query;
     const body = req.body || {};
 
     if (!pool) {
-      return res.status(500).json({ error: 'Database connection not configured' });
+      console.error('❌ Database connection missing');
+      return res.status(500).json({ error: 'Database connection not configured. Check NEON_DATABASE_URL.' });
+    }
+
+    // Auto-initialize database if not done yet in this instance
+    // This ensures tables exist even if the database was reset
+    if (!dbInitialized) {
+      try {
+        await initClinicalDatabase();
+        dbInitialized = true;
+        console.log('✅ Database auto-initialized successfully');
+      } catch (initError) {
+        console.error('⚠️ Auto-initialization warning:', initError.message);
+        // Continue anyway, maybe tables exist and init failed due to permissions or other non-critical issue
+      }
     }
 
     switch (action) {
