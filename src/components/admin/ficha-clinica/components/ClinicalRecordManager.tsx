@@ -186,7 +186,8 @@ export default function ClinicalRecordManager() {
             {activeTab === 'physical' && (
               <PhysicalExamTab 
                 recordId={recordData?.recordId} 
-                initialData={recordData?.physicalExam}
+                physicalExams={recordData?.physicalExams || []}
+                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
                 onSave={fetchData}
               />
             )}

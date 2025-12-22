@@ -122,7 +122,7 @@ export default async function handler(req, res) {
           injectables
         ] = await Promise.all([
           pool.query('SELECT * FROM medical_history WHERE record_id = $1', [targetRecordId]),
-          pool.query('SELECT * FROM physical_exams WHERE record_id = $1', [targetRecordId]),
+          pool.query('SELECT * FROM physical_exams WHERE record_id = $1 ORDER BY created_at DESC', [targetRecordId]),
           pool.query('SELECT * FROM diagnoses WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           pool.query('SELECT * FROM treatments WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
@@ -134,7 +134,7 @@ export default async function handler(req, res) {
           recordId: targetRecordId,
           patientId: patientIdFromRecord,
           history: history.rows[0] || {},
-          physicalExam: physical.rows[0] || {},
+          physicalExams: physical.rows,
           diagnoses: diagnoses.rows,
           treatments: treatments.rows,
           prescriptions: prescriptions.rows,
@@ -162,20 +162,26 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true });
 
       case 'savePhysicalExam':
-        const { record_id: pid_exam, ...examData } = body;
-        // Upsert physical exam
-        const existingExam = await pool.query('SELECT id FROM physical_exams WHERE record_id = $1', [pid_exam]);
-        if (existingExam.rows.length > 0) {
+        const { id: examId, record_id: pid_exam, ...examData } = body;
+        
+        if (examId) {
+           // Update existing exam
            const eFields = Object.keys(examData);
            const eValues = Object.values(examData);
            const eSet = eFields.map((f, i) => `${f} = $${i + 2}`).join(', ');
-           await pool.query(`UPDATE physical_exams SET ${eSet} WHERE record_id = $1`, [pid_exam, ...eValues]);
+           await pool.query(`UPDATE physical_exams SET ${eSet} WHERE id = $1`, [examId, ...eValues]);
         } else {
+           // Insert new exam
            const eFields = ['record_id', ...Object.keys(examData)];
            const eValues = [pid_exam, ...Object.values(examData)];
            const eParams = eFields.map((_, i) => `$${i + 1}`).join(', ');
            await pool.query(`INSERT INTO physical_exams (${eFields.join(', ')}) VALUES (${eParams})`, eValues);
         }
+        return res.status(200).json({ success: true });
+
+      case 'deletePhysicalExam':
+        const { id: delExamId } = req.query;
+        await pool.query('DELETE FROM physical_exams WHERE id = $1', [delExamId]);
         return res.status(200).json({ success: true });
 
       case 'addDiagnosis':
