@@ -95,8 +95,9 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
                 style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
               >
                 {/* Tooltip */}
-                <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-20 pointer-events-none">
-                  {mark.category}
+                <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-20 pointer-events-none flex-col items-center">
+                  <span className="font-bold">{mark.category}</span>
+                  {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
                 </div>
                 
                 {/* Delete Button (only if not readOnly) */}

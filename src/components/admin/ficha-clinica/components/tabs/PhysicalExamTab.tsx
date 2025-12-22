@@ -51,7 +51,8 @@ const EMPTY_EXAM: Omit<PhysicalExam, 'record_id'> = {
 const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onSave: (m: Mark) => void, onCancel: () => void, categories: string[] }) => {
   const [editedMark, setEditedMark] = useState<Mark>({
     ...mark,
-    distribution: mark.distribution || 'puntual'
+    distribution: mark.distribution || 'puntual',
+    severity: mark.severity || 'leve'
   });
 
   return (
@@ -67,6 +68,20 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
           >
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2 text-gray-700">Severidad / Grado</label>
+          <select 
+            value={editedMark.severity}
+            onChange={e => setEditedMark({...editedMark, severity: e.target.value as any})}
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+          >
+            <option value="leve">Leve</option>
+            <option value="moderado">Moderado</option>
+            <option value="severo">Severo</option>
+            <option value="profundo">Profundo</option>
           </select>
         </div>
 
@@ -417,6 +432,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                       <span className="font-medium">{i + 1}. {mark.category}</span>
                       <span className="text-xs text-gray-500">
                         {mark.notes && `${mark.notes} `}
+                        {mark.severity && `• ${mark.severity.charAt(0).toUpperCase() + mark.severity.slice(1)} `}
                         {mark.distribution && `• ${mark.distribution === 'puntual' ? 'Puntual' : 'Zonal'}`}
                         {mark.view && ` • ${mark.view === 'front' ? 'Frontal' : 'Posterior'}`}
                       </span>

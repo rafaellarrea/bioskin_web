@@ -12,6 +12,7 @@ export interface Mark {
   notes?: string; // Used for Zone Label
   view?: 'front' | 'back'; // For Body Map
   distribution?: 'puntual' | 'zonal';
+  severity?: 'leve' | 'moderado' | 'severo' | 'profundo';
 }
 
 interface FaceMapCanvasProps {
@@ -192,6 +193,7 @@ export default function FaceMapCanvas({
                 >
                   <span className="font-bold">{mark.category}</span>
                   <span className="text-[10px] opacity-80">{mark.notes}</span>
+                  {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
                   <div className="flex items-center gap-1 mt-1 text-red-300">
                     <X size={10} /> Eliminar
                   </div>
