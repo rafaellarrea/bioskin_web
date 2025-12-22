@@ -43,27 +43,32 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
   return (
     <div className="flex flex-col items-center space-y-4 w-full">
       {/* View Switcher */}
-      <div className="flex space-x-4 bg-gray-100 p-1 rounded-lg">
-        <button
-          onClick={() => setView('front')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            view === 'front'
-              ? 'bg-white text-[#deb887] shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Frontal
-        </button>
-        <button
-          onClick={() => setView('back')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            view === 'back'
-              ? 'bg-white text-[#deb887] shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Posterior
-        </button>
+      <div className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm mb-2">
+        <span className="text-sm font-semibold text-gray-600 px-2">Vista:</span>
+        <div className="flex bg-gray-100 p-1 rounded-md">
+          <button
+            type="button"
+            onClick={() => setView('front')}
+            className={`px-6 py-2 rounded-md text-sm font-bold transition-all duration-200 ${
+              view === 'front'
+                ? 'bg-white text-[#deb887] shadow-sm ring-1 ring-gray-200'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            FRONTAL
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('back')}
+            className={`px-6 py-2 rounded-md text-sm font-bold transition-all duration-200 ${
+              view === 'back'
+                ? 'bg-white text-[#deb887] shadow-sm ring-1 ring-gray-200'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            POSTERIOR
+          </button>
+        </div>
       </div>
 
       {/* Image Container */}

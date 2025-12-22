@@ -11,6 +11,7 @@ export interface Mark {
   category: string;
   notes?: string; // Used for Zone Label
   view?: 'front' | 'back'; // For Body Map
+  distribution?: 'puntual' | 'zonal';
 }
 
 interface FaceMapCanvasProps {

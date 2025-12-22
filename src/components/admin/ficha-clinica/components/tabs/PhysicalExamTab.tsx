@@ -49,7 +49,10 @@ const EMPTY_EXAM: Omit<PhysicalExam, 'record_id'> = {
 
 // Modal Component for Editing Marks
 const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onSave: (m: Mark) => void, onCancel: () => void, categories: string[] }) => {
-  const [editedMark, setEditedMark] = useState<Mark>(mark);
+  const [editedMark, setEditedMark] = useState<Mark>({
+    ...mark,
+    distribution: mark.distribution || 'puntual'
+  });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
@@ -65,6 +68,34 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
           >
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2 text-gray-700">Distribución</label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="radio" 
+                name="distribution" 
+                value="puntual"
+                checked={editedMark.distribution === 'puntual'}
+                onChange={() => setEditedMark({...editedMark, distribution: 'puntual'})}
+                className="text-[#deb887] focus:ring-[#deb887]"
+              />
+              <span className="text-sm">Puntual</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="radio" 
+                name="distribution" 
+                value="zonal"
+                checked={editedMark.distribution === 'zonal'}
+                onChange={() => setEditedMark({...editedMark, distribution: 'zonal'})}
+                className="text-[#deb887] focus:ring-[#deb887]"
+              />
+              <span className="text-sm">Zonal (Toda la zona)</span>
+            </label>
+          </div>
         </div>
 
         <div className="mb-4">
@@ -381,7 +412,14 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
               <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg bg-white">
                 {(activeTab === 'facial' ? faceMarks : bodyMarks).map((mark, i) => (
                   <div key={mark.id} className="flex justify-between items-center p-2 border-b last:border-0 hover:bg-gray-50 text-sm">
-                    <span>{i + 1}. {mark.category} {mark.notes && `(${mark.notes})`}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{i + 1}. {mark.category}</span>
+                      <span className="text-xs text-gray-500">
+                        {mark.notes && `${mark.notes} `}
+                        {mark.distribution && `• ${mark.distribution === 'puntual' ? 'Puntual' : 'Zonal'}`}
+                        {mark.view && ` • ${mark.view === 'front' ? 'Frontal' : 'Posterior'}`}
+                      </span>
+                    </div>
                     <div className="flex gap-1">
                       <button 
                         onClick={() => initiateEditMark(mark)}

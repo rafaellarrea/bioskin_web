@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes Mapa Corporal**
+- 🎨 **Botones Vista**: Rediseño de botones Frontal/Posterior para mayor visibilidad y contraste.
+- 👁️ **UX**: Agregada etiqueta explícita "Vista:" para evitar confusión.
+- 🐛 **Fix**: Asegurada la renderización correcta del selector de vista en el componente BodyMapCanvas.
+
 ### ✅ **Dec 22, 2025: Fix Persistencia Mapas Clínicos**
 - 🐛 **Bug Fix**: Corregido error de guardado en `physical_exams` por falta de columnas JSONB.
 - 🗄️ **Base de Datos**: Migración automática forzada para agregar columnas `face_map_data` y `body_map_data`.
