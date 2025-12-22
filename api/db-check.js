@@ -40,13 +40,32 @@ export default async function handler(req, res) {
       patientSchema = columns.rows;
     }
 
+    // 4. Test Write Permission (Transaction Rollback)
+    let writeTest = 'Skipped';
+    try {
+      await pool.query('BEGIN');
+      // Try to insert a dummy patient (will be rolled back)
+      // Using a random RUT to avoid unique constraint if rollback fails (though it shouldn't)
+      const randomRut = `TEST-${Math.floor(Math.random() * 10000)}`;
+      await pool.query(`
+        INSERT INTO patients (first_name, last_name, rut, email) 
+        VALUES ('Test', 'User', $1, 'test@example.com')
+      `, [randomRut]);
+      await pool.query('ROLLBACK');
+      writeTest = 'Success (Insert + Rollback)';
+    } catch (writeErr) {
+      try { await pool.query('ROLLBACK'); } catch (e) {}
+      writeTest = `Failed: ${writeErr.message}`;
+    }
+
     return res.status(200).json({
       status: 'connected',
       database: dbName.rows[0].current_database,
       connectionStringMasked: connectionString.replace(/:[^:]*@/, ':***@'),
       tables: tables.rows.map(t => t.table_name),
       patientCount: patientCount,
-      patientSchema: patientSchema
+      patientSchema: patientSchema,
+      writeTest: writeTest
     });
 
   } catch (error) {
