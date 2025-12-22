@@ -7,4 +7,13 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://saludbioskin.vercel.app',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })
