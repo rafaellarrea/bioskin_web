@@ -1,6 +1,3 @@
-import { getPool, initClinicalDatabase } from '../lib/neon-clinical-db.js';
-import { getOpenAIClient } from '../lib/ai-service.js';
-
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
 
@@ -15,6 +12,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Dynamic imports to prevent top-level crashes
+    const { getPool, initClinicalDatabase } = await import('../lib/neon-clinical-db.js');
+    const { getOpenAIClient } = await import('../lib/ai-service.js');
+
     const { action } = req.query;
     const body = req.body || {};
 
