@@ -23,10 +23,21 @@ export default async function handler(req, res) {
 
     // 3. Check row count for patients (if table exists)
     let patientCount = 'Table not found';
+    let patientSchema = [];
+    
     const patientsTable = tables.rows.find(t => t.table_name === 'patients');
     if (patientsTable) {
       const count = await pool.query('SELECT COUNT(*) FROM patients');
       patientCount = count.rows[0].count;
+      
+      // Get columns
+      const columns = await pool.query(`
+        SELECT column_name, data_type, is_nullable
+        FROM information_schema.columns
+        WHERE table_name = 'patients'
+        ORDER BY ordinal_position;
+      `);
+      patientSchema = columns.rows;
     }
 
     return res.status(200).json({
@@ -34,7 +45,8 @@ export default async function handler(req, res) {
       database: dbName.rows[0].current_database,
       connectionStringMasked: connectionString.replace(/:[^:]*@/, ':***@'),
       tables: tables.rows.map(t => t.table_name),
-      patientCount: patientCount
+      patientCount: patientCount,
+      patientSchema: patientSchema
     });
 
   } catch (error) {
