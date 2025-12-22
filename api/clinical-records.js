@@ -262,9 +262,9 @@ export default async function handler(req, res) {
 
       // === PRESCRIPTIONS ===
       case 'listPrescriptions':
-        const { record_id: pid } = req.query;
-        const prescriptions = await pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC, id DESC', [pid]);
-        const mappedPrescriptions = prescriptions.rows.map(p => ({
+        const { record_id: presc_record_id } = req.query;
+        const prescriptionsList = await pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC, id DESC', [presc_record_id]);
+        const mappedPrescriptions = prescriptionsList.rows.map(p => ({
           ...p,
           fecha: p.date,
           diagnostico: p.diagnosis
