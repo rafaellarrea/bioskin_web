@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UX Improvement - Lesion Autocomplete**
+- ⌨️ **Input Híbrido**: Reemplazados selectores fijos por inputs con `datalist`.
+- 🔍 **Funcionalidad**: Permite buscar en el catálogo existente O escribir una lesión personalizada si no existe.
+- 🔄 **Alcance**: Aplicado tanto al selector principal como al modal de edición.
+
 ### ✅ **Dec 22, 2025: New Feature - Clinical Severity**
 - 🌡️ **Grados**: Implementada opción de severidad (Leve, Moderado, Severo, Profundo) en el modal de edición de marcas.
 - 👁️ **Visualización**: Severidad visible en tooltips de mapas y lista lateral.

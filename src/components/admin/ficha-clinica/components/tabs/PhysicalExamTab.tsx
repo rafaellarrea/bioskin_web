@@ -62,13 +62,16 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
         
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 text-gray-700">Tipo de Lesión</label>
-          <select 
+          <input 
+            list="lesion-options-modal"
             value={editedMark.category}
             onChange={e => setEditedMark({...editedMark, category: e.target.value})}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-          >
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+            placeholder="Seleccione o escriba..."
+          />
+          <datalist id="lesion-options-modal">
+            {categories.map(c => <option key={c} value={c} />)}
+          </datalist>
         </div>
 
         <div className="mb-4">
@@ -393,16 +396,18 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Seleccionar Lesión para Marcar:</label>
-              <select 
+              <input 
+                list="lesion-options-main"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                <option value="">-- Seleccione una lesión --</option>
+                placeholder="Seleccione o escriba una lesión..."
+              />
+              <datalist id="lesion-options-main">
                 {LESION_CATALOG.map(l => (
-                  <option key={l} value={l}>{l}</option>
+                  <option key={l} value={l} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center overflow-auto">
