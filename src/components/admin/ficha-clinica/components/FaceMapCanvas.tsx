@@ -107,9 +107,9 @@ export default function FaceMapCanvas({
             const commonProps = {
               key: zone.id,
               className: `transition-all duration-200 ${!readOnly ? 'cursor-pointer pointer-events-auto' : ''}`,
-              fill: isHovered ? 'rgba(222, 184, 135, 0.3)' : 'rgba(200, 200, 200, 0.1)',
-              stroke: isHovered ? '#deb887' : '#e5e7eb',
-              strokeWidth: 0.002,
+              fill: isHovered ? 'rgba(222, 184, 135, 0.5)' : 'rgba(200, 200, 200, 0.3)',
+              stroke: isHovered ? '#deb887' : '#9ca3af',
+              strokeWidth: 0.005,
               onMouseEnter: () => !readOnly && setHoverZone(zone.id),
               onMouseLeave: () => !readOnly && setHoverZone(null),
               onClick: (e: React.MouseEvent) => handleZoneClick(e, zone.label)
