@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes Mapa Corporal (Final)**
+- 🎨 **Sticky Header**: Botones de vista ahora son "sticky" para estar siempre visibles.
+- 🐛 **Layout Fix**: Corregido problema de recorte (clipping) en contenedor flex centrado.
+- 👁️ **Visibilidad**: Botones con fondo sólido y mayor contraste.
+
 ### ✅ **Dec 22, 2025: UI Fixes Mapa Corporal**
 - 🎨 **Botones Vista**: Rediseño de botones Frontal/Posterior para mayor visibilidad y contraste.
 - 👁️ **UX**: Agregada etiqueta explícita "Vista:" para evitar confusión.

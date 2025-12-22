@@ -41,17 +41,17 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4 w-full">
-      {/* View Switcher */}
-      <div className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 shadow-sm mb-2">
-        <span className="text-sm font-semibold text-gray-600 px-2">Vista:</span>
-        <div className="flex bg-gray-100 p-1 rounded-md">
+    <div className="flex flex-col items-center space-y-4 w-full relative">
+      {/* View Switcher - Sticky Header */}
+      <div className="sticky top-0 z-50 flex items-center gap-3 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-gray-200 shadow-md mb-4 transition-all hover:shadow-lg">
+        <span className="text-sm font-bold text-gray-700 px-2 uppercase tracking-wide">Vista del Cuerpo:</span>
+        <div className="flex bg-gray-100 p-1.5 rounded-lg">
           <button
             type="button"
             onClick={() => setView('front')}
-            className={`px-6 py-2 rounded-md text-sm font-bold transition-all duration-200 ${
+            className={`px-6 py-2.5 rounded-md text-sm font-black tracking-wider transition-all duration-200 ${
               view === 'front'
-                ? 'bg-white text-[#deb887] shadow-sm ring-1 ring-gray-200'
+                ? 'bg-[#deb887] text-white shadow-md transform scale-105'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -60,9 +60,9 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
           <button
             type="button"
             onClick={() => setView('back')}
-            className={`px-6 py-2 rounded-md text-sm font-bold transition-all duration-200 ${
+            className={`px-6 py-2.5 rounded-md text-sm font-black tracking-wider transition-all duration-200 ${
               view === 'back'
-                ? 'bg-white text-[#deb887] shadow-sm ring-1 ring-gray-200'
+                ? 'bg-[#deb887] text-white shadow-md transform scale-105'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200'
             }`}
           >

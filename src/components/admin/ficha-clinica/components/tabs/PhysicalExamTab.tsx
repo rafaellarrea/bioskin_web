@@ -389,7 +389,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
               </select>
             </div>
 
-            <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-center overflow-auto">
+            <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex flex-col items-center overflow-auto">
               {activeTab === 'facial' ? (
                 <FaceMapCanvas 
                   marks={faceMarks} 
