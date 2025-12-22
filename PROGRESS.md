@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: Fix Persistencia Mapas Clínicos**
+- 🐛 **Bug Fix**: Corregido error de guardado en `physical_exams` por falta de columnas JSONB.
+- 🗄️ **Base de Datos**: Migración automática forzada para agregar columnas `face_map_data` y `body_map_data`.
+- 🔄 **Parsing**: Mejora en la carga de datos JSON en el frontend para evitar errores de formato.
+
 ### ✅ **Dec 22, 2025: Edición Avanzada de Marcadores (Ficha Clínica)**
 - ✏️ **Edición Modal**: Implementado modal para confirmar/editar detalles de la lesión al marcar.
 - 📝 **Zonas Manuales**: Permitir edición manual del nombre de la zona (útil para correcciones o zonas corporales específicas).

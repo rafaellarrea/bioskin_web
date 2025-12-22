@@ -115,8 +115,20 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   const loadExam = (exam: PhysicalExam) => {
     setCurrentExam(exam);
     try {
-      setFaceMarks(exam.face_map_data ? JSON.parse(exam.face_map_data) : []);
-      setBodyMarks(exam.body_map_data ? JSON.parse(exam.body_map_data) : []);
+      const parseData = (data: any) => {
+        if (!data) return [];
+        if (typeof data === 'string') {
+          try {
+            return JSON.parse(data);
+          } catch {
+            return [];
+          }
+        }
+        return data;
+      };
+
+      setFaceMarks(parseData(exam.face_map_data));
+      setBodyMarks(parseData(exam.body_map_data));
     } catch (e) {
       console.error("Error parsing map data", e);
       setFaceMarks([]);

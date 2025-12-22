@@ -24,14 +24,14 @@ export default async function handler(req, res) {
 
     // Auto-initialize database if not done yet in this instance
     // This ensures tables exist even if the database was reset
-    if (!dbInitialized) {
+    // FORCE INIT for now to ensure migrations run
+    if (true || !dbInitialized) {
       try {
         await initClinicalDatabase();
         dbInitialized = true;
-        console.log('✅ Database auto-initialized successfully');
+        // console.log('✅ Database auto-initialized successfully');
       } catch (initError) {
         console.error('⚠️ Auto-initialization warning:', initError.message);
-        // Continue anyway, maybe tables exist and init failed due to permissions or other non-critical issue
       }
     }
 
@@ -199,6 +199,8 @@ export default async function handler(req, res) {
       case 'savePhysicalExam':
         const { id: examId, record_id: pid_exam, created_at, ...examData } = body;
         
+        console.log('💾 Saving Physical Exam:', { examId, pid_exam, dataKeys: Object.keys(examData) });
+
         if (examId) {
            // Update existing exam
            const eFields = Object.keys(examData);
