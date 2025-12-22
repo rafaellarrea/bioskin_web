@@ -134,6 +134,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   // Modal State
   const [editingMark, setEditingMark] = useState<Mark | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tooltip, setTooltip] = useState<{ content: string, x: number, y: number } | null>(null);
 
   useEffect(() => {
     if (physicalExams.length > 0 && !currentExam.id) {
@@ -454,11 +455,19 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                 <div className="flex items-center gap-2">
                   <label className="block text-sm font-medium text-gray-700">{field.label}</label>
                   <div className="relative">
-                    <Info size={14} className="text-gray-400 cursor-help" />
-                    {/* Tooltip */}
-                    <div className="absolute right-0 top-6 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-3 z-[100] hidden group-hover:block text-xs text-gray-600 pointer-events-none">
-                      <div dangerouslySetInnerHTML={{ __html: PARAMETER_TOOLTIPS[key] || '' }} />
-                    </div>
+                    <Info 
+                      size={14} 
+                      className="text-gray-400 cursor-help"
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setTooltip({
+                          content: PARAMETER_TOOLTIPS[key] || '',
+                          x: rect.left - 270,
+                          y: rect.top
+                        });
+                      }}
+                      onMouseLeave={() => setTooltip(null)}
+                    />
                   </div>
                 </div>
                 <select
@@ -488,6 +497,15 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
           </div>
         </div>
       </div>
+
+      {tooltip && (
+        <div 
+          className="fixed w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-3 z-[9999] text-xs text-gray-600 pointer-events-none animate-in fade-in duration-200"
+          style={{ left: tooltip.x, top: tooltip.y }}
+        >
+          <div dangerouslySetInnerHTML={{ __html: tooltip.content }} />
+        </div>
+      )}
     </div>
   );
 }

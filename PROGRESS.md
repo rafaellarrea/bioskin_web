@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes & Tooltips (Final)**
+- 🐛 **Tooltips**: Implementado renderizado `fixed` a nivel raíz para evitar recorte por `overflow` en contenedores laterales.
+- 📏 **Mapa Facial**: Reducido ancho máximo a 450px para mejor proporción.
+
 ### ✅ **Dec 22, 2025: UI Fixes & Tooltips**
 - 📏 **Mapa Facial**: Reducido ancho máximo a 450px para mejor proporción.
 - 🐛 **Tooltips**: Aumentado `z-index` a 100 y agregado `pointer-events-none` para evitar conflictos de superposición con el mapa.
