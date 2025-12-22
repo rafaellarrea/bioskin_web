@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@react-three/drei": "^10.7.7",
+    "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/three": "^0.182.0",
