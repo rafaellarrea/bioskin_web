@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useMemo } from 'react';
 import { X } from 'lucide-react';
-import faceZonesData from '../../../../../data/face-zones.json';
+import faceZonesData from '../../../../data/face-zones.json';
 
 export interface Mark {
   id: string;
