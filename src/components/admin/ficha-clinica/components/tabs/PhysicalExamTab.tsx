@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info } from 'lucide-react';
+import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info, Edit2 } from 'lucide-react';
 import { CLINICAL_FIELDS, LESION_CATALOG, PARAMETER_TOOLTIPS } from '../../../../../data/clinical-catalogs';
 import FaceMapCanvas, { Mark } from '../FaceMapCanvas';
 import BodyMapCanvas from '../BodyMapCanvas';
@@ -47,6 +47,48 @@ const EMPTY_EXAM: Omit<PhysicalExam, 'record_id'> = {
   body_map_data: '[]'
 };
 
+// Modal Component for Editing Marks
+const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onSave: (m: Mark) => void, onCancel: () => void, categories: string[] }) => {
+  const [editedMark, setEditedMark] = useState<Mark>(mark);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-96 animate-in fade-in zoom-in duration-200">
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Detalles de la Lesión</h3>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 text-gray-700">Tipo de Lesión</label>
+          <select 
+            value={editedMark.category}
+            onChange={e => setEditedMark({...editedMark, category: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+          >
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1 text-gray-700">Zona / Ubicación</label>
+          <input 
+            type="text"
+            value={editedMark.notes || ''}
+            onChange={e => setEditedMark({...editedMark, notes: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+            placeholder="Ej: Mejilla derecha, Frente..."
+            autoFocus
+          />
+          <p className="text-xs text-gray-500 mt-1">Puede ajustar el nombre de la zona manualmente.</p>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button onClick={onCancel} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancelar</button>
+          <button onClick={() => onSave(editedMark)} className="px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PhysicalExamTab({ recordId, physicalExams, patientName, onSave }: PhysicalExamTabProps) {
   const [currentExam, setCurrentExam] = useState<PhysicalExam>({ ...EMPTY_EXAM, record_id: recordId });
   const [saving, setSaving] = useState(false);
@@ -57,6 +99,10 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   const [bodyMarks, setBodyMarks] = useState<Mark[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'facial' | 'corporal'>('facial');
+
+  // Modal State
+  const [editingMark, setEditingMark] = useState<Mark | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (physicalExams.length > 0 && !currentExam.id) {
@@ -158,18 +204,37 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   };
 
   // Map Handlers
-  const addFaceMark = (mark: Omit<Mark, 'id'>) => {
+  const initiateAddMark = (mark: Omit<Mark, 'id'>) => {
     const newMark = { ...mark, id: Date.now().toString() };
-    setFaceMarks(prev => [...prev, newMark]);
+    setEditingMark(newMark);
+    setIsModalOpen(true);
+  };
+
+  const initiateEditMark = (mark: Mark) => {
+    setEditingMark(mark);
+    setIsModalOpen(true);
+  };
+
+  const saveMarkFromModal = (mark: Mark) => {
+    if (activeTab === 'facial') {
+      setFaceMarks(prev => {
+        const exists = prev.find(m => m.id === mark.id);
+        if (exists) return prev.map(m => m.id === mark.id ? mark : m);
+        return [...prev, mark];
+      });
+    } else {
+      setBodyMarks(prev => {
+        const exists = prev.find(m => m.id === mark.id);
+        if (exists) return prev.map(m => m.id === mark.id ? mark : m);
+        return [...prev, mark];
+      });
+    }
+    setIsModalOpen(false);
+    setEditingMark(null);
   };
 
   const removeFaceMark = (id: string) => {
     setFaceMarks(prev => prev.filter(m => m.id !== id));
-  };
-
-  const addBodyMark = (mark: Omit<Mark, 'id'>) => {
-    const newMark = { ...mark, id: Date.now().toString() };
-    setBodyMarks(prev => [...prev, newMark]);
   };
 
   const removeBodyMark = (id: string) => {
@@ -178,6 +243,14 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
 
   return (
     <div className="flex h-[800px] gap-4">
+      {isModalOpen && editingMark && (
+        <MarkEditModal 
+          mark={editingMark} 
+          onSave={saveMarkFromModal} 
+          onCancel={() => setIsModalOpen(false)}
+          categories={LESION_CATALOG}
+        />
+      )}
       {/* Sidebar List */}
       <div className="w-64 border-r border-gray-200 pr-4 flex flex-col gap-2 shrink-0">
         <div className="font-semibold text-gray-700 mb-2">Historial</div>
@@ -277,14 +350,14 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
               {activeTab === 'facial' ? (
                 <FaceMapCanvas 
                   marks={faceMarks} 
-                  onAddMark={addFaceMark} 
+                  onAddMark={initiateAddMark} 
                   onRemoveMark={removeFaceMark}
                   selectedCategory={selectedCategory}
                 />
               ) : (
                 <BodyMapCanvas 
                   marks={bodyMarks} 
-                  onAddMark={addBodyMark} 
+                  onAddMark={initiateAddMark} 
                   onRemoveMark={removeBodyMark}
                   selectedCategory={selectedCategory}
                 />
@@ -297,12 +370,22 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                 {(activeTab === 'facial' ? faceMarks : bodyMarks).map((mark, i) => (
                   <div key={mark.id} className="flex justify-between items-center p-2 border-b last:border-0 hover:bg-gray-50 text-sm">
                     <span>{i + 1}. {mark.category} {mark.notes && `(${mark.notes})`}</span>
-                    <button 
-                      onClick={() => activeTab === 'facial' ? removeFaceMark(mark.id) : removeBodyMark(mark.id)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => initiateEditMark(mark)}
+                        className="text-blue-500 hover:text-blue-700 p-1"
+                        title="Editar"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button 
+                        onClick={() => activeTab === 'facial' ? removeFaceMark(mark.id) : removeBodyMark(mark.id)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                        title="Eliminar"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {(activeTab === 'facial' ? faceMarks : bodyMarks).length === 0 && (

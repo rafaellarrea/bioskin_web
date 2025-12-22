@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: Edición Avanzada de Marcadores (Ficha Clínica)**
+- ✏️ **Edición Modal**: Implementado modal para confirmar/editar detalles de la lesión al marcar.
+- 📝 **Zonas Manuales**: Permitir edición manual del nombre de la zona (útil para correcciones o zonas corporales específicas).
+- 🔄 **Edición Posterior**: Agregada capacidad de editar marcadores ya existentes en la lista.
+
 ### ✅ **Dec 22, 2025: Mapeo Corporal 2D (Ficha Clínica)**
 - 🗺️ **Mapas Interactivos**: Implementado mapeo 2D para rostro y cuerpo (frontal/posterior) usando imágenes base.
 - 🎨 **UI/UX**: Reemplazo de modelo 3D por sistema de marcadores sobre imágenes PNG para mayor compatibilidad.
