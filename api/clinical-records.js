@@ -1,4 +1,4 @@
-import pool, { initClinicalDatabase } from '../lib/neon-clinical-db.js';
+import { getPool, initClinicalDatabase } from '../lib/neon-clinical-db.js';
 import { getOpenAIClient } from '../lib/ai-service.js';
 
 // Global flag to track initialization in the current container instance
@@ -17,6 +17,9 @@ export default async function handler(req, res) {
   try {
     const { action } = req.query;
     const body = req.body || {};
+
+    // Get pool instance lazily
+    const pool = getPool();
 
     if (!pool) {
       console.error('❌ Database connection missing');
@@ -37,6 +40,9 @@ export default async function handler(req, res) {
     }
 
     switch (action) {
+      case 'health':
+        return res.status(200).json({ status: 'ok', message: 'Clinical Records API is running' });
+
       case 'init':
         await initClinicalDatabase();
         return res.status(200).json({ message: 'Database initialized' });
