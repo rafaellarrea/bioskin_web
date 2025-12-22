@@ -88,7 +88,7 @@ export default function FaceMapCanvas({
   };
 
   return (
-    <div className="relative w-full max-w-[600px] h-[500px] bg-white border border-gray-200 rounded-lg overflow-y-auto select-none shadow-sm">
+    <div className="relative w-full max-w-[450px] h-[500px] bg-white border border-gray-200 rounded-lg overflow-y-auto select-none shadow-sm">
       {/* Map Container */}
       <div 
         ref={containerRef}

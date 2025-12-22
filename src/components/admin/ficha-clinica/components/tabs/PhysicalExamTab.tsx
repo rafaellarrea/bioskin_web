@@ -456,7 +456,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                   <div className="relative">
                     <Info size={14} className="text-gray-400 cursor-help" />
                     {/* Tooltip */}
-                    <div className="absolute right-0 top-6 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-3 z-50 hidden group-hover:block text-xs text-gray-600">
+                    <div className="absolute right-0 top-6 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-3 z-[100] hidden group-hover:block text-xs text-gray-600 pointer-events-none">
                       <div dangerouslySetInnerHTML={{ __html: PARAMETER_TOOLTIPS[key] || '' }} />
                     </div>
                   </div>

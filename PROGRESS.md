@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes & Tooltips**
+- 📏 **Mapa Facial**: Reducido ancho máximo a 450px para mejor proporción.
+- 🐛 **Tooltips**: Aumentado `z-index` a 100 y agregado `pointer-events-none` para evitar conflictos de superposición con el mapa.
+
 ### ✅ **Dec 22, 2025: UI Fixes Mapa Facial (Final)**
 - 📜 **Scroll**: Implementado contenedor con scroll vertical (`overflow-y-auto`) y altura fija de 500px.
 - 📏 **Dimensiones**: Imagen ajustada a `w-full h-auto` para ocupar todo el ancho disponible sin recortes.
