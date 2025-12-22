@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Save, AlertCircle, Plus, Trash2, Copy, Printer } from 'lucide-react';
 import diagnosisOptions from '../../data/diagnosis_options.json';
 
 interface Diagnosis {
-  id: number;
-  date: string;
+  id?: number;
+  record_id: number;
+  date?: string;
   diagnosis_text: string;
   cie10_code: string;
   type: string;
@@ -15,181 +16,279 @@ interface Diagnosis {
 interface DiagnosisTabProps {
   recordId: number;
   diagnoses: Diagnosis[];
+  patientName?: string;
   onSave: () => void;
 }
 
-export default function DiagnosisTab({ recordId, diagnoses, onSave }: DiagnosisTabProps) {
-  const [showForm, setShowForm] = useState(false);
-  const [newDiagnosis, setNewDiagnosis] = useState({
-    diagnosis_text: '',
-    cie10_code: '',
-    type: 'presumptive',
-    severity: 'Leve',
-    notes: ''
-  });
-  const [saving, setSaving] = useState(false);
+const EMPTY_DIAGNOSIS: Omit<Diagnosis, 'record_id'> = {
+  diagnosis_text: '',
+  cie10_code: '',
+  type: 'presumptive',
+  severity: 'Leve',
+  notes: ''
+};
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+export default function DiagnosisTab({ recordId, diagnoses, patientName, onSave }: DiagnosisTabProps) {
+  const [currentDiagnosis, setCurrentDiagnosis] = useState<Diagnosis>({ ...EMPTY_DIAGNOSIS, record_id: recordId });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  useEffect(() => {
+    if (diagnoses.length > 0 && !currentDiagnosis.id) {
+      setCurrentDiagnosis(diagnoses[0]);
+    } else if (diagnoses.length === 0 && !currentDiagnosis.id) {
+      setCurrentDiagnosis({ ...EMPTY_DIAGNOSIS, record_id: recordId });
+    }
+  }, [diagnoses, recordId]);
+
+  const handleNew = () => {
+    setCurrentDiagnosis({ ...EMPTY_DIAGNOSIS, record_id: recordId });
+    setMessage(null);
+  };
+
+  const handleDuplicate = () => {
+    const { id, date, ...rest } = currentDiagnosis;
+    setCurrentDiagnosis({ ...rest, record_id: recordId });
+    setMessage({ type: 'success', text: 'Diagnóstico duplicado. Guarde para crear uno nuevo.' });
+  };
+
+  const handleDelete = async () => {
+    if (!currentDiagnosis.id || !confirm('¿Eliminar este diagnóstico?')) return;
+    
     try {
-      const response = await fetch('/api/clinical-records?action=addDiagnosis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ record_id: recordId, ...newDiagnosis }),
+      const response = await fetch(`/api/clinical-records?action=deleteDiagnosis&id=${currentDiagnosis.id}`, {
+        method: 'DELETE'
       });
 
       if (response.ok) {
         onSave();
-        setShowForm(false);
-        setNewDiagnosis({
-          diagnosis_text: '',
-          cie10_code: '',
-          type: 'presumptive',
-          severity: 'Leve',
-          notes: ''
-        });
+        handleNew();
+        alert('Diagnóstico eliminado correctamente');
+      } else {
+        throw new Error('Error al eliminar');
       }
     } catch (error) {
-      console.error('Error adding diagnosis:', error);
+      console.error('Error deleting diagnosis:', error);
+      alert('Error al eliminar el diagnóstico');
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/clinical-records?action=saveDiagnosis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentDiagnosis),
+      });
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Diagnóstico guardado correctamente' });
+        onSave();
+      } else {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Error al guardar');
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Error al guardar el diagnóstico' });
     } finally {
       setSaving(false);
     }
   };
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const html = `
+      <html>
+        <head>
+          <title>Diagnóstico - ${patientName || 'Paciente'}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .header h1 { margin: 0; font-size: 24px; color: #deb887; }
+            .info { margin-bottom: 20px; }
+            .info p { margin: 5px 0; }
+            .section { margin-bottom: 20px; }
+            .section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #deb887; }
+            .field { margin-bottom: 10px; }
+            .label { font-weight: bold; color: #555; }
+            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>BIOSKIN</h1>
+            <p>Dermatología y Medicina Estética</p>
+          </div>
+          
+          <div class="info">
+            <p><strong>Paciente:</strong> ${patientName || 'N/A'}</p>
+            <p><strong>Fecha:</strong> ${currentDiagnosis.date ? new Date(currentDiagnosis.date).toLocaleDateString() : new Date().toLocaleDateString()}</p>
+          </div>
+
+          <div class="section">
+            <h3>Detalle del Diagnóstico</h3>
+            <div class="field"><span class="label">Diagnóstico:</span> ${currentDiagnosis.diagnosis_text}</div>
+            <div class="field"><span class="label">CIE-10:</span> ${currentDiagnosis.cie10_code || '-'}</div>
+            <div class="field"><span class="label">Tipo:</span> ${currentDiagnosis.type}</div>
+            <div class="field"><span class="label">Severidad:</span> ${currentDiagnosis.severity}</div>
+          </div>
+
+          <div class="section">
+            <h3>Notas Adicionales</h3>
+            <p>${currentDiagnosis.notes || 'Sin notas registradas.'}</p>
+          </div>
+
+          <div class="footer">
+            <p>_____________________________</p>
+            <p>Firma Profesional</p>
+          </div>
+          
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">Diagnósticos</h3>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-[#deb887] text-white px-4 py-2 rounded-lg hover:bg-[#c5a075] transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Diagnóstico
-        </button>
-      </div>
-
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-xl border border-gray-200 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Diagnóstico</label>
-              <input
-                type="text"
-                required
-                list="diagnoses-list"
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-                value={newDiagnosis.diagnosis_text}
-                onChange={e => setNewDiagnosis({...newDiagnosis, diagnosis_text: e.target.value})}
-                placeholder="Ej: Acné Vulgar"
-              />
-              <datalist id="diagnoses-list">
-                {Object.values(diagnosisOptions).flat().map((d: string, i: number) => (
-                  <option key={i} value={d} />
-                ))}
-              </datalist>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">CIE-10 (Opcional)</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-                value={newDiagnosis.cie10_code}
-                onChange={e => setNewDiagnosis({...newDiagnosis, cie10_code: e.target.value})}
-                placeholder="Ej: L70.0"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Tipo</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-                value={newDiagnosis.type}
-                onChange={e => setNewDiagnosis({...newDiagnosis, type: e.target.value})}
-              >
-                <option value="presumptive">Presuntivo</option>
-                <option value="definitive">Definitivo</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Severidad</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-                value={newDiagnosis.severity}
-                onChange={e => setNewDiagnosis({...newDiagnosis, severity: e.target.value})}
-              >
-                <option value="Leve">Leve</option>
-                <option value="Moderada">Moderada</option>
-                <option value="Severa">Severa</option>
-              </select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Notas Adicionales</label>
-            <textarea
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-              value={newDiagnosis.notes}
-              onChange={e => setNewDiagnosis({...newDiagnosis, notes: e.target.value})}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+    <div className="flex h-[600px] gap-4">
+      {/* Sidebar List */}
+      <div className="w-1/4 border-r border-gray-200 pr-4 flex flex-col gap-2">
+        <div className="font-semibold text-gray-700 mb-2">Historial de Diagnósticos</div>
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {diagnoses.map((diag, index) => (
+            <div
+              key={diag.id || index}
+              onClick={() => setCurrentDiagnosis(diag)}
+              className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+                currentDiagnosis.id === diag.id 
+                  ? 'bg-[#deb887] text-white border-[#deb887]' 
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              }`}
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-[#deb887] text-white px-4 py-2 rounded-lg hover:bg-[#c5a075] transition-colors"
-            >
-              {saving ? 'Guardando...' : 'Agregar'}
-            </button>
-          </div>
-        </form>
-      )}
-
-      <div className="space-y-4">
-        {diagnoses.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-            No hay diagnósticos registrados
-          </div>
-        ) : (
-          diagnoses.map((diag) => (
-            <div key={diag.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-gray-900">{diag.diagnosis_text}</h4>
-                    {diag.cie10_code && (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                        {diag.cie10_code}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                    <span>{new Date(diag.date).toLocaleDateString()}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${
-                      diag.type === 'definitive' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {diag.type === 'definitive' ? 'Definitivo' : 'Presuntivo'}
-                    </span>
-                    <span className="text-gray-400">|</span>
-                    <span>{diag.severity}</span>
-                  </div>
-                  {diag.notes && (
-                    <p className="text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded">
-                      {diag.notes}
-                    </p>
-                  )}
-                </div>
+              <div className="font-medium truncate">{diag.diagnosis_text}</div>
+              <div className="text-sm opacity-80">
+                {diag.date ? new Date(diag.date).toLocaleDateString() : 'Nuevo'}
               </div>
             </div>
-          ))
+          ))}
+          {diagnoses.length === 0 && (
+            <div className="text-gray-400 text-sm text-center py-4">No hay diagnósticos registrados</div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Form */}
+      <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+        {/* Toolbar */}
+        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg sticky top-0 z-10">
+          <div className="flex gap-2">
+            <button onClick={handleNew} className="p-2 hover:bg-gray-200 rounded-lg" title="Nuevo Diagnóstico">
+              <Plus className="w-5 h-5 text-gray-600" />
+            </button>
+            <button onClick={handleSubmit} disabled={saving} className="p-2 hover:bg-gray-200 rounded-lg" title="Guardar">
+              <Save className="w-5 h-5 text-gray-600" />
+            </button>
+            <button onClick={handleDuplicate} className="p-2 hover:bg-gray-200 rounded-lg" title="Duplicar">
+              <Copy className="w-5 h-5 text-gray-600" />
+            </button>
+            <button onClick={handleDelete} className="p-2 hover:bg-gray-200 rounded-lg" title="Eliminar">
+              <Trash2 className="w-5 h-5 text-red-500" />
+            </button>
+            <button onClick={handlePrint} className="p-2 hover:bg-gray-200 rounded-lg" title="Imprimir">
+              <Printer className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+          <div className="text-sm text-gray-500">
+            {currentDiagnosis.id ? `Editando diagnóstico del ${new Date(currentDiagnosis.date!).toLocaleDateString()}` : 'Nuevo Diagnóstico'}
+          </div>
+        </div>
+
+        {message && (
+          <div className={`p-4 rounded-lg flex items-center gap-2 ${
+            message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+          }`}>
+            <AlertCircle className="w-5 h-5" />
+            {message.text}
+          </div>
         )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Diagnóstico</label>
+            <input
+              type="text"
+              required
+              list="diagnoses-list"
+              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              value={currentDiagnosis.diagnosis_text}
+              onChange={e => setCurrentDiagnosis({...currentDiagnosis, diagnosis_text: e.target.value})}
+              placeholder="Ej: Acné Vulgar"
+            />
+            <datalist id="diagnoses-list">
+              {Object.values(diagnosisOptions).flat().map((d: string, i: number) => (
+                <option key={i} value={d} />
+              ))}
+            </datalist>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">CIE-10 (Opcional)</label>
+            <input
+              type="text"
+              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              value={currentDiagnosis.cie10_code}
+              onChange={e => setCurrentDiagnosis({...currentDiagnosis, cie10_code: e.target.value})}
+              placeholder="Ej: L70.0"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Tipo</label>
+            <select
+              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              value={currentDiagnosis.type}
+              onChange={e => setCurrentDiagnosis({...currentDiagnosis, type: e.target.value})}
+            >
+              <option value="presumptive">Presuntivo</option>
+              <option value="confirmed">Confirmado</option>
+              <option value="differential">Diferencial</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Severidad</label>
+            <select
+              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              value={currentDiagnosis.severity}
+              onChange={e => setCurrentDiagnosis({...currentDiagnosis, severity: e.target.value})}
+            >
+              <option value="Leve">Leve</option>
+              <option value="Moderado">Moderado</option>
+              <option value="Severo">Severo</option>
+            </select>
+          </div>
+
+          <div className="col-span-1 md:col-span-2 space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Notas / Observaciones</label>
+            <textarea
+              rows={4}
+              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
+              value={currentDiagnosis.notes}
+              onChange={e => setCurrentDiagnosis({...currentDiagnosis, notes: e.target.value})}
+              placeholder="Detalles adicionales del diagnóstico..."
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

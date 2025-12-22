@@ -195,6 +195,7 @@ export default function ClinicalRecordManager() {
               <DiagnosisTab 
                 recordId={recordData?.recordId} 
                 diagnoses={recordData?.diagnoses || []}
+                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
                 onSave={fetchData}
               />
             )}

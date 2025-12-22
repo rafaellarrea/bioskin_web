@@ -191,13 +191,31 @@ export default async function handler(req, res) {
         await pool.query('DELETE FROM physical_exams WHERE id = $1', [delExamId]);
         return res.status(200).json({ success: true });
 
-      case 'addDiagnosis':
-        const { record_id: did, ...diagData } = body;
-        const dFields = ['record_id', ...Object.keys(diagData)];
-        const dValues = [did, ...Object.values(diagData)];
-        const dParams = dFields.map((_, i) => `$${i + 1}`).join(', ');
-        const newDiag = await pool.query(`INSERT INTO diagnoses (${dFields.join(', ')}) VALUES (${dParams}) RETURNING *`, dValues);
-        return res.status(201).json(newDiag.rows[0]);
+      case 'saveDiagnosis':
+        const { id: diagId, record_id: did, date: diagDate, ...diagData } = body;
+        
+        if (diagId) {
+           // Update
+           const dFields = Object.keys(diagData);
+           const dValues = Object.values(diagData);
+           if (dFields.length > 0) {
+             const dSet = dFields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+             await pool.query(`UPDATE diagnoses SET ${dSet} WHERE id = $1`, [diagId, ...dValues]);
+           }
+           return res.status(200).json({ success: true });
+        } else {
+           // Insert
+           const dFields = ['record_id', ...Object.keys(diagData)];
+           const dValues = [did, ...Object.values(diagData)];
+           const dParams = dFields.map((_, i) => `$${i + 1}`).join(', ');
+           const newDiag = await pool.query(`INSERT INTO diagnoses (${dFields.join(', ')}) VALUES (${dParams}) RETURNING *`, dValues);
+           return res.status(201).json(newDiag.rows[0]);
+        }
+
+      case 'deleteDiagnosis':
+        const { id: delDiagId } = req.query;
+        await pool.query('DELETE FROM diagnoses WHERE id = $1', [delDiagId]);
+        return res.status(200).json({ success: true });
 
       case 'addTreatment':
         const { record_id: tid, ...treatData } = body;
