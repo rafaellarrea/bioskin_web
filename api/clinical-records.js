@@ -162,16 +162,23 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true });
 
       case 'savePhysicalExam':
-        const { id: examId, record_id: pid_exam, ...examData } = body;
+        const { id: examId, record_id: pid_exam, created_at, ...examData } = body;
         
         if (examId) {
            // Update existing exam
            const eFields = Object.keys(examData);
            const eValues = Object.values(examData);
-           const eSet = eFields.map((f, i) => `${f} = $${i + 2}`).join(', ');
-           await pool.query(`UPDATE physical_exams SET ${eSet} WHERE id = $1`, [examId, ...eValues]);
+           
+           if (eFields.length > 0) {
+             const eSet = eFields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+             await pool.query(`UPDATE physical_exams SET ${eSet} WHERE id = $1`, [examId, ...eValues]);
+           }
         } else {
            // Insert new exam
+           if (!pid_exam) {
+             return res.status(400).json({ error: 'Falta el ID del expediente (record_id)' });
+           }
+
            const eFields = ['record_id', ...Object.keys(examData)];
            const eValues = [pid_exam, ...Object.values(examData)];
            const eParams = eFields.map((_, i) => `$${i + 1}`).join(', ');

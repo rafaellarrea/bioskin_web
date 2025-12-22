@@ -98,10 +98,11 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
         setMessage({ type: 'success', text: 'Examen físico guardado correctamente' });
         onSave();
       } else {
-        throw new Error('Error al guardar');
+        const errData = await response.json();
+        throw new Error(errData.error || 'Error al guardar');
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Error al guardar el examen físico' });
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Error al guardar el examen físico' });
     } finally {
       setSaving(false);
     }
