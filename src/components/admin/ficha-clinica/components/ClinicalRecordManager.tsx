@@ -15,6 +15,7 @@ import HistoryTab from './tabs/HistoryTab';
 import PhysicalExamTab from './tabs/PhysicalExamTab';
 import DiagnosisTab from './tabs/DiagnosisTab';
 import TreatmentTab from './tabs/TreatmentTab';
+import PrescriptionTab from './tabs/PrescriptionTab';
 
 interface TabButtonProps {
   id: string;
@@ -204,9 +205,10 @@ export default function ClinicalRecordManager() {
               />
             )}
             {activeTab === 'prescription' && (
-              <div className="text-center py-12 text-gray-500">
-                Módulo de Recetas en desarrollo
-              </div>
+              <PrescriptionTab 
+                recordId={recordData?.recordId} 
+                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+              />
             )}
             {activeTab === 'consent' && (
               <div className="text-center py-12 text-gray-500">
