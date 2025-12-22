@@ -151,7 +151,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
         />
 
         <HistoryField
-          label="Antecedentes No Patológicos"
+          label="Hábitos"
           name="non_pathological"
           value={formData.non_pathological}
           onChange={handleChange}

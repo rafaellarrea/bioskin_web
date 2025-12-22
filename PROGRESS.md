@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: AI Diagnosis & History Update**
+- 🧠 **IA Diagnóstico**: Implementado botón para generar diagnóstico preliminar y notas clínicas usando OpenAI basado en lesiones marcadas.
+- 📝 **Antecedentes**: Renombrado "Antecedentes No Patológicos" a "Hábitos" para mayor claridad.
+- ⚡ **API**: Consolidada función de diagnóstico IA en `clinical-records.js` para mantener límite de 12 funciones.
+
 ### ✅ **Dec 22, 2025: UX Improvement - Lesion Autocomplete**
 - ⌨️ **Input Híbrido**: Reemplazados selectores fijos por inputs con `datalist`.
 - 🔍 **Funcionalidad**: Permite buscar en el catálogo existente O escribir una lesión personalizada si no existe.

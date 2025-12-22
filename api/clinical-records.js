@@ -1,4 +1,5 @@
 import pool, { initClinicalDatabase } from '../lib/neon-clinical-db.js';
+import { getOpenAIClient } from '../lib/ai-service.js';
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
@@ -326,6 +327,78 @@ export default async function handler(req, res) {
         const { id: delTemplId } = req.query;
         await pool.query('DELETE FROM prescription_templates WHERE id = $1', [delTemplId]);
         return res.status(200).json({ message: 'Template deleted' });
+
+      case 'generateDiagnosisAI':
+        const { examData, patientName } = body;
+        if (!examData) return res.status(400).json({ error: 'Missing exam data' });
+
+        const openai = getOpenAIClient();
+        
+        // 1. Parse lesions
+        let lesions = [];
+        try {
+          const faceMarks = typeof examData.face_map_data === 'string' ? JSON.parse(examData.face_map_data || '[]') : (examData.face_map_data || []);
+          const bodyMarks = typeof examData.body_map_data === 'string' ? JSON.parse(examData.body_map_data || '[]') : (examData.body_map_data || []);
+          lesions = [...faceMarks, ...bodyMarks];
+        } catch (e) {
+          console.error('Error parsing map data:', e);
+        }
+
+        const lesionNames = [...new Set(lesions.map(l => l.category))];
+        let linkedDiagnostics = [];
+
+        // 2. Try to fetch linked diagnostics from DB (if table exists)
+        if (lesionNames.length > 0) {
+          try {
+            // Check if table exists first to avoid error
+            const tableCheck = await pool.query("SELECT to_regclass('public.lesiones_maestras')");
+            if (tableCheck.rows[0].to_regclass) {
+              const placeholders = lesionNames.map((_, i) => `$${i + 1}`).join(',');
+              const query = `SELECT diagnosticos_vinculados FROM lesiones_maestras WHERE nombre IN (${placeholders})`;
+              const results = await pool.query(query, lesionNames);
+              
+              results.rows.forEach(row => {
+                if (row.diagnosticos_vinculados) {
+                  const diags = row.diagnosticos_vinculados.split(';').map(d => d.trim());
+                  linkedDiagnostics.push(...diags);
+                }
+              });
+            }
+          } catch (dbError) {
+            console.warn('Warning: Could not fetch linked diagnostics from DB:', dbError.message);
+          }
+        }
+        linkedDiagnostics = [...new Set(linkedDiagnostics)];
+
+        // 3. Call OpenAI
+        const systemPrompt = `Eres un dermatólogo experto y asistente médico de IA. Tu tarea es analizar los datos del examen físico de un paciente y sugerir un diagnóstico preliminar y notas clínicas detalladas.
+        
+        Utiliza la siguiente información:
+        - Datos del paciente: ${patientName || 'Paciente'}
+        - Tipo de piel: ${examData.skin_type || 'No especificado'}
+        - Fototipo: ${examData.phototype || 'No especificado'}
+        - Escala Glogau: ${examData.glogau_scale || 'No especificado'}
+        - Descripción de lesiones: ${examData.lesions_description || 'Sin descripción adicional'}
+        - Lesiones identificadas: ${lesionNames.join(', ') || 'Ninguna'}
+        - Diagnósticos asociados (BD): ${linkedDiagnostics.join(', ') || 'Ninguno (Usar conocimiento médico general)'}
+        
+        Instrucciones:
+        1. Genera un "Diagnóstico Preliminar" conciso basado en las lesiones y los diagnósticos asociados. Si hay múltiples posibilidades, lístalas por probabilidad.
+        2. Genera "Notas/Observaciones" detalladas que justifiquen el diagnóstico basándose en los parámetros clínicos (tipo de piel, fototipo, Glogau) y las lesiones encontradas. Incluye recomendaciones generales de estudio o tratamiento si aplica.
+        3. Mantén un tono profesional, médico y objetivo.
+        4. Responde SOLAMENTE en formato JSON válido con las claves "diagnosis" y "notes".`;
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Genera el diagnóstico y las notas clínicas." }
+          ],
+          response_format: { type: "json_object" }
+        });
+
+        const result = JSON.parse(completion.choices[0].message.content);
+        return res.status(200).json(result);
 
       default:
         return res.status(400).json({ error: 'Invalid action' });

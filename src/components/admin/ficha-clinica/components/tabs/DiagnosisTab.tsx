@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Plus, Trash2, Copy, Printer } from 'lucide-react';
+import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Sparkles } from 'lucide-react';
 import diagnosisOptions from '../../data/diagnosis_options.json';
 
 interface Diagnosis {
@@ -13,9 +13,20 @@ interface Diagnosis {
   notes: string;
 }
 
+interface PhysicalExam {
+  id?: number;
+  face_map_data?: string;
+  body_map_data?: string;
+  skin_type?: string;
+  phototype?: string;
+  glogau_scale?: string;
+  lesions_description?: string;
+}
+
 interface DiagnosisTabProps {
   recordId: number;
   diagnoses: Diagnosis[];
+  physicalExams?: PhysicalExam[];
   patientName?: string;
   onSave: () => void;
 }
@@ -28,9 +39,10 @@ const EMPTY_DIAGNOSIS: Omit<Diagnosis, 'record_id'> = {
   notes: ''
 };
 
-export default function DiagnosisTab({ recordId, diagnoses, patientName, onSave }: DiagnosisTabProps) {
+export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], patientName, onSave }: DiagnosisTabProps) {
   const [currentDiagnosis, setCurrentDiagnosis] = useState<Diagnosis>({ ...EMPTY_DIAGNOSIS, record_id: recordId });
   const [saving, setSaving] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
@@ -70,6 +82,51 @@ export default function DiagnosisTab({ recordId, diagnoses, patientName, onSave 
     } catch (error) {
       console.error('Error deleting diagnosis:', error);
       alert('Error al eliminar el diagnóstico');
+    }
+  };
+
+  const handleGenerateAI = async () => {
+    if (!physicalExams || physicalExams.length === 0) {
+      alert('No hay examen físico registrado para generar el diagnóstico. Por favor complete el examen físico primero.');
+      return;
+    }
+
+    // Use the most recent exam
+    const latestExam = physicalExams[physicalExams.length - 1];
+    
+    setGeneratingAI(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/clinical-records?action=generateDiagnosisAI', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          examData: latestExam,
+          patientName
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Error al generar diagnóstico con IA');
+      }
+
+      const data = await response.json();
+      
+      setCurrentDiagnosis(prev => ({
+        ...prev,
+        diagnosis_text: data.diagnosis || prev.diagnosis_text,
+        notes: data.notes || prev.notes
+      }));
+      
+      setMessage({ type: 'success', text: 'Diagnóstico generado por IA correctamente' });
+
+    } catch (error: any) {
+      console.error('AI Generation error:', error);
+      setMessage({ type: 'error', text: error.message || 'Error al generar diagnóstico con IA' });
+    } finally {
+      setGeneratingAI(false);
     }
   };
 
@@ -206,6 +263,15 @@ export default function DiagnosisTab({ recordId, diagnoses, patientName, onSave 
             </button>
             <button onClick={handlePrint} className="p-2 hover:bg-gray-200 rounded-lg" title="Imprimir">
               <Printer className="w-5 h-5 text-gray-600" />
+            </button>
+            <button 
+              onClick={handleGenerateAI} 
+              disabled={generatingAI} 
+              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+              title="Generar Diagnóstico con IA"
+            >
+              <Sparkles className={`w-4 h-4 ${generatingAI ? 'animate-spin' : ''}`} />
+              <span className="text-sm font-medium">{generatingAI ? 'Generando...' : 'Diagnóstico IA'}</span>
             </button>
           </div>
           <div className="text-sm text-gray-500">
