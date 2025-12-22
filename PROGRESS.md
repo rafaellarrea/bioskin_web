@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes Mapa Facial**
+- 📏 **Dimensiones**: Eliminada restricción cuadrada y límite de 500px.
+- 📜 **Scroll**: Aumentada altura a 800px para mejor visualización de detalles, habilitando scroll en el contenedor.
+- 🖼️ **Aspect Ratio**: Imagen ahora usa `object-contain` y tamaño natural para evitar recortes.
+
 ### ✅ **Dec 22, 2025: UI Fixes Mapa Corporal (Final)**
 - 🎨 **Sticky Header**: Botones de vista ahora son "sticky" para estar siempre visibles.
 - 🐛 **Layout Fix**: Corregido problema de recorte (clipping) en contenedor flex centrado.
