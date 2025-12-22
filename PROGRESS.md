@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: Mapeo Corporal 2D (Ficha Clínica)**
+- 🗺️ **Mapas Interactivos**: Implementado mapeo 2D para rostro y cuerpo (frontal/posterior) usando imágenes base.
+- 🎨 **UI/UX**: Reemplazo de modelo 3D por sistema de marcadores sobre imágenes PNG para mayor compatibilidad.
+- 🛠️ **Componentes**: Actualizados FaceMapCanvas y BodyMapCanvas para soportar coordenadas relativas y cambio de vista.
+
 ### ✅ **Dec 20, 2025: Módulo Ficha Clínica (Admin)**
 - 🏥 **Nueva Funcionalidad**: Implementado sistema completo de Fichas Clínicas en panel administrativo.
 - 🗄️ **Base de Datos**: Integración con Neon PostgreSQL (tablas: patients, clinical_records, medical_history, etc.).

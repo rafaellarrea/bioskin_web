@@ -5,11 +5,12 @@ import faceZonesData from '../../../../data/face-zones.json';
 
 export interface Mark {
   id: string;
-  x: number; // percentage 0-100 (or 3D x)
-  y: number; // percentage 0-100 (or 3D y)
-  z?: number; // 3D z
+  x: number; // percentage 0-100
+  y: number; // percentage 0-100
+  z?: number; // Not used in 2D
   category: string;
   notes?: string; // Used for Zone Label
+  view?: 'front' | 'back'; // For Body Map
 }
 
 interface FaceMapCanvasProps {
@@ -52,8 +53,6 @@ export default function FaceMapCanvas({
       return;
     }
 
-    // Calculate center of the click or use the event coordinates
-    // For simplicity, we use the event coordinates relative to the container
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -95,10 +94,21 @@ export default function FaceMapCanvas({
         className={`relative w-full h-full ${!readOnly ? 'cursor-crosshair' : ''}`}
         onClick={handleContainerClick}
       >
+        {/* Background Image */}
+        <img 
+          src="/images/clinical/face_map.png" 
+          alt="Mapa Facial" 
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          onError={(e) => {
+            // Fallback if image not found
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+
         {/* SVG Layer for Zones */}
         <svg 
           viewBox="0 0 1 1" 
-          className="absolute inset-0 w-full h-full pointer-events-none"
+          className="absolute inset-0 w-full h-full"
           style={{ pointerEvents: 'none' }} // Let clicks pass through to elements
         >
           {/* Draw Zones */}
@@ -107,9 +117,10 @@ export default function FaceMapCanvas({
             const commonProps = {
               key: zone.id,
               className: `transition-all duration-200 ${!readOnly ? 'cursor-pointer pointer-events-auto' : ''}`,
-              fill: isHovered ? 'rgba(222, 184, 135, 0.5)' : 'rgba(200, 200, 200, 0.3)',
-              stroke: isHovered ? '#deb887' : '#9ca3af',
-              strokeWidth: 0.005,
+              // Make fill transparent normally, slightly visible on hover
+              fill: isHovered ? 'rgba(222, 184, 135, 0.4)' : 'rgba(255, 255, 255, 0.01)', 
+              stroke: isHovered ? '#deb887' : 'rgba(255, 255, 255, 0.0)', // Hide stroke normally to see image
+              strokeWidth: 0.003,
               onMouseEnter: () => !readOnly && setHoverZone(zone.id),
               onMouseLeave: () => !readOnly && setHoverZone(null),
               onClick: (e: React.MouseEvent) => handleZoneClick(e, zone.label)
@@ -187,11 +198,6 @@ export default function FaceMapCanvas({
             </div>
           </div>
         ))}
-        
-        {/* Placeholder Text if no image */}
-        <div className="absolute bottom-2 right-2 text-xs text-gray-400 pointer-events-none">
-          Mapa Facial Interactivo
-        </div>
       </div>
     </div>
   );
