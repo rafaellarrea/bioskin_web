@@ -36,6 +36,16 @@ async function testConnection() {
     await initClinicalDatabase();
     console.log('✅ Schema initialization check passed.');
 
+    // List all tables in the current database/schema
+    console.log('Listing all tables in public schema:');
+    const tables = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name;
+    `);
+    console.table(tables.rows);
+
     const patients = await pool.query('SELECT * FROM patients');
     console.log(`Found ${patients.rows.length} patients.`);
     

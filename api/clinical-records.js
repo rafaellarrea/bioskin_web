@@ -41,10 +41,6 @@ export default async function handler(req, res) {
         await initClinicalDatabase();
         return res.status(200).json({ message: 'Database initialized' });
 
-      case 'init':
-        await initClinicalDatabase();
-        return res.status(200).json({ message: 'Database initialized' });
-
       case 'listPatients':
         const patients = await pool.query('SELECT * FROM patients ORDER BY last_name, first_name');
         return res.status(200).json(patients.rows);
