@@ -225,6 +225,71 @@ export default async function handler(req, res) {
         const newTreat = await pool.query(`INSERT INTO treatments (${tFields.join(', ')}) VALUES (${tParams}) RETURNING *`, tValues);
         return res.status(201).json(newTreat.rows[0]);
 
+      // === PRESCRIPTIONS ===
+      case 'listPrescriptions':
+        const { record_id: pid } = req.query;
+        const prescriptions = await pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC, id DESC', [pid]);
+        const mappedPrescriptions = prescriptions.rows.map(p => ({
+          ...p,
+          fecha: p.date,
+          diagnostico: p.diagnosis
+        }));
+        return res.status(200).json(mappedPrescriptions);
+
+      case 'getPrescription':
+        const { id: getPrescId } = req.query;
+        const presc = await pool.query('SELECT * FROM prescriptions WHERE id = $1', [getPrescId]);
+        if (presc.rows.length === 0) return res.status(404).json({ error: 'Prescription not found' });
+        const pData = presc.rows[0];
+        return res.status(200).json({
+          ...pData,
+          fecha: pData.date,
+          diagnostico: pData.diagnosis,
+          items: pData.items || []
+        });
+
+      case 'createPrescription':
+        const { ficha_id, fecha, diagnostico, items } = body;
+        const newPresc = await pool.query(
+          'INSERT INTO prescriptions (record_id, date, diagnosis, items) VALUES ($1, $2, $3, $4) RETURNING id',
+          [ficha_id, fecha, diagnostico, JSON.stringify(items)]
+        );
+        return res.status(200).json({ id: newPresc.rows[0].id, message: 'Receta created' });
+
+      case 'updatePrescription':
+        const { id: updPrescId, fecha: updFecha, diagnostico: updDiag, items: updItems } = body;
+        await pool.query(
+          'UPDATE prescriptions SET date = $1, diagnosis = $2, items = $3 WHERE id = $4',
+          [updFecha, updDiag, JSON.stringify(updItems), updPrescId]
+        );
+        return res.status(200).json({ message: 'Receta updated' });
+
+      case 'deletePrescription':
+        const { id: delPrescId } = req.query;
+        await pool.query('DELETE FROM prescriptions WHERE id = $1', [delPrescId]);
+        return res.status(200).json({ message: 'Receta deleted' });
+
+      case 'getTemplates':
+        const templates = await pool.query('SELECT * FROM prescription_templates ORDER BY name ASC');
+        const mappedTemplates = templates.rows.map(t => ({
+          ...t,
+          nombre: t.name
+        }));
+        return res.status(200).json(mappedTemplates);
+
+      case 'saveTemplate':
+        const { nombre, items: tItems } = body;
+        const newTempl = await pool.query(
+          'INSERT INTO prescription_templates (name, items_json) VALUES ($1, $2) RETURNING id',
+          [nombre, JSON.stringify(tItems)]
+        );
+        return res.status(200).json({ id: newTempl.rows[0].id, message: 'Template saved' });
+
+      case 'deleteTemplate':
+        const { id: delTemplId } = req.query;
+        await pool.query('DELETE FROM prescription_templates WHERE id = $1', [delTemplId]);
+        return res.status(200).json({ message: 'Template deleted' });
+
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
