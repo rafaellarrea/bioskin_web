@@ -1,6 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Plus, Trash2, Copy, Printer } from 'lucide-react';
-import physicalExamOptions from '../../data/physical_exam_options.json';
+import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info } from 'lucide-react';
+import { CLINICAL_FIELDS, LESION_CATALOG, PARAMETER_TOOLTIPS } from '../../../../../data/clinical-catalogs';
+import FaceMapCanvas, { Mark } from '../FaceMapCanvas';
+import BodyMapCanvas from '../BodyMapCanvas';
 
 interface PhysicalExam {
   id?: number;
@@ -11,6 +14,13 @@ interface PhysicalExam {
   hydration: string;
   elasticity: string;
   lesions_description: string;
+  photoprotection?: string;
+  texture?: string;
+  pores?: string;
+  pigmentation?: string;
+  sensitivity?: string;
+  face_map_data?: string;
+  body_map_data?: string;
   created_at?: string;
 }
 
@@ -27,24 +37,53 @@ const EMPTY_EXAM: Omit<PhysicalExam, 'record_id'> = {
   glogau_scale: '',
   hydration: '',
   elasticity: '',
-  lesions_description: ''
+  lesions_description: '',
+  photoprotection: '',
+  texture: '',
+  pores: '',
+  pigmentation: '',
+  sensitivity: '',
+  face_map_data: '[]',
+  body_map_data: '[]'
 };
 
 export default function PhysicalExamTab({ recordId, physicalExams, patientName, onSave }: PhysicalExamTabProps) {
   const [currentExam, setCurrentExam] = useState<PhysicalExam>({ ...EMPTY_EXAM, record_id: recordId });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  // Canvas State
+  const [faceMarks, setFaceMarks] = useState<Mark[]>([]);
+  const [bodyMarks, setBodyMarks] = useState<Mark[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'facial' | 'corporal'>('facial');
 
   useEffect(() => {
     if (physicalExams.length > 0 && !currentExam.id) {
-      setCurrentExam(physicalExams[0]);
+      loadExam(physicalExams[0]);
     } else if (physicalExams.length === 0 && !currentExam.id) {
-      setCurrentExam({ ...EMPTY_EXAM, record_id: recordId });
+      resetExam();
     }
   }, [physicalExams, recordId]);
 
-  const getOptions = (category: string) => 
-    (physicalExamOptions as any)[category] || [];
+  const loadExam = (exam: PhysicalExam) => {
+    setCurrentExam(exam);
+    try {
+      setFaceMarks(exam.face_map_data ? JSON.parse(exam.face_map_data) : []);
+      setBodyMarks(exam.body_map_data ? JSON.parse(exam.body_map_data) : []);
+    } catch (e) {
+      console.error("Error parsing map data", e);
+      setFaceMarks([]);
+      setBodyMarks([]);
+    }
+  };
+
+  const resetExam = () => {
+    setCurrentExam({ ...EMPTY_EXAM, record_id: recordId });
+    setFaceMarks([]);
+    setBodyMarks([]);
+    setMessage(null);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -52,8 +91,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   };
 
   const handleNew = () => {
-    setCurrentExam({ ...EMPTY_EXAM, record_id: recordId });
-    setMessage(null);
+    resetExam();
   };
 
   const handleDuplicate = () => {
@@ -87,11 +125,17 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
     setSaving(true);
     setMessage(null);
 
+    const examToSave = {
+      ...currentExam,
+      face_map_data: JSON.stringify(faceMarks),
+      body_map_data: JSON.stringify(bodyMarks)
+    };
+
     try {
       const response = await fetch('/api/clinical-records?action=savePhysicalExam', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentExam),
+        body: JSON.stringify(examToSave),
       });
 
       if (response.ok) {
@@ -109,80 +153,39 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    // Simplified print logic for now
+    window.print();
+  };
 
-    const html = `
-      <html>
-        <head>
-          <title>Examen Físico - ${patientName}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
-            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            .header h1 { margin: 0; font-size: 24px; color: #deb887; }
-            .info { margin-bottom: 20px; }
-            .info p { margin: 5px 0; }
-            .section { margin-bottom: 20px; }
-            .section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; color: #deb887; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .field { margin-bottom: 10px; }
-            .label { font-weight: bold; color: #555; }
-            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>BIOSKIN</h1>
-            <p>Dermatología y Medicina Estética</p>
-          </div>
-          
-          <div class="info">
-            <p><strong>Paciente:</strong> ${patientName}</p>
-            <p><strong>Fecha de Examen:</strong> ${currentExam.created_at ? new Date(currentExam.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</p>
-          </div>
+  // Map Handlers
+  const addFaceMark = (mark: Omit<Mark, 'id'>) => {
+    const newMark = { ...mark, id: Date.now().toString() };
+    setFaceMarks(prev => [...prev, newMark]);
+  };
 
-          <div class="section">
-            <h3>Evaluación Cutánea</h3>
-            <div class="grid">
-              <div class="field"><span class="label">Tipo de Piel:</span> ${currentExam.skin_type || '-'}</div>
-              <div class="field"><span class="label">Fototipo:</span> ${currentExam.phototype || '-'}</div>
-              <div class="field"><span class="label">Escala Glogau:</span> ${currentExam.glogau_scale || '-'}</div>
-              <div class="field"><span class="label">Hidratación:</span> ${currentExam.hydration || '-'}</div>
-              <div class="field"><span class="label">Elasticidad:</span> ${currentExam.elasticity || '-'}</div>
-            </div>
-          </div>
+  const removeFaceMark = (id: string) => {
+    setFaceMarks(prev => prev.filter(m => m.id !== id));
+  };
 
-          <div class="section">
-            <h3>Observaciones / Lesiones</h3>
-            <p>${currentExam.lesions_description || 'Sin observaciones registradas.'}</p>
-          </div>
+  const addBodyMark = (mark: Omit<Mark, 'id'>) => {
+    const newMark = { ...mark, id: Date.now().toString() };
+    setBodyMarks(prev => [...prev, newMark]);
+  };
 
-          <div class="footer">
-            <p>_____________________________</p>
-            <p>Firma Profesional</p>
-          </div>
-          
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
+  const removeBodyMark = (id: string) => {
+    setBodyMarks(prev => prev.filter(m => m.id !== id));
   };
 
   return (
-    <div className="flex h-[600px] gap-4">
+    <div className="flex h-[800px] gap-4">
       {/* Sidebar List */}
-      <div className="w-1/4 border-r border-gray-200 pr-4 flex flex-col gap-2">
-        <div className="font-semibold text-gray-700 mb-2">Historial de Exámenes</div>
+      <div className="w-64 border-r border-gray-200 pr-4 flex flex-col gap-2 shrink-0">
+        <div className="font-semibold text-gray-700 mb-2">Historial</div>
         <div className="flex-1 overflow-y-auto space-y-2">
           {physicalExams.map((exam, index) => (
             <div
               key={exam.id || index}
-              onClick={() => setCurrentExam(exam)}
+              onClick={() => loadExam(exam)}
               className={`p-3 rounded-lg cursor-pointer border transition-colors ${
                 currentExam.id === exam.id 
                   ? 'bg-[#deb887] text-white border-[#deb887]' 
@@ -197,140 +200,159 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
               </div>
             </div>
           ))}
-          {physicalExams.length === 0 && (
-            <div className="text-gray-400 text-sm text-center py-4">No hay exámenes registrados</div>
-          )}
+          <button 
+            onClick={handleNew}
+            className="w-full py-2 mt-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-[#deb887] hover:text-[#deb887] transition-colors"
+          >
+            + Nuevo Examen
+          </button>
         </div>
       </div>
 
-      {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
         {/* Toolbar */}
-        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg sticky top-0 z-10">
+        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg shrink-0">
           <div className="flex gap-2">
-            <button onClick={handleNew} className="p-2 hover:bg-gray-200 rounded-lg" title="Nuevo Examen">
-              <Plus className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleSubmit} disabled={saving} className="p-2 hover:bg-gray-200 rounded-lg" title="Guardar">
-              <Save className="w-5 h-5 text-gray-600" />
+            <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors">
+              <Save size={18} /> Guardar
             </button>
             <button onClick={handleDuplicate} className="p-2 hover:bg-gray-200 rounded-lg" title="Duplicar">
-              <Copy className="w-5 h-5 text-gray-600" />
+              <Copy size={18} className="text-gray-600" />
             </button>
             <button onClick={handleDelete} className="p-2 hover:bg-gray-200 rounded-lg" title="Eliminar">
-              <Trash2 className="w-5 h-5 text-red-500" />
+              <Trash2 size={18} className="text-red-500" />
             </button>
             <button onClick={handlePrint} className="p-2 hover:bg-gray-200 rounded-lg" title="Imprimir">
-              <Printer className="w-5 h-5 text-gray-600" />
+              <Printer size={18} className="text-gray-600" />
             </button>
           </div>
           <div className="text-sm text-gray-500">
-            {currentExam.id ? `Editando examen del ${new Date(currentExam.created_at!).toLocaleDateString()}` : 'Nuevo Examen'}
+            {currentExam.id ? `Editando: ${new Date(currentExam.created_at!).toLocaleDateString()}` : 'Nuevo Registro'}
           </div>
         </div>
 
         {message && (
-          <div className={`p-4 rounded-lg flex items-center gap-2 ${
+          <div className={`p-3 rounded-lg flex items-center gap-2 text-sm ${
             message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
           }`}>
-            <AlertCircle className="w-5 h-5" />
+            <AlertCircle size={16} />
             {message.text}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Tipo de Piel</label>
-            <select
-              name="skin_type"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-              value={currentExam.skin_type || ''}
-              onChange={handleChange}
-            >
-              <option value="">Seleccionar...</option>
-              {getOptions('tipo_piel').map((opt: string) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+        <div className="flex-1 flex gap-6 overflow-hidden">
+          {/* Left Column: Maps */}
+          <div className="flex-1 flex flex-col overflow-y-auto min-w-[400px]">
+            <div className="flex gap-2 mb-4 border-b border-gray-200">
+              <button 
+                className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'facial' ? 'border-[#deb887] text-[#deb887]' : 'border-transparent text-gray-500'}`}
+                onClick={() => setActiveTab('facial')}
+              >
+                Facial
+              </button>
+              <button 
+                className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'corporal' ? 'border-[#deb887] text-[#deb887]' : 'border-transparent text-gray-500'}`}
+                onClick={() => setActiveTab('corporal')}
+              >
+                Corporal
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Seleccionar Lesión para Marcar:</label>
+              <select 
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">-- Seleccione una lesión --</option>
+                {LESION_CATALOG.map(l => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1 bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-center overflow-auto">
+              {activeTab === 'facial' ? (
+                <FaceMapCanvas 
+                  marks={faceMarks} 
+                  onAddMark={addFaceMark} 
+                  onRemoveMark={removeFaceMark}
+                  selectedCategory={selectedCategory}
+                />
+              ) : (
+                <BodyMapCanvas 
+                  marks={bodyMarks} 
+                  onAddMark={addBodyMark} 
+                  onRemoveMark={removeBodyMark}
+                  selectedCategory={selectedCategory}
+                />
+              )}
+            </div>
+            
+            <div className="mt-4">
+              <h4 className="font-medium text-gray-700 mb-2">Lesiones Marcadas ({activeTab === 'facial' ? faceMarks.length : bodyMarks.length})</h4>
+              <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                {(activeTab === 'facial' ? faceMarks : bodyMarks).map((mark, i) => (
+                  <div key={mark.id} className="flex justify-between items-center p-2 border-b last:border-0 hover:bg-gray-50 text-sm">
+                    <span>{i + 1}. {mark.category} {mark.notes && `(${mark.notes})`}</span>
+                    <button 
+                      onClick={() => activeTab === 'facial' ? removeFaceMark(mark.id) : removeBodyMark(mark.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+                {(activeTab === 'facial' ? faceMarks : bodyMarks).length === 0 && (
+                  <div className="p-4 text-center text-gray-400 text-sm">No hay lesiones marcadas</div>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Fototipo (Fitzpatrick)</label>
-            <select
-              name="phototype"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-              value={currentExam.phototype || ''}
-              onChange={handleChange}
-            >
-              <option value="">Seleccionar...</option>
-              {getOptions('fototipo').map((opt: string) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+          {/* Right Column: Clinical Parameters */}
+          <div className="w-[350px] flex flex-col gap-4 overflow-y-auto pr-2 shrink-0">
+            <h3 className="font-semibold text-gray-800 border-b pb-2">Parámetros Clínicos</h3>
+            
+            {Object.entries(CLINICAL_FIELDS).map(([key, field]) => (
+              <div key={key} className="space-y-1 group relative">
+                <div className="flex items-center gap-2">
+                  <label className="block text-sm font-medium text-gray-700">{field.label}</label>
+                  <div className="relative">
+                    <Info size={14} className="text-gray-400 cursor-help" />
+                    {/* Tooltip */}
+                    <div className="absolute right-0 top-6 w-64 bg-white border border-gray-200 shadow-xl rounded-lg p-3 z-50 hidden group-hover:block text-xs text-gray-600">
+                      <div dangerouslySetInnerHTML={{ __html: PARAMETER_TOOLTIPS[key] || '' }} />
+                    </div>
+                  </div>
+                </div>
+                <select
+                  name={key}
+                  className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none text-sm"
+                  value={(currentExam as any)[key] || ''}
+                  onChange={handleChange}
+                >
+                  {field.options.map((opt: string) => (
+                    <option key={opt} value={opt}>{opt || 'Seleccionar...'}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+
+            <div className="space-y-2 mt-4">
+              <label className="block text-sm font-medium text-gray-700">Notas Adicionales</label>
+              <textarea
+                name="lesions_description"
+                rows={4}
+                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none text-sm"
+                placeholder="Observaciones generales..."
+                value={currentExam.lesions_description || ''}
+                onChange={handleChange}
+              />
+            </div>
           </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Escala Glogau</label>
-            <select
-              name="glogau_scale"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-              value={currentExam.glogau_scale || ''}
-              onChange={handleChange}
-            >
-              <option value="">Seleccionar...</option>
-              {getOptions('clasificacion_glogau').map((opt: string) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Hidratación</label>
-            <select
-              name="hydration"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-              value={currentExam.hydration || ''}
-              onChange={handleChange}
-            >
-              <option value="">Seleccionar...</option>
-              {getOptions('hidratacion').map((opt: string) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Elasticidad</label>
-            <select
-              name="elasticity"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-              value={currentExam.elasticity || ''}
-              onChange={handleChange}
-            >
-              <option value="">Seleccionar...</option>
-              {getOptions('elasticidad').map((opt: string) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Descripción de Lesiones / Observaciones</label>
-          <textarea
-            name="lesions_description"
-            rows={6}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
-            placeholder="Describa las lesiones observadas, localización, características..."
-            value={currentExam.lesions_description || ''}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Placeholder for Face Map */}
-        <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
-          <p className="text-gray-500">Mapa Facial Interactivo (Próximamente)</p>
-          <p className="text-sm text-gray-400 mt-2">Aquí se podrá dibujar y marcar puntos sobre el rostro del paciente.</p>
         </div>
       </div>
     </div>
