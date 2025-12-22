@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes Mapa Facial (Revert)**
+- 📏 **Dimensiones**: Ajustada altura a 500px para coincidir con Mapa Corporal.
+- 🎨 **Estilo**: Unificado estilo de contenedor (bordes, sombras) con el componente corporal.
+- 🐛 **Fix**: Corregido problema de zoom excesivo que ocultaba partes del rostro.
+
 ### ✅ **Dec 22, 2025: UI Fixes Mapa Facial**
 - 📏 **Dimensiones**: Eliminada restricción cuadrada y límite de 500px.
 - 📜 **Scroll**: Aumentada altura a 800px para mejor visualización de detalles, habilitando scroll en el contenedor.
