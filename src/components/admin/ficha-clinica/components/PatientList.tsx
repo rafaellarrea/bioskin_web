@@ -16,6 +16,7 @@ interface Patient {
 export default function PatientList() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -25,13 +26,24 @@ export default function PatientList() {
 
   const fetchPatients = async () => {
     try {
+      setError(null);
       const response = await fetch('/api/clinical-records?action=listPatients');
+      
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") === -1) {
+        throw new Error("La respuesta de la API no es JSON. Si estás en local, usa 'vercel dev'.");
+      }
+
       if (response.ok) {
         const data = await response.json();
         setPatients(data);
+      } else {
+        const errText = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching patients:', error);
+      setError(error.message || 'Error desconocido al cargar pacientes');
     } finally {
       setLoading(false);
     }
@@ -67,6 +79,14 @@ export default function PatientList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+            <p className="font-bold">Error cargando pacientes:</p>
+            <p>{error}</p>
+          </div>
+        )}
 
         {/* Patients Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
