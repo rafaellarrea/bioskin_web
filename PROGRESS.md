@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: UI Fixes Mapa Facial (Final)**
+- 📜 **Scroll**: Implementado contenedor con scroll vertical (`overflow-y-auto`) y altura fija de 500px.
+- 📏 **Dimensiones**: Imagen ajustada a `w-full h-auto` para ocupar todo el ancho disponible sin recortes.
+- 🖼️ **Visualización**: Solucionado problema de imagen cortada permitiendo desplazamiento para ver mentón/cuello.
+
 ### ✅ **Dec 22, 2025: UI Fixes Mapa Facial (Revert)**
 - 📏 **Dimensiones**: Ajustada altura a 500px para coincidir con Mapa Corporal.
 - 🎨 **Estilo**: Unificado estilo de contenedor (bordes, sombras) con el componente corporal.

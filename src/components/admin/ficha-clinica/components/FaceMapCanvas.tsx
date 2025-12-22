@@ -88,18 +88,18 @@ export default function FaceMapCanvas({
   };
 
   return (
-    <div className="relative inline-block bg-white border border-gray-200 rounded-lg overflow-hidden select-none shadow-sm">
+    <div className="relative w-full max-w-[600px] h-[500px] bg-white border border-gray-200 rounded-lg overflow-y-auto select-none shadow-sm">
       {/* Map Container */}
       <div 
         ref={containerRef}
-        className={`relative ${!readOnly ? 'cursor-crosshair' : ''}`}
+        className={`relative w-full ${!readOnly ? 'cursor-crosshair' : ''}`}
         onClick={handleContainerClick}
       >
         {/* Background Image */}
         <img 
           src="/images/clinical/face_map.png" 
           alt="Mapa Facial" 
-          className="h-[500px] w-auto object-contain block pointer-events-none"
+          className="w-full h-auto block pointer-events-none"
           draggable={false}
           onError={(e) => {
             // Fallback if image not found
