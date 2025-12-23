@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: Prescription UI Improvements**
+- 📏 **Layout**: Reducido ancho del historial y aumentado espacio para la tabla de recetas.
+- ↔️ **Tabla**: Implementado scroll horizontal y anchos mínimos para evitar que los campos se corten.
+
 ### ✅ **Dec 22, 2025: AI Treatment Recursive Fix**
 - 🐛 **Protocolo IA**: Implementado formateador recursivo para manejar objetos anidados (ej. `device_parameters`) en la respuesta de la IA.
 - 💅 **Formato**: Mejora visual para listas y objetos anidados en el texto del protocolo.

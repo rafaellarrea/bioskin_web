@@ -340,7 +340,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
   return (
     <div className="flex h-[600px] gap-4">
       {/* Sidebar List */}
-      <div className="w-1/4 border-r border-gray-200 pr-4 flex flex-col gap-2">
+      <div className="w-56 border-r border-gray-200 pr-4 flex flex-col gap-2 flex-shrink-0">
         <div className="font-semibold text-gray-700 mb-2">Historial</div>
         <div className="flex-1 overflow-y-auto space-y-2">
           {prescriptions.map(p => (
@@ -361,7 +361,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       </div>
 
       {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4 relative">
+      <div className="flex-1 flex flex-col gap-4 relative overflow-hidden">
         {/* Toolbar */}
         <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
           <div className="flex gap-2">
@@ -426,29 +426,29 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         </div>
 
         {/* Items Table */}
-        <div className="flex-1 overflow-auto border rounded-lg">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 sticky top-0">
+        <div className="flex-1 overflow-auto border rounded-lg shadow-sm">
+          <table className="w-full text-sm min-w-[1200px]">
+            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="p-2 text-left w-1/5">Principio Activo</th>
-                <th className="p-2 text-left w-1/6">Nombre Comercial</th>
-                <th className="p-2 text-left">Presentación</th>
-                <th className="p-2 text-left">Dosis</th>
-                <th className="p-2 text-left">Frecuencia</th>
-                <th className="p-2 text-left">Vía</th>
-                <th className="p-2 text-left">Duración</th>
-                <th className="p-2 text-left">Rutina</th>
-                <th className="p-2 text-left">Indicaciones</th>
-                <th className="p-2 w-10"></th>
+                <th className="p-3 text-left w-48 font-semibold text-gray-700">Principio Activo</th>
+                <th className="p-3 text-left w-48 font-semibold text-gray-700">Nombre Comercial</th>
+                <th className="p-3 text-left w-32 font-semibold text-gray-700">Presentación</th>
+                <th className="p-3 text-left w-24 font-semibold text-gray-700">Dosis</th>
+                <th className="p-3 text-left w-32 font-semibold text-gray-700">Frecuencia</th>
+                <th className="p-3 text-left w-24 font-semibold text-gray-700">Vía</th>
+                <th className="p-3 text-left w-32 font-semibold text-gray-700">Duración</th>
+                <th className="p-3 text-left w-32 font-semibold text-gray-700">Rutina</th>
+                <th className="p-3 text-left min-w-[200px] font-semibold text-gray-700">Indicaciones</th>
+                <th className="p-3 w-12"></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {currentPrescription.items.map((item, idx) => (
-                <tr key={idx} className="border-t hover:bg-gray-50">
+                <tr key={idx} className="hover:bg-gray-50 transition-colors">
                   <td className="p-2">
                     <input
                       list={`meds-${idx}`}
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.medicamento}
                       onChange={e => updateItem(idx, 'medicamento', e.target.value)}
                       placeholder="Buscar..."
@@ -459,7 +459,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   </td>
                   <td className="p-2">
                     <input
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.nombre_comercial}
                       onChange={e => updateItem(idx, 'nombre_comercial', e.target.value)}
                       placeholder="Opcional"
@@ -468,7 +468,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   <td className="p-2">
                     <input
                       list={`pres-${idx}`}
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.presentacion}
                       onChange={e => updateItem(idx, 'presentacion', e.target.value)}
                     />
@@ -479,7 +479,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   <td className="p-2">
                     <input
                       list={`dose-${idx}`}
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.dosis}
                       onChange={e => updateItem(idx, 'dosis', e.target.value)}
                     />
@@ -490,7 +490,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   <td className="p-2">
                     <input
                       list={`freq-${idx}`}
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.frecuencia}
                       onChange={e => updateItem(idx, 'frecuencia', e.target.value)}
                     />
@@ -501,7 +501,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   <td className="p-2">
                     <input
                       list={`route-${idx}`}
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.via}
                       onChange={e => updateItem(idx, 'via', e.target.value)}
                     />
@@ -512,7 +512,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   <td className="p-2">
                     <input
                       list={`dur-${idx}`}
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.duracion}
                       onChange={e => updateItem(idx, 'duracion', e.target.value)}
                     />
@@ -522,7 +522,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   </td>
                   <td className="p-2">
                     <select
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.rutina}
                       onChange={e => updateItem(idx, 'rutina', e.target.value as any)}
                     >
@@ -534,13 +534,13 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                   </td>
                   <td className="p-2">
                     <input
-                      className="w-full p-1 border rounded"
+                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
                       value={item.indicaciones}
                       onChange={e => updateItem(idx, 'indicaciones', e.target.value)}
                     />
                   </td>
                   <td className="p-2 text-center">
-                    <button onClick={() => removeItem(idx)} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                    <button onClick={() => removeItem(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
