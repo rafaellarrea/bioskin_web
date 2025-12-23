@@ -1,37 +1,42 @@
 import https from 'https';
 
-const url = 'https://saludbioskin.vercel.app/api/records?action=health';
+const urls = [
+  'https://saludbioskin.vercel.app/api/records?action=health',
+  'https://saludbioskin.vercel.app/api/test-records?action=health'
+];
 
-console.log(`Testing URL: ${url}`);
+urls.forEach(url => {
+  console.log(`Testing URL: ${url}`);
 
-const req = https.get(url, (res) => {
-  console.log(`Status Code: ${res.statusCode}`);
-  console.log('Headers:', res.headers);
+  const req = https.get(url, (res) => {
+    console.log(`\n[${url}] Status Code: ${res.statusCode}`);
+    console.log(`[${url}] Content-Type: ${res.headers['content-type']}`);
 
-  let data = '';
+    let data = '';
 
-  res.on('data', (chunk) => {
-    data += chunk;
+    res.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    res.on('end', () => {
+      console.log(`\n--- Response Body (${url}) ---`);
+      console.log(data.substring(0, 200) + (data.length > 200 ? '...' : ''));
+      console.log('---------------------');
+      
+      if (res.statusCode >= 400) {
+          console.error(`❌ [${url}] API Request Failed`);
+      } else {
+          try {
+              JSON.parse(data);
+              console.log(`✅ [${url}] Valid JSON received`);
+          } catch (e) {
+              console.error(`❌ [${url}] Response is NOT valid JSON (Likely HTML fallback)`);
+          }
+      }
+    });
   });
 
-  res.on('end', () => {
-    console.log('\n--- Response Body ---');
-    console.log(data);
-    console.log('---------------------');
-    
-    if (res.statusCode >= 400) {
-        console.error("❌ API Request Failed");
-    } else {
-        try {
-            JSON.parse(data);
-            console.log("✅ Valid JSON received");
-        } catch (e) {
-            console.error("❌ Response is NOT valid JSON");
-        }
-    }
+  req.on('error', (e) => {
+    console.error(`❌ [${url}] Request Error: ${e.message}`);
   });
-});
-
-req.on('error', (e) => {
-  console.error(`❌ Request Error: ${e.message}`);
 });
