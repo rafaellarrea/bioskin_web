@@ -1,4 +1,4 @@
-import { Pool } from '@neondatabase/serverless';
+import { createPool } from '@vercel/postgres';
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
@@ -9,7 +9,8 @@ function getPool() {
   const connectionString = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
   if (!connectionString) return null;
   try {
-    poolInstance = new Pool({ connectionString });
+    // @vercel/postgres handles connection pooling automatically
+    poolInstance = createPool({ connectionString });
     return poolInstance;
   } catch (e) {
     console.error(e);
