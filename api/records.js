@@ -177,7 +177,8 @@ export default async function handler(req, res) {
         const { recordId, patientId } = req.query;
         let targetRecordId = recordId;
 
-        if (!targetRecordId && patientId) {
+        // If no recordId provided, try to find one for the patient
+        if ((!targetRecordId || targetRecordId === 'undefined' || targetRecordId === 'null') && patientId) {
            // Try to find active record first
            let r = await pool.query('SELECT id FROM clinical_records WHERE patient_id = $1 AND status = \'active\' LIMIT 1', [patientId]);
            
@@ -195,9 +196,16 @@ export default async function handler(req, res) {
            }
         }
 
-        if (!targetRecordId) return res.status(404).json({ error: 'Record not found' });
+        if (!targetRecordId || targetRecordId === 'undefined' || targetRecordId === 'null') {
+          return res.status(404).json({ error: 'Record not found' });
+        }
 
         const recordDetails = await pool.query('SELECT * FROM clinical_records WHERE id = $1', [targetRecordId]);
+        
+        if (recordDetails.rows.length === 0) {
+           return res.status(404).json({ error: 'Record ID not found in database' });
+        }
+
         const patientIdFromRecord = recordDetails.rows[0]?.patient_id;
 
         const [
