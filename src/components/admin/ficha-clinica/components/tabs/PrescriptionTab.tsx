@@ -451,10 +451,10 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
         
         <button
           onClick={addItem}
-          className="absolute bottom-6 right-6 bg-[#deb887] text-white p-3 rounded-full shadow-lg hover:bg-[#c5a075] transition-all hover:scale-110 z-10 flex items-center justify-center"
-          title="Agregar Medicamento"
+          className="absolute bottom-6 right-6 bg-[#deb887] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#c5a075] transition-all hover:scale-105 z-20 flex items-center gap-2 font-medium"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5" />
+          Agregar Medicamento
         </button>
       </div>
     </div>
