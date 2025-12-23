@@ -147,7 +147,7 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: `Error al crear paciente: ${err.message}` });
         }
 
-      case 'updatePatient':
+      case 'updatePatient': {
         const { id: pid, ...updates } = body;
         const fields = Object.keys(updates);
         const values = Object.values(updates);
@@ -158,6 +158,7 @@ export default async function handler(req, res) {
           [pid, ...values]
         );
         return res.status(200).json(updatedPatient.rows[0]);
+      }
 
       case 'deletePatient':
         const { id: delPid } = req.query;
@@ -172,7 +173,7 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: 'Error al eliminar paciente. Puede tener registros asociados.' });
         }
 
-      case 'getRecordData':
+      case 'getRecordData': {
         const { recordId, patientId } = req.query;
         let targetRecordId = recordId;
 
@@ -215,6 +216,7 @@ export default async function handler(req, res) {
           consentForms: consents.rows,
           injectables: injectables.rows
         });
+      }
 
       case 'saveHistory':
         const { record_id: hid, ...historyData } = body;
@@ -455,7 +457,7 @@ export default async function handler(req, res) {
         `);
         return res.status(200).json({ message: 'Consent forms table initialized' });
 
-      case 'listConsents':
+      case 'listConsents': {
         const { patient_id: pid, record_id: rid } = req.query;
         let query = 'SELECT * FROM consent_forms WHERE ';
         let params = [];
@@ -471,6 +473,7 @@ export default async function handler(req, res) {
         query += ' ORDER BY created_at DESC';
         const consents = await pool.query(query, params);
         return res.status(200).json(consents.rows);
+      }
 
       case 'getConsent':
         const { id: cid } = req.query;
@@ -478,7 +481,7 @@ export default async function handler(req, res) {
         if (consent.rows.length === 0) return res.status(404).json({ error: 'Consent not found' });
         return res.status(200).json(consent.rows[0]);
 
-      case 'saveConsent':
+      case 'saveConsent': {
         const { 
           id: saveCid, 
           record_id: saveRid, 
@@ -565,6 +568,7 @@ export default async function handler(req, res) {
           ]);
           return res.status(200).json(created.rows[0]);
         }
+      }
 
       case 'deleteConsent':
         const { id: delCid } = req.query;
