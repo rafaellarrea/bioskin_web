@@ -1,0 +1,30 @@
+{
+  "procedure_type": "Remoción de Tatuajes con Láser Nd:YAG Q-Switched",
+  "description": "El láser Nd:YAG Q-Switched emite pulsos de energía muy cortos que son absorbidos selectivamente por el pigmento del tatuaje. Esto fragmenta la tinta en micropartículas que son eliminadas posteriormente por el sistema inmunológico del cuerpo.",
+  "objectives": [
+    "Eliminación progresiva del pigmento del tatuaje.",
+    "Aclaramiento del diseño para cobertura (cover-up)."
+  ],
+  "risks": [
+    "Dolor o molestia durante el procedimiento.",
+    "Enrojecimiento, hinchazón y sangrado puntiforme (petequias).",
+    "Formación de ampollas y costras.",
+    "Cambios de textura o pigmentación (hipo/hiperpigmentación).",
+    "Posibilidad de 'tatuaje fantasma' o eliminación incompleta."
+  ],
+  "benefits": [
+    "Método seguro y efectivo para eliminar tinta.",
+    "Menor riesgo de cicatrices comparado con otros métodos."
+  ],
+  "pre_care": [
+    "No exponer la zona al sol.",
+    "Aplicar crema anestésica 1 hora antes (si se indica).",
+    "Zona limpia y rasurada."
+  ],
+  "post_care": [
+    "Aplicar crema antibiótica/reparadora según indicación.",
+    "No exponer al sol, usar bloqueador total.",
+    "No rascar costras ni reventar ampollas.",
+    "Evitar piscinas y saunas hasta cicatrización."
+  ]
+}

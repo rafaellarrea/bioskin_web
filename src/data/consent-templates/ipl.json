@@ -1,0 +1,36 @@
+{
+  "procedure_type": "Tratamiento con Luz Pulsada Intensa (IPL)",
+  "description": "La Luz Pulsada Intensa (IPL) es una tecnología que utiliza luz policromática de alta intensidad para tratar diversas afecciones de la piel. La energía lumínica es absorbida por cromóforos específicos (melanina, hemoglobina) transformándose en calor, lo que permite tratar manchas, lesiones vasculares, acné o eliminar vello no deseado.",
+  "objectives": [
+    "Rejuvenecimiento facial y mejora de la calidad de la piel.",
+    "Tratamiento de lesiones pigmentarias (manchas solares, pecas).",
+    "Tratamiento de lesiones vasculares (arañitas, rosácea).",
+    "Tratamiento de acné activo.",
+    "Fotodepilación (reducción permanente del vello)."
+  ],
+  "risks": [
+    "Enrojecimiento (eritema) y edema (hinchazón) transitorio.",
+    "Sensación de calor o ardor leve durante y después del tratamiento.",
+    "Formación de costras superficiales que caen solas.",
+    "Cambios temporales en la pigmentación (hipo o hiperpigmentación).",
+    "Rara vez: ampollas o quemaduras superficiales."
+  ],
+  "benefits": [
+    "Mejora visible del tono y textura de la piel.",
+    "Reducción de manchas y rojeces.",
+    "Estimulación de colágeno.",
+    "Piel más luminosa y uniforme."
+  ],
+  "pre_care": [
+    "No exponerse al sol ni usar camas solares 4 semanas antes.",
+    "No usar autobronceadores.",
+    "Acudir con la piel limpia, sin maquillaje ni cremas.",
+    "Informar sobre medicamentos fotosensibilizantes."
+  ],
+  "post_care": [
+    "Evitar exposición solar directa y usar protector solar FPS 50+.",
+    "No rascar ni arrancar costras si aparecen.",
+    "Mantener la piel hidratada.",
+    "Evitar fuentes de calor (sauna, ejercicio intenso) por 48 horas."
+  ]
+}

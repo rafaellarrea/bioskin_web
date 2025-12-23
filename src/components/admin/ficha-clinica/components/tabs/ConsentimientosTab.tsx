@@ -5,6 +5,10 @@ import {
   Copy, RefreshCw
 } from 'lucide-react';
 
+// Load templates
+const templatesGlob = import.meta.glob('/src/data/consent-templates/*.json', { eager: true });
+const templates = Object.values(templatesGlob).map((mod: any) => mod.default || mod);
+
 interface ConsentForm {
   id?: number;
   record_id: number;
@@ -54,11 +58,12 @@ interface ConsentForm {
 interface Props {
   patientId: number;
   recordId: number;
+  patient?: any;
 }
 
 const API_URL = '/api/records';
 
-export default function ConsentimientosTab({ patientId, recordId }: Props) {
+export default function ConsentimientosTab({ patientId, recordId, patient }: Props) {
   const [consents, setConsents] = useState<ConsentForm[]>([]);
   const [view, setView] = useState<'list' | 'form' | 'preview'>('list');
   const [loading, setLoading] = useState(false);
@@ -82,6 +87,34 @@ export default function ConsentimientosTab({ patientId, recordId }: Props) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadTemplate = (index: string) => {
+    const template = templates[parseInt(index)];
+    if (!template || !currentConsent) return;
+
+    setCurrentConsent({
+      ...currentConsent,
+      procedure_type: template.procedure_type,
+      description: template.description,
+      objectives: template.objectives || [],
+      risks: template.risks || [],
+      benefits: template.benefits || [],
+      pre_care: template.pre_care || [],
+      post_care: template.post_care || []
+    });
+  };
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
   };
 
   const handleNew = () => {
@@ -120,8 +153,8 @@ export default function ConsentimientosTab({ patientId, recordId }: Props) {
         alternatives: false
       },
       signatures: {
-        patient_name: '',
-        professional_name: ''
+        patient_name: patient ? `${patient.first_name} ${patient.last_name}` : '',
+        professional_name: 'Dra. Daniela Creamer'
       },
       attachments: []
     });
@@ -287,6 +320,21 @@ export default function ConsentimientosTab({ patientId, recordId }: Props) {
               Guardar
             </button>
           </div>
+        </div>
+
+        {/* Template Selector */}
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <label className="block text-sm font-medium text-blue-900 mb-2">Cargar Plantilla de Consentimiento</label>
+          <select 
+            className="w-full p-2 border border-blue-200 rounded-lg bg-white text-gray-700"
+            onChange={(e) => loadTemplate(e.target.value)}
+            defaultValue=""
+          >
+            <option value="" disabled>Seleccione un procedimiento...</option>
+            {templates.map((t: any, i) => (
+              <option key={i} value={i}>{t.procedure_type}</option>
+            ))}
+          </select>
         </div>
 
         {/* Tabs Navigation */}
@@ -591,6 +639,33 @@ export default function ConsentimientosTab({ patientId, recordId }: Props) {
         </div>
 
         <div className="bg-white p-8 max-w-4xl mx-auto shadow-lg print:shadow-none print:p-0">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-8 border-b-2 border-[#deb887] pb-4">
+            <div className="flex items-center gap-4">
+              <img src="/images/logo/logo.png" alt="BioSkin Logo" className="h-20 w-auto object-contain" />
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">BIOSKIN SALUD Y ESTETICA</h2>
+                <p className="text-sm font-semibold text-[#deb887]">DRA. DANIELA CREAMER</p>
+                <p className="text-xs text-gray-500">Cosmiatría y Dermatocosmiatría Clínica</p>
+              </div>
+            </div>
+            <div className="text-right text-sm text-gray-600">
+              <p><strong>Fecha:</strong> {new Date().toLocaleDateString()}</p>
+              <p><strong>Expediente:</strong> #{recordId}</p>
+            </div>
+          </div>
+
+          {/* Patient Info */}
+          <div className="bg-gray-50 p-4 rounded-lg mb-8 text-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-2 border-b pb-1">INFORMACIÓN DEL PACIENTE</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <p><strong>Nombre:</strong> {patient?.first_name} {patient?.last_name}</p>
+              <p><strong>Identificación:</strong> {patient?.rut || 'N/A'}</p>
+              <p><strong>Edad:</strong> {patient?.birth_date ? calculateAge(patient.birth_date) : 'N/A'} años</p>
+              <p><strong>Teléfono:</strong> {patient?.phone || 'N/A'}</p>
+            </div>
+          </div>
+
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-gray-900">CONSENTIMIENTO INFORMADO</h1>
             <h2 className="text-xl text-[#deb887] mt-2">{currentConsent.procedure_type}</h2>

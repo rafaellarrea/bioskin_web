@@ -241,6 +241,7 @@ export default function ClinicalRecordManager() {
               <ConsentimientosTab 
                 patientId={patient?.id}
                 recordId={parseInt(recordId!)}
+                patient={patient}
               />
             )}
           </div>
