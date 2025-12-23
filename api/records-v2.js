@@ -9,7 +9,7 @@ export default function handler(req, res) {
 
   return res.status(200).json({ 
     status: 'ok', 
-    message: 'RECREATED FILE: API is reachable',
+    message: 'RECORDS V2: API is reachable',
     timestamp: new Date().toISOString()
   });
 }
