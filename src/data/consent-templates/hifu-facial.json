@@ -1,0 +1,40 @@
+{
+  "procedure_type": "HIFU Facial (Ultrasonido Focalizado de Alta Intensidad)",
+  "description": "El HIFU (High-Intensity Focused Ultrasound) es una tecnología avanzada que aplica energía de ultrasonido focalizada a profundidades específicas de la piel (dermis profunda y sistema aponeurótico muscular superficial - SMAS). Esta energía genera puntos de micro-coagulación térmica que estimulan la regeneración natural de colágeno y elastina, produciendo un efecto tensor (lifting) y reafirmante sin necesidad de cirugía ni tiempo de recuperación.",
+  "objectives": [
+    "Tensado de la piel y efecto lifting no quirúrgico.",
+    "Definición del contorno mandibular y óvalo facial.",
+    "Reducción de la flacidez en cuello y papada.",
+    "Elevación de cejas y apertura de la mirada.",
+    "Mejora de la calidad, tono y elasticidad de la piel.",
+    "Suavizado de líneas de expresión y arrugas finas."
+  ],
+  "risks": [
+    "Sensación de calor intenso, pinchazos o molestia profunda durante la aplicación.",
+    "Enrojecimiento (eritema) leve que suele desaparecer en pocas horas.",
+    "Edema (hinchazón) leve a moderado que puede durar unos días.",
+    "Sensibilidad al tacto, hormigueo o adormecimiento temporal en la zona tratada.",
+    "Pequeños hematomas (moretones) ocasionales.",
+    "Rara vez: debilidad muscular transitoria o asimetría temporal (por inflamación nerviosa), quemaduras superficiales."
+  ],
+  "benefits": [
+    "Rejuvenecimiento facial integral sin cirugía ni inyecciones.",
+    "No requiere tiempo de inactividad (downtime), el paciente puede volver a su rutina de inmediato.",
+    "Resultados naturales que mejoran progresivamente hasta los 3-6 meses.",
+    "Estimulación profunda de la producción de colágeno propio."
+  ],
+  "pre_care": [
+    "Acudir con la piel completamente limpia, sin maquillaje, cremas ni protectores solares.",
+    "Informar al profesional sobre implantes metálicos, hilos tensores, rellenos dérmicos o toxina botulínica recientes en la zona.",
+    "No presentar infecciones activas en la piel (herpes, acné severo).",
+    "Evitar el consumo de antiinflamatorios antes del tratamiento si es posible."
+  ],
+  "post_care": [
+    "Puede retomar sus actividades diarias inmediatamente.",
+    "Usar protector solar FPS 50+ diariamente.",
+    "Mantener la piel hidratada.",
+    "La zona puede sentirse sensible al tacto o con sensación de 'agujetas' internas por unos días; es normal.",
+    "Evitar fuentes de calor intenso (sauna, baños muy calientes) y ejercicio extenuante durante 24-48 horas.",
+    "Evitar masajes faciales fuertes en la zona tratada durante las primeras semanas."
+  ]
+}
