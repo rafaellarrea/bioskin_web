@@ -4,6 +4,7 @@ import prescriptionOptions from '../../data/prescription_options.json';
 
 interface PrescriptionItem {
   medicamento: string;
+  nombre_comercial: string;
   presentacion: string;
   dosis: string;
   frecuencia: string;
@@ -27,6 +28,7 @@ interface PrescriptionTabProps {
 
 const EMPTY_ITEM: PrescriptionItem = {
   medicamento: '',
+  nombre_comercial: '',
   presentacion: '',
   dosis: '',
   frecuencia: '',
@@ -235,7 +237,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
           <ul>
             ${currentPrescription.items.map(item => `
               <li>
-                <strong>${item.medicamento}</strong> ${item.presentacion} ${item.dosis}
+                <strong>${item.medicamento}</strong> ${item.nombre_comercial ? `(${item.nombre_comercial})` : ''} ${item.presentacion} ${item.dosis}
                 <br/>
                 <em>${item.indicaciones}</em> (${item.frecuencia} por ${item.duracion})
               </li>
@@ -351,7 +353,8 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
           <table className="w-full text-sm">
             <thead className="bg-gray-50 sticky top-0">
               <tr>
-                <th className="p-2 text-left w-1/4">Medicamento</th>
+                <th className="p-2 text-left w-1/5">Principio Activo</th>
+                <th className="p-2 text-left w-1/6">Nombre Comercial</th>
                 <th className="p-2 text-left">Presentación</th>
                 <th className="p-2 text-left">Dosis</th>
                 <th className="p-2 text-left">Frecuencia</th>
@@ -375,6 +378,14 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
                     <datalist id={`meds-${idx}`}>
                       {prescriptionOptions.medications.map((m, i) => <option key={i} value={m} />)}
                     </datalist>
+                  </td>
+                  <td className="p-2">
+                    <input
+                      className="w-full p-1 border rounded"
+                      value={item.nombre_comercial}
+                      onChange={e => updateItem(idx, 'nombre_comercial', e.target.value)}
+                      placeholder="Opcional"
+                    />
                   </td>
                   <td className="p-2">
                     <input
