@@ -318,7 +318,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   };
 
   return (
-    <div className="flex h-[800px] gap-4">
+    <div className="flex flex-col md:flex-row h-auto md:h-[800px] gap-4">
       {isModalOpen && editingMark && (
         <MarkEditModal 
           mark={editingMark} 
@@ -328,9 +328,9 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
         />
       )}
       {/* Sidebar List */}
-      <div className="w-64 border-r border-gray-200 pr-4 flex flex-col gap-2 shrink-0">
+      <div className="w-full md:w-64 border-r-0 md:border-r border-b md:border-b-0 border-gray-200 pr-0 md:pr-4 pb-4 md:pb-0 flex flex-col gap-2 shrink-0">
         <div className="font-semibold text-gray-700 mb-2">Historial</div>
-        <div className="flex-1 overflow-y-auto space-y-2">
+        <div className="flex-1 overflow-y-auto space-y-2 max-h-[200px] md:max-h-none">
           {physicalExams.map((exam, index) => (
             <div
               key={exam.id || index}
@@ -359,9 +359,9 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-4 overflow-visible md:overflow-hidden">
         {/* Toolbar */}
-        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg shrink-0">
+        <div className="flex flex-wrap gap-2 justify-between items-center bg-gray-50 p-2 rounded-lg shrink-0">
           <div className="flex gap-2">
             <button onClick={handleSubmit} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors">
               <Save size={18} /> Guardar
@@ -390,9 +390,9 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
           </div>
         )}
 
-        <div className="flex-1 flex gap-6 overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-visible md:overflow-hidden">
           {/* Left Column: Maps */}
-          <div className="flex-1 flex flex-col overflow-y-auto min-w-[400px]">
+          <div className="flex-1 flex flex-col overflow-y-auto min-w-0">
             <div className="flex gap-2 mb-4 border-b border-gray-200">
               <button 
                 className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'facial' ? 'border-[#deb887] text-[#deb887]' : 'border-transparent text-gray-500'}`}
@@ -482,7 +482,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
           </div>
 
           {/* Right Column: Clinical Parameters */}
-          <div className="w-[350px] flex flex-col gap-4 overflow-y-auto pr-2 shrink-0">
+          <div className="w-full md:w-[350px] flex flex-col gap-4 overflow-y-auto pr-2 shrink-0">
             <h3 className="font-semibold text-gray-800 border-b pb-2">Parámetros Clínicos</h3>
             
             {Object.entries(CLINICAL_FIELDS).map(([key, field]) => (

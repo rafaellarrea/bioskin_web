@@ -254,11 +254,11 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   };
 
   return (
-    <div className="flex h-[600px] gap-4">
+    <div className="flex flex-col md:flex-row h-auto md:h-[600px] gap-4">
       {/* Sidebar List */}
-      <div className="w-1/4 border-r border-gray-200 pr-4 flex flex-col gap-2">
+      <div className="w-full md:w-1/4 border-r-0 md:border-r border-b md:border-b-0 border-gray-200 pr-0 md:pr-4 pb-4 md:pb-0 flex flex-col gap-2">
         <div className="font-semibold text-gray-700 mb-2">Historial de Diagnósticos</div>
-        <div className="flex-1 overflow-y-auto space-y-2">
+        <div className="flex-1 overflow-y-auto space-y-2 max-h-[200px] md:max-h-none">
           {diagnoses.map((diag, index) => (
             <div
               key={diag.id || index}
@@ -282,9 +282,9 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       </div>
 
       {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+      <div className="flex-1 flex flex-col gap-4 overflow-visible md:overflow-y-auto pr-0 md:pr-2">
         {/* Toolbar */}
-        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg sticky top-0 z-10">
+        <div className="flex flex-wrap gap-2 justify-between items-center bg-gray-50 p-2 rounded-lg sticky top-0 z-10">
           <div className="flex gap-2">
             <button onClick={handleNew} className="p-2 hover:bg-gray-200 rounded-lg" title="Nuevo Diagnóstico">
               <Plus className="w-5 h-5 text-gray-600" />

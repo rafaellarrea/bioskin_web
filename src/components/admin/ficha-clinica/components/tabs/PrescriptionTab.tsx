@@ -338,11 +338,11 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
   };
 
   return (
-    <div className="flex h-[600px] gap-4">
+    <div className="flex flex-col md:flex-row h-auto md:h-[600px] gap-4">
       {/* Sidebar List */}
-      <div className="w-56 border-r border-gray-200 pr-4 flex flex-col gap-2 flex-shrink-0">
+      <div className="w-full md:w-56 border-r-0 md:border-r border-b md:border-b-0 border-gray-200 pr-0 md:pr-4 pb-4 md:pb-0 flex flex-col gap-2 flex-shrink-0">
         <div className="font-semibold text-gray-700 mb-2">Historial</div>
-        <div className="flex-1 overflow-y-auto space-y-2">
+        <div className="flex-1 overflow-y-auto space-y-2 max-h-[200px] md:max-h-none">
           {prescriptions.map(p => (
             <div
               key={p.id}
@@ -361,9 +361,9 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       </div>
 
       {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4 relative overflow-hidden">
+      <div className="flex-1 flex flex-col gap-4 relative overflow-visible md:overflow-hidden">
         {/* Toolbar */}
-        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+        <div className="flex flex-wrap gap-2 justify-between items-center bg-gray-50 p-2 rounded-lg">
           <div className="flex gap-2">
             <button onClick={handleNew} className="p-2 hover:bg-gray-200 rounded-lg" title="Nueva Receta">
               <Plus className="w-5 h-5 text-gray-600" />
@@ -403,7 +403,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         </div>
 
         {/* Header Fields */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
             <input
@@ -413,7 +413,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
               onChange={e => setCurrentPrescription(prev => ({ ...prev, fecha: e.target.value }))}
             />
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Diagnóstico</label>
             <input
               type="text"

@@ -138,7 +138,7 @@ export default function ClinicalRecordManager() {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Volver al perfil del paciente</span>
+            <span className="hidden sm:inline">Volver al perfil del paciente</span>
           </button>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
@@ -195,7 +195,7 @@ export default function ClinicalRecordManager() {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {activeTab === 'history' && (
               <HistoryTab 
                 recordId={recordData?.recordId} 

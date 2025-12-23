@@ -81,7 +81,7 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
             ref={imageRef}
             src={view === 'front' ? '/images/clinical/body_front.png' : '/images/clinical/body_back.png'}
             alt={`Mapa Corporal ${view === 'front' ? 'Frontal' : 'Posterior'}`}
-            className="h-[500px] w-auto object-contain block"
+            className="max-h-[500px] w-full object-contain block"
             draggable={false}
           />
 
