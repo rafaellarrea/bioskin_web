@@ -1,11 +1,13 @@
-import pg from 'pg';
-const { Pool } = pg;
+// import pg from 'pg';
+// const { Pool } = pg;
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
 let poolInstance = null;
 
 function getPool() {
+  return null; // Disabled for debug
+  /*
   if (poolInstance) return poolInstance;
   const connectionString = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
   if (!connectionString) return null;
@@ -16,6 +18,7 @@ function getPool() {
     console.error(e);
     return null;
   }
+  */
 }
 
 export default async function handler(req, res) {
@@ -27,6 +30,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  // DEBUG MODE
+  return res.status(200).json({ status: 'ok', message: 'DEBUG MODE: API is reachable' });
 
   try {
     const { action } = req.query;
