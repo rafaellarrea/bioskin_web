@@ -216,6 +216,10 @@ export default async function handler(req, res) {
             if (err.code === '42P01') { // undefined_table
               return { rows: [] };
             }
+            if (err.code === '42703') { // undefined_column
+              console.warn(`⚠️ Column missing in query: ${query}`, err.message);
+              return { rows: [] };
+            }
             throw err;
           }
         };
@@ -234,7 +238,7 @@ export default async function handler(req, res) {
           safeQuery('SELECT * FROM diagnoses WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           safeQuery('SELECT * FROM treatments WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           safeQuery('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
-          safeQuery('SELECT * FROM consent_forms WHERE record_id = $1 ORDER BY signed_at DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM consent_forms WHERE record_id = $1 ORDER BY id DESC', [targetRecordId]),
           safeQuery('SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC', [targetRecordId])
         ]);
 
