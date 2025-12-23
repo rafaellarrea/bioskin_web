@@ -106,6 +106,14 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for empty fields
+    const emptyFields = Object.entries(formData).filter(([_, value]) => !value || (value as string).trim() === '');
+    if (emptyFields.length > 0) {
+      const confirmSave = window.confirm('Hay campos de antecedentes vacíos. ¿Desea guardar de todos modos?');
+      if (!confirmSave) return;
+    }
+
     setSaving(true);
     setMessage(null);
 
@@ -118,6 +126,8 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Antecedentes guardados correctamente' });
+        // Show confirmation alert as requested
+        alert('Antecedentes guardados correctamente');
         onSave();
       } else {
         throw new Error('Error al guardar');

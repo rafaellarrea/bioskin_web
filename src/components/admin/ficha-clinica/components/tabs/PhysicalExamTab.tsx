@@ -230,6 +230,19 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   };
 
   const handleSubmit = async () => {
+    // Validation
+    const hasEmptyFields = !currentExam.skin_type || !currentExam.phototype || !currentExam.glogau_scale;
+    const hasNoMarks = faceMarks.length === 0 && bodyMarks.length === 0;
+
+    if (hasEmptyFields || hasNoMarks) {
+      let warningMsg = 'Advertencia:\n';
+      if (hasEmptyFields) warningMsg += '- Hay campos obligatorios sin seleccionar (Tipo de piel, Fototipo, Glogau).\n';
+      if (hasNoMarks) warningMsg += '- No se han registrado lesiones en el mapa facial ni corporal.\n';
+      warningMsg += '\n¿Desea guardar de todos modos?';
+
+      if (!confirm(warningMsg)) return;
+    }
+
     setSaving(true);
     setMessage(null);
 
@@ -248,6 +261,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Examen físico guardado correctamente' });
+        alert('Examen físico guardado correctamente');
         onSave();
       } else {
         const errData = await response.json();

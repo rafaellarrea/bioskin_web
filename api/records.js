@@ -275,6 +275,19 @@ export default async function handler(req, res) {
         const newTreat = await pool.query(`INSERT INTO treatments (${tFields.join(', ')}) VALUES (${tParams}) RETURNING *`, tValues);
         return res.status(201).json(newTreat.rows[0]);
 
+      case 'updateTreatment':
+        const { id: upTreatId, ...upTreatData } = body;
+        const upTFields = Object.keys(upTreatData);
+        const upTValues = Object.values(upTreatData);
+        const upTSet = upTFields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+        await pool.query(`UPDATE treatments SET ${upTSet} WHERE id = $1`, [upTreatId, ...upTValues]);
+        return res.status(200).json({ success: true });
+
+      case 'deleteTreatment':
+        const { id: delTreatId } = req.query;
+        await pool.query('DELETE FROM treatments WHERE id = $1', [delTreatId]);
+        return res.status(200).json({ success: true });
+
       case 'listPrescriptions':
         const { record_id: presc_record_id } = req.query;
         const prescriptionsList = await pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC, id DESC', [presc_record_id]);

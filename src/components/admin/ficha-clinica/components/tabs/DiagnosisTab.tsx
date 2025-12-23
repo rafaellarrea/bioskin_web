@@ -45,6 +45,8 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   const [generatingAI, setGeneratingAI] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+  const [aiWarning, setAiWarning] = useState<string | null>(null);
+
   useEffect(() => {
     if (diagnoses.length > 0 && !currentDiagnosis.id) {
       setCurrentDiagnosis(diagnoses[0]);
@@ -56,6 +58,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   const handleNew = () => {
     setCurrentDiagnosis({ ...EMPTY_DIAGNOSIS, record_id: recordId });
     setMessage(null);
+    setAiWarning(null);
   };
 
   const handleDuplicate = () => {
@@ -121,6 +124,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       }));
       
       setMessage({ type: 'success', text: 'Diagnóstico generado por IA correctamente' });
+      setAiWarning('IMPORTANTE: Este diagnóstico ha sido generado por Inteligencia Artificial. Se requiere revisión y validación por parte de un profesional médico antes de guardar.');
 
     } catch (error: any) {
       console.error('AI Generation error:', error);
@@ -131,8 +135,13 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   };
 
   const handleSubmit = async () => {
+    if (aiWarning && !confirm('¿Ha revisado y validado el diagnóstico generado por IA?')) {
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
+    setAiWarning(null);
 
     try {
       const response = await fetch('/api/records?action=saveDiagnosis', {
@@ -143,6 +152,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Diagnóstico guardado correctamente' });
+        alert('Diagnóstico guardado correctamente');
         onSave();
       } else {
         const errData = await response.json();
@@ -285,6 +295,16 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           }`}>
             <AlertCircle className="w-5 h-5" />
             {message.text}
+          </div>
+        )}
+
+        {aiWarning && (
+          <div className="p-4 rounded-lg bg-yellow-50 text-yellow-800 border border-yellow-200 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Atención</p>
+              <p className="text-sm">{aiWarning}</p>
+            </div>
           </div>
         )}
 
