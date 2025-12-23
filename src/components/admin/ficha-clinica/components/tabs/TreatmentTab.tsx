@@ -108,17 +108,42 @@ export default function TreatmentTab({ recordId, treatments, physicalExams = [],
 
       const data = await response.json();
       
-      // Format the result
-      let protocolText = data.protocol;
-      if (typeof protocolText === 'object') {
-        // If it's an array or object, try to format it nicely
-        if (Array.isArray(protocolText)) {
-            protocolText = protocolText.map((step: any, i: number) => `${i+1}. ${typeof step === 'string' ? step : JSON.stringify(step)}`).join('\n');
-        } else {
-            // If it's an object, try to iterate keys or just stringify
-            protocolText = Object.entries(protocolText).map(([key, val]) => `${key}: ${val}`).join('\n');
+      // Helper to format recursive objects/arrays
+      const formatProtocolValue = (value: any, depth = 0): string => {
+        const indent = '  '.repeat(depth);
+        
+        if (value === null || value === undefined) return '';
+        
+        if (typeof value === 'string') return value;
+        
+        if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+        
+        if (Array.isArray(value)) {
+          return value.map((item, i) => {
+             // If item is string, just list it. If object, format it.
+             if (typeof item === 'string') return `${indent}${i+1}. ${item}`;
+             return `${indent}${i+1}. \n${formatProtocolValue(item, depth + 1)}`;
+          }).join('\n');
         }
-      }
+        
+        if (typeof value === 'object') {
+          return Object.entries(value).map(([k, v]) => {
+            // Format key: device_parameters -> Device Parameters
+            const niceKey = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            // If value is object/array, put on new line
+            if (typeof v === 'object' && v !== null) {
+                return `${indent}${niceKey}:\n${formatProtocolValue(v, depth + 1)}`;
+            }
+            return `${indent}${niceKey}: ${formatProtocolValue(v, depth)}`;
+          }).join('\n');
+        }
+        
+        return String(value);
+      };
+
+      // Format the result
+      let protocolText = formatProtocolValue(data.protocol);
 
       const formattedSuggestion = `TRATAMIENTO SUGERIDO: ${data.treatment_name}
       

@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: AI Treatment Recursive Fix**
+- 🐛 **Protocolo IA**: Implementado formateador recursivo para manejar objetos anidados (ej. `device_parameters`) en la respuesta de la IA.
+- 💅 **Formato**: Mejora visual para listas y objetos anidados en el texto del protocolo.
+
 ### ✅ **Dec 22, 2025: AI Treatment Fixes**
 - 🐛 **Protocolo IA**: Corregido error de visualización `[object Object]` formateando la respuesta JSON.
 - 🧠 **Contexto IA**: Mejorada extracción de datos del examen físico (zona, severidad, distribución) para el prompt.
