@@ -342,6 +342,7 @@ export default async function handler(req, res) {
         const { examData, patientName } = body;
         if (!examData) return res.status(400).json({ error: 'Missing exam data' });
 
+        // Dynamic import for OpenAI
         const { getOpenAIClient } = await import('../lib/ai-service.js');
         const openai = getOpenAIClient();
         
