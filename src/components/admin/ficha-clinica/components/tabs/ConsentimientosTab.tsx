@@ -650,17 +650,48 @@ export default function ConsentimientosTab({ patientId, recordId }: Props) {
             </section>
 
             <section>
-              <h3 className="font-bold border-b border-[#deb887] mb-2">5. DECLARACIONES Y AUTORIZACIONES</h3>
+              <h3 className="font-bold border-b border-[#deb887] mb-2">5. ANTECEDENTES CRÍTICOS</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p><strong>Alergias:</strong> {currentConsent.critical_antecedents?.allergies || 'Niega'}</p>
+                  <p><strong>Medicación:</strong> {currentConsent.critical_antecedents?.medications || 'Niega'}</p>
+                </div>
+                <div>
+                  <p><strong>Embarazo/Lactancia:</strong> {currentConsent.critical_antecedents?.pregnancy ? 'Sí' : 'No'}</p>
+                  <p><strong>Herpes Recurrente:</strong> {currentConsent.critical_antecedents?.herpes ? 'Sí' : 'No'}</p>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="font-bold border-b border-[#deb887] mb-2">6. DECLARACIONES Y AUTORIZACIONES</h3>
               <div className="space-y-2 text-sm">
                 <p>
-                  {currentConsent.declarations?.understanding ? '☑' : '☐'} Declaro haber recibido información clara y completa.
+                  {currentConsent.declarations?.understanding ? '☑' : '☐'} Declaro haber recibido información clara y completa del tratamiento.
                 </p>
                 <p>
                   {currentConsent.declarations?.questions ? '☑' : '☐'} He tenido oportunidad de resolver todas mis dudas.
                 </p>
                 <p>
-                  {currentConsent.authorizations?.image_use ? '☑' : '☐'} Autorizo el uso de imágenes con fines educativos/promocionales.
+                  {currentConsent.declarations?.results ? '☑' : '☐'} Entiendo que los resultados pueden variar y no se garantizan resultados específicos.
                 </p>
+                <p>
+                  {currentConsent.declarations?.authorization ? '☑' : '☐'} Autorizo voluntariamente la realización del tratamiento.
+                </p>
+                <p>
+                  {currentConsent.declarations?.revocation ? '☑' : '☐'} Sé que puedo revocar este consentimiento en cualquier momento antes del procedimiento.
+                </p>
+                <p>
+                  {currentConsent.declarations?.alternatives ? '☑' : '☐'} Me han explicado las alternativas de tratamiento, incluyendo la opción de no tratarme.
+                </p>
+                <div className="mt-4 pt-2 border-t border-gray-100">
+                  <p>
+                    {currentConsent.authorizations?.image_use ? '☑' : '☐'} Autorizo el uso de mis imágenes con fines educativos y/o promocionales.
+                  </p>
+                  <p>
+                    {currentConsent.authorizations?.photo_video ? '☑' : '☐'} Autorizo la toma de fotografías y/o videos del procedimiento para registro clínico.
+                  </p>
+                </div>
               </div>
             </section>
 
