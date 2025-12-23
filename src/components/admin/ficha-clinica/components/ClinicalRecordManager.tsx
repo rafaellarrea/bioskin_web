@@ -47,6 +47,7 @@ export default function ClinicalRecordManager() {
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
   const [recordData, setRecordData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (recordId) {
@@ -57,6 +58,7 @@ export default function ClinicalRecordManager() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Fetch record data first
       const recordRes = await fetch(`/api/records?action=getRecordData&recordId=${recordId}`);
@@ -72,9 +74,13 @@ export default function ClinicalRecordManager() {
             setPatient(pData);
           }
         }
+      } else {
+        const errData = await recordRes.json().catch(() => ({ error: 'Error desconocido' }));
+        setError(errData.error || 'Error al cargar el expediente');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading clinical record:', error);
+      setError(error.message || 'Error de conexión');
     } finally {
       setLoading(false);
     }
@@ -102,11 +108,12 @@ export default function ClinicalRecordManager() {
     );
   }
 
-  if (!recordData) {
+  if (!recordData || error) {
     return (
       <AdminLayout title="Error" showBack={true}>
         <div className="text-center py-12">
           <h3 className="text-xl font-semibold text-gray-800">Expediente no encontrado</h3>
+          {error && <p className="text-red-500 mt-2">{error}</p>}
           <button 
             onClick={() => navigate('/admin/clinical-records')}
             className="mt-4 text-[#deb887] hover:underline"

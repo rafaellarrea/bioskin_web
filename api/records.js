@@ -208,6 +208,18 @@ export default async function handler(req, res) {
 
         const patientIdFromRecord = recordDetails.rows[0]?.patient_id;
 
+        // Helper to safely query tables that might not exist yet
+        const safeQuery = async (query, params) => {
+          try {
+            return await pool.query(query, params);
+          } catch (err) {
+            if (err.code === '42P01') { // undefined_table
+              return { rows: [] };
+            }
+            throw err;
+          }
+        };
+
         const [
           history, 
           physical, 
@@ -217,13 +229,13 @@ export default async function handler(req, res) {
           consents, 
           injectables
         ] = await Promise.all([
-          pool.query('SELECT * FROM medical_history WHERE record_id = $1', [targetRecordId]),
-          pool.query('SELECT * FROM physical_exams WHERE record_id = $1 ORDER BY created_at DESC', [targetRecordId]),
-          pool.query('SELECT * FROM diagnoses WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
-          pool.query('SELECT * FROM treatments WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
-          pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
-          pool.query('SELECT * FROM consent_forms WHERE record_id = $1 ORDER BY signed_at DESC', [targetRecordId]),
-          pool.query('SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC', [targetRecordId])
+          safeQuery('SELECT * FROM medical_history WHERE record_id = $1', [targetRecordId]),
+          safeQuery('SELECT * FROM physical_exams WHERE record_id = $1 ORDER BY created_at DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM diagnoses WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM treatments WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM consent_forms WHERE record_id = $1 ORDER BY signed_at DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC', [targetRecordId])
         ]);
 
         return res.status(200).json({
