@@ -219,7 +219,7 @@ export default async function handler(req, res) {
         }
         return res.status(200).json({ success: true });
 
-      case 'savePhysicalExam':
+      case 'savePhysicalExam': {
         const { id: examId, record_id: pid_exam, created_at, ...examData } = body;
         
         if (examId) {
@@ -237,6 +237,7 @@ export default async function handler(req, res) {
            await pool.query(`INSERT INTO physical_exams (${eFields.join(', ')}) VALUES (${eParams})`, eValues);
         }
         return res.status(200).json({ success: true });
+      }
 
       case 'deletePhysicalExam':
         const { id: delExamId } = req.query;
@@ -338,7 +339,7 @@ export default async function handler(req, res) {
         await pool.query('DELETE FROM prescription_templates WHERE id = $1', [delTemplId]);
         return res.status(200).json({ message: 'Template deleted' });
 
-      case 'generateDiagnosisAI':
+      case 'generateDiagnosisAI': {
         const { examData, patientName } = body;
         if (!examData) return res.status(400).json({ error: 'Missing exam data' });
 
@@ -411,6 +412,7 @@ export default async function handler(req, res) {
           console.error('AI Service Error:', aiError);
           return res.status(500).json({ error: 'Error generating diagnosis: ' + aiError.message });
         }
+      }
 
       default:
         return res.status(400).json({ error: 'Invalid action' });
