@@ -12,6 +12,7 @@ interface PrescriptionItem {
   duracion: string;
   turno: string;
   indicaciones: string;
+  rutina: 'mañana' | 'noche' | 'ambos' | '';
 }
 
 interface Prescription {
@@ -24,6 +25,7 @@ interface Prescription {
 interface PrescriptionTabProps {
   recordId: number;
   patientName: string;
+  patientAge?: number | string;
 }
 
 const EMPTY_ITEM: PrescriptionItem = {
@@ -35,10 +37,11 @@ const EMPTY_ITEM: PrescriptionItem = {
   via: '',
   duracion: '',
   turno: '',
-  indicaciones: ''
+  indicaciones: '',
+  rutina: ''
 };
 
-export default function PrescriptionTab({ recordId, patientName }: PrescriptionTabProps) {
+export default function PrescriptionTab({ recordId, patientName, patientAge }: PrescriptionTabProps) {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [currentPrescription, setCurrentPrescription] = useState<Prescription>({
     fecha: new Date().toISOString().split('T')[0],
@@ -202,53 +205,127 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    const dateStr = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+    const logoUrl = `${window.location.origin}/images/logo/logo.png`;
+
     const html = `
       <html>
         <head>
           <title>Receta Médica - ${patientName}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
-            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            .header h1 { margin: 0; font-size: 24px; color: #deb887; }
-            .info { margin-bottom: 20px; }
-            .info p { margin: 5px 0; }
-            .prescription-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            .prescription-table th, .prescription-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            .prescription-table th { background-color: #f9f9f9; }
-            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
-            @media print {
-              .no-print { display: none; }
-            }
+            @page { size: landscape; margin: 0; }
+            body { font-family: 'Arial', sans-serif; padding: 40px; max-width: 100%; margin: 0; box-sizing: border-box; }
+            .container { display: flex; gap: 60px; height: 100%; }
+            .column { flex: 1; position: relative; display: flex; flex-direction: column; }
+            .column:first-child { border-right: 1px dashed #ccc; padding-right: 60px; }
+            
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px; }
+            .logo { height: 60px; object-fit: contain; }
+            .doctor-info { text-align: right; }
+            .doctor-info h2 { margin: 0; font-size: 12px; color: #333; letter-spacing: 2px; font-weight: normal; }
+            .doctor-info h3 { margin: 5px 0 0; font-size: 14px; font-weight: bold; }
+
+            .patient-info { margin-bottom: 30px; font-size: 12px; }
+            .patient-info p { margin: 5px 0; }
+            .patient-details { display: flex; justify-content: space-between; margin-top: 10px; }
+
+            .section-title { font-weight: bold; margin-bottom: 15px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 2px; width: 20px; border-bottom: 3px solid #000; }
+            .section-header { font-weight: bold; margin-bottom: 15px; font-size: 12px; text-transform: uppercase; }
+
+            .product-list { list-style-type: decimal; padding-left: 20px; margin: 0; }
+            .product-list li { margin-bottom: 8px; font-size: 12px; line-height: 1.4; }
+
+            .routine-section { margin-bottom: 20px; }
+            .routine-title { font-size: 12px; color: #333; margin-bottom: 10px; text-transform: uppercase; }
+
+            .footer { margin-top: auto; font-size: 10px; color: #666; padding-top: 20px; }
+            .footer-item { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+            .icon { margin-right: 5px; }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>BIOSKIN</h1>
-            <p>Dermatología y Medicina Estética</p>
-          </div>
-          
-          <div class="info">
-            <p><strong>Paciente:</strong> ${patientName}</p>
-            <p><strong>Fecha:</strong> ${currentPrescription.fecha}</p>
-            <p><strong>Diagnóstico:</strong> ${currentPrescription.diagnostico}</p>
-          </div>
+          <div class="container">
+            <!-- Left Column -->
+            <div class="column">
+               <div class="header">
+                 <img src="${logoUrl}" class="logo" alt="Bio Skin" />
+                 <div class="doctor-info">
+                   <h2>SALUD Y ESTÉTICA</h2>
+                   <h3>DRA. DANIELA CREAMER</h3>
+                 </div>
+               </div>
+               
+               <div class="patient-info">
+                 <p><strong>Cuenca, a ${dateStr}</strong></p>
+                 <div class="patient-details">
+                    <span><strong>Paciente:</strong> ${patientName.toUpperCase()}</span>
+                    <span><strong>EDAD:</strong> ${patientAge || ''} AÑOS</span>
+                 </div>
+               </div>
 
-          <h3>Prescripción</h3>
-          <ul>
-            ${currentPrescription.items.map(item => `
-              <li>
-                <strong>${item.medicamento}</strong> ${item.nombre_comercial ? `(${item.nombre_comercial})` : ''} ${item.presentacion} ${item.dosis}
-                <br/>
-                <em>${item.indicaciones}</em> (${item.frecuencia} por ${item.duracion})
-              </li>
-            `).join('')}
-          </ul>
+               <div class="section-header">INDICACIONES:</div>
+               <ol class="product-list">
+                 ${currentPrescription.items.map(item => `
+                   <li>
+                     ${item.nombre_comercial || item.medicamento} ${item.presentacion || ''}
+                   </li>
+                 `).join('')}
+               </ol>
 
-          <div class="footer">
-            <p>_____________________________</p>
-            <p>Firma Profesional</p>
+               <div class="footer">
+                  <div class="footer-item"><span class="icon">📞</span> 0998653732 / 0969890689</div>
+                  <div class="footer-item"><span class="icon">📍</span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
+               </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="column">
+               <div class="header">
+                 <img src="${logoUrl}" class="logo" alt="Bio Skin" />
+                 <div class="doctor-info">
+                   <h2>SALUD Y ESTÉTICA</h2>
+                   <h3>DRA. DANIELA CREAMER</h3>
+                 </div>
+               </div>
+               
+               <div class="patient-info">
+                 <p><strong>Cuenca, a ${dateStr}</strong></p>
+                 <div class="patient-details">
+                    <span><strong>Paciente:</strong> ${patientName.toUpperCase()}</span>
+                    <span><strong>EDAD:</strong> ${patientAge || ''} AÑOS</span>
+                 </div>
+               </div>
+
+               <div class="section-header">INDICACIONES:</div>
+               
+               <div class="routine-section">
+                 <div class="routine-title">RUTINA DE MAÑANA</div>
+                 <ol class="product-list">
+                   ${currentPrescription.items.filter(i => i.rutina === 'mañana' || i.rutina === 'ambos').map(item => `
+                     <li>
+                       ${item.indicaciones || `Aplicar ${item.nombre_comercial || item.medicamento}`}
+                     </li>
+                   `).join('')}
+                 </ol>
+               </div>
+
+               <div class="routine-section">
+                 <div class="routine-title">RUTINA DE NOCHE</div>
+                 <ol class="product-list">
+                   ${currentPrescription.items.filter(i => i.rutina === 'noche' || i.rutina === 'ambos').map(item => `
+                     <li>
+                       ${item.indicaciones || `Aplicar ${item.nombre_comercial || item.medicamento}`}
+                     </li>
+                   `).join('')}
+                 </ol>
+               </div>
+               
+               <div class="footer">
+                  <div class="footer-item"><span class="icon">📞</span> 0998653732 / 0969890689</div>
+                  <div class="footer-item"><span class="icon">📍</span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
+               </div>
+            </div>
           </div>
-          
           <script>
             window.onload = function() { window.print(); }
           </script>
@@ -360,6 +437,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
                 <th className="p-2 text-left">Frecuencia</th>
                 <th className="p-2 text-left">Vía</th>
                 <th className="p-2 text-left">Duración</th>
+                <th className="p-2 text-left">Rutina</th>
                 <th className="p-2 text-left">Indicaciones</th>
                 <th className="p-2 w-10"></th>
               </tr>
@@ -441,6 +519,18 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
                     <datalist id={`dur-${idx}`}>
                       {prescriptionOptions.durations.map((d, i) => <option key={i} value={d} />)}
                     </datalist>
+                  </td>
+                  <td className="p-2">
+                    <select
+                      className="w-full p-1 border rounded"
+                      value={item.rutina}
+                      onChange={e => updateItem(idx, 'rutina', e.target.value as any)}
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="mañana">Mañana</option>
+                      <option value="noche">Noche</option>
+                      <option value="ambos">Ambos</option>
+                    </select>
                   </td>
                   <td className="p-2">
                     <input

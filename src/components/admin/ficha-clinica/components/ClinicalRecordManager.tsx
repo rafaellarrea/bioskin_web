@@ -79,6 +79,18 @@ export default function ClinicalRecordManager() {
     }
   };
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return '';
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   if (loading) {
     return (
       <AdminLayout title="Cargando..." showBack={false}>
@@ -211,6 +223,7 @@ export default function ClinicalRecordManager() {
               <PrescriptionTab 
                 recordId={recordData?.recordId} 
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
               />
             )}
             {activeTab === 'consent' && (
