@@ -419,6 +419,158 @@ export default async function handler(req, res) {
         await pool.query('DELETE FROM prescription_templates WHERE id = $1', [delTemplId]);
         return res.status(200).json({ message: 'Template deleted' });
 
+      // --- CONSENTIMIENTOS ---
+
+      case 'initConsents':
+        // WARNING: This drops the table! Use with caution.
+        await pool.query(`
+          DROP TABLE IF EXISTS consent_forms;
+          CREATE TABLE consent_forms (
+              id SERIAL PRIMARY KEY,
+              record_id INTEGER REFERENCES clinical_records(id) ON DELETE CASCADE,
+              patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+              status VARCHAR(20) DEFAULT 'draft',
+              created_at TIMESTAMP DEFAULT NOW(),
+              updated_at TIMESTAMP DEFAULT NOW(),
+              created_by VARCHAR(100),
+              procedure_type VARCHAR(150),
+              zone VARCHAR(150),
+              sessions INTEGER,
+              objectives JSONB,
+              description TEXT,
+              risks JSONB,
+              benefits JSONB,
+              alternatives JSONB,
+              pre_care JSONB,
+              post_care JSONB,
+              contraindications JSONB,
+              critical_antecedents JSONB,
+              authorizations JSONB,
+              declarations JSONB,
+              signatures JSONB,
+              attachments JSONB
+          );
+          CREATE INDEX idx_consent_forms_record_id ON consent_forms(record_id);
+          CREATE INDEX idx_consent_forms_patient_id ON consent_forms(patient_id);
+        `);
+        return res.status(200).json({ message: 'Consent forms table initialized' });
+
+      case 'listConsents':
+        const { patient_id: pid, record_id: rid } = req.query;
+        let query = 'SELECT * FROM consent_forms WHERE ';
+        let params = [];
+        if (rid) {
+          query += 'record_id = $1';
+          params.push(rid);
+        } else if (pid) {
+          query += 'patient_id = $1';
+          params.push(pid);
+        } else {
+          return res.status(400).json({ error: 'Missing patient_id or record_id' });
+        }
+        query += ' ORDER BY created_at DESC';
+        const consents = await pool.query(query, params);
+        return res.status(200).json(consents.rows);
+
+      case 'getConsent':
+        const { id: cid } = req.query;
+        const consent = await pool.query('SELECT * FROM consent_forms WHERE id = $1', [cid]);
+        if (consent.rows.length === 0) return res.status(404).json({ error: 'Consent not found' });
+        return res.status(200).json(consent.rows[0]);
+
+      case 'saveConsent':
+        const { 
+          id: saveCid, 
+          record_id: saveRid, 
+          patient_id: savePid,
+          status,
+          created_by,
+          procedure_type,
+          zone,
+          sessions,
+          objectives,
+          description,
+          risks,
+          benefits,
+          alternatives,
+          pre_care,
+          post_care,
+          contraindications,
+          critical_antecedents,
+          authorizations,
+          declarations,
+          signatures,
+          attachments
+        } = body;
+
+        if (saveCid) {
+          // Update
+          const updateQuery = `
+            UPDATE consent_forms SET
+              status = COALESCE($1, status),
+              updated_at = NOW(),
+              procedure_type = COALESCE($2, procedure_type),
+              zone = COALESCE($3, zone),
+              sessions = COALESCE($4, sessions),
+              objectives = COALESCE($5, objectives),
+              description = COALESCE($6, description),
+              risks = COALESCE($7, risks),
+              benefits = COALESCE($8, benefits),
+              alternatives = COALESCE($9, alternatives),
+              pre_care = COALESCE($10, pre_care),
+              post_care = COALESCE($11, post_care),
+              contraindications = COALESCE($12, contraindications),
+              critical_antecedents = COALESCE($13, critical_antecedents),
+              authorizations = COALESCE($14, authorizations),
+              declarations = COALESCE($15, declarations),
+              signatures = COALESCE($16, signatures),
+              attachments = COALESCE($17, attachments)
+            WHERE id = $18 RETURNING *
+          `;
+          const updated = await pool.query(updateQuery, [
+            status, procedure_type, zone, sessions, 
+            JSON.stringify(objectives), description, JSON.stringify(risks), JSON.stringify(benefits), JSON.stringify(alternatives),
+            JSON.stringify(pre_care), JSON.stringify(post_care), JSON.stringify(contraindications),
+            JSON.stringify(critical_antecedents), JSON.stringify(authorizations), JSON.stringify(declarations),
+            JSON.stringify(signatures), JSON.stringify(attachments),
+            saveCid
+          ]);
+          return res.status(200).json(updated.rows[0]);
+        } else {
+          // Create
+          const insertQuery = `
+            INSERT INTO consent_forms (
+              record_id, patient_id, status, created_by,
+              procedure_type, zone, sessions,
+              objectives, description, risks, benefits, alternatives,
+              pre_care, post_care, contraindications,
+              critical_antecedents, authorizations, declarations,
+              signatures, attachments
+            ) VALUES (
+              $1, $2, $3, $4,
+              $5, $6, $7,
+              $8, $9, $10, $11, $12,
+              $13, $14, $15,
+              $16, $17, $18,
+              $19, $20
+            ) RETURNING *
+          `;
+          const created = await pool.query(insertQuery, [
+            saveRid, savePid, status || 'draft', created_by,
+            procedure_type, zone, sessions,
+            JSON.stringify(objectives || []), description || '', JSON.stringify(risks || []), JSON.stringify(benefits || []), JSON.stringify(alternatives || []),
+            JSON.stringify(pre_care || []), JSON.stringify(post_care || []), JSON.stringify(contraindications || []),
+            JSON.stringify(critical_antecedents || {}), JSON.stringify(authorizations || {}), JSON.stringify(declarations || {}),
+            JSON.stringify(signatures || {}), JSON.stringify(attachments || [])
+          ]);
+          return res.status(200).json(created.rows[0]);
+        }
+
+      case 'deleteConsent':
+        const { id: delCid } = req.query;
+        await pool.query('DELETE FROM consent_forms WHERE id = $1', [delCid]);
+        return res.status(200).json({ message: 'Consent deleted' });
+
       case 'generateDiagnosisAI': {
         const { examData, patientName } = body;
         if (!examData) return res.status(400).json({ error: 'Missing exam data' });

@@ -16,6 +16,7 @@ import PhysicalExamTab from './tabs/PhysicalExamTab';
 import DiagnosisTab from './tabs/DiagnosisTab';
 import TreatmentTab from './tabs/TreatmentTab';
 import PrescriptionTab from './tabs/PrescriptionTab';
+import ConsentimientosTab from './tabs/ConsentimientosTab';
 
 interface TabButtonProps {
   id: string;
@@ -230,9 +231,10 @@ export default function ClinicalRecordManager() {
               />
             )}
             {activeTab === 'consent' && (
-              <div className="text-center py-12 text-gray-500">
-                Módulo de Consentimientos en desarrollo
-              </div>
+              <ConsentimientosTab 
+                patientId={patient?.id}
+                recordId={parseInt(recordId!)}
+              />
             )}
           </div>
         </div>
