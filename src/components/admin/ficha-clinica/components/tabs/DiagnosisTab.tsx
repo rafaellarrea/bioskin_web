@@ -15,6 +15,7 @@ interface Diagnosis {
 
 interface PhysicalExam {
   id?: number;
+  created_at?: string;
   face_map_data?: string;
   body_map_data?: string;
   skin_type?: string;
@@ -44,6 +45,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   const [saving, setSaving] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [selectedExamId, setSelectedExamId] = useState<number | string>('');
 
   const [aiWarning, setAiWarning] = useState<string | null>(null);
 
@@ -54,6 +56,13 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       setCurrentDiagnosis({ ...EMPTY_DIAGNOSIS, record_id: recordId });
     }
   }, [diagnoses, recordId]);
+
+  useEffect(() => {
+    if (physicalExams && physicalExams.length > 0) {
+      // Default to the first exam (assuming sorted by date DESC from API)
+      setSelectedExamId(physicalExams[0].id || '');
+    }
+  }, [physicalExams]);
 
   const handleNew = () => {
     setCurrentDiagnosis({ ...EMPTY_DIAGNOSIS, record_id: recordId });
@@ -94,8 +103,8 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       return;
     }
 
-    // Use the most recent exam
-    const latestExam = physicalExams[physicalExams.length - 1];
+    // Use the selected exam or fallback to the first one (latest)
+    const examToUse = physicalExams.find(e => e.id === Number(selectedExamId)) || physicalExams[0];
     
     setGeneratingAI(true);
     setMessage(null);
@@ -105,7 +114,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          examData: latestExam,
+          examData: examToUse,
           patientName
         }),
       });
@@ -117,9 +126,27 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
 
       const data = await response.json();
       
+      // Fix for potential double-encoded JSON or object response
+      let diagnosisText = data.diagnosis;
+      
+      // Handle case where diagnosis is an object
+      if (typeof diagnosisText === 'object' && diagnosisText !== null) {
+        diagnosisText = diagnosisText.diagnosis || diagnosisText.text || JSON.stringify(diagnosisText);
+      }
+      
+      // Handle case where diagnosis is a stringified JSON (e.g. "{ ... }")
+      if (typeof diagnosisText === 'string' && diagnosisText.trim().startsWith('{') && diagnosisText.trim().endsWith('}')) {
+         try {
+            const parsed = JSON.parse(diagnosisText);
+            if (parsed.diagnosis) diagnosisText = parsed.diagnosis;
+         } catch (e) {
+            // Not valid JSON, keep as is
+         }
+      }
+
       setCurrentDiagnosis(prev => ({
         ...prev,
-        diagnosis_text: data.diagnosis || prev.diagnosis_text,
+        diagnosis_text: diagnosisText || prev.diagnosis_text,
         notes: data.notes || prev.notes
       }));
       
@@ -274,6 +301,23 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
             <button onClick={handlePrint} className="p-2 hover:bg-gray-200 rounded-lg" title="Imprimir">
               <Printer className="w-5 h-5 text-gray-600" />
             </button>
+            
+            <div className="h-6 w-px bg-gray-300 mx-2"></div>
+
+            <select 
+                className="p-2 border border-gray-200 rounded-lg text-sm max-w-[200px] focus:ring-2 focus:ring-[#deb887] outline-none"
+                value={selectedExamId}
+                onChange={(e) => setSelectedExamId(Number(e.target.value))}
+                title="Seleccionar Examen Físico base"
+            >
+                {physicalExams.map((exam, idx) => (
+                    <option key={exam.id || idx} value={exam.id}>
+                        {exam.created_at ? new Date(exam.created_at).toLocaleDateString() : `Examen ${exam.id}`}
+                    </option>
+                ))}
+                {physicalExams.length === 0 && <option value="">Sin exámenes</option>}
+            </select>
+
             <button 
               onClick={handleGenerateAI} 
               disabled={generatingAI} 
