@@ -1,36 +1,40 @@
 {
-  "procedure_type": "Tratamiento con Luz Pulsada Intensa (IPL) para Rejuvenecimiento facial",
-  "description": "La Luz Pulsada Intensa (IPL) es una tecnología que utiliza luz policromática de alta intensidad para tratar diversas afecciones de la piel. La energía lumínica es absorbida por cromóforos específicos (melanina, hemoglobina) transformándose en calor, lo que permite tratar manchas, lesiones vasculares, acné o eliminar vello no deseado.",
+  "procedure_type": "Tratamiento con Luz Pulsada Intensa (IPL) para Rejuvenecimiento Facial",
+  "description": "La Luz Pulsada Intensa (IPL) es una tecnología no invasiva que utiliza pulsos de luz de alta intensidad para mejorar visiblemente la calidad de la piel. La energía lumínica penetra en la dermis sin dañar la capa superficial, estimulando la producción de nuevo colágeno y tratando selectivamente las imperfecciones causadas por el envejecimiento y la exposición solar (fotoenvejecimiento).",
   "objectives": [
-    "Rejuvenecimiento facial y mejora de la calidad de la piel.",
-    "Tratamiento de lesiones pigmentarias (manchas solares, pecas).",
-    "Tratamiento de lesiones vasculares (arañitas, rosácea).",
-    "Tratamiento de acné activo.",
-    "Fotodepilación (reducción permanente del vello)."
+    "Rejuvenecimiento global de la piel (cara, cuello, escote o manos).",
+    "Unificación del tono y mejora de la textura cutánea.",
+    "Tratamiento de lesiones pigmentarias benignas (manchas solares, léntigos, pecas).",
+    "Tratamiento de lesiones vasculares superficiales (telangiectasias, rojeces difusas, cuperosis).",
+    "Reducción del tamaño de los poros y mejora de la luminosidad.",
+    "Suavizado de líneas de expresión finas mediante estimulación de colágeno."
   ],
   "risks": [
-    "Enrojecimiento (eritema) y edema (hinchazón) transitorio.",
-    "Sensación de calor o ardor leve durante y después del tratamiento.",
-    "Formación de costras superficiales que caen solas.",
-    "Cambios temporales en la pigmentación (hipo o hiperpigmentación).",
-    "Rara vez: ampollas o quemaduras superficiales."
+    "Enrojecimiento (eritema) y leve inflamación (edema) que suele desaparecer en 24-48 horas.",
+    "Sensación de calor o ardor leve durante la sesión (similar a un leve chasquido de banda elástica).",
+    "Oscurecimiento temporal de las manchas tratadas, que pueden formar micro-costras y descamarse en 7-10 días.",
+    "Cambios transitorios en la pigmentación (hipopigmentación o hiperpigmentación), especialmente si hubo exposición solar reciente.",
+    "Rara vez: ampollas superficiales o hematomas pequeños."
   ],
   "benefits": [
-    "Mejora visible del tono y textura de la piel.",
-    "Reducción de manchas y rojeces.",
-    "Estimulación de colágeno.",
-    "Piel más luminosa y uniforme."
+    "Piel más joven, tersa y luminosa.",
+    "Eliminación o reducción significativa de manchas de la edad y daño solar.",
+    "Disminución de rojeces y capilares visibles.",
+    "Mejora la textura de la piel y reduce el tamaño de los poros.",
+    "Procedimiento rápido con tiempo de recuperación mínimo."
   ],
   "pre_care": [
-    "No exponerse al sol ni usar camas solares 4 semanas antes.",
-    "No usar autobronceadores.",
-    "Acudir con la piel limpia, sin maquillaje ni cremas.",
-    "Informar sobre medicamentos fotosensibilizantes."
+    "Evitar estrictamente la exposición solar y el bronceado (natural o artificial) al menos 4 semanas antes.",
+    "No utilizar autobronceadores 2 semanas antes del tratamiento.",
+    "Suspender el uso de ácidos (retinoico, glicólico) o exfoliantes fuertes 3-5 días antes.",
+    "Informar sobre la toma de medicamentos, especialmente antibióticos o fotosensibilizantes.",
+    "Acudir a la sesión con la piel limpia, sin maquillaje, cremas ni perfumes."
   ],
   "post_care": [
-    "Evitar exposición solar directa y usar protector solar FPS 50+.",
-    "No rascar ni arrancar costras si aparecen.",
-    "Mantener la piel hidratada.",
-    "Evitar fuentes de calor (sauna, ejercicio intenso) por 48 horas."
+    "Evitar la exposición solar directa y aplicar protector solar FPS 50+ cada 2-3 horas rigurosamente.",
+    "No rascar, frotar ni arrancar las costras si aparecen; dejar que caigan solas.",
+    "Mantener la piel bien hidratada con cremas reparadoras suaves.",
+    "Evitar baños calientes, saunas y ejercicio intenso durante 48 horas para no aumentar la inflamación.",
+    "No aplicar maquillaje hasta que baje el enrojecimiento (generalmente 24 horas)."
   ]
 }
