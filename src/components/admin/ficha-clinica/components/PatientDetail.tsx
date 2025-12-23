@@ -104,7 +104,7 @@ export default function PatientDetail() {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="text-sm text-gray-500">RUT / Identificación</label>
+              <label className="text-sm text-gray-500">Identificación / Cédula / RUC</label>
               <p className="font-medium text-gray-900">{patient.rut || 'No registrado'}</p>
             </div>
             <div>

@@ -282,7 +282,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
       </div>
 
       {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4">
+      <div className="flex-1 flex flex-col gap-4 relative">
         {/* Toolbar */}
         <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
           <div className="flex gap-2">
@@ -451,10 +451,10 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
         
         <button
           onClick={addItem}
-          className="self-start flex items-center gap-2 text-[#deb887] hover:text-[#c5a075] font-medium"
+          className="absolute bottom-6 right-6 bg-[#deb887] text-white p-3 rounded-full shadow-lg hover:bg-[#c5a075] transition-all hover:scale-110 z-10 flex items-center justify-center"
+          title="Agregar Medicamento"
         >
-          <Plus className="w-4 h-4" />
-          Agregar Medicamento
+          <Plus className="w-6 h-6" />
         </button>
       </div>
     </div>

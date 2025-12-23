@@ -95,7 +95,7 @@ export default function PatientList() {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-4 font-semibold text-gray-600">Paciente</th>
-                  <th className="px-6 py-4 font-semibold text-gray-600">RUT</th>
+                  <th className="px-6 py-4 font-semibold text-gray-600">Identificación</th>
                   <th className="px-6 py-4 font-semibold text-gray-600">Contacto</th>
                   <th className="px-6 py-4 font-semibold text-gray-600">Acciones</th>
                 </tr>

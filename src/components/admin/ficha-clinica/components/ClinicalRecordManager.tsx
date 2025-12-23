@@ -65,7 +65,7 @@ export default function ClinicalRecordManager() {
 
         // Fetch patient info using patientId from record
         if (rData.patientId) {
-          const patientRes = await fetch(`/api/clinical-records?action=getPatient&id=${rData.patientId}`);
+          const patientRes = await fetch(`/api/records?action=getPatient&id=${rData.patientId}`);
           if (patientRes.ok) {
             const pData = await patientRes.json();
             setPatient(pData);
