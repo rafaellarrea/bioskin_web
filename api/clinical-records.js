@@ -349,8 +349,9 @@ export default async function handler(req, res) {
         const { examData, patientName } = body;
         if (!examData) return res.status(400).json({ error: 'Missing exam data' });
 
-        const { getOpenAIClient } = await import('../lib/ai-service.js');
-        const openai = getOpenAIClient();
+        // const { getOpenAIClient } = await import('../lib/ai-service.js');
+        // const openai = getOpenAIClient();
+        const openai = null;
         
         let lesions = [];
         try {
