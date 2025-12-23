@@ -125,7 +125,7 @@ export default async function handler(req, res) {
             [first_name, last_name, cleanRut, email, phone, cleanBirthDate, gender, address, occupation]
           );
           // Create an initial clinical record for the patient
-          await pool.query('INSERT INTO clinical_records (patient_id) VALUES ($1)', [newPatient.rows[0].id]);
+          await pool.query('INSERT INTO clinical_records (patient_id, status) VALUES ($1, \'active\')', [newPatient.rows[0].id]);
           
           return res.status(201).json(newPatient.rows[0]);
         } catch (err) {
@@ -178,8 +178,21 @@ export default async function handler(req, res) {
         let targetRecordId = recordId;
 
         if (!targetRecordId && patientId) {
-           const r = await pool.query('SELECT id FROM clinical_records WHERE patient_id = $1 AND status = \'active\' LIMIT 1', [patientId]);
-           if (r.rows.length > 0) targetRecordId = r.rows[0].id;
+           // Try to find active record first
+           let r = await pool.query('SELECT id FROM clinical_records WHERE patient_id = $1 AND status = \'active\' LIMIT 1', [patientId]);
+           
+           // If no active record, try to find ANY record
+           if (r.rows.length === 0) {
+             r = await pool.query('SELECT id FROM clinical_records WHERE patient_id = $1 ORDER BY created_at DESC LIMIT 1', [patientId]);
+           }
+           
+           // If still no record, create one
+           if (r.rows.length === 0) {
+             const newRec = await pool.query('INSERT INTO clinical_records (patient_id, status) VALUES ($1, \'active\') RETURNING id', [patientId]);
+             targetRecordId = newRec.rows[0].id;
+           } else {
+             targetRecordId = r.rows[0].id;
+           }
         }
 
         if (!targetRecordId) return res.status(404).json({ error: 'Record not found' });
