@@ -1,6 +1,13 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const { Pool } = require('pg');
+// import { createRequire } from 'module';
+// const require = createRequire(import.meta.url);
+// const { Pool } = require('pg');
+
+// Mock Pool for debug
+const Pool = class {
+  constructor() {}
+  connect() { return { query: () => ({ rows: [{ now: new Date() }] }), release: () => {} }; }
+  query() { return { rows: [] }; }
+};
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
