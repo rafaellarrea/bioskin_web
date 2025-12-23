@@ -1,5 +1,5 @@
-import pg from 'pg';
-const { Pool } = pg;
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
