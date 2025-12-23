@@ -625,6 +625,28 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
     
     return (
       <div className="space-y-6">
+        <style>{`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #printable-consent, #printable-consent * {
+              visibility: visible;
+            }
+            #printable-consent {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              margin: 0;
+              padding: 20px;
+              background: white;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}</style>
         <div className="flex justify-between items-center border-b pb-4 no-print">
           <button onClick={() => setView('form')} className="text-gray-500 hover:text-gray-700">
             &larr; Volver a Edición
@@ -638,7 +660,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
           </button>
         </div>
 
-        <div className="bg-white p-8 max-w-4xl mx-auto shadow-lg print:shadow-none print:p-0">
+        <div id="printable-consent" className="bg-white p-8 max-w-4xl mx-auto shadow-lg print:shadow-none print:p-0">
           {/* Header */}
           <div className="flex justify-between items-start mb-8 border-b-2 border-[#deb887] pb-4">
             <div className="flex items-center gap-4">
@@ -690,7 +712,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
 
             <section>
               <h3 className="font-bold border-b border-[#deb887] mb-2">3. RIESGOS Y BENEFICIOS</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold mb-1">Riesgos:</h4>
                   <ul className="list-disc pl-5 text-sm">
