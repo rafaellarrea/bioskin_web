@@ -32,10 +32,11 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "",
     "INCLUYE GARANTIA DE 6 MESES"
   ],
-  price: "$1,500",
+  price: "$1,600",
+  originalPrice: "$1,750",
   pricing: {
-    current: 1500,
-    previous: 1765,
+    current: 1600,
+    previous: 1750,
     currency: "USD",
     taxNote: "+ IVA",
     discount: {
@@ -98,10 +99,11 @@ Ideal para clínicas y consultorios que buscan precisión, velocidad y valor añ
     "Rejuvenecimiento vaginal: tensado, lubricación, restauración de flora y pH.",
     "Mejoría de sensibilidad íntima y estética genital femenina."
   ],
-  "price": "$3,650",
+  "price": "$3,975",
+  "originalPrice": "$4,200",
   "pricing": {
-    "current": 3650,
-    "previous": 4056,
+    "current": 3975,
+    "previous": 4200,
     "currency": "USD",
     "taxNote": "+ IVA",
     "discount": {
@@ -158,10 +160,11 @@ Es ideal para clínicas estéticas que buscan ofrecer resultados visibles en lif
     "Tratamiento seguro y efectivo para pieles maduras y con flacidez.",
     "Compatible con protocolos post-infiltración (espera recomendada de 30 días)."
   ],
-  price: "$1,600",
+  price: "$1,750",
+  originalPrice: "$1,900",
   pricing: {
-    current: 1600,
-    previous: 1882,
+    current: 1750,
+    previous: 1900,
     currency: "USD",
     taxNote: "+ IVA",
     discount: {
@@ -215,10 +218,11 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Eliminación de tatuajes y pigmentos resistentes.",
     "Rejuvenecimiento facial, reducción de líneas finas y flacidez.",
     "Reducción de lesiones vasculares y pigmentadas."
-  ],
-  price: "$2,900",
+  ],3,100",
+  originalPrice: "$3,200",
   pricing: {
-    current: 2900,
+    current: 3100,
+    previous: 3200
     previous: 3222,
     currency: "USD",
     taxNote: "+ IVA",

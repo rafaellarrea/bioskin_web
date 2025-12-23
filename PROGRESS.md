@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 23, 2025: Product Pricing & UI Updates**
+- 🏷️ **Precios**: Actualizados precios de Analizador, Láser CO2, HIFU y 3 en 1 con descuentos.
+- 💅 **UI**: Agregado soporte para precio original tachado y leyenda "IVA INCLUIDO" en tarjetas de producto.
+- 🗑️ **Limpieza**: Eliminado modal de oferta HIFU obsoleto.
+
 ### ✅ **Dec 22, 2025: Prescription UI Improvements**
 - 📏 **Layout**: Reducido ancho del historial y aumentado espacio para la tabla de recetas.
 - ↔️ **Tabla**: Implementado scroll horizontal y anchos mínimos para evitar que los campos se corten.

@@ -14,7 +14,6 @@ type ProductsProps = {
 
 const Products: React.FC<ProductsProps> = ({ initialCategory = 'all' }) => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'cosmetic'>(initialCategory);
-  const [showModal, setShowModal] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
@@ -53,67 +52,6 @@ const Products: React.FC<ProductsProps> = ({ initialCategory = 'all' }) => {
   return (
     <>
       <SEO {...seoData} />
-
-      {/* Modal Oferta HIFU */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative text-center overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#deb887] to-[#f5d0a9]" />
-              <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
-                onClick={() => setShowModal(false)}
-              >
-                <X className="w-6 h-6" />
-              </button>
-              
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-[#deb887]/10 rounded-full mb-4">
-                <Tag className="w-6 h-6 text-[#deb887]" />
-              </div>
-              
-              <h2 className="text-3xl font-serif font-bold mb-2 text-gray-900">¡30% OFF!</h2>
-              <p className="text-gray-600 mb-6">Oferta exclusiva en nuestro equipo <span className="font-bold text-[#deb887]">HIFU 7D Profesional</span>.</p>
-              
-              <div className="relative mb-6 group cursor-pointer">
-                <div className="absolute inset-0 bg-[#deb887]/20 rounded-xl transform rotate-3 transition-transform group-hover:rotate-6" />
-                <img 
-                  src="/images/productos/dispositivos/hifu/hifu1.jpg" 
-                  alt="HIFU" 
-                  className="relative rounded-xl shadow-lg mx-auto max-h-48 object-cover bg-white" 
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Link
-                  to="/products/hifu-7d-con-doble-manija"
-                  className="w-full bg-[#deb887] text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-[#deb887]/30 hover:bg-[#c5a06d] transition-all transform hover:-translate-y-1"
-                  onClick={() => setShowModal(false)}
-                >
-                  Ver Oferta
-                </Link>
-                <a
-                  href="https://wa.me/593969890689?text=Hola%2C%20vi%20el%20descuento%20de%2030%25%20en%20el%20equipo%20HIFU"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-500 hover:text-[#deb887] transition-colors"
-                >
-                  Consultar por WhatsApp
-                </a>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Header Section */}
       <section className="relative py-24 bg-gray-900 overflow-hidden">
@@ -192,6 +130,7 @@ const Products: React.FC<ProductsProps> = ({ initialCategory = 'all' }) => {
                     name={product.name}
                     shortDescription={product.shortDescription}
                     price={product.price}
+                    originalPrice={(product as any).originalPrice}
                     images={product.images}
                     category={product.category}
                   />
