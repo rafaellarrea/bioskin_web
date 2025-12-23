@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 22, 2025: AI Treatment Fixes**
+- 🐛 **Protocolo IA**: Corregido error de visualización `[object Object]` formateando la respuesta JSON.
+- 🧠 **Contexto IA**: Mejorada extracción de datos del examen físico (zona, severidad, distribución) para el prompt.
+
 ### ✅ **Dec 22, 2025: AI Diagnosis & History Update**
 - 🧠 **IA Diagnóstico**: Implementado botón para generar diagnóstico preliminar y notas clínicas usando OpenAI basado en lesiones marcadas.
 - 📝 **Antecedentes**: Renombrado "Antecedentes No Patológicos" a "Hábitos" para mayor claridad.

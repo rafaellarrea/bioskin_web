@@ -69,9 +69,22 @@ export default function TreatmentTab({ recordId, treatments, physicalExams = [],
       try {
         const face = typeof exam.face_map_data === 'string' ? JSON.parse(exam.face_map_data) : exam.face_map_data;
         if (Array.isArray(face) && face.length > 0) {
-          text += `\nMapa Facial: ${face.map((f: any) => f.category).join(', ')}`;
+          text += `\nMapa Facial (Lesiones):\n`;
+          face.forEach((f: any) => {
+             text += `- ${f.category} (${f.distribution || 'General'}): ${f.severity || 'N/A'} - ${f.notes || 'Zona no especificada'}\n`;
+          });
         }
-      } catch (e) {}
+        
+        const body = typeof exam.body_map_data === 'string' ? JSON.parse(exam.body_map_data) : exam.body_map_data;
+        if (Array.isArray(body) && body.length > 0) {
+          text += `\nMapa Corporal (Lesiones):\n`;
+          body.forEach((b: any) => {
+             text += `- ${b.category} (${b.distribution || 'General'}): ${b.severity || 'N/A'} - ${b.notes || 'Zona no especificada'}\n`;
+          });
+        }
+      } catch (e) {
+        console.error('Error parsing map data', e);
+      }
 
       setEditableExamData(text);
     }
@@ -96,6 +109,17 @@ export default function TreatmentTab({ recordId, treatments, physicalExams = [],
       const data = await response.json();
       
       // Format the result
+      let protocolText = data.protocol;
+      if (typeof protocolText === 'object') {
+        // If it's an array or object, try to format it nicely
+        if (Array.isArray(protocolText)) {
+            protocolText = protocolText.map((step: any, i: number) => `${i+1}. ${typeof step === 'string' ? step : JSON.stringify(step)}`).join('\n');
+        } else {
+            // If it's an object, try to iterate keys or just stringify
+            protocolText = Object.entries(protocolText).map(([key, val]) => `${key}: ${val}`).join('\n');
+        }
+      }
+
       const formattedSuggestion = `TRATAMIENTO SUGERIDO: ${data.treatment_name}
       
 DESCRIPCIÓN:
@@ -105,7 +129,7 @@ OBJETIVO:
 ${data.objective}
 
 PROTOCOLO:
-${data.protocol}`;
+${protocolText}`;
 
       setCurrentTreatment(prev => ({
         ...prev,
