@@ -212,7 +212,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
     if (!currentExam.id || !confirm('¿Eliminar este examen físico?')) return;
     
     try {
-      const response = await fetch(`/api/clinical-records?action=deletePhysicalExam&id=${currentExam.id}`, {
+      const response = await fetch(`/api/records?action=deletePhysicalExam&id=${currentExam.id}`, {
         method: 'DELETE'
       });
 
@@ -240,7 +240,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
     };
 
     try {
-      const response = await fetch('/api/clinical-records?action=savePhysicalExam', {
+      const response = await fetch('/api/records?action=savePhysicalExam', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(examToSave),

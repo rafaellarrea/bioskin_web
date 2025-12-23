@@ -68,7 +68,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     if (!currentDiagnosis.id || !confirm('¿Eliminar este diagnóstico?')) return;
     
     try {
-      const response = await fetch(`/api/clinical-records?action=deleteDiagnosis&id=${currentDiagnosis.id}`, {
+      const response = await fetch(`/api/records?action=deleteDiagnosis&id=${currentDiagnosis.id}`, {
         method: 'DELETE'
       });
 
@@ -98,7 +98,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     setMessage(null);
 
     try {
-      const response = await fetch('/api/clinical-records?action=generateDiagnosisAI', {
+      const response = await fetch('/api/records?action=generateDiagnosisAI', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,7 +135,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     setMessage(null);
 
     try {
-      const response = await fetch('/api/clinical-records?action=saveDiagnosis', {
+      const response = await fetch('/api/records?action=saveDiagnosis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentDiagnosis),

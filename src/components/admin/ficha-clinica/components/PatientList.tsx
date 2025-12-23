@@ -27,7 +27,7 @@ export default function PatientList() {
   const fetchPatients = async () => {
     try {
       setError(null);
-      const response = await fetch('/api/clinical-records?action=listPatients');
+      const response = await fetch('/api/records?action=listPatients');
       
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.indexOf("application/json") === -1) {

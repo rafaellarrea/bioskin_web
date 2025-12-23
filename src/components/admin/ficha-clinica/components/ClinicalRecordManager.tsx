@@ -58,7 +58,7 @@ export default function ClinicalRecordManager() {
       setLoading(true);
       
       // Fetch record data first
-      const recordRes = await fetch(`/api/clinical-records?action=getRecordData&recordId=${recordId}`);
+      const recordRes = await fetch(`/api/records?action=getRecordData&recordId=${recordId}`);
       if (recordRes.ok) {
         const rData = await recordRes.json();
         setRecordData(rData);

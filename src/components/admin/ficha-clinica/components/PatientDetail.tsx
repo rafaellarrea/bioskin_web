@@ -40,13 +40,13 @@ export default function PatientDetail() {
     try {
       setLoading(true);
       // Fetch patient
-      const patientRes = await fetch(`/api/clinical-records?action=getPatient&id=${patientId}`);
+      const patientRes = await fetch(`/api/records?action=getPatient&id=${patientId}`);
       if (patientRes.ok) {
         setPatient(await patientRes.json());
       }
 
       // Fetch records
-      const recordsRes = await fetch(`/api/clinical-records?action=listRecords&patient_id=${patientId}`);
+      const recordsRes = await fetch(`/api/records?action=listRecords&patient_id=${patientId}`);
       if (recordsRes.ok) {
         setRecords(await recordsRes.json());
       }
@@ -61,7 +61,7 @@ export default function PatientDetail() {
     if (!confirm('¿Está seguro de crear un nuevo expediente para este paciente?')) return;
 
     try {
-      const response = await fetch('/api/clinical-records?action=createRecord', {
+      const response = await fetch('/api/records?action=createRecord', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ patient_id: patientId }),

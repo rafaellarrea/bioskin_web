@@ -110,7 +110,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
     setMessage(null);
 
     try {
-      const response = await fetch('/api/clinical-records?action=saveHistory', {
+      const response = await fetch('/api/records?action=saveHistory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ record_id: recordId, ...formData }),

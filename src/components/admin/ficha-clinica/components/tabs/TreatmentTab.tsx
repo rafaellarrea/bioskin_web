@@ -35,7 +35,7 @@ export default function TreatmentTab({ recordId, treatments, onSave }: Treatment
     e.preventDefault();
     setSaving(true);
     try {
-      const response = await fetch('/api/clinical-records?action=addTreatment', {
+      const response = await fetch('/api/records?action=addTreatment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ record_id: recordId, ...newTreatment }),

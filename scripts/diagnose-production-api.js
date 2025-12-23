@@ -1,6 +1,6 @@
 import https from 'https';
 
-const url = 'https://saludbioskin.vercel.app/api/clinical-records?action=health';
+const url = 'https://saludbioskin.vercel.app/api/records?action=health';
 
 console.log(`Testing URL: ${url}`);
 

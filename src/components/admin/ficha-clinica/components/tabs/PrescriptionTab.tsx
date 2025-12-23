@@ -54,7 +54,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
 
   const loadPrescriptions = async () => {
     try {
-      const res = await fetch(`/api/clinical-records?action=listPrescriptions&record_id=${recordId}`);
+      const res = await fetch(`/api/records?action=listPrescriptions&record_id=${recordId}`);
       const data = await res.json();
       setPrescriptions(data);
     } catch (error) {
@@ -64,7 +64,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
 
   const loadTemplates = async () => {
     try {
-      const res = await fetch('/api/clinical-records?action=getTemplates');
+      const res = await fetch('/api/records?action=getTemplates');
       const data = await res.json();
       setTemplates(data);
     } catch (error) {
@@ -82,7 +82,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
         items: currentPrescription.items.filter(i => i.medicamento) // Filter empty rows
       };
 
-      const res = await fetch(`/api/clinical-records?action=${action}`, {
+      const res = await fetch(`/api/records?action=${action}`, {
         method: currentPrescription.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -110,7 +110,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
 
   const handleLoadPrescription = async (id: number) => {
     try {
-      const res = await fetch(`/api/clinical-records?action=getPrescription&id=${id}`);
+      const res = await fetch(`/api/records?action=getPrescription&id=${id}`);
       const data = await res.json();
       setCurrentPrescription(data);
     } catch (error) {
@@ -138,7 +138,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
     if (!currentPrescription.id || !confirm('¿Eliminar esta receta?')) return;
     
     try {
-      await fetch(`/api/clinical-records?action=deletePrescription&id=${currentPrescription.id}`, { method: 'DELETE' });
+      await fetch(`/api/records?action=deletePrescription&id=${currentPrescription.id}`, { method: 'DELETE' });
       await loadPrescriptions();
       handleNew();
     } catch (error) {
@@ -171,7 +171,7 @@ export default function PrescriptionTab({ recordId, patientName }: PrescriptionT
     if (!name) return;
 
     try {
-      await fetch('/api/clinical-records?action=saveTemplate', {
+      await fetch('/api/records?action=saveTemplate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

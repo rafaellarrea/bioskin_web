@@ -30,7 +30,7 @@ export default function NewPatientForm() {
     setError(null);
 
     try {
-      const response = await fetch('/api/clinical-records?action=createPatient', {
+      const response = await fetch('/api/records?action=createPatient', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

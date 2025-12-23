@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import handler from '../api/clinical-records.js';
+import handler from '../api/records.js';
 
 // Mock Request/Response
 const req = {

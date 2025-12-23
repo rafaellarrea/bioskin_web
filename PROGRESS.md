@@ -77,7 +77,7 @@
 - 🗄️ **Base de Datos**: Integración con Neon PostgreSQL (tablas: patients, clinical_records, medical_history, etc.).
 - 🔄 **Migración**: Script de extracción de datos desde `centro.db` (SQLite) para catálogos de diagnósticos y tratamientos.
 - 🎨 **UI/UX**: Nueva interfaz con pestañas (Antecedentes, Examen Físico, Diagnóstico) y perfil de paciente.
-- 🚀 **API**: Endpoints CRUD en `/api/clinical-records.js` para gestión de expedientes.
+- 🚀 **API**: Endpoints CRUD en `/api/records.js` para gestión de expedientes.
 
 ### ✅ **Dec 15, 2025: Fix Build Error (Appointment.tsx)**
 - 🐛 **Bug Fix**: Corregido error de sintaxis en `Appointment.tsx` causado por duplicación de código.
