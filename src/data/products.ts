@@ -218,18 +218,18 @@ Ideal para clínicas que buscan máxima versatilidad, potencia y retorno de inve
     "Eliminación de tatuajes y pigmentos resistentes.",
     "Rejuvenecimiento facial, reducción de líneas finas y flacidez.",
     "Reducción de lesiones vasculares y pigmentadas."
-  ],3,100",
+  ],
+  price: "$3,100",
   originalPrice: "$3,200",
   pricing: {
     current: 3100,
-    previous: 3200
-    previous: 3222,
+    previous: 3200,
     currency: "USD",
     taxNote: "+ IVA",
     discount: {
       active: true,
-      percentage: 10,
-      savings: 322
+      percentage: 3,
+      savings: 100
     }
   },
   stock: {
