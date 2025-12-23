@@ -99,12 +99,22 @@ export default function PatientDetail() {
     if (!birthDate) return 0;
     const today = new Date();
     const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    
+    // Use UTC methods for birth date to avoid timezone shifts
+    let age = today.getFullYear() - birth.getUTCFullYear();
+    const m = today.getMonth() - birth.getUTCMonth();
+    
+    if (m < 0 || (m === 0 && today.getDate() < birth.getUTCDate())) {
       age--;
     }
     return age;
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'No registrado';
+    // Create date using UTC components to ensure it matches the input exactly
+    const date = new Date(dateString);
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString();
   };
 
   if (loading) {
@@ -167,7 +177,7 @@ export default function PatientDetail() {
             <div>
               <label className="text-sm text-gray-500">Fecha de Nacimiento</label>
               <p className="font-medium text-gray-900">
-                {new Date(patient.birth_date).toLocaleDateString()} 
+                {formatDate(patient.birth_date)} 
                 <span className="text-gray-500 text-sm ml-2">
                   ({calculateAge(patient.birth_date)} años)
                 </span>
