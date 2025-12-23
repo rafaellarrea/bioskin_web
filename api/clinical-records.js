@@ -1,5 +1,6 @@
-import pkg from 'pg';
-const { Pool } = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { Pool } = require('pg');
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
