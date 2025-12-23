@@ -216,6 +216,9 @@ export default function ClinicalRecordManager() {
               <TreatmentTab 
                 recordId={recordData?.recordId} 
                 treatments={recordData?.treatments || []}
+                physicalExams={recordData?.physicalExams || []}
+                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
                 onSave={fetchData}
               />
             )}

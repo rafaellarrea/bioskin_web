@@ -283,6 +283,60 @@ export default async function handler(req, res) {
         await pool.query(`UPDATE treatments SET ${upTSet} WHERE id = $1`, [upTreatId, ...upTValues]);
         return res.status(200).json({ success: true });
 
+      case 'updateSchema':
+        try {
+          await pool.query('ALTER TABLE treatments ADD COLUMN IF NOT EXISTS ai_suggestion TEXT');
+          return res.status(200).json({ message: 'Schema updated successfully' });
+        } catch (err) {
+          console.error('Schema update error:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'generateTreatmentAI': {
+        const { patientName, patientAge, examData, treatmentContext } = body;
+        
+        try {
+          const { getOpenAIClient } = await import('../lib/ai-service.js');
+          const openai = getOpenAIClient();
+
+          const systemPrompt = `Eres un experto en medicina estética y dermatología avanzada. Tu tarea es generar una sugerencia de tratamiento detallada y profesional.
+          
+          Contexto del Paciente:
+          - Nombre: ${patientName}
+          - Edad: ${patientAge}
+          
+          Examen Físico (Contexto Clínico):
+          ${JSON.stringify(examData, null, 2)}
+          
+          Contexto del Tratamiento (Proporcionado por el médico):
+          ${treatmentContext}
+          
+          Instrucciones:
+          Genera una respuesta estructurada en formato JSON con los siguientes campos:
+          1. "treatment_name": Nombre corto y técnico del tratamiento.
+          2. "description": Descripción breve del procedimiento.
+          3. "objective": Objetivo principal del tratamiento.
+          4. "protocol": Protocolo completo y detallado. Si es aparatología, incluye parámetros específicos (energía, filtros, frecuencia, tiempos, pasadas, etc.). Si es inyectable o tópico, detalla productos, dosis y técnica.
+          
+          La respuesta debe ser profesional, segura y basada en estándares médicos actuales.`;
+
+          const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: "Genera la sugerencia de tratamiento." }
+            ],
+            response_format: { type: "json_object" }
+          });
+
+          const result = JSON.parse(completion.choices[0].message.content);
+          return res.status(200).json(result);
+        } catch (aiError) {
+          console.error('AI Treatment Error:', aiError);
+          return res.status(500).json({ error: 'Error generating treatment suggestion: ' + aiError.message });
+        }
+      }
+
       case 'deleteTreatment':
         const { id: delTreatId } = req.query;
         await pool.query('DELETE FROM treatments WHERE id = $1', [delTreatId]);
