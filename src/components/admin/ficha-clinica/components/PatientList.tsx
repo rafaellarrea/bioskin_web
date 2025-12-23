@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, FileText, User, Calendar } from 'lucide-react';
+import { Search, Plus, FileText, User, Calendar, Edit2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../AdminLayout';
 
@@ -46,6 +46,26 @@ export default function PatientList() {
       setError(error.message || 'Error desconocido al cargar pacientes');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('¿Está seguro de eliminar este paciente? Esta acción no se puede deshacer.')) return;
+
+    try {
+      const response = await fetch(`/api/records?action=deletePatient&id=${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setPatients(prev => prev.filter(p => p.id !== id));
+      } else {
+        alert('Error al eliminar el paciente');
+      }
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      alert('Error al eliminar el paciente');
     }
   };
 
@@ -118,7 +138,7 @@ export default function PatientList() {
                   </tr>
                 ) : (
                   filteredPatients.map((patient) => (
-                    <tr key={patient.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={patient.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(`/admin/ficha-clinica/paciente/${patient.id}`)}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-[#deb887]/10 flex items-center justify-center text-[#deb887]">
@@ -136,13 +156,29 @@ export default function PatientList() {
                         <div className="text-sm text-gray-500">{patient.phone}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <button 
-                          onClick={() => navigate(`/admin/ficha-clinica/paciente/${patient.id}`)}
-                          className="text-[#deb887] hover:text-[#c5a075] font-medium flex items-center gap-1"
-                        >
-                          <FileText className="w-4 h-4" />
-                          Ver Ficha
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); navigate(`/admin/clinical-records/edit/${patient.id}`); }}
+                            className="p-2 text-gray-500 hover:text-[#deb887] hover:bg-[#deb887]/10 rounded-lg transition-colors"
+                            title="Editar"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => handleDelete(patient.id, e)}
+                            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); navigate(`/admin/ficha-clinica/paciente/${patient.id}`); }}
+                            className="text-[#deb887] hover:text-[#c5a075] font-medium flex items-center gap-1 ml-2"
+                          >
+                            <FileText className="w-4 h-4" />
+                            Ver Ficha
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, FileText, Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Plus, FileText, Calendar, Clock, ArrowRight, Edit2, Trash2 } from 'lucide-react';
 import AdminLayout from '../../AdminLayout';
 
 interface Patient {
@@ -76,6 +76,37 @@ export default function PatientDetail() {
     }
   };
 
+  const handleDeletePatient = async () => {
+    if (!confirm('¿Está seguro de eliminar este paciente y todo su historial? Esta acción no se puede deshacer.')) return;
+
+    try {
+      const response = await fetch(`/api/records?action=deletePatient&id=${patientId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        navigate('/admin/clinical-records');
+      } else {
+        alert('Error al eliminar el paciente');
+      }
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      alert('Error al eliminar el paciente');
+    }
+  };
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   if (loading) {
     return (
       <AdminLayout title="Cargando..." showBack={true}>
@@ -98,10 +129,28 @@ export default function PatientDetail() {
     <AdminLayout 
       title={`${patient.first_name} ${patient.last_name}`} 
       subtitle="Historial de Expedientes Clínicos"
+      showBack={true}
     >
       <div className="space-y-8">
         {/* Patient Info Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative">
+          <div className="absolute top-6 right-6 flex gap-2">
+            <button 
+              onClick={() => navigate(`/admin/clinical-records/edit/${patient.id}`)}
+              className="p-2 text-gray-500 hover:text-[#deb887] hover:bg-[#deb887]/10 rounded-lg transition-colors"
+              title="Editar Información"
+            >
+              <Edit2 className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleDeletePatient}
+              className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              title="Eliminar Paciente"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="text-sm text-gray-500">Identificación / Cédula / RUC</label>
@@ -120,7 +169,7 @@ export default function PatientDetail() {
               <p className="font-medium text-gray-900">
                 {new Date(patient.birth_date).toLocaleDateString()} 
                 <span className="text-gray-500 text-sm ml-2">
-                  ({new Date().getFullYear() - new Date(patient.birth_date).getFullYear()} años)
+                  ({calculateAge(patient.birth_date)} años)
                 </span>
               </p>
             </div>

@@ -71,6 +71,7 @@ function App() {
               <Route path="/admin/protocols" element={<AdminProtocols />} />
               <Route path="/admin/clinical-records" element={<PatientList />} />
               <Route path="/admin/clinical-records/new" element={<NewPatientForm />} />
+              <Route path="/admin/clinical-records/edit/:patientId" element={<NewPatientForm />} />
               <Route path="/admin/ficha-clinica/paciente/:patientId" element={<PatientDetail />} />
               <Route path="/admin/ficha-clinica/expediente/:recordId" element={<ClinicalRecordManager />} />
 

@@ -159,6 +159,19 @@ export default async function handler(req, res) {
         );
         return res.status(200).json(updatedPatient.rows[0]);
 
+      case 'deletePatient':
+        const { id: delPid } = req.query;
+        // Delete related records first (cascade usually handles this but good to be explicit or safe)
+        // Assuming cascade delete is set up in DB, otherwise we need to delete children first.
+        // For safety, let's just delete the patient and let DB handle constraints or errors.
+        try {
+          await pool.query('DELETE FROM patients WHERE id = $1', [delPid]);
+          return res.status(200).json({ success: true });
+        } catch (err) {
+          console.error('Error deleting patient:', err);
+          return res.status(500).json({ error: 'Error al eliminar paciente. Puede tener registros asociados.' });
+        }
+
       case 'getRecordData':
         const { recordId, patientId } = req.query;
         let targetRecordId = recordId;
