@@ -1,6 +1,5 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
 console.log('✅ [API] records.js loaded');
 
