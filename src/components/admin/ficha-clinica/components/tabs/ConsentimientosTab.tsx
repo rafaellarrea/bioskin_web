@@ -139,6 +139,57 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
     }
   };
 
+  const handleResetAndGenerate = async () => {
+    if (!currentConsent) return;
+    if (!confirm('¿Está seguro de eliminar la firma actual y generar una nueva solicitud? El paciente deberá firmar nuevamente.')) return;
+
+    // Clear signature locally
+    const updatedConsent = {
+      ...currentConsent,
+      signatures: {
+        ...currentConsent.signatures,
+        patient_sig_data: '',
+        patient_name: currentConsent.signatures?.patient_name || '' // Keep name if exists
+      }
+    };
+    setCurrentConsent(updatedConsent);
+    
+    // Save and generate new link
+    setLoading(true);
+    try {
+      // First save the cleared signature
+      await fetch(`${API_URL}?action=saveConsent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedConsent)
+      });
+
+      // Then generate new token
+      const res = await fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generateSigningToken',
+          id: currentConsent.id
+        })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        const url = `${window.location.origin}/#${data.url}`;
+        setSigningUrl(url);
+        setShowQr(true);
+      } else {
+        alert('Error al generar nuevo enlace');
+      }
+    } catch (error) {
+      console.error('Error resetting signature:', error);
+      alert('Error al restablecer firma');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const generateSigningLink = async () => {
     if (!currentConsent?.id) {
       alert('Guarde el consentimiento antes de generar la firma remota');
@@ -727,6 +778,12 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
                           <span className="text-xs text-green-600 font-medium flex items-center gap-1">
                             <CheckCircle className="w-3 h-3" /> Firmado digitalmente
                           </span>
+                          <button 
+                            onClick={handleResetAndGenerate}
+                            className="mt-3 flex items-center gap-2 px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded border border-blue-200 transition-colors"
+                          >
+                            <RefreshCw size={12} /> Generar Nueva Solicitud
+                          </button>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-3 w-full">
