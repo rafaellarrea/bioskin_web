@@ -537,7 +537,7 @@ export default async function handler(req, res) {
           [token, 'pending', signId]
         );
         
-        return res.status(200).json({ token, url: \`/consent-signing/\${token}\` });
+        return res.status(200).json({ token, url: `/consent-signing/${token}` });
       }
 
       case 'getSigningSession': {
