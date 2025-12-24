@@ -108,16 +108,12 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
     }
   }, [recordId]);
 
-  // Sincronizar formData cuando initialData cambie, pero con cuidado de no sobrescribir si está vacío
-  useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      setFormData(prev => {
-        // Si los datos son iguales, no actualizar para evitar re-renders innecesarios
-        if (JSON.stringify(prev) === JSON.stringify(initialData)) return prev;
-        return initialData;
-      });
-    }
-  }, [initialData]);
+  // NOTA: Eliminamos la sincronización automática de initialData -> formData
+  // porque causaba que se sobrescribieran los cambios del usuario si la actualización
+  // del servidor llegaba mientras el usuario seguía editando.
+  // Al montar el componente, useState(initialData) ya carga los datos iniciales.
+  // Al guardar, formData ya tiene los datos más recientes, así que no necesitamos
+  // que el servidor nos los devuelva para actualizar el formulario.
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -126,10 +122,12 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Iniciando guardado de antecedentes...');
     
     const idToUse = recordId || recordIdRef.current;
 
     if (!idToUse) {
+      console.error('❌ Error: ID de expediente no encontrado');
       setMessage({ type: 'error', text: 'Error: No se encontró el ID del expediente. Intente recargar la página.' });
       return;
     }
@@ -137,17 +135,42 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
     // Check for empty fields
     const emptyFields = Object.entries(formData).filter(([_, value]) => !value || (value as string).trim() === '');
     if (emptyFields.length > 0) {
-      const confirmSave = window.confirm('Hay campos de antecedentes vacíos. ¿Desea guardar de todos modos?');
-      if (!confirmSave) return;
+      // Usar confirmación nativa puede bloquear el hilo principal, pero es lo más seguro para detener el envío
+      // Si el usuario dice "Cancelar", detenemos.
+      if (!window.confirm('Hay campos de antecedentes vacíos. ¿Desea guardar de todos modos?')) {
+        console.log('❌ Guardado cancelado por el usuario (campos vacíos)');
+        return;
+      }
     }
 
     setSaving(true);
     setMessage(null);
 
     try {
+      console.log('🚀 Enviando datos al servidor:', { record_id: idToUse, ...formData });
       const response = await fetch('/api/records?action=saveHistory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record_id: idToUse, ...formData }),
+      });
+
+      if (response.ok) {
+        console.log('✅ Guardado exitoso');
+        setMessage({ type: 'success', text: 'Antecedentes guardados correctamente' });
+        setTimeout(() => setMessage(null), 3000); // Auto ocultar mensaje
+        onSave();
+      } else {
+        const errText = await response.text();
+        console.error('❌ Error en respuesta del servidor:', errText);
+        throw new Error('Error al guardar');
+      }
+    } catch (error) {
+      console.error('❌ Error al guardar antecedentes:', error);
+      setMessage({ type: 'error', text: 'Error al guardar los antecedentes' });
+    } finally {
+      setSaving(false);
+    }
+  };
         body: JSON.stringify({ record_id: idToUse, ...formData }),
       });
 
