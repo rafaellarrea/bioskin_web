@@ -23,6 +23,13 @@ interface ConsentSession {
   };
   status: string;
   signing_status: string;
+  // Added fields for full document view
+  risks?: any;
+  benefits?: any;
+  alternatives?: any;
+  pre_care?: any;
+  post_care?: any;
+  contraindications?: any;
 }
 
 export default function ConsentSigning() {
@@ -135,6 +142,12 @@ export default function ConsentSigning() {
     );
   }
 
+  const renderList = (items: any) => {
+    if (!items) return null;
+    if (Array.isArray(items)) return <ul className="list-disc pl-5 space-y-1">{items.map((i: string, idx: number) => <li key={idx}>{i}</li>)}</ul>;
+    return <p>{JSON.stringify(items)}</p>;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
@@ -146,6 +159,51 @@ export default function ConsentSigning() {
         <section className="bg-white p-4 rounded-lg shadow-sm space-y-4">
           <h2 className="font-semibold text-gray-700 border-b pb-2">Descripción del Procedimiento</h2>
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{session.description}</p>
+        </section>
+
+        {/* Full Document Content */}
+        <section className="bg-white p-4 rounded-lg shadow-sm space-y-6 text-gray-700 text-sm">
+          {session.risks && (
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Riesgos y Complicaciones</h3>
+              {renderList(session.risks)}
+            </div>
+          )}
+
+          {session.benefits && (
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Beneficios Esperados</h3>
+              {renderList(session.benefits)}
+            </div>
+          )}
+
+          {session.alternatives && (
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Alternativas</h3>
+              {renderList(session.alternatives)}
+            </div>
+          )}
+
+          {session.pre_care && (
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Cuidados Previos</h3>
+              {renderList(session.pre_care)}
+            </div>
+          )}
+
+          {session.post_care && (
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Cuidados Posteriores</h3>
+              {renderList(session.post_care)}
+            </div>
+          )}
+          
+          {session.contraindications && (
+            <div>
+              <h3 className="font-bold text-gray-900 mb-2">Contraindicaciones</h3>
+              {renderList(session.contraindications)}
+            </div>
+          )}
         </section>
 
         <section className="bg-white p-4 rounded-lg shadow-sm space-y-4">
