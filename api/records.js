@@ -275,6 +275,12 @@ export default async function handler(req, res) {
 
       case 'saveHistory':
         const { record_id: hid, ...historyData } = body;
+        
+        // Remove system fields that shouldn't be updated manually
+        delete historyData.id;
+        delete historyData.created_at;
+        delete historyData.updated_at;
+
         const existingHistory = await pool.query('SELECT id FROM medical_history WHERE record_id = $1', [hid]);
         if (existingHistory.rows.length > 0) {
            const hFields = Object.keys(historyData);
