@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 23, 2025: Clinical Records - Delete Feature**
+- 🗑️ **Expedientes**: Implementada funcionalidad para eliminar expedientes clínicos individuales.
+- ⚙️ **API**: Agregado endpoint `deleteRecord` en `api/records.js` con manejo de cascada.
+- 📱 **UI**: Agregado botón de eliminar en la lista de expedientes de `PatientDetail.tsx`.
+
 ### ✅ **Dec 23, 2025: Product Pricing & UI Updates**
 - 🏷️ **Precios**: Actualizados precios de Analizador, Láser CO2, HIFU y 3 en 1 con descuentos.
 - 💅 **UI**: Agregado soporte para precio original tachado y leyenda "IVA INCLUIDO" en tarjetas de producto.

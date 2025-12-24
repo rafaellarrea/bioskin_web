@@ -173,6 +173,16 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: 'Error al eliminar paciente. Puede tener registros asociados.' });
         }
 
+      case 'deleteRecord':
+        const { id: delRecordId } = req.query;
+        try {
+          await pool.query('DELETE FROM clinical_records WHERE id = $1', [delRecordId]);
+          return res.status(200).json({ success: true });
+        } catch (err) {
+          console.error('Error deleting record:', err);
+          return res.status(500).json({ error: 'Error al eliminar expediente.' });
+        }
+
       case 'getRecordData': {
         const { recordId, patientId } = req.query;
         let targetRecordId = recordId;

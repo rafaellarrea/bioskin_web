@@ -57,6 +57,27 @@ export default function PatientDetail() {
     }
   };
 
+  const handleDeleteRecord = async (recordId: number) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este expediente? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/records?action=deleteRecord&id=${recordId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setRecords(records.filter(r => r.id !== recordId));
+      } else {
+        alert('Error al eliminar el expediente');
+      }
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      alert('Error al eliminar el expediente');
+    }
+  };
+
   const handleCreateRecord = async () => {
     if (!confirm('¿Está seguro de crear un nuevo expediente para este paciente?')) return;
 
@@ -242,13 +263,25 @@ export default function PatientDetail() {
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={() => navigate(`/admin/ficha-clinica/expediente/${record.id}`)}
-                    className="flex items-center gap-2 text-[#deb887] font-medium group-hover:translate-x-1 transition-transform"
-                  >
-                    Ver Detalles
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteRecord(record.id);
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Eliminar Expediente"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => navigate(`/admin/ficha-clinica/expediente/${record.id}`)}
+                      className="flex items-center gap-2 text-[#deb887] font-medium group-hover:translate-x-1 transition-transform"
+                    >
+                      Ver Detalles
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
