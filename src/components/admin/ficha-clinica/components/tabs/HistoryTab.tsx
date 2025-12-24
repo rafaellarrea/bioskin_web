@@ -132,17 +132,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
       return;
     }
 
-    // Check for empty fields
-    const emptyFields = Object.entries(formData).filter(([_, value]) => !value || (value as string).trim() === '');
-    if (emptyFields.length > 0) {
-      // Usar confirmación nativa puede bloquear el hilo principal, pero es lo más seguro para detener el envío
-      // Si el usuario dice "Cancelar", detenemos.
-      if (!window.confirm('Hay campos de antecedentes vacíos. ¿Desea guardar de todos modos?')) {
-        console.log('❌ Guardado cancelado por el usuario (campos vacíos)');
-        return;
-      }
-    }
-
     setSaving(true);
     setMessage(null);
 
