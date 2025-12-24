@@ -1,5 +1,8 @@
-import pg from 'pg';
-const { Pool } = pg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { Pool } = require('pg');
+
+console.log('✅ [API] records.js loaded');
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
