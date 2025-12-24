@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 24, 2025: Clinical Records - UX Fixes**
+- ⚡ **Performance**: Eliminado parpadeo y recarga completa de componentes al guardar cambios.
+- 🔄 **Estado**: Implementada actualización silenciosa de datos para mantener el foco y estado de edición.
+- 🐛 **Bugfix**: Corregido problema que impedía ver mensajes de éxito o continuar editando tras guardar.
+
 ### ✅ **Dec 24, 2025: Clinical Records - History Tab Improvements**
 - 🔄 **Sincronización**: Implementada actualización automática de datos al guardar.
 - 🔒 **UX**: Deshabilitados campos durante el guardado para evitar conflictos.
