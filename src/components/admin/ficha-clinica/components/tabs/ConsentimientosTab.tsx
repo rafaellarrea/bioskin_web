@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   FileText, Plus, Trash2, Edit, Eye, Save, Printer, 
   CheckCircle, XCircle, AlertTriangle, ChevronRight, ChevronDown,
-  Copy, RefreshCw, QrCode, Smartphone, Eraser
+  Copy, RefreshCw, QrCode, Smartphone, Eraser, X, Maximize2
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import SignatureCanvas from 'react-signature-canvas';
@@ -73,6 +73,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
   const [activeTab, setActiveTab] = useState(0);
   const [signingUrl, setSigningUrl] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const profSigCanvas = useRef<SignatureCanvas>(null);
 
   useEffect(() => {
@@ -797,57 +798,105 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
                       </button>
                     </div>
 
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg bg-white p-2 relative">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg bg-white p-4 flex flex-col items-center justify-center min-h-[160px]">
                       {currentConsent.signatures?.professional_sig_data ? (
-                        <div className="relative flex flex-col items-center">
+                        <div className="relative w-full flex flex-col items-center">
                           <img 
                             src={currentConsent.signatures.professional_sig_data} 
                             alt="Firma Profesional" 
-                            className="max-h-32 object-contain"
+                            className="max-h-32 object-contain mb-2"
                           />
                           <button 
-                            onClick={clearProfSignature}
-                            className="absolute top-0 right-0 p-1 text-red-500 hover:bg-red-50 rounded"
-                            title="Borrar firma"
+                            onClick={() => {
+                              clearProfSignature();
+                              setIsSignatureModalOpen(true);
+                            }}
+                            className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
                           >
-                            <Trash2 size={16} />
+                            <Edit size={14} /> Cambiar firma
                           </button>
                         </div>
                       ) : (
-                        <div className="h-32 relative">
-                          <SignatureCanvas 
-                            ref={profSigCanvas}
-                            canvasProps={{
-                              className: 'w-full h-full cursor-crosshair',
-                              style: { width: '100%', height: '100%' }
-                            }}
-                            onEnd={handleProfSignatureEnd}
-                            backgroundColor="white"
-                          />
-                          <div className="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
-                            <span className="text-xs text-gray-400">Firme aquí</span>
+                        <button
+                          onClick={() => setIsSignatureModalOpen(true)}
+                          className="flex flex-col items-center gap-2 text-gray-500 hover:text-[#deb887] transition-colors w-full py-8"
+                        >
+                          <div className="p-4 bg-gray-100 rounded-full group-hover:bg-[#deb887] group-hover:text-white transition-colors">
+                            <Edit size={32} />
                           </div>
-                        </div>
+                          <span className="font-medium text-lg">Haga clic para firmar</span>
+                        </button>
                       )}
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <button
-                        onClick={clearProfSignature}
-                        className="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1"
-                      >
-                        <Eraser size={14} /> Limpiar
-                      </button>
-                      <button
-                        onClick={saveProfessionalSignature}
-                        className="text-sm text-[#deb887] hover:text-[#c5a075] font-medium flex items-center gap-1"
-                      >
-                        <Save size={14} /> Guardar como predeterminada
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Signature Modal */}
+              {isSignatureModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm">
+                  <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl flex flex-col h-[85vh] animate-in fade-in zoom-in duration-200">
+                    <div className="flex justify-between items-center p-4 border-b">
+                      <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <Edit className="text-[#deb887]" />
+                        Firma del Profesional
+                      </h3>
+                      <button 
+                        onClick={() => setIsSignatureModalOpen(false)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <X size={28} />
+                      </button>
+                    </div>
+                    
+                    <div className="flex-1 p-6 bg-gray-50 overflow-hidden relative flex flex-col">
+                      <div className="flex-1 bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden relative">
+                        <SignatureCanvas 
+                          ref={profSigCanvas}
+                          canvasProps={{
+                            className: 'w-full h-full cursor-crosshair',
+                            style: { width: '100%', height: '100%' }
+                          }}
+                          onEnd={handleProfSignatureEnd}
+                          backgroundColor="white"
+                        />
+                        <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none opacity-30">
+                          <span className="text-lg font-medium text-gray-400">Dibuje su firma aquí</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border-t flex justify-between items-center bg-white rounded-b-xl">
+                      <button
+                        onClick={() => {
+                          profSigCanvas.current?.clear();
+                          updateNestedField('signatures', 'professional_sig_data', '');
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
+                      >
+                        <Eraser size={20} />
+                        Limpiar
+                      </button>
+                      
+                      <div className="flex gap-3">
+                        <button
+                          onClick={saveProfessionalSignature}
+                          className="flex items-center gap-2 px-4 py-2 text-[#deb887] hover:bg-[#fff8f0] rounded-lg font-medium transition-colors border border-[#deb887]"
+                        >
+                          <Save size={20} />
+                          Guardar como predeterminada
+                        </button>
+                        <button
+                          onClick={() => setIsSignatureModalOpen(false)}
+                          className="px-8 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] font-medium shadow-lg shadow-orange-100 transition-all transform hover:scale-105"
+                        >
+                          Aceptar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end pt-6">
                 <div className="flex items-center gap-4">
