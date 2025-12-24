@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FileText, Plus, Trash2, Edit, Eye, Save, Printer, 
   CheckCircle, XCircle, AlertTriangle, ChevronRight, ChevronDown,
-  Copy, RefreshCw, QrCode, Smartphone
+  Copy, RefreshCw, QrCode, Smartphone, Eraser
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import SignatureCanvas from 'react-signature-canvas';
 
 // Load templates
 const templatesGlob = import.meta.glob('/src/data/consent-templates/*.json', { eager: true });
@@ -72,10 +73,70 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
   const [activeTab, setActiveTab] = useState(0);
   const [signingUrl, setSigningUrl] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
+  const profSigCanvas = useRef<SignatureCanvas>(null);
 
   useEffect(() => {
     loadConsents();
+    // Initialize professional signatures table
+    fetch('/api/records?action=initProfessionalSignatures').catch(console.error);
   }, [patientId, recordId]);
+
+  const loadProfessionalSignature = async (name: string) => {
+    if (!name) return;
+    try {
+      const res = await fetch(`/api/records?action=getProfessionalSignature&name=${encodeURIComponent(name)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.signature) {
+          // If signature exists, update the current consent
+          updateNestedField('signatures', 'professional_sig_data', data.signature);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading signature:', err);
+    }
+  };
+
+  const saveProfessionalSignature = async () => {
+    const name = currentConsent?.signatures?.professional_name;
+    const sigData = currentConsent?.signatures?.professional_sig_data;
+    
+    if (!name || !sigData) {
+      alert('Se requiere nombre y firma para guardar');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'saveProfessionalSignature',
+          name,
+          signature: sigData
+        })
+      });
+      
+      if (res.ok) {
+        alert('Firma guardada como predeterminada para ' + name);
+      }
+    } catch (err) {
+      console.error('Error saving signature:', err);
+      alert('Error al guardar firma');
+    }
+  };
+
+  const clearProfSignature = () => {
+    profSigCanvas.current?.clear();
+    updateNestedField('signatures', 'professional_sig_data', null);
+  };
+
+  const handleProfSignatureEnd = () => {
+    if (profSigCanvas.current) {
+      const dataUrl = profSigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+      updateNestedField('signatures', 'professional_sig_data', dataUrl);
+    }
+  };
 
   const generateSigningLink = async () => {
     if (!currentConsent?.id) {
@@ -716,17 +777,73 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
                 <div className="border p-4 rounded-lg bg-gray-50">
                   <h4 className="font-medium text-gray-900 mb-4">Firma del Profesional</h4>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre y Registro</label>
-                      <input
-                        type="text"
-                        value={currentConsent.signatures?.professional_name}
-                        onChange={(e) => updateNestedField('signatures', 'professional_name', e.target.value)}
-                        className="w-full p-2 border rounded-lg"
-                      />
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre y Registro</label>
+                        <input
+                          type="text"
+                          value={currentConsent.signatures?.professional_name}
+                          onChange={(e) => updateNestedField('signatures', 'professional_name', e.target.value)}
+                          className="w-full p-2 border rounded-lg"
+                          placeholder="Dra. Daniela Creamer"
+                        />
+                      </div>
+                      <button
+                        onClick={() => loadProfessionalSignature(currentConsent.signatures?.professional_name || '')}
+                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                        title="Cargar firma guardada"
+                      >
+                        <RefreshCw size={18} />
+                      </button>
                     </div>
-                    <div className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-white">
-                      <span className="text-gray-400 text-sm">Espacio para firma digital (Próximamente)</span>
+
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg bg-white p-2 relative">
+                      {currentConsent.signatures?.professional_sig_data ? (
+                        <div className="relative flex flex-col items-center">
+                          <img 
+                            src={currentConsent.signatures.professional_sig_data} 
+                            alt="Firma Profesional" 
+                            className="max-h-32 object-contain"
+                          />
+                          <button 
+                            onClick={clearProfSignature}
+                            className="absolute top-0 right-0 p-1 text-red-500 hover:bg-red-50 rounded"
+                            title="Borrar firma"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="h-32 relative">
+                          <SignatureCanvas 
+                            ref={profSigCanvas}
+                            canvasProps={{
+                              className: 'w-full h-full cursor-crosshair',
+                              style: { width: '100%', height: '100%' }
+                            }}
+                            onEnd={handleProfSignatureEnd}
+                            backgroundColor="white"
+                          />
+                          <div className="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
+                            <span className="text-xs text-gray-400">Firme aquí</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <button
+                        onClick={clearProfSignature}
+                        className="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1"
+                      >
+                        <Eraser size={14} /> Limpiar
+                      </button>
+                      <button
+                        onClick={saveProfessionalSignature}
+                        className="text-sm text-[#deb887] hover:text-[#c5a075] font-medium flex items-center gap-1"
+                      >
+                        <Save size={14} /> Guardar como predeterminada
+                      </button>
                     </div>
                   </div>
                 </div>
