@@ -1092,13 +1092,32 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
             </section>
 
             <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-12 pt-12">
-              <div className="text-center border-t border-gray-400 pt-2">
-                <p className="font-bold">{currentConsent.signatures?.patient_name}</p>
-                <p className="text-sm text-gray-500">Firma del Paciente</p>
+              <div className="flex flex-col items-center">
+                {currentConsent.signatures?.patient_sig_data && (
+                  <img 
+                    src={currentConsent.signatures.patient_sig_data} 
+                    alt="Firma Paciente" 
+                    className="h-24 object-contain mb-2"
+                  />
+                )}
+                <div className="w-full border-t border-gray-400 pt-2 text-center">
+                  <p className="font-bold">{currentConsent.signatures?.patient_name}</p>
+                  <p className="text-sm text-gray-500">Firma del Paciente</p>
+                </div>
               </div>
-              <div className="text-center border-t border-gray-400 pt-2">
-                <p className="font-bold">{currentConsent.signatures?.professional_name}</p>
-                <p className="text-sm text-gray-500">Firma del Profesional</p>
+              
+              <div className="flex flex-col items-center">
+                {currentConsent.signatures?.professional_sig_data && (
+                  <img 
+                    src={currentConsent.signatures.professional_sig_data} 
+                    alt="Firma Profesional" 
+                    className="h-24 object-contain mb-2"
+                  />
+                )}
+                <div className="w-full border-t border-gray-400 pt-2 text-center">
+                  <p className="font-bold">{currentConsent.signatures?.professional_name}</p>
+                  <p className="text-sm text-gray-500">Firma del Profesional</p>
+                </div>
               </div>
             </div>
             
