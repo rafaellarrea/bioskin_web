@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Save, AlertCircle, Plus } from 'lucide-react';
 import historyOptions from '../../data/history_options.json';
 
@@ -62,7 +62,7 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId, d
                 handleAdd(inputValue);
               }
             }}
-            disabled={disabled}
+            // No deshabilitar el input de búsqueda para permitir agregar items rápidamente
           />
           <datalist id={`list-${name}`}>
             {items.map((item: string, index: number) => (
@@ -74,7 +74,7 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId, d
             onClick={() => handleAdd(inputValue)}
             className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Agregar"
-            disabled={disabled}
+            // No deshabilitar el botón de agregar
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -88,7 +88,7 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId, d
         placeholder={placeholder}
         value={value || ''}
         onChange={onChange}
-        disabled={disabled}
+        // No deshabilitar el textarea para permitir edición continua
       />
     </div>
   );
@@ -98,11 +98,24 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   const [formData, setFormData] = useState(initialData || {});
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  // Referencia para mantener el recordId incluso si las props fallan momentáneamente
+  const recordIdRef = useRef(recordId);
 
-  // Sincronizar formData cuando initialData cambie (ej. después de guardar)
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
+    if (recordId) {
+      recordIdRef.current = recordId;
+    }
+  }, [recordId]);
+
+  // Sincronizar formData cuando initialData cambie, pero con cuidado de no sobrescribir si está vacío
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData(prev => {
+        // Si los datos son iguales, no actualizar para evitar re-renders innecesarios
+        if (JSON.stringify(prev) === JSON.stringify(initialData)) return prev;
+        return initialData;
+      });
     }
   }, [initialData]);
 
@@ -114,8 +127,10 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!recordId) {
-      setMessage({ type: 'error', text: 'Error: No se encontró el ID del expediente' });
+    const idToUse = recordId || recordIdRef.current;
+
+    if (!idToUse) {
+      setMessage({ type: 'error', text: 'Error: No se encontró el ID del expediente. Intente recargar la página.' });
       return;
     }
 
@@ -133,7 +148,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
       const response = await fetch('/api/records?action=saveHistory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ record_id: recordId, ...formData }),
+        body: JSON.stringify({ record_id: idToUse, ...formData }),
       });
 
       if (response.ok) {
@@ -169,7 +184,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Enfermedades crónicas, hospitalizaciones previas..."
           categoryId="antecedente_personal"
-          disabled={saving}
         />
 
         <HistoryField
@@ -179,7 +193,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Tabaco, alcohol, actividad física, alimentación..."
           categoryId="habito"
-          disabled={saving}
         />
 
         <HistoryField
@@ -189,7 +202,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Enfermedades hereditarias, antecedentes de cáncer..."
           categoryId="antecedente_familiar"
-          disabled={saving}
         />
 
         <HistoryField
@@ -199,7 +211,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Cirugías previas, fechas aproximadas..."
           categoryId="quirurgico"
-          disabled={saving}
         />
 
         <HistoryField
@@ -209,7 +220,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Medicamentos, alimentos, látex..."
           categoryId="alergia"
-          disabled={saving}
         />
 
         <HistoryField
@@ -219,7 +229,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Nombre, dosis, frecuencia..."
           categoryId="medicacion"
-          disabled={saving}
         />
 
         <HistoryField
@@ -229,7 +238,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Tratamientos previos, reacciones adversas..."
           categoryId="otros"
-          disabled={saving}
         />
 
         <HistoryField
@@ -239,7 +247,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="FUM, anticonceptivos, embarazos..."
           categoryId="obstetrico"
-          disabled={saving}
         />
 
         <HistoryField
@@ -249,7 +256,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Limpieza, hidratación, protección solar..."
           categoryId="rutina_cuidado_facial"
-          disabled={saving}
         />
       </div>
 
