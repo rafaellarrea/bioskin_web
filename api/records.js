@@ -530,6 +530,44 @@ export default async function handler(req, res) {
         `);
         return res.status(200).json({ message: 'Consent forms table initialized' });
 
+      case 'initProfessionalSignatures':
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS professional_signatures (
+            id SERIAL PRIMARY KEY,
+            professional_name VARCHAR(150),
+            signature_data TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+          );
+        `);
+        return res.status(200).json({ message: 'Professional signatures table initialized' });
+
+      case 'saveProfessionalSignature': {
+        const { name, signature } = body;
+        // Upsert based on name (simple approach for single doctor/admin)
+        // Check if exists
+        const existing = await pool.query('SELECT id FROM professional_signatures WHERE professional_name = $1', [name]);
+        
+        if (existing.rows.length > 0) {
+          await pool.query(
+            'UPDATE professional_signatures SET signature_data = $1, updated_at = NOW() WHERE professional_name = $2',
+            [signature, name]
+          );
+        } else {
+          await pool.query(
+            'INSERT INTO professional_signatures (professional_name, signature_data) VALUES ($1, $2)',
+            [name, signature]
+          );
+        }
+        return res.status(200).json({ success: true });
+      }
+
+      case 'getProfessionalSignature': {
+        const { name } = req.query;
+        const result = await pool.query('SELECT signature_data FROM professional_signatures WHERE professional_name = $1', [name]);
+        return res.status(200).json({ signature: result.rows[0]?.signature_data || null });
+      }
+
       case 'generateSigningToken': {
         const { id: signId } = body;
         if (!signId) return res.status(400).json({ error: 'Consent ID required' });
