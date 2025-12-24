@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, AlertCircle, Plus } from 'lucide-react';
+import { Save, AlertCircle, Plus, Check } from 'lucide-react';
 import historyOptions from '../../data/history_options.json';
 
 interface HistoryTabProps {
@@ -164,11 +164,18 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {message && (
-        <div className={`p-4 rounded-lg flex items-center gap-2 ${
-          message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-4 p-4 rounded-xl shadow-2xl transform transition-all duration-300 animate-in slide-in-from-right ${
+          message.type === 'success' 
+            ? 'bg-emerald-600 text-white' 
+            : 'bg-red-600 text-white'
         }`}>
-          <AlertCircle className="w-5 h-5" />
-          {message.text}
+          <div className="p-2 bg-white/20 rounded-full">
+            {message.type === 'success' ? <Check className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+          </div>
+          <div className="pr-4">
+            <p className="font-bold text-lg">{message.type === 'success' ? '¡Guardado!' : 'Error'}</p>
+            <p className="text-sm text-white/90">{message.text}</p>
+          </div>
         </div>
       )}
 
