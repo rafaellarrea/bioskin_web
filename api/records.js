@@ -1,6 +1,5 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
 // Global flag to track initialization in the current container instance
 let dbInitialized = false;
@@ -34,6 +33,8 @@ function getPool() {
 }
 
 export default async function handler(req, res) {
+  console.log(`[Clinical Records API] Request received: ${req.method} ${req.url}`);
+
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
