@@ -609,7 +609,7 @@ export default async function handler(req, res) {
       }
 
       case 'submitSignature': {
-        const { token, signature, declarations } = body;
+        const { token, signature, declarations, authorizations } = body;
         if (!token || !signature) return res.status(400).json({ error: 'Token and signature required' });
         
         // Get current signatures to preserve professional signature if exists
@@ -624,8 +624,8 @@ export default async function handler(req, res) {
         };
         
         await pool.query(
-          'UPDATE consent_forms SET signatures = $1, declarations = $2, signing_status = $3, status = $4, updated_at = NOW() WHERE signing_token = $5',
-          [JSON.stringify(newSigs), JSON.stringify(declarations), 'signed', 'finalized', token]
+          'UPDATE consent_forms SET signatures = $1, declarations = $2, authorizations = $3, signing_status = $4, status = $5, updated_at = NOW() WHERE signing_token = $6',
+          [JSON.stringify(newSigs), JSON.stringify(declarations), JSON.stringify(authorizations || {}), 'signed', 'finalized', token]
         );
         
         return res.status(200).json({ success: true });
