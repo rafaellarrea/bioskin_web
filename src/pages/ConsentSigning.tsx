@@ -24,12 +24,23 @@ interface ConsentSession {
   status: string;
   signing_status: string;
   // Added fields for full document view
+  objectives?: string[];
   risks?: any;
   benefits?: any;
   alternatives?: any;
   pre_care?: any;
   post_care?: any;
   contraindications?: any;
+  critical_antecedents?: {
+    allergies: string;
+    medications: string;
+    pregnancy: boolean;
+    herpes: boolean;
+  };
+  authorizations?: {
+    image_use: boolean;
+    photo_video: boolean;
+  };
   patient?: {
     first_name: string;
     last_name: string;
@@ -74,7 +85,19 @@ export default function ConsentSigning() {
       if (!res.ok) throw new Error('Sesión no encontrada o expirada');
       const data = await res.json();
       setSession(data);
-      setDeclarations(data.declarations || {});
+      setDeclarations({
+        ...data.declarations,
+        // Ensure all keys exist
+        understanding: data.declarations?.understanding || false,
+        questions: data.declarations?.questions || false,
+        results: data.declarations?.results || false,
+        authorization: data.declarations?.authorization || false,
+        revocation: data.declarations?.revocation || false,
+        alternatives: data.declarations?.alternatives || false,
+        // Authorizations
+        image_use: data.authorizations?.image_use || false,
+        photo_video: data.authorizations?.photo_video || false
+      });
       if (data.signing_status === 'signed') {
         setSignatureData(data.signatures?.patient_sig_data || null);
       }
@@ -120,6 +143,21 @@ export default function ConsentSigning() {
       return;
     }
 
+    // Separate declarations and authorizations
+    const finalDeclarations = {
+      understanding: declarations.understanding,
+      questions: declarations.questions,
+      results: declarations.results,
+      authorization: declarations.authorization,
+      revocation: declarations.revocation,
+      alternatives: declarations.alternatives
+    };
+
+    const finalAuthorizations = {
+      image_use: declarations.image_use,
+      photo_video: declarations.photo_video
+    };
+
     try {
       setLoading(true);
       const res = await fetch('/api/records', {
@@ -129,7 +167,8 @@ export default function ConsentSigning() {
           action: 'submitSignature',
           token,
           signature: signatureData,
-          declarations
+          declarations: finalDeclarations,
+          authorizations: finalAuthorizations
         })
       });
 
@@ -196,6 +235,13 @@ export default function ConsentSigning() {
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{session.description}</p>
         </section>
 
+        {session.objectives && session.objectives.length > 0 && (
+          <section className="bg-white p-4 rounded-lg shadow-sm space-y-4">
+            <h2 className="font-semibold text-gray-700 border-b pb-2">Objetivos</h2>
+            {renderList(session.objectives)}
+          </section>
+        )}
+
         {/* Full Document Content */}
         <section className="bg-white p-4 rounded-lg shadow-sm space-y-6 text-gray-700 text-sm">
           {session.risks && (
@@ -242,43 +288,65 @@ export default function ConsentSigning() {
         </section>
 
         <section className="bg-white p-4 rounded-lg shadow-sm space-y-4">
-          <h2 className="font-semibold text-gray-700 border-b pb-2">Declaraciones</h2>
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
-              <input 
-                type="checkbox" 
-                checked={declarations.understanding}
-                onChange={() => handleDeclarationChange('understanding')}
-                className="mt-1 w-5 h-5 text-[#deb887] rounded focus:ring-[#deb887]"
-              />
-              <span className="text-sm text-gray-700">
-                Declaro que he leído y comprendido la información sobre el procedimiento, sus riesgos y beneficios.
-              </span>
-            </label>
-            
-            <label className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
-              <input 
-                type="checkbox" 
-                checked={declarations.questions}
-                onChange={() => handleDeclarationChange('questions')}
-                className="mt-1 w-5 h-5 text-[#deb887] rounded focus:ring-[#deb887]"
-              />
-              <span className="text-sm text-gray-700">
-                He tenido la oportunidad de hacer preguntas y han sido respondidas satisfactoriamente.
-              </span>
-            </label>
+          <h2 className="font-semibold text-gray-700 border-b pb-2">Antecedentes Críticos</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p><strong>Alergias:</strong> {session.critical_antecedents?.allergies || 'Niega'}</p>
+              <p><strong>Medicación:</strong> {session.critical_antecedents?.medications || 'Niega'}</p>
+            </div>
+            <div>
+              <p><strong>Embarazo/Lactancia:</strong> {session.critical_antecedents?.pregnancy ? 'Sí' : 'No'}</p>
+              <p><strong>Herpes Recurrente:</strong> {session.critical_antecedents?.herpes ? 'Sí' : 'No'}</p>
+            </div>
+          </div>
+        </section>
 
-            <label className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
-              <input 
-                type="checkbox" 
-                checked={declarations.authorization}
-                onChange={() => handleDeclarationChange('authorization')}
-                className="mt-1 w-5 h-5 text-[#deb887] rounded focus:ring-[#deb887]"
-              />
-              <span className="text-sm text-gray-700 font-medium">
-                Autorizo la realización del procedimiento.
-              </span>
-            </label>
+        <section className="bg-white p-4 rounded-lg shadow-sm space-y-4">
+          <h2 className="font-semibold text-gray-700 border-b pb-2">Declaraciones y Autorizaciones</h2>
+          <div className="space-y-3">
+            {[
+              { key: 'understanding', label: 'Declaro haber recibido información clara y completa del tratamiento.' },
+              { key: 'questions', label: 'He tenido oportunidad de resolver todas mis dudas.' },
+              { key: 'results', label: 'Entiendo que los resultados pueden variar y no se garantizan resultados específicos.' },
+              { key: 'authorization', label: 'Autorizo voluntariamente la realización del tratamiento.' },
+              { key: 'revocation', label: 'Sé que puedo revocar este consentimiento en cualquier momento antes del procedimiento.' },
+              { key: 'alternatives', label: 'Me han explicado las alternativas de tratamiento, incluyendo la opción de no tratarme.' }
+            ].map((item) => (
+              <label key={item.key} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
+                <input 
+                  type="checkbox" 
+                  checked={declarations[item.key]}
+                  onChange={() => handleDeclarationChange(item.key)}
+                  className="mt-1 w-5 h-5 text-[#deb887] rounded focus:ring-[#deb887]"
+                />
+                <span className="text-sm text-gray-700">{item.label}</span>
+              </label>
+            ))}
+
+            <div className="border-t pt-3 mt-3">
+              <label className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
+                <input 
+                  type="checkbox" 
+                  checked={declarations.image_use}
+                  onChange={() => handleDeclarationChange('image_use')}
+                  className="mt-1 w-5 h-5 text-[#deb887] rounded focus:ring-[#deb887]"
+                />
+                <span className="text-sm text-gray-700">
+                  Autorizo el uso de mis imágenes con fines educativos y/o promocionales.
+                </span>
+              </label>
+              <label className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
+                <input 
+                  type="checkbox" 
+                  checked={declarations.photo_video}
+                  onChange={() => handleDeclarationChange('photo_video')}
+                  className="mt-1 w-5 h-5 text-[#deb887] rounded focus:ring-[#deb887]"
+                />
+                <span className="text-sm text-gray-700">
+                  Autorizo la toma de fotografías y/o videos del procedimiento para registro clínico.
+                </span>
+              </label>
+            </div>
           </div>
         </section>
 
