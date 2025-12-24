@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, Plus } from 'lucide-react';
 import historyOptions from '../../data/history_options.json';
 
@@ -15,9 +15,10 @@ interface HistoryFieldProps {
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   placeholder: string;
   categoryId?: keyof typeof historyOptions;
+  disabled?: boolean;
 }
 
-const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }: HistoryFieldProps) => {
+const HistoryField = ({ label, name, value, onChange, placeholder, categoryId, disabled }: HistoryFieldProps) => {
   const [inputValue, setInputValue] = useState('');
 
   const items = categoryId ? (historyOptions[categoryId] || []) : [];
@@ -51,21 +52,17 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }:
           <input
             list={`list-${name}`}
             type="text"
-            className="flex-1 p-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+            className="flex-1 p-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none disabled:bg-gray-50 disabled:text-gray-400"
             placeholder="Buscar y agregar..."
             value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-              // If the value matches an option exactly, add it? 
-              // Better to let user click a button or press enter, but datalist selection is tricky to detect reliably without a library.
-              // We'll add a button.
-            }}
+            onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 handleAdd(inputValue);
               }
             }}
+            disabled={disabled}
           />
           <datalist id={`list-${name}`}>
             {items.map((item: string, index: number) => (
@@ -75,8 +72,9 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }:
           <button
             type="button"
             onClick={() => handleAdd(inputValue)}
-            className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Agregar"
+            disabled={disabled}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -86,10 +84,11 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }:
       <textarea
         name={name}
         rows={4}
-        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
+        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none disabled:bg-gray-50 disabled:text-gray-500"
         placeholder={placeholder}
         value={value || ''}
         onChange={onChange}
+        disabled={disabled}
       />
     </div>
   );
@@ -100,6 +99,13 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+  // Sincronizar formData cuando initialData cambie (ej. después de guardar)
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -108,6 +114,11 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!recordId) {
+      setMessage({ type: 'error', text: 'Error: No se encontró el ID del expediente' });
+      return;
+    }
+
     // Check for empty fields
     const emptyFields = Object.entries(formData).filter(([_, value]) => !value || (value as string).trim() === '');
     if (emptyFields.length > 0) {
@@ -127,8 +138,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Antecedentes guardados correctamente' });
-        // Show confirmation alert as requested
-        alert('Antecedentes guardados correctamente');
+        setTimeout(() => setMessage(null), 3000); // Auto ocultar mensaje
         onSave();
       } else {
         throw new Error('Error al guardar');
@@ -159,6 +169,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Enfermedades crónicas, hospitalizaciones previas..."
           categoryId="antecedente_personal"
+          disabled={saving}
         />
 
         <HistoryField
@@ -168,6 +179,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Tabaco, alcohol, actividad física, alimentación..."
           categoryId="habito"
+          disabled={saving}
         />
 
         <HistoryField
@@ -177,6 +189,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Enfermedades hereditarias, antecedentes de cáncer..."
           categoryId="antecedente_familiar"
+          disabled={saving}
         />
 
         <HistoryField
@@ -186,6 +199,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Cirugías previas, fechas aproximadas..."
           categoryId="quirurgico"
+          disabled={saving}
         />
 
         <HistoryField
@@ -195,6 +209,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Medicamentos, alimentos, látex..."
           categoryId="alergia"
+          disabled={saving}
         />
 
         <HistoryField
@@ -204,6 +219,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Nombre, dosis, frecuencia..."
           categoryId="medicacion"
+          disabled={saving}
         />
 
         <HistoryField
@@ -213,6 +229,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Tratamientos previos, reacciones adversas..."
           categoryId="otros"
+          disabled={saving}
         />
 
         <HistoryField
@@ -222,6 +239,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="FUM, anticonceptivos, embarazos..."
           categoryId="obstetrico"
+          disabled={saving}
         />
 
         <HistoryField
@@ -231,6 +249,7 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           onChange={handleChange}
           placeholder="Limpieza, hidratación, protección solar..."
           categoryId="rutina_cuidado_facial"
+          disabled={saving}
         />
       </div>
 

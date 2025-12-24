@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 24, 2025: Clinical Records - History Tab Improvements**
+- 🔄 **Sincronización**: Implementada actualización automática de datos al guardar.
+- 🔒 **UX**: Deshabilitados campos durante el guardado para evitar conflictos.
+- 💬 **Feedback**: Reemplazado `alert` intrusivo por mensaje de éxito auto-ocultable.
+- 📝 **Edición**: Confirmada y mejorada la capacidad de edición directa en campos de texto.
+
 ### ✅ **Dec 24, 2025: Clinical Records - Facial Routine & Bullet Format**
 - 🗃️ **Esquema DB**: Agregada columna `facial_routine` a tabla `medical_history`.
 - 💾 **Guardado**: Corregido bug que impedía guardar "Rutina de Cuidado Facial".
