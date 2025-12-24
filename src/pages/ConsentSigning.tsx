@@ -30,6 +30,13 @@ interface ConsentSession {
   pre_care?: any;
   post_care?: any;
   contraindications?: any;
+  patient?: {
+    first_name: string;
+    last_name: string;
+    rut: string;
+    phone: string;
+    birth_date: string;
+  };
 }
 
 export default function ConsentSigning() {
@@ -48,6 +55,18 @@ export default function ConsentSigning() {
       fetchSession();
     }
   }, [token]);
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const fetchSession = async () => {
     try {
@@ -151,11 +170,27 @@ export default function ConsentSigning() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
-        <h1 className="text-lg font-bold text-gray-800 truncate">Consentimiento Informado</h1>
-        <p className="text-sm text-[#deb887]">{session.procedure_type}</p>
+        <div className="max-w-3xl mx-auto flex items-center gap-4">
+          <img src="/images/logo/logo.png" alt="BioSkin Logo" className="h-12 w-auto object-contain" />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-gray-800 truncate">Consentimiento Informado</h1>
+            <p className="text-sm text-[#deb887] truncate">{session.procedure_type}</p>
+          </div>
+        </div>
       </header>
 
       <main className="p-4 max-w-3xl mx-auto space-y-6">
+        {/* Patient Info */}
+        <section className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-sm">
+          <h3 className="font-bold text-gray-900 mb-3 border-b pb-2">INFORMACIÓN DEL PACIENTE</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <p><strong className="text-gray-600">Nombre:</strong> {session.patient?.first_name} {session.patient?.last_name}</p>
+            <p><strong className="text-gray-600">Identificación:</strong> {session.patient?.rut || 'N/A'}</p>
+            <p><strong className="text-gray-600">Edad:</strong> {session.patient?.birth_date ? calculateAge(session.patient.birth_date) : 'N/A'} años</p>
+            <p><strong className="text-gray-600">Teléfono:</strong> {session.patient?.phone || 'N/A'}</p>
+          </div>
+        </section>
+
         <section className="bg-white p-4 rounded-lg shadow-sm space-y-4">
           <h2 className="font-semibold text-gray-700 border-b pb-2">Descripción del Procedimiento</h2>
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{session.description}</p>
