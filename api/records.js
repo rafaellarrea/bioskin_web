@@ -9,10 +9,10 @@ let poolInstance = null;
 function getPool() {
   if (poolInstance) return poolInstance;
   
-  const connectionString = process.env.CLINICAL_DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
+  const connectionString = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
   
   if (!connectionString) {
-    console.error('❌ No database connection string found (checked CLINICAL_DATABASE_URL, NEON_DATABASE_URL, POSTGRES_URL)');
+    console.error('❌ No database connection string found (checked NEON_DATABASE_URL, POSTGRES_URL)');
     return null;
   }
 

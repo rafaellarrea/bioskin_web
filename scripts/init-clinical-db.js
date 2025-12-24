@@ -4,10 +4,10 @@ const { Pool } = require('pg');
 require('dotenv').config();
 require('dotenv').config({ path: '.env.local' });
 
-const connectionString = process.env.CLINICAL_DATABASE_URL || process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
+const connectionString = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
 
 if (!connectionString) {
-  console.error('❌ No database connection string found in .env (checked CLINICAL_DATABASE_URL, NEON_DATABASE_URL, POSTGRES_URL)');
+  console.error('❌ No database connection string found in .env (checked NEON_DATABASE_URL, POSTGRES_URL)');
   process.exit(1);
 }
 
