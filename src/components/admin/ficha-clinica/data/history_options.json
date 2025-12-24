@@ -1,4 +1,20 @@
 {
+  "rutina_cuidado_facial": [
+    "Limpieza (Mañana/Noche)",
+    "Hidratación diaria",
+    "Protector Solar (FPS 30+)",
+    "Protector Solar (FPS 50+)",
+    "Reaplicación de Protector Solar",
+    "Uso de Serums (Vit C, Hialurónico, etc.)",
+    "Contorno de Ojos",
+    "Exfoliación semanal",
+    "Mascarillas faciales",
+    "Retinoides / Ácidos nocturnos",
+    "Doble limpieza",
+    "Agua micelar",
+    "Tónico facial",
+    "Ninguna rutina establecida"
+  ],
   "antecedente_personal": [
     "Diabetes mellitus tipo 1",
     "Diabetes mellitus tipo 2",
@@ -1040,5 +1056,24 @@
     "Menopausia",
     "Andropausia",
     "Otros datos relevantes"
+  ],
+  "rutina_facial": [
+    "Limpieza diaria (mañana y noche)",
+    "Limpieza ocasional",
+    "Uso de protector solar diario",
+    "Uso de protector solar ocasional",
+    "No usa protector solar",
+    "Uso de crema hidratante",
+    "Uso de sérums (Vitamina C, Hialurónico, etc.)",
+    "Uso de ácidos (Retinol, Glicólico, etc.)",
+    "Exfoliación semanal",
+    "Mascarillas faciales",
+    "Tratamientos en cabina previos",
+    "Uso de maquillaje diario",
+    "Desmaquillado diario",
+    "Duerme con maquillaje",
+    "Jabón común para el rostro",
+    "Productos dermatológicos",
+    "Productos de supermercado/catálogo"
   ]
 }

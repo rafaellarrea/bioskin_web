@@ -222,6 +222,15 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
           placeholder="FUM, anticonceptivos, embarazos..."
           categoryId="obstetrico"
         />
+
+        <HistoryField
+          label="Rutina de Cuidado Facial"
+          name="facial_routine"
+          value={formData.facial_routine}
+          onChange={handleChange}
+          placeholder="Limpieza, hidratación, protección solar..."
+          categoryId="rutina_cuidado_facial"
+        />
       </div>
 
       <div className="flex justify-end pt-4">
