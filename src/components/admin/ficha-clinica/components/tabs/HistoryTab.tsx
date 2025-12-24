@@ -171,22 +171,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
       setSaving(false);
     }
   };
-        body: JSON.stringify({ record_id: idToUse, ...formData }),
-      });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Antecedentes guardados correctamente' });
-        setTimeout(() => setMessage(null), 3000); // Auto ocultar mensaje
-        onSave();
-      } else {
-        throw new Error('Error al guardar');
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Error al guardar los antecedentes' });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
