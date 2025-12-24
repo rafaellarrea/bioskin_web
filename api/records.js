@@ -47,8 +47,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { action } = req.query;
+    let { action } = req.query;
     const body = req.body || {};
+
+    // Allow action to be passed in body for POST requests
+    if (!action && body.action) {
+      action = body.action;
+    }
 
     // Get pool instance lazily
     const pool = getPool();
