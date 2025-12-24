@@ -26,7 +26,8 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId }:
     if (!val) return;
     
     const currentValue = value || '';
-    const separator = currentValue.length > 0 ? ', ' : '';
+    // Usar viñeta y salto de línea en lugar de coma
+    const separator = currentValue.length > 0 ? '\n• ' : '• ';
     const newValue = `${currentValue}${separator}${val}`;
     
     // Create a synthetic event to propagate change

@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 24, 2025: Clinical Records - Facial Routine & Bullet Format**
+- 🗃️ **Esquema DB**: Agregada columna `facial_routine` a tabla `medical_history`.
+- 💾 **Guardado**: Corregido bug que impedía guardar "Rutina de Cuidado Facial".
+- 📝 **Formato**: Items guardados con viñetas y saltos de línea en lugar de comas.
+
 ### ✅ **Dec 23, 2025: Clinical Records - Delete Feature**
 - 🗑️ **Expedientes**: Implementada funcionalidad para eliminar expedientes clínicos individuales.
 - ⚙️ **API**: Agregado endpoint `deleteRecord` en `api/records.js` con manejo de cascada.

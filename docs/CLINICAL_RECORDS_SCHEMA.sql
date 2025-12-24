@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS medical_history (
     current_medications TEXT,
     aesthetic_history TEXT, -- Previous aesthetic treatments
     gynecological_history TEXT, -- For female patients
+    facial_routine TEXT, -- Rutina de cuidado facial del paciente
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
