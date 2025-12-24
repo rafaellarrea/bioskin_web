@@ -31,6 +31,7 @@ import PatientList from './components/admin/ficha-clinica/components/PatientList
 import NewPatientForm from './components/admin/ficha-clinica/components/NewPatientForm';
 import PatientDetail from './components/admin/ficha-clinica/components/PatientDetail';
 import ClinicalRecordManager from './components/admin/ficha-clinica/components/ClinicalRecordManager';
+import ConsentSigning from './pages/ConsentSigning';
 
 function App() {
   return (
@@ -74,6 +75,9 @@ function App() {
               <Route path="/admin/clinical-records/edit/:patientId" element={<NewPatientForm />} />
               <Route path="/admin/ficha-clinica/paciente/:patientId" element={<PatientDetail />} />
               <Route path="/admin/ficha-clinica/expediente/:recordId" element={<ClinicalRecordManager />} />
+              
+              {/* RUTA DE FIRMA REMOTA */}
+              <Route path="/consent-signing/:token" element={<ConsentSigning />} />
 
               <Route path="/appointment" element={<Appointment />} />
               <Route path="/about" element={<About />} />

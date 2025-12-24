@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   FileText, Plus, Trash2, Edit, Eye, Save, Printer, 
   CheckCircle, XCircle, AlertTriangle, ChevronRight, ChevronDown,
-  Copy, RefreshCw
+  Copy, RefreshCw, QrCode, Smartphone
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 // Load templates
 const templatesGlob = import.meta.glob('/src/data/consent-templates/*.json', { eager: true });
@@ -69,10 +70,67 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
   const [loading, setLoading] = useState(false);
   const [currentConsent, setCurrentConsent] = useState<ConsentForm | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [signingUrl, setSigningUrl] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     loadConsents();
   }, [patientId, recordId]);
+
+  const generateSigningLink = async () => {
+    if (!currentConsent?.id) {
+      alert('Guarde el consentimiento antes de generar la firma remota');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const res = await fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generateSigningToken',
+          id: currentConsent.id
+        })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        const url = `${window.location.origin}/#${data.url}`;
+        setSigningUrl(url);
+        setShowQr(true);
+      } else {
+        alert('Error al generar enlace de firma');
+      }
+    } catch (error) {
+      console.error('Error generating signing link:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkSigningStatus = async () => {
+    if (!currentConsent?.id) return;
+    
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}?action=getConsent&id=${currentConsent.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentConsent(data);
+        if (data.signatures?.patient_sig_data) {
+          setShowQr(false);
+          alert('¡Firma recibida correctamente!');
+        } else {
+          alert('Aún no se ha recibido la firma');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadConsents = async () => {
     setLoading(true);
@@ -216,17 +274,38 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
     });
   };
 
+  const migrateDB = async () => {
+    if (!confirm('¿Actualizar estructura de base de datos? Esto agregará las columnas necesarias para la firma remota.')) return;
+    try {
+      const res = await fetch('/api/records?action=migrateConsents');
+      if (res.ok) alert('Base de datos actualizada correctamente');
+      else alert('Error al actualizar base de datos');
+    } catch (e) {
+      console.error(e);
+      alert('Error de conexión');
+    }
+  };
+
   const renderList = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-800">Historial de Consentimientos</h3>
-        <button
-          onClick={handleNew}
-          className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors"
-        >
-          <Plus size={20} />
-          Nuevo Consentimiento
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={migrateDB}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-sm"
+          >
+            <RefreshCw size={16} />
+            Configurar DB
+          </button>
+          <button
+            onClick={handleNew}
+            className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors"
+          >
+            <Plus size={20} />
+            Nuevo Consentimiento
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -574,8 +653,62 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
                         className="w-full p-2 border rounded-lg"
                       />
                     </div>
-                    <div className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-white">
-                      <span className="text-gray-400 text-sm">Espacio para firma digital (Próximamente)</span>
+                    
+                    <div className="min-h-[160px] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-white p-4">
+                      {currentConsent.signatures?.patient_sig_data ? (
+                        <div className="w-full flex flex-col items-center">
+                          <img 
+                            src={currentConsent.signatures.patient_sig_data} 
+                            alt="Firma Paciente" 
+                            className="max-h-32 object-contain mb-2"
+                          />
+                          <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Firmado digitalmente
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 w-full">
+                          {!showQr ? (
+                            <>
+                              <span className="text-gray-400 text-sm">Sin firma registrada</span>
+                              <button
+                                onClick={generateSigningLink}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors"
+                              >
+                                <QrCode className="w-4 h-4" />
+                                Generar Firma Remota
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex flex-col items-center gap-4 w-full">
+                              <div className="bg-white p-2 rounded shadow-sm border">
+                                {signingUrl && <QRCodeSVG value={signingUrl} size={150} />}
+                              </div>
+                              <div className="text-center">
+                                <p className="text-sm font-medium text-gray-700">Escanee para firmar</p>
+                                <a href={signingUrl!} target="_blank" rel="noreferrer" className="text-xs text-[#deb887] underline break-all">
+                                  {signingUrl}
+                                </a>
+                              </div>
+                              <div className="flex gap-2 w-full">
+                                <button
+                                  onClick={checkSigningStatus}
+                                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                  Verificar
+                                </button>
+                                <button
+                                  onClick={() => setShowQr(false)}
+                                  className="px-3 py-2 text-gray-500 hover:text-gray-700"
+                                >
+                                  Cerrar
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

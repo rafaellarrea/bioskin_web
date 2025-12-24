@@ -470,6 +470,21 @@ export default async function handler(req, res) {
 
       // --- CONSENTIMIENTOS ---
 
+      case 'migrateConsents':
+        // Add signing columns if they don't exist
+        try {
+          await pool.query(`
+            ALTER TABLE consent_forms 
+            ADD COLUMN IF NOT EXISTS signing_token VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS signing_status VARCHAR(20) DEFAULT 'pending';
+            CREATE INDEX IF NOT EXISTS idx_consent_forms_signing_token ON consent_forms(signing_token);
+          `);
+          return res.status(200).json({ message: 'Consent forms table migrated' });
+        } catch (err) {
+          console.error('Migration error:', err);
+          return res.status(500).json({ error: 'Migration failed', details: err.message });
+        }
+
       case 'initConsents':
         // WARNING: This drops the table! Use with caution.
         await pool.query(`
@@ -497,12 +512,78 @@ export default async function handler(req, res) {
               authorizations JSONB,
               declarations JSONB,
               signatures JSONB,
-              attachments JSONB
+              attachments JSONB,
+              signing_token VARCHAR(100),
+              signing_status VARCHAR(20) DEFAULT 'pending'
           );
           CREATE INDEX idx_consent_forms_record_id ON consent_forms(record_id);
           CREATE INDEX idx_consent_forms_patient_id ON consent_forms(patient_id);
+          CREATE INDEX idx_consent_forms_signing_token ON consent_forms(signing_token);
         `);
         return res.status(200).json({ message: 'Consent forms table initialized' });
+
+      case 'generateSigningToken': {
+        const { id: signId } = body;
+        if (!signId) return res.status(400).json({ error: 'Consent ID required' });
+        
+        // Generate a simple random token
+        const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        
+        await pool.query(
+          'UPDATE consent_forms SET signing_token = $1, signing_status = $2 WHERE id = $3',
+          [token, 'pending', signId]
+        );
+        
+        return res.status(200).json({ token, url: \`/consent-signing/\${token}\` });
+      }
+
+      case 'getSigningSession': {
+        const { token } = req.query;
+        if (!token) return res.status(400).json({ error: 'Token required' });
+        
+        const session = await pool.query(
+          'SELECT * FROM consent_forms WHERE signing_token = $1',
+          [token]
+        );
+        
+        if (session.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+        
+        // Return only necessary data for signing
+        const data = session.rows[0];
+        return res.status(200).json({
+          id: data.id,
+          patient_id: data.patient_id,
+          procedure_type: data.procedure_type,
+          description: data.description,
+          declarations: data.declarations,
+          signatures: data.signatures,
+          status: data.status,
+          signing_status: data.signing_status
+        });
+      }
+
+      case 'submitSignature': {
+        const { token, signature, declarations } = body;
+        if (!token || !signature) return res.status(400).json({ error: 'Token and signature required' });
+        
+        // Get current signatures to preserve professional signature if exists
+        const current = await pool.query('SELECT signatures FROM consent_forms WHERE signing_token = $1', [token]);
+        if (current.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+        
+        const currentSigs = current.rows[0].signatures || {};
+        const newSigs = {
+          ...currentSigs,
+          patient_sig_data: signature,
+          patient_signed_at: new Date().toISOString()
+        };
+        
+        await pool.query(
+          'UPDATE consent_forms SET signatures = $1, declarations = $2, signing_status = $3, status = $4, updated_at = NOW() WHERE signing_token = $5',
+          [JSON.stringify(newSigs), JSON.stringify(declarations), 'signed', 'finalized', token]
+        );
+        
+        return res.status(200).json({ success: true });
+      }
 
       case 'listConsents': {
         const { patient_id: pid, record_id: rid } = req.query;
