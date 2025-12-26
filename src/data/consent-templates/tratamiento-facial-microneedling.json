@@ -1,0 +1,44 @@
+{
+  "procedure_type": "Tratamiento Facial con Microneedling",
+  "description": "Se realizará un tratamiento de microneedling en la(s) zona(s) indicada(s), utilizando un dispositivo médico con microagujas estériles que producen microperforaciones controladas en las capas superficiales de la piel. Estas microlesiones estimulan el proceso natural de reparación cutánea, favoreciendo la producción de colágeno y elastina, la renovación celular y la mejora progresiva de la textura y calidad de la piel.\n\nSegún la valoración clínica, el procedimiento puede realizarse de forma independiente o complementarse con la aplicación de sueros, factores de crecimiento o activos dermocosméticos, que penetran a través de los microcanales para potenciar los resultados terapéuticos.\n\nEste tratamiento es útil en múltiples indicaciones estéticas y dermatológicas, tales como cicatrices superficiales de acné, poros dilatados, líneas finas, manchas leves, pérdida de firmeza y fotoenvejecimiento. Los resultados son graduales y suelen requerir varias sesiones programadas de acuerdo con la respuesta individual de la piel.",
+  "objectives": [
+    "Estimular la producción de colágeno y elastina.",
+    "Mejorar la textura y apariencia general de la piel.",
+    "Disminuir la apariencia de cicatrices superficiales y líneas finas.",
+    "Atenuar poros dilatados y tonalidad irregular.",
+    "Favorecer la penetración de activos tópicos aplicados durante el procedimiento."
+  ],
+  "risks": [
+    "Enrojecimiento y sensación de ardor transitorio.",
+    "Edema o inflamación leve en la zona tratada.",
+    "Pequeños sangrados puntiformes o aparición de petequias.",
+    "Formación de costras finas o descamación.",
+    "Hipopigmentación o hiperpigmentación postinflamatoria, especialmente en fototipos altos.",
+    "Reacción alérgica o irritativa a los productos tópicos utilizados.",
+    "Infección local (poco frecuente) si no se cumplen los cuidados indicados.",
+    "Cicatriz o queloide (raro, en pacientes predispuestos).",
+    "Reactivación de herpes simple en pacientes con antecedente previo.",
+    "Los resultados pueden variar y no se garantiza un resultado específico, pudiendo requerirse nuevas sesiones."
+  ],
+  "benefits": [
+    "Mejora progresiva de la firmeza y calidad de la piel.",
+    "Atenuación de líneas finas y cicatrices superficiales.",
+    "Mejoría del aspecto de poros dilatados.",
+    "Resultados naturales mediante estimulación propia del colágeno."
+  ],
+  "pre_care": [
+    "Informar antecedentes de alergias, queloides, herpes simple o tratamientos recientes con isotretinoína.",
+    "Evitar el uso de retinoides, peelings químicos o exfoliantes 5 a 7 días antes del procedimiento.",
+    "No acudir con maquillaje o cremas en la zona a tratar.",
+    "Evitar exposición solar intensa y uso de cabinas de bronceado previos al tratamiento.",
+    "Informar si se está embarazada, lactando o en tratamiento anticoagulante."
+  ],
+  "post_care": [
+    "Mantener la piel limpia, hidratada y protegida con fotoprotector de amplio espectro.",
+    "Evitar exposición solar directa, piscina, sauna y gimnasio por 48 a 72 horas.",
+    "No rascar, frotar ni retirar costras o descamación.",
+    "Evitar maquillaje por 24 horas y el uso de retinoides, ácidos o exfoliantes por 5 a 7 días.",
+    "Usar únicamente los productos indicados por el médico tratante.",
+    "Asistir a los controles y sesiones programadas según esquema terapéutico."
+  ]
+}
