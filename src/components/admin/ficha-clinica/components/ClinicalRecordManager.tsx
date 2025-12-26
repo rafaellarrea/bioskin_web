@@ -45,7 +45,7 @@ const TabButton: React.FC<TabButtonProps> = ({ id, label, icon: Icon, active, on
 export default function ClinicalRecordManager() {
   const { recordId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('consultation');
+  const [activeTab, setActiveTab] = useState('history');
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
   const [recordData, setRecordData] = useState<any>(null);
@@ -153,18 +153,18 @@ export default function ClinicalRecordManager() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="flex overflow-x-auto border-b border-gray-100">
             <TabButton 
-              id="consultation" 
-              label="Consulta" 
-              icon={MessageSquare} 
-              active={activeTab === 'consultation'} 
-              onClick={() => setActiveTab('consultation')} 
-            />
-            <TabButton 
               id="history" 
               label="Antecedentes" 
               icon={ClipboardList} 
               active={activeTab === 'history'} 
               onClick={() => setActiveTab('history')} 
+            />
+            <TabButton 
+              id="consultation" 
+              label="Consulta" 
+              icon={MessageSquare} 
+              active={activeTab === 'consultation'} 
+              onClick={() => setActiveTab('consultation')} 
             />
             <TabButton 
               id="physical" 
@@ -205,18 +205,18 @@ export default function ClinicalRecordManager() {
 
           {/* Tab Content */}
           <div className="p-6">
-            {activeTab === 'consultation' && (
-              <ConsultationTab 
-                recordId={parseInt(recordId!)} 
-                initialData={recordData.consultation} 
-                onSave={fetchData} 
-              />
-            )}
             {activeTab === 'history' && (
               <HistoryTab 
                 recordId={recordData?.recordId} 
                 initialData={recordData?.history} 
                 onSave={fetchData}
+              />
+            )}
+            {activeTab === 'consultation' && (
+              <ConsultationTab 
+                recordId={parseInt(recordId!)} 
+                initialData={recordData.consultation} 
+                onSave={fetchData} 
               />
             )}
             {activeTab === 'physical' && (
