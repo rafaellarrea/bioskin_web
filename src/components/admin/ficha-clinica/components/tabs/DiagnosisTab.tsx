@@ -48,6 +48,9 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   const [selectedExamId, setSelectedExamId] = useState<number | string>('');
 
   const [aiWarning, setAiWarning] = useState<string | null>(null);
+  const [showContextModal, setShowContextModal] = useState(false);
+  const [contextText, setContextText] = useState('');
+  const [loadingContext, setLoadingContext] = useState(false);
 
   useEffect(() => {
     if (diagnoses.length > 0 && !currentDiagnosis.id) {
@@ -97,17 +100,46 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     }
   };
 
-  const handleGenerateAI = async () => {
+  const handleOpenAIModal = async () => {
     if (!physicalExams || physicalExams.length === 0) {
       alert('No hay examen físico registrado para generar el diagnóstico. Por favor complete el examen físico primero.');
       return;
     }
 
-    // Use the selected exam or fallback to the first one (latest)
     const examToUse = physicalExams.find(e => e.id === Number(selectedExamId)) || physicalExams[0];
-    
+    setLoadingContext(true);
+    setShowContextModal(true);
+
+    try {
+      const response = await fetch('/api/records?action=getDiagnosisContext', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          examData: examToUse,
+          patientName
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setContextText(data.context);
+      } else {
+        setContextText('Error al cargar el contexto. Puede escribirlo manualmente.');
+      }
+    } catch (error) {
+      console.error('Error fetching context:', error);
+      setContextText('Error de conexión. Puede escribir el contexto manualmente.');
+    } finally {
+      setLoadingContext(false);
+    }
+  };
+
+  const handleGenerateAI = async () => {
     setGeneratingAI(true);
     setMessage(null);
+    setShowContextModal(false);
+
+    const examToUse = physicalExams.find(e => e.id === Number(selectedExamId)) || physicalExams[0];
 
     try {
       const response = await fetch('/api/records?action=generateDiagnosisAI', {
@@ -115,7 +147,8 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           examData: examToUse,
-          patientName
+          patientName,
+          customContext: contextText
         }),
       });
 
@@ -159,6 +192,10 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     } finally {
       setGeneratingAI(false);
     }
+  };
+
+  const addContextOption = (option: string) => {
+    setContextText(prev => prev + '\n- ' + option);
   };
 
   const handleSubmit = async () => {
@@ -319,7 +356,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
             </select>
 
             <button 
-              onClick={handleGenerateAI} 
+              onClick={handleOpenAIModal} 
               disabled={generatingAI} 
               className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
               title="Generar Diagnóstico con IA"
@@ -420,6 +457,99 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           </div>
         </div>
       </div>
+
+      {/* AI Context Modal */}
+      {showContextModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <div className="flex items-center gap-2 text-[#deb887]">
+                <Sparkles className="w-5 h-5" />
+                <h3 className="text-lg font-semibold text-gray-800">Contexto para Diagnóstico IA</h3>
+              </div>
+              <button onClick={() => setShowContextModal(false)} className="text-gray-400 hover:text-gray-600">
+                <Trash2 className="w-5 h-5 rotate-45" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-4">
+                Revise y modifique la información que se enviará a la IA. Puede añadir instrucciones específicas o corregir datos.
+              </div>
+
+              {loadingContext ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-[#deb887] border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Contexto del Paciente y Examen Físico</label>
+                    <textarea
+                      value={contextText}
+                      onChange={(e) => setContextText(e.target.value)}
+                      className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none font-mono text-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Opciones Rápidas (Añadir al contexto)</label>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => addContextOption("Considerar antecedentes de acné")}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                      >
+                        + Antecedentes Acné
+                      </button>
+                      <button
+                        onClick={() => addContextOption("Enfocarse en lesiones pigmentadas")}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                      >
+                        + Lesiones Pigmentadas
+                      </button>
+                      <button
+                        onClick={() => addContextOption("Descartar patología maligna")}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                      >
+                        + Descartar Malignidad
+                      </button>
+                      <button
+                        onClick={() => addContextOption("Sugerir diagnóstico diferencial")}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                      >
+                        + Diagnóstico Diferencial
+                      </button>
+                      <button
+                        onClick={() => addContextOption("Considerar fototipo alto")}
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                      >
+                        + Fototipo Alto
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => setShowContextModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleGenerateAI}
+                disabled={loadingContext}
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4" />
+                Generar Diagnóstico
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

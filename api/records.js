@@ -781,14 +781,11 @@ export default async function handler(req, res) {
         await pool.query('DELETE FROM consent_forms WHERE id = $1', [delCid]);
         return res.status(200).json({ message: 'Consent deleted' });
 
-      case 'generateDiagnosisAI': {
+      case 'getDiagnosisContext': {
         const { examData, patientName } = body;
         if (!examData) return res.status(400).json({ error: 'Missing exam data' });
 
         try {
-          const { getOpenAIClient } = await import('../lib/ai-service.js');
-          const openai = getOpenAIClient();
-          
           let lesions = [];
           try {
             const faceMarks = typeof examData.face_map_data === 'string' ? JSON.parse(examData.face_map_data || '[]') : (examData.face_map_data || []);
@@ -822,9 +819,7 @@ export default async function handler(req, res) {
           }
           linkedDiagnostics = [...new Set(linkedDiagnostics)];
 
-          const systemPrompt = `Eres un dermatólogo experto y asistente médico de IA. Tu tarea es analizar los datos del examen físico de un paciente y sugerir un diagnóstico preliminar y notas clínicas detalladas.
-          
-          Utiliza la siguiente información:
+          const context = `
           - Datos del paciente: ${patientName || 'Paciente'}
           - Tipo de piel: ${examData.skin_type || 'No especificado'}
           - Fototipo: ${examData.phototype || 'No especificado'}
@@ -832,6 +827,75 @@ export default async function handler(req, res) {
           - Descripción de lesiones: ${examData.lesions_description || 'Sin descripción adicional'}
           - Lesiones identificadas: ${lesionNames.join(', ') || 'Ninguna'}
           - Diagnósticos asociados (BD): ${linkedDiagnostics.join(', ') || 'Ninguno (Usar conocimiento médico general)'}
+          `;
+
+          return res.status(200).json({ context });
+        } catch (error) {
+          console.error('Error generating context:', error);
+          return res.status(500).json({ error: error.message });
+        }
+      }
+
+      case 'generateDiagnosisAI': {
+        const { examData, patientName, customContext } = body;
+        if (!examData && !customContext) return res.status(400).json({ error: 'Missing data' });
+
+        try {
+          const { getOpenAIClient } = await import('../lib/ai-service.js');
+          const openai = getOpenAIClient();
+          
+          let contextToUse = customContext;
+
+          if (!contextToUse) {
+            // Fallback logic if no custom context provided (same as getDiagnosisContext)
+            let lesions = [];
+            try {
+              const faceMarks = typeof examData.face_map_data === 'string' ? JSON.parse(examData.face_map_data || '[]') : (examData.face_map_data || []);
+              const bodyMarks = typeof examData.body_map_data === 'string' ? JSON.parse(examData.body_map_data || '[]') : (examData.body_map_data || []);
+              lesions = [...faceMarks, ...bodyMarks];
+            } catch (e) {
+              console.error('Error parsing map data:', e);
+            }
+
+            const lesionNames = [...new Set(lesions.map(l => l.category))];
+            let linkedDiagnostics = [];
+
+            if (lesionNames.length > 0) {
+              try {
+                const tableCheck = await pool.query("SELECT to_regclass('public.lesiones_maestras')");
+                if (tableCheck.rows[0].to_regclass) {
+                  const placeholders = lesionNames.map((_, i) => `$${i + 1}`).join(',');
+                  const query = `SELECT diagnosticos_vinculados FROM lesiones_maestras WHERE nombre IN (${placeholders})`;
+                  const results = await pool.query(query, lesionNames);
+                  
+                  results.rows.forEach(row => {
+                    if (row.diagnosticos_vinculados) {
+                      const diags = row.diagnosticos_vinculados.split(';').map(d => d.trim());
+                      linkedDiagnostics.push(...diags);
+                    }
+                  });
+                }
+              } catch (dbError) {
+                console.warn('Warning: Could not fetch linked diagnostics from DB:', dbError.message);
+              }
+            }
+            linkedDiagnostics = [...new Set(linkedDiagnostics)];
+
+            contextToUse = `
+            - Datos del paciente: ${patientName || 'Paciente'}
+            - Tipo de piel: ${examData.skin_type || 'No especificado'}
+            - Fototipo: ${examData.phototype || 'No especificado'}
+            - Escala Glogau: ${examData.glogau_scale || 'No especificado'}
+            - Descripción de lesiones: ${examData.lesions_description || 'Sin descripción adicional'}
+            - Lesiones identificadas: ${lesionNames.join(', ') || 'Ninguna'}
+            - Diagnósticos asociados (BD): ${linkedDiagnostics.join(', ') || 'Ninguno (Usar conocimiento médico general)'}
+            `;
+          }
+
+          const systemPrompt = `Eres un dermatólogo experto y asistente médico de IA. Tu tarea es analizar los datos del examen físico de un paciente y sugerir un diagnóstico preliminar y notas clínicas detalladas.
+          
+          Utiliza la siguiente información:
+          ${contextToUse}
           
           Instrucciones:
           1. Genera un "Diagnóstico Preliminar" conciso basado en las lesiones y los diagnósticos asociados. Si hay múltiples posibilidades, lístalas por probabilidad.
