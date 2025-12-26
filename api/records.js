@@ -417,8 +417,8 @@ export default async function handler(req, res) {
           Genera una respuesta estructurada en formato JSON con los siguientes campos:
           1. "treatment_name": Nombre corto y técnico del tratamiento.
           2. "description": Descripción breve del procedimiento.
-          3. "objective": Objetivo principal del tratamiento.
-          4. "protocol": Protocolo completo y detallado. Si es aparatología, incluye parámetros específicos (energía, filtros, frecuencia, tiempos, pasadas, etc.). Si es inyectable o tópico, detalla productos, dosis y técnica.
+          3. "objective": UN SOLO objetivo principal, corto y conciso.
+          4. "protocol": Protocolo completo pero CONCISO. Limita la respuesta a un máximo de 10-12 líneas. Si es aparatología, incluye parámetros específicos (energía, filtros, frecuencia, tiempos, pasadas, etc.). Si es inyectable o tópico, detalla productos, dosis y técnica.
           
           La respuesta debe ser profesional, segura y basada en estándares médicos actuales.`;
 
@@ -835,7 +835,7 @@ export default async function handler(req, res) {
           
           Instrucciones:
           1. Genera un "Diagnóstico Preliminar" conciso basado en las lesiones y los diagnósticos asociados. Si hay múltiples posibilidades, lístalas por probabilidad.
-          2. Genera "Notas/Observaciones" detalladas que justifiquen el diagnóstico basándose en los parámetros clínicos (tipo de piel, fototipo, Glogau) y las lesiones encontradas. Incluye recomendaciones generales de estudio o tratamiento si aplica.
+          2. Genera "Notas/Observaciones" que justifiquen el diagnóstico. IMPORTANTE: Limita la respuesta a un MÁXIMO de 6 o 7 líneas. Sé directo y conciso.
           3. Mantén un tono profesional, médico y objetivo.
           4. Responde SOLAMENTE en formato JSON válido con las claves "diagnosis" y "notes".`;
 

@@ -1,6 +1,6 @@
 {
   "procedure_type": "Tratamiento de Verrugas Cutáneas con Electrocauterio y Láser Nd:YAG",
-  "description": "Se realizará tratamiento de las lesiones verrugosas mediante: 1. Aplicación de anestesia local infiltrada con lidocaína para disminuir el dolor. 2. Electrocauterio para la destrucción controlada del tejido verrugoso visible. 3. En sesiones posteriores (2 sesiones programadas) se complementará el tratamiento con láser Nd:YAG, con el fin de tratar posibles restos virales microscópicos y disminuir el riesgo de recurrencia.",
+  "description": "Se realizará tratamiento de las lesiones verrugosas localizadas en la zona mediante:\n1. Aplicación de anestesia local infiltrada con lidocaína, con el objetivo de disminuir el dolor durante el procedimiento.\n2. Electrocauterio para la destrucción controlada del tejido verrugoso visible.\n3. En sesiones posteriores (2 sesiones programadas) se complementará el tratamiento con láser Nd:YAG, con el fin de tratar posibles restos virales microscópicos y disminuir el riesgo de recurrencia.\nEste tratamiento está dirigido a reducir o eliminar las lesiones, mejorar los síntomas y evitar la propagación local. Sin embargo, como en toda patología viral cutánea, puede existir riesgo de recurrencia aun después del tratamiento.",
   "objectives": [
     "Eliminar o reducir el volumen de las lesiones verrugosas.",
     "Disminuir molestias locales (dolor, sangrado, fricción).",
@@ -9,14 +9,17 @@
     "Complementar la destrucción del tejido infectado mediante láser Nd:YAG en sesiones posteriores."
   ],
   "risks": [
-    "Dolor leve, hematoma o inflamación en el sitio de infiltración de la anestesia.",
-    "Dolor o ardor transitorio durante o después del procedimiento.",
-    "Eritema (enrojecimiento), inflamación o formación de costra.",
-    "Ampollas o pequeñas erosiones en la zona tratada.",
-    "Hipopigmentación (manchas blancas) o hiperpigmentación (manchas oscuras) residual.",
+    "Dolor leve en el sitio de infiltración (relacionado con anestesia).",
+    "Hematoma o inflamación local (relacionado con anestesia).",
+    "Reacciones alérgicas (poco frecuentes) (relacionado con anestesia).",
+    "Dolor o ardor transitorio.",
+    "Eritema, inflamación o formación de costra.",
+    "Ampollas o pequeñas erosiones.",
+    "Hipopigmentación o hiperpigmentación residual.",
     "Cicatriz o cambio en la textura de la piel (raro).",
     "Infección local (poco frecuente).",
-    "Recurrencia parcial o total de la lesión (no se garantiza eliminación definitiva del virus)."
+    "Recurrencia parcial o total de la lesión.",
+    "No se garantiza la eliminación definitiva del virus, pudiendo requerirse nuevas sesiones o tratamientos complementarios."
   ],
   "benefits": [
     "Eliminación visible de las lesiones verrugosas.",
@@ -32,10 +35,10 @@
   ],
   "post_care": [
     "Mantener la zona limpia y seca.",
-    "No rascar, frotar ni retirar las costras formadas.",
-    "Usar el tratamiento tópico indicado por el médico si corresponde.",
-    "Evitar piscina, sauna y exposición solar directa durante el periodo de recuperación.",
-    "No compartir toallas u objetos personales para evitar contagios.",
-    "Asistir puntualmente a los controles y sesiones programadas de láser Nd:YAG."
+    "No rascar, frotar ni retirar costras.",
+    "Usar el tratamiento tópico indicado por el médico (si corresponde).",
+    "Evitar piscina, sauna y exposición solar directa durante ______ días.",
+    "No compartir toallas u objetos personales.",
+    "Asistir a controles y sesiones programadas de láser Nd:YAG."
   ]
 }
