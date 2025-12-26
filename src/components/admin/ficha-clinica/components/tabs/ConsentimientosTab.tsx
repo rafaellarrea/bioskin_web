@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   FileText, Plus, Trash2, Edit, Eye, Save, Printer, 
   CheckCircle, XCircle, AlertTriangle, ChevronRight, ChevronDown,
-  Copy, RefreshCw, QrCode, Smartphone, Eraser, X, Maximize2
+  Copy, RefreshCw, QrCode, Smartphone, Eraser, X, Maximize2, Search
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import SignatureCanvas from 'react-signature-canvas';
@@ -75,6 +75,12 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
   const [showQr, setShowQr] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const profSigCanvas = useRef<SignatureCanvas>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const filteredTemplates = templates.filter((t: any) => 
+    t.procedure_type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     loadConsents();
@@ -517,16 +523,56 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
         {/* Template Selector */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
           <label className="block text-sm font-medium text-blue-900 mb-2">Cargar Plantilla de Consentimiento</label>
-          <select 
-            className="w-full p-2 border border-blue-200 rounded-lg bg-white text-gray-700"
-            onChange={(e) => loadTemplate(e.target.value)}
-            defaultValue=""
-          >
-            <option value="" disabled>Seleccione un procedimiento...</option>
-            {templates.map((t: any, i) => (
-              <option key={i} value={i}>{t.procedure_type}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <div className="relative">
+              <input
+                type="text"
+                className="w-full p-2 pl-10 border border-blue-200 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Buscar procedimiento..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setIsDropdownOpen(true);
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
+              />
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              {searchTerm && (
+                <button 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setIsDropdownOpen(false);
+                  }}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+            
+            {isDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filteredTemplates.length > 0 ? (
+                  filteredTemplates.map((t: any, i) => (
+                    <button
+                      key={i}
+                      className="w-full text-left px-4 py-2 hover:bg-blue-50 text-gray-700 transition-colors border-b last:border-0"
+                      onClick={() => {
+                        const originalIndex = templates.indexOf(t);
+                        loadTemplate(originalIndex.toString());
+                        setSearchTerm(t.procedure_type);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      {t.procedure_type}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-500">No se encontraron resultados</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tabs Navigation */}
