@@ -249,7 +249,8 @@ export default async function handler(req, res) {
           treatments, 
           prescriptions, 
           consents, 
-          injectables
+          injectables,
+          consultation
         ] = await Promise.all([
           safeQuery('SELECT * FROM medical_history WHERE record_id = $1', [targetRecordId]),
           safeQuery('SELECT * FROM physical_exams WHERE record_id = $1 ORDER BY created_at DESC', [targetRecordId]),
@@ -257,7 +258,8 @@ export default async function handler(req, res) {
           safeQuery('SELECT * FROM treatments WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           safeQuery('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           safeQuery('SELECT * FROM consent_forms WHERE record_id = $1 ORDER BY id DESC', [targetRecordId]),
-          safeQuery('SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC', [targetRecordId])
+          safeQuery('SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
+          safeQuery('SELECT * FROM consultation_info WHERE record_id = $1', [targetRecordId])
         ]);
 
         return res.status(200).json({
@@ -269,8 +271,32 @@ export default async function handler(req, res) {
           treatments: treatments.rows,
           prescriptions: prescriptions.rows,
           consentForms: consents.rows,
-          injectables: injectables.rows
+          injectables: injectables.rows,
+          consultation: consultation.rows[0] || {}
         });
+      }
+
+      case 'saveConsultation': {
+        const { recordId, reason, current_illness } = body;
+        
+        if (!recordId) return res.status(400).json({ error: 'Record ID required' });
+
+        // Check if exists
+        const existing = await pool.query('SELECT id FROM consultation_info WHERE record_id = $1', [recordId]);
+
+        if (existing.rows.length > 0) {
+          await pool.query(
+            'UPDATE consultation_info SET reason = $1, current_illness = $2, updated_at = NOW() WHERE record_id = $3',
+            [reason, current_illness, recordId]
+          );
+        } else {
+          await pool.query(
+            'INSERT INTO consultation_info (record_id, reason, current_illness) VALUES ($1, $2, $3)',
+            [recordId, reason, current_illness]
+          );
+        }
+        
+        return res.status(200).json({ success: true });
       }
 
       case 'saveHistory':

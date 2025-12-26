@@ -8,9 +8,11 @@ import {
   Pill, 
   FileSignature, 
   ArrowLeft,
-  Save
+  Save,
+  MessageSquare
 } from 'lucide-react';
 import AdminLayout from '../../AdminLayout';
+import ConsultationTab from './tabs/ConsultationTab';
 import HistoryTab from './tabs/HistoryTab';
 import PhysicalExamTab from './tabs/PhysicalExamTab';
 import DiagnosisTab from './tabs/DiagnosisTab';
@@ -43,7 +45,7 @@ const TabButton: React.FC<TabButtonProps> = ({ id, label, icon: Icon, active, on
 export default function ClinicalRecordManager() {
   const { recordId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('history');
+  const [activeTab, setActiveTab] = useState('consultation');
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
   const [recordData, setRecordData] = useState<any>(null);
@@ -55,9 +57,9 @@ export default function ClinicalRecordManager() {
     }
   }, [recordId]);
 
-  const fetchData = async (silent = false) => {
+  const fetchData = async () => {
     try {
-      if (!silent) setLoading(true);
+      setLoading(true);
       setError(null);
       
       // Fetch record data first
@@ -82,7 +84,7 @@ export default function ClinicalRecordManager() {
       console.error('Error loading clinical record:', error);
       setError(error.message || 'Error de conexión');
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -138,7 +140,7 @@ export default function ClinicalRecordManager() {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="hidden sm:inline">Volver al perfil del paciente</span>
+            <span>Volver al perfil del paciente</span>
           </button>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
@@ -150,6 +152,13 @@ export default function ClinicalRecordManager() {
         {/* Tabs Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="flex overflow-x-auto border-b border-gray-100">
+            <TabButton 
+              id="consultation" 
+              label="Consulta" 
+              icon={MessageSquare} 
+              active={activeTab === 'consultation'} 
+              onClick={() => setActiveTab('consultation')} 
+            />
             <TabButton 
               id="history" 
               label="Antecedentes" 
@@ -195,12 +204,19 @@ export default function ClinicalRecordManager() {
           </div>
 
           {/* Tab Content */}
-          <div className="p-4 md:p-6">
+          <div className="p-6">
+            {activeTab === 'consultation' && (
+              <ConsultationTab 
+                recordId={parseInt(recordId!)} 
+                initialData={recordData.consultation} 
+                onSave={fetchData} 
+              />
+            )}
             {activeTab === 'history' && (
               <HistoryTab 
                 recordId={recordData?.recordId} 
                 initialData={recordData?.history} 
-                onSave={() => fetchData(true)}
+                onSave={fetchData}
               />
             )}
             {activeTab === 'physical' && (
@@ -208,7 +224,7 @@ export default function ClinicalRecordManager() {
                 recordId={recordData?.recordId} 
                 physicalExams={recordData?.physicalExams || []}
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                onSave={() => fetchData(true)}
+                onSave={fetchData}
               />
             )}
             {activeTab === 'diagnosis' && (
@@ -217,7 +233,7 @@ export default function ClinicalRecordManager() {
                 diagnoses={recordData?.diagnoses || []}
                 physicalExams={recordData?.physicalExams || []}
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                onSave={() => fetchData(true)}
+                onSave={fetchData}
               />
             )}
             {activeTab === 'treatment' && (
@@ -227,7 +243,7 @@ export default function ClinicalRecordManager() {
                 physicalExams={recordData?.physicalExams || []}
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
                 patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
-                onSave={() => fetchData(true)}
+                onSave={fetchData}
               />
             )}
             {activeTab === 'prescription' && (

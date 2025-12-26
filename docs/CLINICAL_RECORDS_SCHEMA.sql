@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS clinical_records (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Consultation Info (Motivo de Consulta y Enfermedad Actual)
+CREATE TABLE IF NOT EXISTS consultation_info (
+    id SERIAL PRIMARY KEY,
+    record_id INTEGER REFERENCES clinical_records(id) ON DELETE CASCADE,
+    reason TEXT, -- Motivo de consulta
+    current_illness TEXT, -- Enfermedad actual
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(record_id)
+);
+
 -- Medical History (Antecedentes)
 CREATE TABLE IF NOT EXISTS medical_history (
     id SERIAL PRIMARY KEY,
@@ -38,7 +48,6 @@ CREATE TABLE IF NOT EXISTS medical_history (
     current_medications TEXT,
     aesthetic_history TEXT, -- Previous aesthetic treatments
     gynecological_history TEXT, -- For female patients
-    facial_routine TEXT, -- Rutina de cuidado facial del paciente
     updated_at TIMESTAMP DEFAULT NOW()
 );
 

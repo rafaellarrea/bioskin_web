@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Dec 26, 2025: Clinical Records - Consultation Section**
+- 📝 **Nueva Sección**: Agregada pestaña "Consulta" al inicio de la ficha clínica.
+- 🗃️ **Base de Datos**: Creada tabla `consultation_info` en Neon DB para "Motivo de Consulta" y "Enfermedad Actual".
+- 🔄 **Integración**: Actualizada API y frontend para soportar lectura/escritura de la nueva sección.
+
 ### ✅ **Dec 24, 2025: Clinical Records - UX Fixes**
 - ⚡ **Performance**: Eliminado parpadeo y recarga completa de componentes al guardar cambios.
 - 🔄 **Estado**: Implementada actualización silenciosa de datos para mantener el foco y estado de edición.
