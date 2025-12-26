@@ -49,6 +49,12 @@ export default function ConsultationTab({ recordId, initialData, onSave }: Consu
       if (!response.ok) throw new Error('Error al guardar');
 
       setMessage({ type: 'success', text: 'Información guardada correctamente' });
+      
+      // Auto-hide success message
+      setTimeout(() => {
+        setMessage(null);
+      }, 3000);
+
       if (onSave) onSave();
     } catch (error) {
       console.error('Error saving consultation:', error);
