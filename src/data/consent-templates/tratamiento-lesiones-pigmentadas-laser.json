@@ -1,0 +1,44 @@
+{
+  "procedure_type": "Tratamiento de Lesiones Pigmentadas y Manchas Cutáneas con Láser Nd:YAG",
+  "description": "Se realizará tratamiento de las manchas y lesiones pigmentadas localizadas en la zona indicada mediante:\n1. Aplicación de energía lumínica controlada con láser Nd:YAG, dirigida selectivamente al pigmento (melanina) presente en la piel.\n2. El láser fragmenta los depósitos de pigmento, permitiendo que el organismo los elimine de forma progresiva a través de procesos naturales de renovación celular.\n3. Dependiendo del tipo de mancha, fototipo de piel y profundidad del pigmento, pueden requerirse varias sesiones programadas para obtener resultados óptimos.\nEste tratamiento tiene fines estéticos y dermatológicos orientados a mejorar la uniformidad del tono cutáneo y la apariencia de manchas solares, léntigos, hiperpigmentaciones postinflamatorias y otras pigmentaciones benignas. Sin embargo, los resultados pueden variar según la respuesta individual de la piel y algunas manchas pueden requerir tratamientos complementarios.",
+  "objectives": [
+    "Atenuar o eliminar manchas y lesiones pigmentadas benignas.",
+    "Mejorar la uniformidad del tono y apariencia estética de la piel.",
+    "Reducir hiperpigmentaciones producidas por sol, edad o inflamación.",
+    "Disminuir el contraste visual de las lesiones pigmentadas.",
+    "Favorecer una piel con aspecto más luminoso y homogéneo."
+  ],
+  "risks": [
+    "Dolor leve o sensación de ardor durante o después del procedimiento.",
+    "Enrojecimiento, inflamación o calor local transitorio.",
+    "Aparición de costras finas o descamación superficial.",
+    "Ampollas o pequeñas erosiones (poco frecuente).",
+    "Hipopigmentación o hiperpigmentación postinflamatoria, especialmente en fototipos altos o con exposición solar inadecuada.",
+    "Cambios temporales en la textura de la piel.",
+    "Cicatriz (raro, en pacientes predispuestos).",
+    "Infección local (muy poco frecuente).",
+    "Persistencia parcial de la mancha o recurrencia con exposición solar.",
+    "No se garantiza la eliminación definitiva de todas las pigmentaciones, pudiendo requerirse nuevas sesiones o tratamientos complementarios."
+  ],
+  "benefits": [
+    "Mejora visible y progresiva del tono y apariencia de la piel.",
+    "Reducción de manchas y lesiones pigmentadas benignas.",
+    "Resultados selectivos sin afectar de forma general los tejidos cercanos.",
+    "Procedimiento mínimamente invasivo con recuperación habitual en corto tiempo."
+  ],
+  "pre_care": [
+    "Informar antecedentes de manchas recientes, embarazo, uso de isotretinoína, tendencia a queloides o herpes simple.",
+    "Evitar exposición solar directa, bronceado o cámaras de bronceado al menos 2 a 4 semanas antes del tratamiento.",
+    "Suspender el uso de retinoides, exfoliantes o ácidos 3 a 4 días antes del procedimiento (según indicación médica).",
+    "Acudir con la piel limpia, sin maquillaje, cremas o protector solar en la zona a tratar.",
+    "Informar si se encuentra en tratamiento con anticoagulantes u otros fármacos fotosensibilizantes."
+  ],
+  "post_care": [
+    "Aplicar fotoprotección de amplio espectro diariamente y evitar exposición solar directa durante 3 días.",
+    "No rascar, frotar ni retirar costras o descamación que puedan aparecer.",
+    "Mantener la piel hidratada y usar únicamente los productos indicados por el médico.",
+    "Evitar piscina, sauna, gimnasio y agua caliente excesiva por 48 a 72 horas.",
+    "No aplicar maquillaje en la zona tratada durante las primeras 24 horas, salvo indicación médica.",
+    "Asistir a los controles y sesiones programadas para evaluar la evolución del tratamiento."
+  ]
+}
