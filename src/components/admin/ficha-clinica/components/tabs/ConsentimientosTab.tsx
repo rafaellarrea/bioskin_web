@@ -77,10 +77,23 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
   const profSigCanvas = useRef<SignatureCanvas>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredTemplates = templates.filter((t: any) => 
     t.procedure_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     loadConsents();
@@ -523,7 +536,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
         {/* Template Selector */}
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
           <label className="block text-sm font-medium text-blue-900 mb-2">Cargar Plantilla de Consentimiento</label>
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <div className="relative">
               <input
                 type="text"
