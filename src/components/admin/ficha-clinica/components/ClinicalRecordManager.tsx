@@ -57,9 +57,9 @@ export default function ClinicalRecordManager() {
     }
   }, [recordId]);
 
-  const fetchData = async () => {
+  const fetchData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       setError(null);
       
       // Fetch record data first
@@ -84,7 +84,7 @@ export default function ClinicalRecordManager() {
       console.error('Error loading clinical record:', error);
       setError(error.message || 'Error de conexión');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -209,14 +209,14 @@ export default function ClinicalRecordManager() {
               <HistoryTab 
                 recordId={recordData?.recordId} 
                 initialData={recordData?.history} 
-                onSave={fetchData}
+                onSave={() => fetchData(false)}
               />
             )}
             {activeTab === 'consultation' && (
               <ConsultationTab 
                 recordId={parseInt(recordId!)} 
                 initialData={recordData.consultation} 
-                onSave={fetchData} 
+                onSave={() => fetchData(false)} 
               />
             )}
             {activeTab === 'physical' && (
@@ -224,7 +224,7 @@ export default function ClinicalRecordManager() {
                 recordId={recordData?.recordId} 
                 physicalExams={recordData?.physicalExams || []}
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                onSave={fetchData}
+                onSave={() => fetchData(false)}
               />
             )}
             {activeTab === 'diagnosis' && (
@@ -233,7 +233,7 @@ export default function ClinicalRecordManager() {
                 diagnoses={recordData?.diagnoses || []}
                 physicalExams={recordData?.physicalExams || []}
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                onSave={fetchData}
+                onSave={() => fetchData(false)}
               />
             )}
             {activeTab === 'treatment' && (
@@ -243,7 +243,7 @@ export default function ClinicalRecordManager() {
                 physicalExams={recordData?.physicalExams || []}
                 patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
                 patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
-                onSave={fetchData}
+                onSave={() => fetchData(false)}
               />
             )}
             {activeTab === 'prescription' && (
