@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Tooltip } from '../../ui/Tooltip';
 import { X } from 'lucide-react';
 import { Mark } from './FaceMapCanvas';
 
@@ -89,17 +90,17 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
           {marks
             .filter(m => m.view === view)
             .map((mark) => (
-              <div
+              <Tooltip
                 key={mark.id}
+                content={
+                  <div className="flex flex-col items-center">
+                    <span className="font-bold">{mark.category}</span>
+                    {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
+                  </div>
+                }
                 className="absolute w-4 h-4 -ml-2 -mt-2 bg-red-500 rounded-full border-2 border-white shadow-sm transform transition-transform hover:scale-125 z-10 group"
                 style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
               >
-                {/* Tooltip */}
-                <div className="hidden group-hover:flex absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap z-20 pointer-events-none flex-col items-center">
-                  <span className="font-bold">{mark.category}</span>
-                  {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
-                </div>
-                
                 {/* Delete Button (only if not readOnly) */}
                 {!readOnly && (
                   <button
@@ -112,7 +113,7 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
                     <X size={12} />
                   </button>
                 )}
-              </div>
+              </Tooltip>
             ))}
         </div>
       </div>

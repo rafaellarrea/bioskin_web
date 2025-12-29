@@ -3,16 +3,27 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TooltipProps {
-  content: string;
+  content: string | React.ReactNode;
   children: React.ReactNode;
   position?: 'top' | 'bottom' | 'left' | 'right';
+  className?: string;
+  style?: React.CSSProperties;
+  interactive?: boolean;
 }
 
 // Portal-based tooltip for better z-index handling
-export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 'top' }) => {
+export const Tooltip: React.FC<TooltipProps> = ({ 
+  content, 
+  children, 
+  position = 'top', 
+  className = '', 
+  style = {},
+  interactive = false
+}) => {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   const updatePosition = () => {
     if (triggerRef.current) {
@@ -44,9 +55,18 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 
     }
   };
 
-  const handleMouseEnter = () => {
+  const showTooltip = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     updatePosition();
     setIsVisible(true);
+  };
+
+  const hideTooltip = () => {
+    if (interactive) {
+      timeoutRef.current = setTimeout(() => setIsVisible(false), 100);
+    } else {
+      setIsVisible(false);
+    }
   };
 
   // Close on scroll to prevent detachment
@@ -62,11 +82,12 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 
     <>
       <div 
         ref={triggerRef}
-        className="relative inline-flex"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setIsVisible(false)}
-        onFocus={handleMouseEnter}
-        onBlur={() => setIsVisible(false)}
+        className={`relative inline-flex ${className}`}
+        style={style}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
       >
         {children}
       </div>
@@ -84,12 +105,24 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 
                 position: 'fixed',
                 zIndex: 99999 
               }}
-              className={`px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-xl whitespace-nowrap pointer-events-none transform ${
+              className={`px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-xl whitespace-nowrap transform ${
+                interactive ? 'pointer-events-auto' : 'pointer-events-none'
+              } ${
                 position === 'top' ? '-translate-x-1/2 -translate-y-full' :
                 position === 'bottom' ? '-translate-x-1/2' :
                 position === 'left' ? '-translate-x-full -translate-y-1/2' :
                 '-translate-y-1/2'
               }`}
+              onMouseEnter={() => {
+                if (interactive && timeoutRef.current) {
+                  clearTimeout(timeoutRef.current);
+                }
+              }}
+              onMouseLeave={() => {
+                if (interactive) {
+                  hideTooltip();
+                }
+              }}
             >
               {content}
               {/* Arrow */}
