@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Save, AlertCircle, Plus, Check } from 'lucide-react';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Save, AlertCircle, Plus, Check, History } from 'lucide-react';
 import historyOptions from '../../data/history_options.json';
+import { Tooltip } from '../../../ui/Tooltip';
 
 interface HistoryTabProps {
   recordId: number;
@@ -20,18 +22,17 @@ interface HistoryFieldProps {
 
 const HistoryField = ({ label, name, value, onChange, placeholder, categoryId, disabled }: HistoryFieldProps) => {
   const [inputValue, setInputValue] = useState('');
+  const listId = `list-${name}`;
 
-  const items = categoryId ? (historyOptions[categoryId] || []) : [];
+  const items = categoryId ? (historyOptions[categoryId as keyof typeof historyOptions] || []) : [];
 
   const handleAdd = (val: string) => {
     if (!val) return;
     
     const currentValue = value || '';
-    // Usar viñeta y salto de línea en lugar de coma
-    const separator = currentValue.length > 0 ? '\n• ' : '• ';
-    const newValue = `${currentValue}${separator}${val}`;
+    const separator = currentValue.length > 0 ? '\n' : '';
+    const newValue = `${currentValue}${separator}- ${val}`;
     
-    // Create a synthetic event to propagate change
     const event = {
       target: {
         name,
@@ -44,53 +45,62 @@ const HistoryField = ({ label, name, value, onChange, placeholder, categoryId, d
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-3 bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group"
+    >
+      <label className="block text-sm font-bold text-gray-700 flex items-center gap-2 group-hover:text-[#deb887] transition-colors">
+        <div className="w-1 h-4 bg-[#deb887] rounded-full" />
+        {label}
+      </label>
       
       {items.length > 0 && (
-        <div className="flex gap-2 mb-2">
-          <input
-            list={`list-${name}`}
-            type="text"
-            className="flex-1 p-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none disabled:bg-gray-50 disabled:text-gray-400"
-            placeholder="Buscar y agregar..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAdd(inputValue);
-              }
-            }}
-            // No deshabilitar el input de búsqueda para permitir agregar items rápidamente
-          />
-          <datalist id={`list-${name}`}>
-            {items.map((item: string, index: number) => (
-              <option key={index} value={item} />
-            ))}
-          </datalist>
-          <button
-            type="button"
-            onClick={() => handleAdd(inputValue)}
-            className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Agregar"
-            // No deshabilitar el botón de agregar
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              list={listId}
+              type="text"
+              className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none disabled:bg-gray-50 disabled:text-gray-400 transition-all bg-gray-50/30"
+              placeholder="Buscar y agregar..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAdd(inputValue);
+                }
+              }}
+            />
+            <datalist id={listId}>
+              {items.map((item: string, index: number) => (
+                <option key={index} value={item} />
+              ))}
+            </datalist>
+          </div>
+          <Tooltip content="Agregar a la lista">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={() => handleAdd(inputValue)}
+              className="bg-[#deb887] text-white p-2.5 rounded-lg hover:bg-[#c5a075] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+            </motion.button>
+          </Tooltip>
         </div>
       )}
 
       <textarea
         name={name}
         rows={4}
-        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none disabled:bg-gray-50 disabled:text-gray-500"
+        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none resize-none disabled:bg-gray-50 disabled:text-gray-500 transition-all bg-white text-gray-700 text-sm leading-relaxed"
         placeholder={placeholder}
         value={value || ''}
         onChange={onChange}
-        // No deshabilitar el textarea para permitir edición continua
       />
-    </div>
+    </motion.div>
   );
 };
 
@@ -99,7 +109,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
-  // Referencia para mantener el recordId incluso si las props fallan momentáneamente
   const recordIdRef = useRef(recordId);
 
   useEffect(() => {
@@ -108,13 +117,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
     }
   }, [recordId]);
 
-  // NOTA: Eliminamos la sincronización automática de initialData -> formData
-  // porque causaba que se sobrescribieran los cambios del usuario si la actualización
-  // del servidor llegaba mientras el usuario seguía editando.
-  // Al montar el componente, useState(initialData) ya carga los datos iniciales.
-  // Al guardar, formData ya tiene los datos más recientes, así que no necesitamos
-  // que el servidor nos los devuelva para actualizar el formulario.
-
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -122,12 +124,10 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('📝 Iniciando guardado de antecedentes...');
     
     const idToUse = recordId || recordIdRef.current;
 
     if (!idToUse) {
-      console.error('❌ Error: ID de expediente no encontrado');
       setMessage({ type: 'error', text: 'Error: No se encontró el ID del expediente. Intente recargar la página.' });
       return;
     }
@@ -136,7 +136,6 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
     setMessage(null);
 
     try {
-      console.log('🚀 Enviando datos al servidor:', { record_id: idToUse, ...formData });
       const response = await fetch('/api/records?action=saveHistory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,17 +143,13 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
       });
 
       if (response.ok) {
-        console.log('✅ Guardado exitoso');
         setMessage({ type: 'success', text: 'Antecedentes guardados correctamente' });
-        setTimeout(() => setMessage(null), 3000); // Auto ocultar mensaje
+        setTimeout(() => setMessage(null), 3000);
         onSave();
       } else {
-        const errText = await response.text();
-        console.error('❌ Error en respuesta del servidor:', errText);
         throw new Error('Error al guardar');
       }
     } catch (error) {
-      console.error('❌ Error al guardar antecedentes:', error);
       setMessage({ type: 'error', text: 'Error al guardar los antecedentes' });
     } finally {
       setSaving(false);
@@ -162,22 +157,36 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {message && (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-4 p-4 rounded-xl shadow-2xl transform transition-all duration-300 animate-in slide-in-from-right ${
-          message.type === 'success' 
-            ? 'bg-emerald-600 text-white' 
-            : 'bg-red-600 text-white'
-        }`}>
-          <div className="p-2 bg-white/20 rounded-full">
-            {message.type === 'success' ? <Check className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-          </div>
-          <div className="pr-4">
-            <p className="font-bold text-lg">{message.type === 'success' ? '¡Guardado!' : 'Error'}</p>
-            <p className="text-sm text-white/90">{message.text}</p>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-[#deb887]/10 rounded-lg">
+          <History className="w-6 h-6 text-[#deb887]" />
         </div>
-      )}
+        <div>
+          <h3 className="text-lg font-bold text-gray-800">Antecedentes Clínicos</h3>
+          <p className="text-sm text-gray-500">Registre el historial médico y hábitos del paciente</p>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {message && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`p-4 rounded-xl flex items-center gap-3 shadow-sm ${
+              message.type === 'success' 
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                : 'bg-red-50 text-red-700 border border-red-100'
+            }`}
+          >
+            <div className={`p-1.5 rounded-full ${message.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+              {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            </div>
+            <span className="font-medium text-sm">{message.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <HistoryField
@@ -262,15 +271,21 @@ export default function HistoryTab({ recordId, initialData, onSave }: HistoryTab
         />
       </div>
 
-      <div className="flex justify-end pt-4">
-        <button
+      <div className="flex justify-end pt-6 border-t border-gray-100">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={saving}
-          className="bg-[#deb887] text-white px-6 py-2 rounded-lg hover:bg-[#c5a075] transition-colors flex items-center gap-2 disabled:opacity-50"
+          className="bg-[#deb887] text-white px-8 py-3 rounded-xl hover:bg-[#c5a075] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-[#deb887]/20 font-medium"
         >
-          <Save className="w-4 h-4" />
+          {saving ? (
+            <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
+          ) : (
+            <Save className="w-5 h-5" />
+          )}
           {saving ? 'Guardando...' : 'Guardar Cambios'}
-        </button>
+        </motion.button>
       </div>
     </form>
   );

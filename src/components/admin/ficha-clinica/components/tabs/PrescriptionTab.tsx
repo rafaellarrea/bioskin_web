@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar, Check, AlertCircle } from 'lucide-react';
 import prescriptionOptions from '../../data/prescription_options.json';
+import { Tooltip } from '../../../ui/Tooltip';
 
 interface PrescriptionItem {
   medicamento: string;
@@ -51,6 +53,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     loadPrescriptions();
@@ -79,6 +82,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
 
   const handleSave = async () => {
     setLoading(true);
+    setMessage(null);
     try {
       const action = currentPrescription.id ? 'updatePrescription' : 'createPrescription';
       const body = {
@@ -95,7 +99,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
 
       if (res.ok) {
         await loadPrescriptions();
-        if (action === 'create') {
+        if (action === 'createPrescription') {
           // Reset form if new
           setCurrentPrescription({
             fecha: new Date().toISOString().split('T')[0],
@@ -103,11 +107,13 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
             items: [{ ...EMPTY_ITEM }]
           });
         }
-        alert('Receta guardada correctamente');
+        setMessage({ type: 'success', text: 'Receta guardada correctamente' });
+      } else {
+        throw new Error('Error al guardar');
       }
     } catch (error) {
       console.error('Error saving:', error);
-      alert('Error al guardar la receta');
+      setMessage({ type: 'error', text: 'Error al guardar la receta' });
     } finally {
       setLoading(false);
     }
@@ -118,6 +124,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       const res = await fetch(`/api/records?action=getPrescription&id=${id}`);
       const data = await res.json();
       setCurrentPrescription(data);
+      setMessage(null);
     } catch (error) {
       console.error('Error loading details:', error);
     }
@@ -129,6 +136,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       diagnostico: '',
       items: [{ ...EMPTY_ITEM }]
     });
+    setMessage(null);
   };
 
   const handleDuplicate = () => {
@@ -137,6 +145,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       ...rest,
       fecha: new Date().toISOString().split('T')[0]
     });
+    setMessage({ type: 'success', text: 'Receta duplicada. Guarde para crear una nueva.' });
   };
 
   const handleDelete = async () => {
@@ -146,8 +155,10 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       await fetch(`/api/records?action=deletePrescription&id=${currentPrescription.id}`, { method: 'DELETE' });
       await loadPrescriptions();
       handleNew();
+      setMessage({ type: 'success', text: 'Receta eliminada correctamente' });
     } catch (error) {
       console.error('Error deleting:', error);
+      setMessage({ type: 'error', text: 'Error al eliminar la receta' });
     }
   };
 
@@ -185,8 +196,10 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         })
       });
       loadTemplates();
+      setMessage({ type: 'success', text: 'Plantilla guardada correctamente' });
     } catch (error) {
       console.error('Error saving template:', error);
+      setMessage({ type: 'error', text: 'Error al guardar la plantilla' });
     }
   };
 
@@ -198,6 +211,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         ...prev,
         items: [...prev.items.filter(i => i.medicamento), ...items]
       }));
+      setMessage({ type: 'success', text: 'Plantilla aplicada' });
     }
   };
 
@@ -273,8 +287,8 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                </ol>
 
                <div class="footer">
-                  <div class="footer-item"><span class="icon">📞</span> 0998653732 / 0969890689</div>
-                  <div class="footer-item"><span class="icon">📍</span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
+                  <div class="footer-item"><span class="icon"></span> 0998653732 / 0969890689</div>
+                  <div class="footer-item"><span class="icon"></span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
                </div>
             </div>
 
@@ -321,8 +335,8 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                </div>
                
                <div class="footer">
-                  <div class="footer-item"><span class="icon">📞</span> 0998653732 / 0969890689</div>
-                  <div class="footer-item"><span class="icon">📍</span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
+                  <div class="footer-item"><span class="icon"></span> 0998653732 / 0969890689</div>
+                  <div class="footer-item"><span class="icon"></span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
                </div>
             </div>
           </div>
@@ -338,53 +352,111 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-auto md:h-[600px] gap-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col md:flex-row h-auto md:h-[600px] gap-6"
+    >
       {/* Sidebar List */}
-      <div className="w-full md:w-56 border-r-0 md:border-r border-b md:border-b-0 border-gray-200 pr-0 md:pr-4 pb-4 md:pb-0 flex flex-col gap-2 flex-shrink-0">
-        <div className="font-semibold text-gray-700 mb-2">Historial</div>
-        <div className="flex-1 overflow-y-auto space-y-2 max-h-[200px] md:max-h-none">
-          {prescriptions.map(p => (
-            <div
-              key={p.id}
+      <div className="w-full md:w-72 border-r-0 md:border-r border-b md:border-b-0 border-gray-100 pr-0 md:pr-6 pb-4 md:pb-0 flex flex-col gap-4 shrink-0">
+        <div className="font-bold text-gray-800 flex items-center gap-2">
+          <div className="w-1 h-5 bg-[#deb887] rounded-full" />
+          Historial de Recetas
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
+          {prescriptions.map((p, index) => (
+            <motion.div
+              key={p.id || index}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => p.id && handleLoadPrescription(p.id)}
-              className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+              className={`p-4 rounded-xl cursor-pointer border transition-all shadow-sm ${
                 currentPrescription.id === p.id 
-                  ? 'bg-[#deb887] text-white border-[#deb887]' 
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
+                  ? 'bg-[#deb887] text-white border-[#deb887] shadow-md' 
+                  : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-[#deb887]/30'
               }`}
             >
-              <div className="font-medium">{p.fecha}</div>
-              <div className="text-sm opacity-80 truncate">{p.diagnostico || 'Sin diagnóstico'}</div>
-            </div>
+              <div className="font-medium flex justify-between items-center">
+                <span>{p.fecha}</span>
+                <FileText className="w-4 h-4 opacity-70" />
+              </div>
+              <div className="text-xs opacity-90 truncate mt-1">{p.diagnostico || 'Sin diagnóstico'}</div>
+            </motion.div>
           ))}
+          {prescriptions.length === 0 && (
+            <div className="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
+              <AlertCircle className="w-8 h-8 opacity-20" />
+              No hay recetas registradas
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4 relative overflow-visible md:overflow-hidden">
+      <div className="flex-1 flex flex-col gap-6 relative overflow-visible md:overflow-hidden">
         {/* Toolbar */}
-        <div className="flex flex-wrap gap-2 justify-between items-center bg-gray-50 p-2 rounded-lg">
-          <div className="flex gap-2">
-            <button onClick={handleNew} className="p-2 hover:bg-gray-200 rounded-lg" title="Nueva Receta">
-              <Plus className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleSave} disabled={loading} className="p-2 hover:bg-gray-200 rounded-lg" title="Guardar">
-              <Save className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleDuplicate} className="p-2 hover:bg-gray-200 rounded-lg" title="Duplicar">
-              <Copy className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleDelete} className="p-2 hover:bg-gray-200 rounded-lg" title="Eliminar">
-              <Trash2 className="w-5 h-5 text-red-500" />
-            </button>
-            <button onClick={handlePrint} className="p-2 hover:bg-gray-200 rounded-lg" title="Imprimir">
-              <Printer className="w-5 h-5 text-gray-600" />
-            </button>
+        <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm sticky top-0 z-10">
+          <div className="flex gap-2 items-center">
+            <Tooltip content="Nueva Receta">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleNew} 
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200"
+              >
+                <Plus className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+            
+            <Tooltip content="Guardar">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSave} 
+                disabled={loading} 
+                className="p-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] shadow-lg shadow-[#deb887]/20"
+              >
+                <Save className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Duplicar">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDuplicate} 
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200"
+              >
+                <Copy className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Eliminar">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDelete} 
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100"
+              >
+                <Trash2 className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Imprimir">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handlePrint} 
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200"
+              >
+                <Printer className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
           </div>
           
           <div className="flex gap-2 items-center">
             <select 
-              className="p-2 border rounded-lg text-sm"
+              className="p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#deb887] outline-none bg-gray-50/50"
               value={selectedTemplate}
               onChange={(e) => setSelectedTemplate(e.target.value)}
             >
@@ -393,31 +465,70 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                 <option key={t.id} value={t.id}>{t.nombre}</option>
               ))}
             </select>
-            <button onClick={handleApplyTemplate} className="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
-              Aplicar
-            </button>
-            <button onClick={handleSaveTemplate} className="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
-              Guardar como Plantilla
-            </button>
+            
+            <Tooltip content="Aplicar Plantilla">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleApplyTemplate} 
+                className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 text-gray-700 font-medium transition-colors"
+              >
+                Aplicar
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Guardar como Plantilla">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSaveTemplate} 
+                className="text-sm bg-gray-100 px-3 py-2 rounded-lg hover:bg-gray-200 text-gray-700 font-medium transition-colors"
+              >
+                Guardar Plantilla
+              </motion.button>
+            </Tooltip>
           </div>
         </div>
 
+        <AnimatePresence>
+          {message && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`p-4 rounded-xl flex items-center gap-3 shadow-sm ${
+                message.type === 'success' 
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                  : 'bg-red-50 text-red-700 border border-red-100'
+              }`}
+            >
+              <div className={`p-1.5 rounded-full ${message.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              </div>
+              <span className="font-medium text-sm">{message.text}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-            <input
-              type="date"
-              className="w-full p-2 border rounded-lg"
-              value={currentPrescription.fecha}
-              onChange={e => setCurrentPrescription(prev => ({ ...prev, fecha: e.target.value }))}
-            />
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="date"
+                className="w-full pl-10 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
+                value={currentPrescription.fecha}
+                onChange={e => setCurrentPrescription(prev => ({ ...prev, fecha: e.target.value }))}
+              />
+            </div>
           </div>
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Diagnóstico</label>
             <input
               type="text"
-              className="w-full p-2 border rounded-lg"
+              className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
               value={currentPrescription.diagnostico}
               onChange={e => setCurrentPrescription(prev => ({ ...prev, diagnostico: e.target.value }))}
               placeholder="Diagnóstico o indicaciones generales..."
@@ -426,7 +537,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         </div>
 
         {/* Items Table */}
-        <div className="flex-1 overflow-auto border rounded-lg shadow-sm">
+        <div className="flex-1 overflow-auto border border-gray-200 rounded-xl shadow-sm bg-white custom-scrollbar">
           <table className="w-full text-sm min-w-[1200px]">
             <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
               <tr>
@@ -444,7 +555,12 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
             </thead>
             <tbody className="divide-y divide-gray-100">
               {currentPrescription.items.map((item, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                <motion.tr 
+                  key={idx} 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="p-2">
                     <input
                       list={`meds-${idx}`}
@@ -540,24 +656,31 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                     />
                   </td>
                   <td className="p-2 text-center">
-                    <button onClick={() => removeItem(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => removeItem(idx)} 
+                      className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
         </div>
         
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={addItem}
-          className="absolute bottom-6 right-6 bg-[#deb887] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#c5a075] transition-all hover:scale-105 z-20 flex items-center gap-2 font-medium"
+          className="absolute bottom-6 right-6 bg-[#deb887] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#c5a075] transition-all z-20 flex items-center gap-2 font-medium shadow-[#deb887]/30"
         >
           <Plus className="w-5 h-5" />
           Agregar Medicamento
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 }

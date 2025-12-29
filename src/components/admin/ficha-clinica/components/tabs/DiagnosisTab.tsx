@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Sparkles } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Sparkles, Check, X, Info, Edit2 } from 'lucide-react';
 import diagnosisOptions from '../../data/diagnosis_options.json';
+import { Tooltip } from '../../../ui/Tooltip';
 
 interface Diagnosis {
   id?: number;
@@ -216,7 +218,6 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Diagnóstico guardado correctamente' });
-        alert('Diagnóstico guardado correctamente');
         onSave();
       } else {
         const errData = await response.json();
@@ -236,7 +237,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     const html = `
       <html>
         <head>
-          <title>Diagnóstico - ${patientName || 'Paciente'}</title>
+          <title>Diagnóstico - ${patientName}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
             .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
@@ -257,21 +258,21 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           </div>
           
           <div class="info">
-            <p><strong>Paciente:</strong> ${patientName || 'N/A'}</p>
-            <p><strong>Fecha:</strong> ${currentDiagnosis.date ? new Date(currentDiagnosis.date).toLocaleDateString() : new Date().toLocaleDateString()}</p>
+            <p><strong>Paciente:</strong> ${patientName}</p>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
           </div>
 
           <div class="section">
             <h3>Detalle del Diagnóstico</h3>
             <div class="field"><span class="label">Diagnóstico:</span> ${currentDiagnosis.diagnosis_text}</div>
-            <div class="field"><span class="label">CIE-10:</span> ${currentDiagnosis.cie10_code || '-'}</div>
+            <div class="field"><span class="label">CIE-10:</span> ${currentDiagnosis.cie10_code}</div>
             <div class="field"><span class="label">Tipo:</span> ${currentDiagnosis.type}</div>
             <div class="field"><span class="label">Severidad:</span> ${currentDiagnosis.severity}</div>
           </div>
 
           <div class="section">
             <h3>Notas Adicionales</h3>
-            <p>${currentDiagnosis.notes || 'Sin notas registradas.'}</p>
+            <p>${currentDiagnosis.notes || 'Sin notas adicionales.'}</p>
           </div>
 
           <div class="footer">
@@ -291,112 +292,188 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-auto md:h-[600px] gap-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col md:flex-row h-auto md:h-[600px] gap-6"
+    >
       {/* Sidebar List */}
-      <div className="w-full md:w-1/4 border-r-0 md:border-r border-b md:border-b-0 border-gray-200 pr-0 md:pr-4 pb-4 md:pb-0 flex flex-col gap-2">
-        <div className="font-semibold text-gray-700 mb-2">Historial de Diagnósticos</div>
-        <div className="flex-1 overflow-y-auto space-y-2 max-h-[200px] md:max-h-none">
+      <div className="w-full md:w-72 border-r-0 md:border-r border-b md:border-b-0 border-gray-100 pr-0 md:pr-6 pb-4 md:pb-0 flex flex-col gap-4 shrink-0">
+        <div className="font-bold text-gray-800 flex items-center gap-2">
+          <div className="w-1 h-5 bg-[#deb887] rounded-full" />
+          Historial de Diagnósticos
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
           {diagnoses.map((diag, index) => (
-            <div
+            <motion.div
               key={diag.id || index}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setCurrentDiagnosis(diag)}
-              className={`p-3 rounded-lg cursor-pointer border transition-colors ${
+              className={`p-4 rounded-xl cursor-pointer border transition-all shadow-sm ${
                 currentDiagnosis.id === diag.id 
-                  ? 'bg-[#deb887] text-white border-[#deb887]' 
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
+                  ? 'bg-[#deb887]/10 border-[#deb887] ring-1 ring-[#deb887]' 
+                  : 'bg-white border-gray-100 hover:border-[#deb887]/50'
               }`}
             >
-              <div className="font-medium truncate">{diag.diagnosis_text}</div>
-              <div className="text-sm opacity-80">
+              <div className="font-medium truncate mb-1 text-gray-800">{diag.diagnosis_text}</div>
+              <div className="text-xs opacity-90 flex items-center gap-2 text-gray-500">
+                <span className={`w-2 h-2 rounded-full ${diag.type === 'confirmed' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                 {diag.date ? new Date(diag.date).toLocaleDateString() : 'Nuevo'}
               </div>
-            </div>
+            </motion.div>
           ))}
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleNew}
+            className="w-full py-3 mt-2 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-[#deb887] hover:text-[#deb887] transition-colors font-medium flex items-center justify-center gap-2 bg-gray-50/50 hover:bg-[#deb887]/5"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Diagnóstico
+          </motion.button>
           {diagnoses.length === 0 && (
-            <div className="text-gray-400 text-sm text-center py-4">No hay diagnósticos registrados</div>
+            <div className="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
+              <AlertCircle className="w-8 h-8 opacity-20" />
+              No hay diagnósticos registrados
+            </div>
           )}
         </div>
       </div>
 
       {/* Main Form */}
-      <div className="flex-1 flex flex-col gap-4 overflow-visible md:overflow-y-auto pr-0 md:pr-2">
+      <div className="flex-1 flex flex-col gap-6 overflow-visible md:overflow-y-auto pr-0 md:pr-2 custom-scrollbar">
         {/* Toolbar */}
-        <div className="flex flex-wrap gap-2 justify-between items-center bg-gray-50 p-2 rounded-lg sticky top-0 z-10">
-          <div className="flex gap-2">
-            <button onClick={handleNew} className="p-2 hover:bg-gray-200 rounded-lg" title="Nuevo Diagnóstico">
-              <Plus className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleSubmit} disabled={saving} className="p-2 hover:bg-gray-200 rounded-lg" title="Guardar">
-              <Save className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleDuplicate} className="p-2 hover:bg-gray-200 rounded-lg" title="Duplicar">
-              <Copy className="w-5 h-5 text-gray-600" />
-            </button>
-            <button onClick={handleDelete} className="p-2 hover:bg-gray-200 rounded-lg" title="Eliminar">
-              <Trash2 className="w-5 h-5 text-red-500" />
-            </button>
-            <button onClick={handlePrint} className="p-2 hover:bg-gray-200 rounded-lg" title="Imprimir">
-              <Printer className="w-5 h-5 text-gray-600" />
-            </button>
+        <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm sticky top-0 z-10">
+          <div className="flex gap-2 items-center">
+            <Tooltip content="Guardar">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSubmit} 
+                disabled={saving} 
+                className="flex items-center gap-2 px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors shadow-lg shadow-[#deb887]/20 font-medium"
+              >
+                {saving ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> : <Save size={18} />}
+                <span className="hidden sm:inline">Guardar</span>
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Duplicar">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDuplicate} 
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200 transition-colors"
+              >
+                <Copy size={18} />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Eliminar">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDelete} 
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 transition-colors"
+              >
+                <Trash2 size={18} />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Imprimir">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handlePrint} 
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200 transition-colors"
+              >
+                <Printer size={18} />
+              </motion.button>
+            </Tooltip>
             
-            <div className="h-6 w-px bg-gray-300 mx-2"></div>
+            <div className="h-8 w-px bg-gray-200 mx-2 hidden sm:block"></div>
 
             <select 
-                className="p-2 border border-gray-200 rounded-lg text-sm max-w-[200px] focus:ring-2 focus:ring-[#deb887] outline-none"
+                className="p-2 border border-gray-200 rounded-lg text-sm max-w-[180px] focus:ring-2 focus:ring-[#deb887] outline-none bg-gray-50/50 hover:bg-white transition-colors"
                 value={selectedExamId}
                 onChange={(e) => setSelectedExamId(Number(e.target.value))}
                 title="Seleccionar Examen Físico base"
             >
                 {physicalExams.map((exam, idx) => (
                     <option key={exam.id || idx} value={exam.id}>
-                        {exam.created_at ? new Date(exam.created_at).toLocaleDateString() : `Examen ${exam.id}`}
+                        {exam.created_at ? new Date(exam.created_at).toLocaleDateString() : 'Examen'}
                     </option>
                 ))}
                 {physicalExams.length === 0 && <option value="">Sin exámenes</option>}
             </select>
 
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleOpenAIModal} 
               disabled={generatingAI} 
-              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
-              title="Generar Diagnóstico con IA"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50 shadow-lg shadow-[#deb887]/20"
             >
-              <Sparkles className={`w-4 h-4 ${generatingAI ? 'animate-spin' : ''}`} />
-              <span className="text-sm font-medium">{generatingAI ? 'Generando...' : 'Diagnóstico IA'}</span>
-            </button>
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">{generatingAI ? 'Generando...' : 'Diagnóstico IA'}</span>
+            </motion.button>
           </div>
-          <div className="text-sm text-gray-500">
-            {currentDiagnosis.id ? `Editando diagnóstico del ${new Date(currentDiagnosis.date!).toLocaleDateString()}` : 'Nuevo Diagnóstico'}
+          <div className={`text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${
+            currentDiagnosis.id ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'
+          }`}>
+            {currentDiagnosis.id ? <Edit2 size={12} /> : <Plus size={12} />}
+            {currentDiagnosis.id ? 'Editando' : 'Nuevo Registro'}
           </div>
         </div>
 
-        {message && (
-          <div className={`p-4 rounded-lg flex items-center gap-2 ${
-            message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-          }`}>
-            <AlertCircle className="w-5 h-5" />
-            {message.text}
-          </div>
-        )}
+        <AnimatePresence>
+          {message && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`p-4 rounded-xl flex items-center gap-3 shadow-sm ${
+                message.type === 'success' 
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                  : 'bg-red-50 text-red-700 border border-red-100'
+              }`}
+            >
+              <div className={`p-1.5 rounded-full ${message.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              </div>
+              <span className="font-medium text-sm">{message.text}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {aiWarning && (
-          <div className="p-4 rounded-lg bg-yellow-50 text-yellow-800 border border-yellow-200 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">Atención</p>
-              <p className="text-sm">{aiWarning}</p>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {aiWarning && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="p-4 rounded-xl bg-amber-50 text-amber-800 border border-amber-100 flex items-start gap-3 shadow-sm"
+            >
+              <div className="p-1.5 bg-amber-100 rounded-full mt-0.5">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="font-bold text-sm mb-1">Atención</p>
+                <p className="text-sm opacity-90 leading-relaxed">{aiWarning}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Diagnóstico</label>
+            <label className="block text-sm font-bold text-gray-700">Diagnóstico</label>
             <input
               type="text"
               required
               list="diagnoses-list"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
               value={currentDiagnosis.diagnosis_text}
               onChange={e => setCurrentDiagnosis({...currentDiagnosis, diagnosis_text: e.target.value})}
               placeholder="Ej: Acné Vulgar"
@@ -409,10 +486,10 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">CIE-10 (Opcional)</label>
+            <label className="block text-sm font-bold text-gray-700">CIE-10 (Opcional)</label>
             <input
               type="text"
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
               value={currentDiagnosis.cie10_code}
               onChange={e => setCurrentDiagnosis({...currentDiagnosis, cie10_code: e.target.value})}
               placeholder="Ej: L70.0"
@@ -420,9 +497,9 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Tipo</label>
+            <label className="block text-sm font-bold text-gray-700">Tipo</label>
             <select
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
               value={currentDiagnosis.type}
               onChange={e => setCurrentDiagnosis({...currentDiagnosis, type: e.target.value})}
             >
@@ -433,9 +510,9 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Severidad</label>
+            <label className="block text-sm font-bold text-gray-700">Severidad</label>
             <select
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
               value={currentDiagnosis.severity}
               onChange={e => setCurrentDiagnosis({...currentDiagnosis, severity: e.target.value})}
             >
@@ -446,10 +523,10 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
           </div>
 
           <div className="col-span-1 md:col-span-2 space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Notas / Observaciones</label>
+            <label className="block text-sm font-bold text-gray-700">Notas / Observaciones</label>
             <textarea
               rows={4}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none resize-none transition-all bg-gray-50/50 focus:bg-white"
               value={currentDiagnosis.notes}
               onChange={e => setCurrentDiagnosis({...currentDiagnosis, notes: e.target.value})}
               placeholder="Detalles adicionales del diagnóstico..."
@@ -459,97 +536,98 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       </div>
 
       {/* AI Context Modal */}
-      {showContextModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <div className="flex items-center gap-2 text-[#deb887]">
-                <Sparkles className="w-5 h-5" />
-                <h3 className="text-lg font-semibold text-gray-800">Contexto para Diagnóstico IA</h3>
-              </div>
-              <button onClick={() => setShowContextModal(false)} className="text-gray-400 hover:text-gray-600">
-                <Trash2 className="w-5 h-5 rotate-45" />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto flex-1 space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-4">
-                Revise y modifique la información que se enviará a la IA. Puede añadir instrucciones específicas o corregir datos.
-              </div>
-
-              {loadingContext ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin w-8 h-8 border-4 border-[#deb887] border-t-transparent rounded-full"></div>
+      <AnimatePresence>
+        {showContextModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gray-100"
+            >
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <div className="flex items-center gap-2 text-[#deb887]">
+                  <div className="p-2 bg-[#deb887]/10 rounded-lg">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800">Contexto para Diagnóstico IA</h3>
                 </div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Contexto del Paciente y Examen Físico</label>
-                    <textarea
-                      value={contextText}
-                      onChange={(e) => setContextText(e.target.value)}
-                      className="w-full h-64 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none font-mono text-sm"
-                    />
-                  </div>
+                <button onClick={() => setShowContextModal(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+                <div className="bg-blue-50 p-4 rounded-xl text-sm text-blue-800 border border-blue-100 flex gap-3">
+                  <Info className="w-5 h-5 flex-shrink-0" />
+                  <p>Revise y modifique la información que se enviará a la IA. Puede añadir instrucciones específicas o corregir datos.</p>
+                </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Opciones Rápidas (Añadir al contexto)</label>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => addContextOption("Considerar antecedentes de acné")}
-                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
-                      >
-                        + Antecedentes Acné
-                      </button>
-                      <button
-                        onClick={() => addContextOption("Enfocarse en lesiones pigmentadas")}
-                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
-                      >
-                        + Lesiones Pigmentadas
-                      </button>
-                      <button
-                        onClick={() => addContextOption("Descartar patología maligna")}
-                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
-                      >
-                        + Descartar Malignidad
-                      </button>
-                      <button
-                        onClick={() => addContextOption("Sugerir diagnóstico diferencial")}
-                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
-                      >
-                        + Diagnóstico Diferencial
-                      </button>
-                      <button
-                        onClick={() => addContextOption("Considerar fototipo alto")}
-                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
-                      >
-                        + Fototipo Alto
-                      </button>
+                {loadingContext ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin w-10 h-10 border-4 border-[#deb887] border-t-transparent rounded-full"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-700">Contexto del Paciente y Examen Físico</label>
+                      <textarea
+                        value={contextText}
+                        onChange={(e) => setContextText(e.target.value)}
+                        className="w-full h-64 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none font-mono text-sm bg-gray-50/50 focus:bg-white transition-all"
+                      />
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
 
-            <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => setShowContextModal(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleGenerateAI}
-                disabled={loadingContext}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50"
-              >
-                <Sparkles className="w-4 h-4" />
-                Generar Diagnóstico
-              </button>
-            </div>
+                    <div className="space-y-3">
+                      <label className="block text-sm font-bold text-gray-700">Opciones Rápidas (Añadir al contexto)</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "Considerar antecedentes de acné",
+                          "Enfocarse en lesiones pigmentadas",
+                          "Descartar patología maligna",
+                          "Sugerir diagnóstico diferencial",
+                          "Considerar fototipo alto"
+                        ].map((option) => (
+                          <motion.button
+                            key={option}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => addContextOption(option)}
+                            className="px-3 py-1.5 bg-gray-100 hover:bg-[#deb887]/10 hover:text-[#deb887] rounded-lg text-xs text-gray-600 transition-colors border border-gray-200 hover:border-[#deb887]/30 font-medium"
+                          >
+                            + {option}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 rounded-b-2xl">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowContextModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:bg-white hover:shadow-sm rounded-lg transition-all border border-transparent hover:border-gray-200 font-medium"
+                >
+                  Cancelar
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleGenerateAI}
+                  disabled={loadingContext}
+                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-[#deb887] to-[#d4a76a] text-white rounded-lg hover:shadow-lg hover:shadow-[#deb887]/20 transition-all disabled:opacity-50 font-medium"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Generar Diagnóstico
+                </motion.button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

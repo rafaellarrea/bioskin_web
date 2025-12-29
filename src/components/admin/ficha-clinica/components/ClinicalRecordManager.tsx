@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ClipboardList, 
   Activity, 
@@ -19,6 +20,7 @@ import DiagnosisTab from './tabs/DiagnosisTab';
 import TreatmentTab from './tabs/TreatmentTab';
 import PrescriptionTab from './tabs/PrescriptionTab';
 import ConsentimientosTab from './tabs/ConsentimientosTab';
+import { Skeleton } from '../../../ui/Skeleton';
 
 interface TabButtonProps {
   id: string;
@@ -31,14 +33,22 @@ interface TabButtonProps {
 const TabButton: React.FC<TabButtonProps> = ({ id, label, icon: Icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-      active 
-        ? 'border-[#deb887] text-[#deb887]' 
-        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+    className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+      active ? 'text-[#deb887]' : 'text-gray-500 hover:text-gray-700'
     }`}
   >
-    <Icon className="w-4 h-4" />
-    {label}
+    {active && (
+      <motion.div
+        layoutId="activeTab"
+        className="absolute inset-0 bg-[#deb887]/10 border-b-2 border-[#deb887]"
+        initial={false}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      />
+    )}
+    <span className="relative z-10 flex items-center gap-2">
+      <Icon className="w-4 h-4" />
+      {label}
+    </span>
   </button>
 );
 
@@ -103,8 +113,23 @@ export default function ClinicalRecordManager() {
   if (loading) {
     return (
       <AdminLayout title="Cargando..." showBack={false}>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin w-8 h-8 border-4 border-[#deb887] border-t-transparent rounded-full"></div>
+        <div className="space-y-6 p-6">
+          <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-8 w-24 rounded-full" />
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex border-b border-gray-100 p-2 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <Skeleton key={i} className="h-10 w-32" />
+              ))}
+            </div>
+            <div className="p-6 space-y-4">
+              <Skeleton className="h-8 w-1/3" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -133,25 +158,28 @@ export default function ClinicalRecordManager() {
       subtitle={`Expediente #${recordId} • ${patient?.rut || 'Sin RUT'}`}
     >
       <div className="space-y-6">
-        {/* Header with Back Button to Patient Profile */}
-        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <button 
-            onClick={() => navigate(`/admin/ficha-clinica/paciente/${patient?.id}`)}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Volver al perfil del paciente</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-              Ficha Activa
-            </span>
+        {/* Header with Back Button to Patient Profile - Sticky */}
+        <div className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur pt-2 pb-4">
+          <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <button 
+              onClick={() => navigate(`/admin/ficha-clinica/paciente/${patient?.id}`)}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Volver al perfil del paciente</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Ficha Activa
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Tabs Navigation */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="flex overflow-x-auto border-b border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[600px]">
+          <div className="flex overflow-x-auto border-b border-gray-100 scrollbar-hide">
             <TabButton 
               id="history" 
               label="Antecedentes" 
@@ -204,62 +232,72 @@ export default function ClinicalRecordManager() {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
-            {activeTab === 'history' && (
-              <HistoryTab 
-                recordId={recordData?.recordId} 
-                initialData={recordData?.history} 
-                onSave={() => fetchData(false)}
-              />
-            )}
-            {activeTab === 'consultation' && (
-              <ConsultationTab 
-                recordId={parseInt(recordId!)} 
-                initialData={recordData.consultation} 
-                onSave={() => fetchData(false)} 
-              />
-            )}
-            {activeTab === 'physical' && (
-              <PhysicalExamTab 
-                recordId={recordData?.recordId} 
-                physicalExams={recordData?.physicalExams || []}
-                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                onSave={() => fetchData(false)}
-              />
-            )}
-            {activeTab === 'diagnosis' && (
-              <DiagnosisTab 
-                recordId={recordData?.recordId} 
-                diagnoses={recordData?.diagnoses || []}
-                physicalExams={recordData?.physicalExams || []}
-                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                onSave={() => fetchData(false)}
-              />
-            )}
-            {activeTab === 'treatment' && (
-              <TreatmentTab 
-                recordId={recordData?.recordId} 
-                treatments={recordData?.treatments || []}
-                physicalExams={recordData?.physicalExams || []}
-                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
-                onSave={() => fetchData(false)}
-              />
-            )}
-            {activeTab === 'prescription' && (
-              <PrescriptionTab 
-                recordId={recordData?.recordId} 
-                patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
-                patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
-              />
-            )}
-            {activeTab === 'consent' && (
-              <ConsentimientosTab 
-                patientId={patient?.id}
-                recordId={parseInt(recordId!)}
-                patient={patient}
-              />
-            )}
+          <div className="p-6 bg-gray-50/30">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {activeTab === 'history' && (
+                  <HistoryTab 
+                    recordId={recordData?.recordId} 
+                    initialData={recordData?.history} 
+                    onSave={() => fetchData(false)}
+                  />
+                )}
+                {activeTab === 'consultation' && (
+                  <ConsultationTab 
+                    recordId={parseInt(recordId!)} 
+                    initialData={recordData.consultation} 
+                    onSave={() => fetchData(false)} 
+                  />
+                )}
+                {activeTab === 'physical' && (
+                  <PhysicalExamTab 
+                    recordId={recordData?.recordId} 
+                    physicalExams={recordData?.physicalExams || []}
+                    patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                    onSave={() => fetchData(false)}
+                  />
+                )}
+                {activeTab === 'diagnosis' && (
+                  <DiagnosisTab 
+                    recordId={recordData?.recordId} 
+                    diagnoses={recordData?.diagnoses || []}
+                    physicalExams={recordData?.physicalExams || []}
+                    patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                    onSave={() => fetchData(false)}
+                  />
+                )}
+                {activeTab === 'treatment' && (
+                  <TreatmentTab 
+                    recordId={recordData?.recordId} 
+                    treatments={recordData?.treatments || []}
+                    physicalExams={recordData?.physicalExams || []}
+                    patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                    patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
+                    onSave={() => fetchData(false)}
+                  />
+                )}
+                {activeTab === 'prescription' && (
+                  <PrescriptionTab 
+                    recordId={recordData?.recordId} 
+                    patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                    patientAge={patient?.birth_date ? calculateAge(patient.birth_date) : ''}
+                  />
+                )}
+                {activeTab === 'consent' && (
+                  <ConsentimientosTab 
+                    patientId={patient?.id}
+                    recordId={parseInt(recordId!)}
+                    patient={patient}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
