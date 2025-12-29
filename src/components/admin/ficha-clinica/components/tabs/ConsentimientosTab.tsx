@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 // Load templates
 const templatesGlob = import.meta.glob('/src/data/consent-templates/*.json', { eager: true });

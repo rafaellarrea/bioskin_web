@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, AlertCircle, Check, Stethoscope } from 'lucide-react';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 interface ConsultationTabProps {
   recordId: number;

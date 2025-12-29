@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Sparkles, Check, X, Info, Edit2 } from 'lucide-react';
 import diagnosisOptions from '../../data/diagnosis_options.json';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 interface Diagnosis {
   id?: number;

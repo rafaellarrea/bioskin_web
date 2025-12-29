@@ -4,7 +4,7 @@ import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info, Edit2, Check, Use
 import { CLINICAL_FIELDS, LESION_CATALOG, PARAMETER_TOOLTIPS } from '../../../../../data/clinical-catalogs';
 import FaceMapCanvas, { Mark } from '../FaceMapCanvas';
 import BodyMapCanvas from '../BodyMapCanvas';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 interface PhysicalExam {
   id?: number;

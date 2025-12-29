@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Calendar, DollarSign, Clock, Save, Trash2, Copy, Sparkles, X, MessageSquare, Check, AlertCircle, FileText } from 'lucide-react';
 import treatmentOptions from '../../data/treatment_options.json';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 interface Treatment {
   id?: number;

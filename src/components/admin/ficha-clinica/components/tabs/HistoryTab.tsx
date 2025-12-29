@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, AlertCircle, Plus, Check, History } from 'lucide-react';
 import historyOptions from '../../data/history_options.json';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 interface HistoryTabProps {
   recordId: number;

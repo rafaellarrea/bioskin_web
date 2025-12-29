@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar, Check, AlertCircle } from 'lucide-react';
 import prescriptionOptions from '../../data/prescription_options.json';
-import { Tooltip } from '../../../ui/Tooltip';
+import { Tooltip } from '../../../../ui/Tooltip';
 
 interface PrescriptionItem {
   medicamento: string;
