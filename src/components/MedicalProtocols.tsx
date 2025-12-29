@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { paligemmaClient } from '../lib/paligemma-client';
-import { Send, Bot, User, Loader2, AlertCircle, Settings, Zap } from 'lucide-react';
+import { geminiClient } from '../lib/gemini-client';
+import { Send, Bot, User, Loader2, Zap } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -20,8 +20,6 @@ export const MedicalProtocols = () => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [customUrl, setCustomUrl] = useState('https://suffocatingly-unlunate-tonya.ngrok-free.dev');
-  const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -31,28 +29,6 @@ export const MedicalProtocols = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const handleTestConnection = async () => {
-    setLoading(true);
-    setConnectionStatus(null);
-    try {
-        if (customUrl) {
-            paligemmaClient.setBaseUrl(customUrl);
-        }
-        const result = await paligemmaClient.testConnection();
-        setConnectionStatus({
-            success: true,
-            message: `✅ Conectado`
-        });
-    } catch (err: any) {
-        setConnectionStatus({
-            success: false,
-            message: `❌ Error`
-        });
-    } finally {
-        setLoading(false);
-    }
-  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -69,7 +45,7 @@ export const MedicalProtocols = () => {
     setLoading(true);
 
     try {
-      const response = await paligemmaClient.askProtocol(userMessage.content);
+      const response = await geminiClient.askProtocol(userMessage.content);
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -83,7 +59,7 @@ export const MedicalProtocols = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Error: ${error.message || "No se pudo conectar con el servidor."}. Verifica la URL de Ngrok.`,
+        content: `Error: ${error.message || "No se pudo conectar con el servidor."}.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -104,63 +80,6 @@ export const MedicalProtocols = () => {
             <h2 className="text-xl font-serif font-bold">Protocolos Clínicos IA</h2>
             <p className="text-xs text-white/80">Especialista en Aparatología (Nd:YAG, CO2, IPL...)</p>
           </div>
-        </div>
-        
-        {/* Configuración Rápida */}
-        <div className="flex items-center gap-2">
-            <button 
-                onClick={handleTestConnection}
-                className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                    connectionStatus?.success 
-                        ? 'bg-green-500/20 text-green-100 border border-green-500/30' 
-                        : connectionStatus?.success === false
-                            ? 'bg-red-500/20 text-red-100 border border-red-500/30'
-                            : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
-                }`}
-                title="Verificar conexión con servidor IA"
-            >
-                {loading && !messages.length ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                ) : connectionStatus?.success ? (
-                    <div className="h-2 w-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
-                ) : connectionStatus?.success === false ? (
-                    <div className="h-2 w-2 rounded-full bg-red-400" />
-                ) : (
-                    <div className="h-2 w-2 rounded-full bg-gray-400" />
-                )}
-                <span className="hidden sm:inline">
-                    {connectionStatus?.success ? 'Conectado' : 'Verificar Conexión'}
-                </span>
-            </button>
-
-            <details className="relative group">
-                <summary className="list-none cursor-pointer p-2 hover:bg-white/10 rounded-full transition-colors text-white/80 hover:text-white">
-                    <Settings className="h-5 w-5" />
-                </summary>
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl p-4 border border-gray-100 z-50 text-gray-800">
-                    <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-                        <Settings className="h-4 w-4 text-[#deb887]" />
-                        Configuración del Servidor
-                    </h3>
-                    <div className="space-y-3">
-                        <div>
-                            <label className="text-xs text-gray-500 block mb-1">URL del Servidor (Ngrok):</label>
-                            <div className="flex gap-2">
-                                <input 
-                                    type="text" 
-                                    placeholder="https://..."
-                                    className="flex-1 text-xs border border-gray-300 rounded px-2 py-2 text-gray-600 bg-gray-50 focus:bg-white focus:border-[#deb887] outline-none transition-all"
-                                    value={customUrl}
-                                    onChange={(e) => setCustomUrl(e.target.value)}
-                                />
-                            </div>
-                            <p className="text-[10px] text-gray-400 mt-1">
-                                * URL por defecto configurada para el servidor de producción.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </details>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { paligemmaClient } from '../lib/paligemma-client';
+import { geminiClient } from '../lib/gemini-client';
 import { Upload, Loader2, AlertCircle, CheckCircle2, FileText, X } from 'lucide-react';
 
 export const AIDiagnosis = () => {
@@ -9,31 +9,7 @@ export const AIDiagnosis = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [customUrl, setCustomUrl] = useState('https://suffocatingly-unlunate-tonya.ngrok-free.dev');
-  const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleTestConnection = async () => {
-    setLoading(true);
-    setConnectionStatus(null);
-    try {
-        if (customUrl) {
-            paligemmaClient.setBaseUrl(customUrl);
-        }
-        const result = await paligemmaClient.testConnection();
-        setConnectionStatus({
-            success: true,
-            message: `✅ Conectado: ${result.status}`
-        });
-    } catch (err: any) {
-        setConnectionStatus({
-            success: false,
-            message: `❌ Error: ${err.message}`
-        });
-    } finally {
-        setLoading(false);
-    }
-  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -72,12 +48,12 @@ export const AIDiagnosis = () => {
       // Prompt específico para diagnóstico dermatológico
       const prompt = "Analiza estas imágenes dermatológicas. Describe las condiciones visibles de la piel, posibles afecciones y características relevantes. Responde en español detalladamente.";
       
-      const result = await paligemmaClient.analyzeImage(selectedImages, prompt, context);
+      const result = await geminiClient.analyzeImage(selectedImages, prompt, context);
       setAnalysis(result);
     } catch (err: any) {
       console.error(err);
-      const errorMessage = err.response?.data?.detail || err.message || "Error desconocido";
-      setError(`Error: ${errorMessage}. Asegúrate de que el servidor en Colab esté activo y la URL sea correcta.`);
+      const errorMessage = err.message || "Error desconocido";
+      setError(`Error: ${errorMessage}.`);
     } finally {
       setLoading(false);
     }
@@ -105,60 +81,8 @@ export const AIDiagnosis = () => {
           Diagnóstico IA Preliminar
         </h2>
         <p className="text-white/90 mt-2">
-          Sube una o más imágenes de la zona a tratar y proporciona contexto para obtener un análisis preliminar impulsado por Inteligencia Artificial (MedGemma).
+          Sube una o más imágenes de la zona a tratar y proporciona contexto para obtener un análisis preliminar impulsado por Inteligencia Artificial (Gemini).
         </p>
-      </div>
-
-      {/* Configuración de Conexión */}
-      <div className="bg-gray-50 border-b border-gray-200 p-4">
-        <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Estado del Servidor:</span>
-                <button 
-                    onClick={handleTestConnection}
-                    disabled={loading}
-                    className={`text-xs px-3 py-1 rounded-full border ${connectionStatus?.success ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'} hover:bg-gray-200 transition-colors`}
-                >
-                    {loading ? 'Verificando...' : connectionStatus?.success ? '✅ Conectado' : '🔄 Verificar Conexión'}
-                </button>
-            </div>
-            
-            <details className="group">
-                <summary className="flex items-center gap-2 cursor-pointer text-xs text-gray-500 hover:text-[#deb887]">
-                    <span>⚙️ Configurar URL del Servidor</span>
-                </summary>
-                <div className="mt-3 space-y-2 p-3 bg-white rounded-lg border border-gray-200">
-                    <label className="text-xs text-gray-600 block">URL de Ngrok (Google Colab):</label>
-                    <div className="flex gap-2">
-                        <input 
-                            type="text" 
-                            placeholder="https://xxxx.ngrok-free.app"
-                            className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-[#deb887]"
-                            value={customUrl}
-                            onChange={(e) => setCustomUrl(e.target.value)}
-                        />
-                        <button 
-                            onClick={() => {
-                                paligemmaClient.setBaseUrl(customUrl);
-                                handleTestConnection();
-                            }}
-                            className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded hover:bg-gray-700"
-                        >
-                            Guardar
-                        </button>
-                    </div>
-                    <p className="text-[10px] text-gray-400">
-                        Si la URL cambia, actualízala aquí. Valor por defecto: https://suffocatingly-unlunate-tonya.ngrok-free.dev
-                    </p>
-                </div>
-            </details>
-
-            {connectionStatus && !connectionStatus.success && (
-                <div className="text-xs p-2 rounded bg-red-50 text-red-600 border border-red-100">
-                    {connectionStatus.message}
-                </div>
-            )}
-        </div>
       </div>
 
       <div className="p-8">
@@ -263,37 +187,11 @@ export const AIDiagnosis = () => {
                     <h4 className="text-lg font-medium text-red-800">Error en el análisis</h4>
                     <p className="text-red-600 text-sm mt-1">{error}</p>
                   </div>
-
-                  <div className="w-full max-w-xs bg-white p-3 rounded-lg border border-red-200 mt-2">
-                    <label className="block text-xs text-left text-gray-600 mb-1 font-medium">Actualizar URL del Servidor (Ngrok):</label>
-                    <div className="flex gap-2">
-                        <input 
-                            type="text" 
-                            placeholder="https://xxxx.ngrok-free.app"
-                            className="flex-1 text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#deb887]"
-                            value={customUrl}
-                            onChange={(e) => setCustomUrl(e.target.value)}
-                        />
-                        <button 
-                            onClick={() => {
-                                if(customUrl) {
-                                    paligemmaClient.setBaseUrl(customUrl);
-                                    handleAnalyze();
-                                }
-                            }}
-                            className="bg-gray-800 text-white text-xs px-3 py-1 rounded hover:bg-gray-700 transition-colors"
-                        >
-                            Reintentar
-                        </button>
-                    </div>
-                    <p className="text-[10px] text-gray-400 mt-1 text-left">Copia la URL 'public_url' de la salida de Colab.</p>
-                  </div>
-
                   <button 
                     onClick={handleAnalyze}
-                    className="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+                    className="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium mt-4"
                   >
-                    Intentar de nuevo (Misma URL)
+                    Intentar de nuevo
                   </button>
                 </div>
               ) : analysis ? (
@@ -320,7 +218,7 @@ export const AIDiagnosis = () => {
                   </div>
                   <h3 className="text-xl font-medium text-gray-800 mb-2">Listo para analizar</h3>
                   <p className="text-gray-500 mb-8 max-w-xs">
-                    Haz clic en el botón para iniciar el procesamiento con MedGemma.
+                    Haz clic en el botón para iniciar el procesamiento con Gemini.
                   </p>
                   <button
                     onClick={handleAnalyze}

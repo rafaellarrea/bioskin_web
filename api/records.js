@@ -398,8 +398,7 @@ export default async function handler(req, res) {
         const { patientName, patientAge, examData, treatmentContext } = body;
         
         try {
-          const { getOpenAIClient } = await import('../lib/ai-service.js');
-          const openai = getOpenAIClient();
+          // Gemini API used instead of OpenAI
 
           const systemPrompt = `Eres un experto en medicina estética y dermatología avanzada. Tu tarea es generar una sugerencia de tratamiento detallada y profesional.
           
@@ -422,16 +421,34 @@ export default async function handler(req, res) {
           
           La respuesta debe ser profesional, segura y basada en estándares médicos actuales.`;
 
-          const completion = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: "Genera la sugerencia de tratamiento." }
-            ],
-            response_format: { type: "json_object" }
+          const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+          if (!apiKey) throw new Error("Missing Gemini API Key");
+
+          const model = 'gemini-flash-latest';
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                role: "user",
+                parts: [{ text: systemPrompt + "\n\nGenera la sugerencia de tratamiento." }]
+              }],
+              generationConfig: {
+                response_mime_type: "application/json"
+              }
+            })
           });
 
-          const result = JSON.parse(completion.choices[0].message.content);
+          if (!response.ok) {
+             const err = await response.json();
+             throw new Error(err.error?.message || 'Gemini API Error');
+          }
+
+          const data = await response.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const result = JSON.parse(text);
           return res.status(200).json(result);
         } catch (aiError) {
           console.error('AI Treatment Error:', aiError);
@@ -841,8 +858,7 @@ export default async function handler(req, res) {
         if (!examData && !customContext) return res.status(400).json({ error: 'Missing data' });
 
         try {
-          const { getOpenAIClient } = await import('../lib/ai-service.js');
-          const openai = getOpenAIClient();
+          // Gemini API used instead of OpenAI
           
           let contextToUse = customContext;
 
@@ -903,16 +919,34 @@ export default async function handler(req, res) {
           3. Mantén un tono profesional, médico y objetivo.
           4. Responde SOLAMENTE en formato JSON válido con las claves "diagnosis" y "notes".`;
 
-          const completion = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: "Genera el diagnóstico y las notas clínicas." }
-            ],
-            response_format: { type: "json_object" }
+          const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+          if (!apiKey) throw new Error("Missing Gemini API Key");
+
+          const model = 'gemini-flash-latest';
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                role: "user",
+                parts: [{ text: systemPrompt + "\n\nGenera el diagnóstico y las notas clínicas." }]
+              }],
+              generationConfig: {
+                response_mime_type: "application/json"
+              }
+            })
           });
 
-          const result = JSON.parse(completion.choices[0].message.content);
+          if (!response.ok) {
+             const err = await response.json();
+             throw new Error(err.error?.message || 'Gemini API Error');
+          }
+
+          const data = await response.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const result = JSON.parse(text);
           return res.status(200).json(result);
         } catch (aiError) {
           console.error('AI Service Error:', aiError);
