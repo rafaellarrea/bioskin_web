@@ -8,6 +8,7 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
+// Portal-based tooltip for better z-index handling
 export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 'top' }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
