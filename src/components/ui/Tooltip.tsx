@@ -78,6 +78,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
     }
   }, [isVisible]);
 
+  const isHtml = typeof content === 'string' && content.trim().startsWith('<');
+
   return (
     <>
       <div 
@@ -105,7 +107,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
                 position: 'fixed',
                 zIndex: 99999 
               }}
-              className={`px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-xl whitespace-nowrap transform ${
+              className={`px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-lg shadow-xl transform ${
+                isHtml ? 'whitespace-normal max-w-xs' : 'whitespace-nowrap'
+              } ${
                 interactive ? 'pointer-events-auto' : 'pointer-events-none'
               } ${
                 position === 'top' ? '-translate-x-1/2 -translate-y-full' :
@@ -124,8 +128,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
                 }
               }}
             >
-              {typeof content === 'string' && content.includes('<') ? (
-                <div dangerouslySetInnerHTML={{ __html: content }} />
+              {isHtml ? (
+                <div dangerouslySetInnerHTML={{ __html: content as string }} />
               ) : (
                 content
               )}
