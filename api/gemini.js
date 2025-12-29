@@ -1,3 +1,4 @@
+// Fix: Removed unused import
 // Initialize the API client
 // We will use the REST API via fetch if the package is not available, 
 // but since we are in a Node environment in Vercel, we can try to use the SDK if installed, 
