@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useMemo } from 'react';
-import { Tooltip } from '../../ui/Tooltip';
+import { Tooltip } from '../../../ui/Tooltip';
 import { X } from 'lucide-react';
 import faceZonesData from '../../../../data/face-zones.json';
 

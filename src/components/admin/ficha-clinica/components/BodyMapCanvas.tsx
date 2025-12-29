@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Tooltip } from '../../ui/Tooltip';
+import { Tooltip } from '../../../ui/Tooltip';
 import { X } from 'lucide-react';
 import { Mark } from './FaceMapCanvas';
 
