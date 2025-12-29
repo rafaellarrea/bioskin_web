@@ -602,9 +602,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
               <div key={key} className="space-y-1.5 group">
                 <div className="flex items-center gap-2">
                   <label className="block text-sm font-bold text-gray-700 group-hover:text-[#deb887] transition-colors">{field.label}</label>
-                  <Tooltip content={
-                    <div dangerouslySetInnerHTML={{ __html: PARAMETER_TOOLTIPS[key] || '' }} />
-                  }>
+                  <Tooltip content={PARAMETER_TOOLTIPS[key] || ''}>
                     <Info size={14} className="text-gray-400 hover:text-[#deb887] transition-colors cursor-help" />
                   </Tooltip>
                 </div>
