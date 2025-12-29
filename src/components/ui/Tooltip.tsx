@@ -124,7 +124,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
                 }
               }}
             >
-              {content}
+              {typeof content === 'string' && content.includes('<') ? (
+                <div dangerouslySetInnerHTML={{ __html: content }} />
+              ) : (
+                content
+              )}
               {/* Arrow */}
               <div 
                 className={`absolute w-2 h-2 bg-gray-800 transform rotate-45 ${
