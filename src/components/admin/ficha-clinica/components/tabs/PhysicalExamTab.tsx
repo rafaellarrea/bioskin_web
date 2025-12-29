@@ -5,6 +5,7 @@ import { CLINICAL_FIELDS, LESION_CATALOG, PARAMETER_TOOLTIPS } from '../../../..
 import FaceMapCanvas, { Mark } from '../FaceMapCanvas';
 import BodyMapCanvas from '../BodyMapCanvas';
 import { Tooltip } from '../../../../ui/Tooltip';
+import { Select } from '../../../../ui/Select';
 
 interface PhysicalExam {
   id?: number;
@@ -86,16 +87,17 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
 
           <div className="space-y-2">
             <label className="block text-sm font-bold text-gray-700">Severidad / Grado</label>
-            <select 
+            <Select 
               value={editedMark.severity}
-              onChange={e => setEditedMark({...editedMark, severity: e.target.value as any})}
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all bg-gray-50/50 focus:bg-white"
-            >
-              <option value="leve">Leve</option>
-              <option value="moderado">Moderado</option>
-              <option value="severo">Severo</option>
-              <option value="profundo">Profundo</option>
-            </select>
+              onChange={val => setEditedMark({...editedMark, severity: val as any})}
+              options={[
+                { value: "leve", label: "Leve" },
+                { value: "moderado", label: "Moderado" },
+                { value: "severo", label: "Severo" },
+                { value: "profundo", label: "Profundo" }
+              ]}
+              placeholder="Seleccionar..."
+            />
           </div>
 
           <div className="space-y-2">
@@ -606,16 +608,12 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                     <Info size={14} className="text-gray-400 hover:text-[#deb887] transition-colors cursor-help" />
                   </Tooltip>
                 </div>
-                <select
-                  name={key}
-                  className="w-full p-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] outline-none text-sm transition-all bg-gray-50/50 focus:bg-white hover:bg-white"
+                <Select
                   value={(currentExam as any)[key] || ''}
-                  onChange={handleChange}
-                >
-                  {field.options.map((opt: string) => (
-                    <option key={opt} value={opt}>{opt || 'Seleccionar...'}</option>
-                  ))}
-                </select>
+                  onChange={(value) => setCurrentExam(prev => ({ ...prev, [key]: value }))}
+                  options={field.options}
+                  placeholder="Seleccionar..."
+                />
               </div>
             ))}
 

@@ -90,30 +90,34 @@ const BodyMapCanvas: React.FC<BodyMapCanvasProps> = ({
           {marks
             .filter(m => m.view === view)
             .map((mark) => (
-              <Tooltip
+              <div
                 key={mark.id}
-                content={
-                  <div className="flex flex-col items-center">
-                    <span className="font-bold">{mark.category}</span>
-                    {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
-                  </div>
-                }
-                className="absolute w-4 h-4 -ml-2 -mt-2 bg-red-500 rounded-full border-2 border-white shadow-sm transform transition-transform hover:scale-125 z-10 group"
+                className="absolute -ml-2 -mt-2 z-10 group"
                 style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
               >
-                {/* Delete Button (only if not readOnly) */}
-                {!readOnly && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveMark(mark.id);
-                    }}
-                    className="absolute -top-4 -right-4 bg-white rounded-full p-0.5 shadow-md hover:bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </Tooltip>
+                <Tooltip
+                  content={
+                    <div className="flex flex-col items-center">
+                      <span className="font-bold">{mark.category}</span>
+                      {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
+                    </div>
+                  }
+                  className="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-sm transform transition-transform hover:scale-125 block"
+                >
+                  {/* Delete Button (only if not readOnly) */}
+                  {!readOnly && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveMark(mark.id);
+                      }}
+                      className="absolute -top-4 -right-4 bg-white rounded-full p-0.5 shadow-md hover:bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </Tooltip>
+              </div>
             ))}
         </div>
       </div>

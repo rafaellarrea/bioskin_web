@@ -178,35 +178,38 @@ export default function FaceMapCanvas({
 
         {/* Marks */}
         {marks.map((mark) => (
-          <Tooltip
+          <div
             key={mark.id}
-            interactive={!readOnly}
-            content={
-              <div 
-                className={`flex flex-col items-center ${!readOnly ? 'cursor-pointer' : ''}`}
-                onClick={(e) => {
-                  if (!readOnly) {
-                    e.stopPropagation();
-                    onRemoveMark(mark.id);
-                  }
-                }}
-              >
-                <span className="font-bold">{mark.category}</span>
-                <span className="text-[10px] opacity-80">{mark.notes}</span>
-                {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
-                {!readOnly && (
-                  <div className="flex items-center gap-1 mt-1 text-red-300">
-                    <X size={10} /> Eliminar
-                  </div>
-                )}
-              </div>
-            }
             className="absolute transform -translate-x-1/2 -translate-y-1/2 group z-10"
             style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
           >
-            <div className="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-pointer flex items-center justify-center">
-            </div>
-          </Tooltip>
+            <Tooltip
+              interactive={!readOnly}
+              content={
+                <div 
+                  className={`flex flex-col items-center ${!readOnly ? 'cursor-pointer' : ''}`}
+                  onClick={(e) => {
+                    if (!readOnly) {
+                      e.stopPropagation();
+                      onRemoveMark(mark.id);
+                    }
+                  }}
+                >
+                  <span className="font-bold">{mark.category}</span>
+                  <span className="text-[10px] opacity-80">{mark.notes}</span>
+                  {mark.severity && <span className="text-[10px] text-yellow-200 font-semibold uppercase">{mark.severity}</span>}
+                  {!readOnly && (
+                    <div className="flex items-center gap-1 mt-1 text-red-300">
+                      <X size={10} /> Eliminar
+                    </div>
+                  )}
+                </div>
+              }
+            >
+              <div className="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-sm hover:scale-125 transition-transform cursor-pointer flex items-center justify-center">
+              </div>
+            </Tooltip>
+          </div>
         ))}
       </div>
     </div>
