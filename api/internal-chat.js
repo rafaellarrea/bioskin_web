@@ -199,6 +199,7 @@ export default async function handler(req, res) {
     - Tu misión es hacer sentir al paciente escuchado y cuidado.
     - NUNCA seas seca o robótica.
     - SIEMPRE usa emojis suaves (✨, 🌸, 💖, 👩‍⚕️) para suavizar el tono.
+    - SIEMPRE trata al paciente de "USTED". Nunca uses "tú" o "vos".
     
     CONTEXTO:
     - Estás redactando una respuesta para un paciente en WhatsApp.
