@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 2, 2026: Internal Chat Assistant Upgrade**
+- 🤖 **Persona**: Actualizado prompt del sistema para clonar a "Dra. Daniela Creamer" con saludo formal obligatorio.
+- 📜 **Historial**: Implementada barra lateral con historial de conversaciones pasadas.
+- 🔄 **CRUD**: Agregada funcionalidad para listar, cargar y eliminar chats anteriores.
+- 💅 **UI**: Rediseño completo de `AdminChatAssistant` con soporte para múltiples sesiones.
+
 ### ✅ **Jan 2, 2026: UI Fixes**
 - 🐛 **WhatsApp Button**: Corregida visibilidad aumentando z-index y ajustando posición.
 

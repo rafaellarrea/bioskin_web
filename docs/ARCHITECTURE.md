@@ -98,6 +98,9 @@ api/sendEmail.js          // POST - Email + WhatsApp notifications
 
 // WhatsApp Chatbot with AI (Noviembre 2025)
 api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API
+
+// Internal Chat Assistant (Jan 2026)
+api/internal-chat.js      // POST/GET/DELETE - Internal AI Assistant (Gemini) with History CRUD
 api/chatbot-stats.js      // GET/POST - Monitoring and maintenance
 api/chatbot-settings.js   // GET/POST - Global chatbot configuration (toggle)
 ```

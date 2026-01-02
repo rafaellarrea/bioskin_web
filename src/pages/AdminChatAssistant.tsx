@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Copy, RefreshCw, MessageSquare, UserPlus, Trash2, Sparkles, Bot } from 'lucide-react';
+import { Send, Copy, RefreshCw, MessageSquare, UserPlus, Trash2, Sparkles, Bot, History, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,6 +10,13 @@ interface Message {
   timestamp: Date;
 }
 
+interface Conversation {
+  session_id: string;
+  last_message_at: string;
+  total_messages: number;
+  user_info: { isNewPatient: boolean };
+}
+
 export default function AdminChatAssistant() {
   const { isAuthenticated, checkAuth } = useAuth();
   const navigate = useNavigate();
@@ -18,6 +25,8 @@ export default function AdminChatAssistant() {
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [isNewPatient, setIsNewPatient] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,6 +38,7 @@ export default function AdminChatAssistant() {
     };
     verifyAuth();
     startNewSession();
+    fetchConversations();
   }, [checkAuth, navigate]);
 
   useEffect(() => {
@@ -37,6 +47,56 @@ export default function AdminChatAssistant() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const fetchConversations = async () => {
+    try {
+      const res = await fetch('/api/internal-chat?action=list');
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(data.conversations || []);
+      }
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    }
+  };
+
+  const loadConversation = async (sid: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/internal-chat?action=get&sessionId=${sid}`);
+      if (res.ok) {
+        const data = await res.json();
+        const loadedMessages = data.messages.map((m: any, idx: number) => ({
+          id: `hist_${idx}`,
+          role: m.role === 'model' ? 'assistant' : m.role, // Map model to assistant
+          content: m.content,
+          timestamp: new Date(m.timestamp)
+        }));
+        setSessionId(sid);
+        setMessages(loadedMessages);
+        setShowHistory(false);
+      }
+    } catch (error) {
+      console.error('Error loading conversation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteConversation = async (e: React.MouseEvent, sid: string) => {
+    e.stopPropagation();
+    if (!confirm('¿Estás seguro de eliminar este chat?')) return;
+    
+    try {
+      const res = await fetch(`/api/internal-chat?sessionId=${sid}`, { method: 'DELETE' });
+      if (res.ok) {
+        setConversations(prev => prev.filter(c => c.session_id !== sid));
+        if (sessionId === sid) startNewSession();
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
   };
 
   const startNewSession = () => {
@@ -49,6 +109,7 @@ export default function AdminChatAssistant() {
       timestamp: new Date()
     }]);
     setIsNewPatient(false);
+    setShowHistory(false);
   };
 
   const handleSend = async (e?: React.FormEvent) => {
@@ -99,6 +160,7 @@ export default function AdminChatAssistant() {
       };
 
       setMessages(prev => [...prev, aiMsg]);
+      fetchConversations(); // Refresh list
     } catch (error: any) {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
@@ -118,11 +180,80 @@ export default function AdminChatAssistant() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col relative">
+      {/* Sidebar Overlay */}
+      {showHistory && (
+        <div className="absolute inset-0 bg-black/20 z-20" onClick={() => setShowHistory(false)} />
+      )}
+      
+      {/* History Sidebar */}
+      <div className={`absolute top-0 left-0 h-full w-80 bg-white shadow-2xl z-30 transform transition-transform duration-300 ${showHistory ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-[#deb887]/10">
+          <h2 className="font-bold text-gray-800 flex items-center gap-2">
+            <History className="w-5 h-5 text-[#deb887]" />
+            Historial de Chats
+          </h2>
+          <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-gray-200 rounded-full">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        <div className="overflow-y-auto h-[calc(100%-60px)] p-2 space-y-2">
+          {conversations.length === 0 ? (
+            <div className="text-center text-gray-400 py-8 text-sm">No hay chats recientes</div>
+          ) : (
+            conversations.map(chat => (
+              <div 
+                key={chat.session_id}
+                onClick={() => loadConversation(chat.session_id)}
+                className={`p-3 rounded-lg cursor-pointer border transition-all group relative ${
+                  sessionId === chat.session_id 
+                    ? 'bg-[#deb887]/10 border-[#deb887] shadow-sm' 
+                    : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className="text-xs font-bold text-gray-500">
+                    {new Date(chat.last_message_at).toLocaleDateString()}
+                  </span>
+                  <button 
+                    onClick={(e) => deleteConversation(e, chat.session_id)}
+                    className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="text-sm text-gray-700 font-medium truncate">
+                  Chat {chat.session_id.split('_')[2]}
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    chat.user_info?.isNewPatient 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {chat.user_info?.isNewPatient ? 'Nuevo' : 'Recurrente'}
+                  </span>
+                  <span className="text-[10px] text-gray-400">
+                    {chat.total_messages} msgs
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200 p-4 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowHistory(true)}
+              className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+              title="Ver historial"
+            >
+              <History className="w-6 h-6" />
+            </button>
             <div className="bg-gradient-to-br from-[#deb887] to-[#d4a574] p-2 rounded-lg text-white">
               <Bot className="w-6 h-6" />
             </div>

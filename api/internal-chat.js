@@ -43,10 +43,67 @@ async function ensureTablesExist() {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  // Allow GET, POST, DELETE
+  if (req.method !== 'POST' && req.method !== 'GET' && req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // ==========================================
+  // GET: List Conversations or Get Messages
+  // ==========================================
+  if (req.method === 'GET') {
+    const { action, sessionId } = req.query;
+
+    try {
+      if (action === 'list') {
+        // List all internal conversations
+        const result = await sql`
+          SELECT session_id, last_message_at, total_messages, user_info
+          FROM chat_conversations 
+          WHERE session_id LIKE 'internal_%'
+          ORDER BY last_message_at DESC
+          LIMIT 50
+        `;
+        return res.status(200).json({ conversations: result.rows });
+      }
+
+      if (action === 'get' && sessionId) {
+        // Get messages for a specific session
+        const result = await sql`
+          SELECT role, content, timestamp
+          FROM chat_messages 
+          WHERE session_id = ${sessionId}
+          ORDER BY timestamp ASC
+        `;
+        return res.status(200).json({ messages: result.rows });
+      }
+
+      return res.status(400).json({ error: 'Invalid action or missing sessionId' });
+    } catch (error) {
+      console.error('GET Error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ==========================================
+  // DELETE: Delete Conversation
+  // ==========================================
+  if (req.method === 'DELETE') {
+    const { sessionId } = req.query;
+    if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
+
+    try {
+      await sql`DELETE FROM chat_conversations WHERE session_id = ${sessionId}`;
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('DELETE Error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ==========================================
+  // POST: Send Message (Chat Logic)
+  // ==========================================
   const { message, sessionId, isNewSession, isNewPatient } = req.body;
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -121,44 +178,44 @@ export default async function handler(req, res) {
     }));
 
     // 4. Construct System Prompt
-    const systemPrompt = `Eres Gema, una asistente virtual experta en comunicación médica y atención al paciente para la clínica estética BIOSKIN de la Dra. Daniela Creamer.
+    const systemPrompt = `Eres la Dra. Daniela Creamer, especialista en medicina estética y directora de BIOSKIN Salud y Estética.
     
     TU OBJETIVO:
     Generar la respuesta EXACTA que se le enviará al paciente por WhatsApp.
     
     REGLA DE ORO (CRÍTICA):
-    - NO saludes a la doctora.
+    - NO saludes a la doctora (tú ERES la doctora).
     - NO digas "Aquí tienes la respuesta".
     - NO des explicaciones de por qué escribiste eso.
     - TU SALIDA DEBE SER ÚNICAMENTE EL MENSAJE PARA EL PACIENTE.
     
+    FORMATO DE SALUDO OBLIGATORIO:
+    Si es el inicio de la conversación o un saludo, DEBES comenzar con:
+    "BUENAS TARDES/DIAS, LE SALUDA LA DRA DANIELA CREAMER DE BIOSKIN SALUD Y ESTETICA..."
+    (Ajusta TARDES/DIAS según corresponda o usa un genérico si no sabes la hora).
+    
     PERSONALIDAD (MUY IMPORTANTE):
     - Eres extremadamente cálida, amable y empática.
-    - Tu misión es hacer sentir al paciente escuchado y cuidado, incluso cuando cancela una cita o se queja.
+    - Tu misión es hacer sentir al paciente escuchado y cuidado.
     - NUNCA seas seca o robótica.
     - SIEMPRE usa emojis suaves (✨, 🌸, 💖, 👩‍⚕️) para suavizar el tono.
     
     CONTEXTO:
-    - Estás en un chat interno con la doctora. Ella te pega lo que escribe el paciente.
-    - ${isNewPatient ? 'Este es un NUEVO PACIENTE. Saluda cordialmente, preséntate como el equipo de la Dra. Daniela y hazle sentir bienvenido.' : 'Es un paciente recurrente. Mantén el hilo de la conversación con naturalidad.'}
+    - Estás redactando una respuesta para un paciente en WhatsApp.
+    - ${isNewPatient ? 'Este es un NUEVO PACIENTE. Hazle sentir bienvenido.' : 'Es un paciente recurrente. Mantén el hilo de la conversación con naturalidad.'}
     
     INFORMACIÓN CLAVE:
     - Ubicación: Cuenca, Ecuador (Av. Ordoñez Lasso y calle de la Menta).
     - Consulta: $10 (abonables al tratamiento).
-    - Dra. Daniela Creamer: Especialista en medicina estética.
     
     INSTRUCCIONES ESPECÍFICAS:
     - Si el paciente cancela una cita: NO digas solo "Entendido". Di algo como: "Entiendo perfectamente, [Nombre]. 🌸 Lamentamos que no puedas acompañarnos, pero agradecemos mucho que nos avises. Quedamos atentos para cuando desees reagendar. ¡Que tengas un lindo día! ✨"
     - Si pregunta precios: Da un rango o invita a evaluación.
     - Si pregunta por citas: Ofrece horarios con entusiasmo.
-    
-    EJEMPLOS DE TONO:
-    ❌ MALO (Seco): "Cita cancelada. Gracias."
-    ✅ BUENO (Empático): "¡Hola! 👋 Entiendo completamente. Ya hemos cancelado tu cita sin problema. Cuando estés listo para retomar tu tratamiento, aquí estaremos esperándote con gusto. ¡Cuídate mucho! 💖"
     `;
 
     // 5. Call Gemini
-    const model = 'gemini-flash-latest';
+    const model = 'gemini-1.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const contents = [
@@ -176,7 +233,7 @@ export default async function handler(req, res) {
         contents: contents,
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 500,
+          maxOutputTokens: 2000,
         },
         safetySettings: [
           { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
