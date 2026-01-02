@@ -78,7 +78,16 @@ export default function AdminChatAssistant() {
         })
       });
 
-      if (!response.ok) throw new Error('Error en la respuesta');
+      let errorMessage = 'Error en la respuesta';
+      if (!response.ok) {
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch (e) {
+          // Could not parse JSON error, stick with default
+        }
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       

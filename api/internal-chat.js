@@ -150,7 +150,7 @@ export default async function handler(req, res) {
     `;
 
     // 5. Call Gemini
-    const model = 'gemini-1.5-flash';
+    const model = 'gemini-flash-latest';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const contents = [
