@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Phone, Mail, MessageSquare, Save, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { services } from '../data/services';
 
 // Helpers para español
 const daysOfWeek = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -454,14 +455,11 @@ const AdminAppointment: React.FC<AdminAppointmentProps> = ({ onBack }) => {
                 >
                   <option value="">Selecciona un servicio</option>
                   <option value="OTRO">OTRO</option>
-                  <option value="Limpieza Facial Profunda">Limpieza Facial Profunda</option>
-                  <option value="Tratamiento Antiaging">Tratamiento Antiaging</option>
-                  <option value="Tratamiento Antimanchas">Tratamiento Antimanchas</option>
-                  <option value="Remoción de Tatuajes">Remoción de Tatuajes</option>
-                  <option value="Hidratación Profunda">Hidratación Profunda</option>
-                  <option value="Hollywood Peel">Hollywood Peel</option>
-                  <option value="Exosomas + Mesoterapia">Exosomas + Mesoterapia</option>
-                  <option value="Lipopapada sin cirugía">Lipopapada sin cirugía</option>
+                  {services.map(service => (
+                    <option key={service.id} value={service.title}>
+                      {service.title}
+                    </option>
+                  ))}
                 </select>
 
                 <div className="relative">
