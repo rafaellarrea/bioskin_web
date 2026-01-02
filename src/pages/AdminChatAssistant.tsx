@@ -90,12 +90,12 @@ export default function AdminChatAssistant() {
       };
 
       setMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
-        content: 'Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo.',
+        content: `Lo siento, hubo un error al procesar tu mensaje: ${error.message || 'Error desconocido'}. Por favor intenta de nuevo.`,
         timestamp: new Date()
       }]);
     } finally {

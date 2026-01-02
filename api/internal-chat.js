@@ -1,5 +1,47 @@
 import { sql } from '@vercel/postgres';
 
+// Helper to initialize DB if needed
+async function ensureTablesExist() {
+  try {
+    console.log('Initializing tables...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS chat_conversations (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(255) UNIQUE NOT NULL,
+        phone_number VARCHAR(50),
+        created_at TIMESTAMP DEFAULT NOW(),
+        last_message_at TIMESTAMP DEFAULT NOW(),
+        total_messages INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        user_info JSONB DEFAULT '{}'
+      )
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(255) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        content TEXT NOT NULL,
+        timestamp TIMESTAMP DEFAULT NOW(),
+        tokens_used INT DEFAULT 0,
+        message_id VARCHAR(255),
+        FOREIGN KEY (session_id) REFERENCES chat_conversations(session_id) ON DELETE CASCADE
+      )
+    `;
+    // Ensure user_info column exists (for existing tables)
+    try {
+      await sql`ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS user_info JSONB DEFAULT '{}'`;
+    } catch (e) {
+      // Ignore if column exists or other non-critical error
+      console.log('Column check note:', e.message);
+    }
+    console.log('Tables initialized.');
+  } catch (error) {
+    console.error('Error initializing tables:', error);
+    throw new Error('Database initialization failed: ' + error.message);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -8,6 +50,13 @@ export default async function handler(req, res) {
   const { message, sessionId, isNewSession, isNewPatient } = req.body;
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
+  console.log('Internal Chat Request:', { 
+    sessionId, 
+    isNewSession, 
+    hasApiKey: !!apiKey,
+    apiKeyPrefix: apiKey ? apiKey.substring(0, 5) : 'none'
+  });
+
   if (!apiKey) {
     return res.status(500).json({ error: 'Missing Gemini API Key' });
   }
@@ -15,13 +64,31 @@ export default async function handler(req, res) {
   try {
     // 1. Manage Session
     if (isNewSession) {
-      // Create new conversation
-      await sql`
-        INSERT INTO chat_conversations (session_id, phone_number, is_active, user_info)
-        VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient })})
-        ON CONFLICT (session_id) DO UPDATE 
-        SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient })}
-      `;
+      try {
+        // Create new conversation
+        await sql`
+          INSERT INTO chat_conversations (session_id, phone_number, is_active, user_info)
+          VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient })})
+          ON CONFLICT (session_id) DO UPDATE 
+          SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient })}
+        `;
+      } catch (dbError) {
+        console.error('DB Insert Error:', dbError);
+        // If table doesn't exist (code 42P01), try to create it
+        if (dbError.message?.includes('relation "chat_conversations" does not exist') || dbError.code === '42P01') {
+          console.log('Tables missing, attempting to create...');
+          await ensureTablesExist();
+          // Retry insert
+          await sql`
+            INSERT INTO chat_conversations (session_id, phone_number, is_active, user_info)
+            VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient })})
+            ON CONFLICT (session_id) DO UPDATE 
+            SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient })}
+          `;
+        } else {
+          throw dbError;
+        }
+      }
 
       // Cleanup old internal sessions (older than 24h) to prevent saturation
       // This runs asynchronously without blocking the response
@@ -38,7 +105,7 @@ export default async function handler(req, res) {
       VALUES (${sessionId}, 'user', ${message}, NOW())
     `;
 
-    // 3. Get History (Last 5 messages)
+    // 3. Get History (Last 10 messages)
     const historyResult = await sql`
       SELECT role, content 
       FROM chat_messages 
