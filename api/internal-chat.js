@@ -169,17 +169,42 @@ export default async function handler(req, res) {
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 500,
-        }
+        },
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ]
       })
     });
 
     if (!response.ok) {
       const err = await response.json();
+      console.error('Gemini API Error Response:', JSON.stringify(err, null, 2));
       throw new Error(err.error?.message || 'Gemini API Error');
     }
 
     const data = await response.json();
-    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Lo siento, no pude generar una respuesta.";
+    
+    // Check for valid response
+    const candidate = data.candidates?.[0];
+    const aiText = candidate?.content?.parts?.[0]?.text;
+
+    if (!aiText) {
+      console.error('Gemini No Text Response:', JSON.stringify(data, null, 2));
+      
+      let failureReason = "No se generó respuesta.";
+      if (candidate?.finishReason) {
+        failureReason += ` Razón: ${candidate.finishReason}`;
+      }
+      if (data.promptFeedback) {
+        failureReason += ` Feedback: ${JSON.stringify(data.promptFeedback)}`;
+      }
+      
+      // Return the specific error instead of generic message
+      return res.status(500).json({ error: failureReason, debug: data });
+    }
 
     // 6. Save AI Message
     await sql`

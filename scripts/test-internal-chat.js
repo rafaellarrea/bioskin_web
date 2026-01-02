@@ -87,8 +87,17 @@ async function testInternalChat() {
     }
 
     const data = await response.json();
+    console.log('  🔍 Full Gemini Response:', JSON.stringify(data, null, 2));
+    
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    console.log('  ✅ Gemini API Response:', text?.trim());
+    if (text) {
+      console.log('  ✅ Gemini API Response:', text.trim());
+    } else {
+      console.error('  ⚠️ Response received but no text found.');
+      if (data.promptFeedback) {
+        console.log('  ⚠️ Prompt Feedback:', data.promptFeedback);
+      }
+    }
 
   } catch (err) {
     console.error('  ❌ Gemini API Failed:', err.message);
