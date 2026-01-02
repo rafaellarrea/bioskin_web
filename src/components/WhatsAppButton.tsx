@@ -15,7 +15,7 @@ export default function WhatsAppButton() {
     <Tooltip
       content="¡Escríbenos!"
       position="left"
-      className="fixed bottom-6 right-6 z-50"
+      className="fixed bottom-8 right-8 z-[100]"
     >
       <a
         href={whatsappUrl}

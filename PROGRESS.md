@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 2, 2026: UI Fixes**
+- 🐛 **WhatsApp Button**: Corregida visibilidad aumentando z-index y ajustando posición.
+
 ### ✅ **Dec 26, 2025: Clinical Records - Consultation Section**
 - 📝 **Nueva Sección**: Agregada pestaña "Consulta" al inicio de la ficha clínica.
 - 🗃️ **Base de Datos**: Creada tabla `consultation_info` en Neon DB para "Motivo de Consulta" y "Enfermedad Actual".
