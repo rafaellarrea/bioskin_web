@@ -27,6 +27,7 @@ import AdminMonitor from './pages/AdminMonitor';
 import AdminStats from './pages/AdminStats';
 import AdminDiagnosis from './pages/AdminDiagnosis';
 import AdminProtocols from './pages/AdminProtocols';
+import AdminChatAssistant from './pages/AdminChatAssistant';
 import PatientList from './components/admin/ficha-clinica/components/PatientList';
 import NewPatientForm from './components/admin/ficha-clinica/components/NewPatientForm';
 import PatientDetail from './components/admin/ficha-clinica/components/PatientDetail';
@@ -70,6 +71,7 @@ function App() {
               <Route path="/admin/stats" element={<AdminStats />} />
               <Route path="/admin/diagnosis" element={<AdminDiagnosis />} />
               <Route path="/admin/protocols" element={<AdminProtocols />} />
+              <Route path="/admin/chat-assistant" element={<AdminChatAssistant />} />
               <Route path="/admin/clinical-records" element={<PatientList />} />
               <Route path="/admin/clinical-records/new" element={<NewPatientForm />} />
               <Route path="/admin/clinical-records/edit/:patientId" element={<NewPatientForm />} />
