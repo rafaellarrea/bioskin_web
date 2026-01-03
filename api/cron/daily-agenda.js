@@ -66,20 +66,33 @@ export default async function handler(req, res) {
       }
     });
 
-    // Motivational Quote
-    const quotes = [
-      "\"El único modo de hacer un gran trabajo es amar lo que haces.\" - Steve Jobs",
-      "\"El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.\" - Albert Schweitzer",
-      "\"La calidad significa hacerlo bien cuando nadie está mirando.\" - Henry Ford",
-      "\"Tu trabajo va a llenar gran parte de tu vida, la única forma de estar realmente satisfecho es hacer lo que creas es un gran trabajo.\" - Steve Jobs",
-      "\"El éxito es la suma de pequeños esfuerzos repetidos día tras día.\" - Robert Collier",
-      "\"La excelencia no es un acto, sino un hábito.\" - Aristóteles",
-      "\"Cree que puedes y casi lo habrás logrado.\" - Theodore Roosevelt",
-      "\"El futuro depende de lo que hagas hoy.\" - Mahatma Gandhi",
-      "\"No cuentes los días, haz que los días cuenten.\" - Muhammad Ali",
-      "\"La mejor forma de predecir el futuro es crearlo.\" - Peter Drucker"
-    ];
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    // Motivational Quote (AI Generated)
+    let randomQuote = "¡Que tengas un excelente día!";
+    try {
+      const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+      if (apiKey) {
+        const quotePrompt = "Genera una frase corta, inspiradora y motivadora para un equipo de trabajo de una clínica estética. Enfocada en el éxito, la calidad, el trabajo en equipo y el crecimiento profesional. Solo la frase y el autor (si aplica) o anónimo.";
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: quotePrompt }] }],
+            generationConfig: { maxOutputTokens: 100 }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (aiText) randomQuote = aiText.trim();
+        }
+      }
+    } catch (err) {
+      console.error('Error generating AI quote:', err);
+      // Fallback to a default quote if AI fails
+      randomQuote = "\"El éxito es la suma de pequeños esfuerzos repetidos día tras día.\"";
+    }
     
     message += `💡 *Frase del día:*\n_${randomQuote}_\n\n`;
     message += `_Asistente Virtual BIOSKIN_ 🤖`;

@@ -1,5 +1,5 @@
-const { execSync } = require('child_process');
-const crypto = require('crypto');
+import { execSync } from 'child_process';
+import crypto from 'crypto';
 
 // Generate a random secret
 const secret = crypto.randomBytes(32).toString('hex');
