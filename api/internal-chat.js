@@ -1,4 +1,8 @@
 import { sql } from '@vercel/postgres';
+import { googleCalendarService } from '../lib/google-calendar-service.js';
+import { PromotionsService } from '../lib/promotions-service.js';
+
+const promotionsService = new PromotionsService();
 
 // Helper to initialize DB if needed
 async function ensureTablesExist() {
@@ -104,14 +108,15 @@ export default async function handler(req, res) {
   // ==========================================
   // POST: Send Message (Chat Logic)
   // ==========================================
-  const { message, sessionId, isNewSession, isNewPatient } = req.body;
+  const { message, sessionId, isNewSession, isNewPatient, mode } = req.body;
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
   console.log('Internal Chat Request:', { 
     sessionId, 
     isNewSession, 
     hasApiKey: !!apiKey,
-    apiKeyPrefix: apiKey ? apiKey.substring(0, 5) : 'none'
+    apiKeyPrefix: apiKey ? apiKey.substring(0, 5) : 'none',
+    mode: mode || 'draft'
   });
 
   if (!apiKey) {
@@ -125,9 +130,9 @@ export default async function handler(req, res) {
         // Create new conversation
         await sql`
           INSERT INTO chat_conversations (session_id, phone_number, is_active, user_info)
-          VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient })})
+          VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient, mode })})
           ON CONFLICT (session_id) DO UPDATE 
-          SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient })}
+          SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient, mode })}
         `;
       } catch (dbError) {
         console.error('DB Insert Error:', dbError);
@@ -138,9 +143,9 @@ export default async function handler(req, res) {
           // Retry insert
           await sql`
             INSERT INTO chat_conversations (session_id, phone_number, is_active, user_info)
-            VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient })})
+            VALUES (${sessionId}, 'INTERNAL_ADMIN', true, ${JSON.stringify({ isNewPatient, mode })})
             ON CONFLICT (session_id) DO UPDATE 
-            SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient })}
+            SET is_active = true, last_message_at = NOW(), user_info = ${JSON.stringify({ isNewPatient, mode })}
           `;
         } else {
           throw dbError;
@@ -178,7 +183,72 @@ export default async function handler(req, res) {
     }));
 
     // 4. Construct System Prompt
-    const systemPrompt = `Eres la Dra. Daniela Creamer, especialista en medicina estética y directora de BIOSKIN Salud y Estética.
+    let systemPrompt = '';
+
+    if (mode === 'assistant') {
+      // --- ASSISTANT MODE LOGIC ---
+      
+      // Gather Context
+      let contextData = [];
+      const lowerMsg = message.toLowerCase();
+
+      // A. Calendar Context
+      if (lowerMsg.includes('agenda') || lowerMsg.includes('cita') || lowerMsg.includes('horario') || lowerMsg.includes('disponible') || lowerMsg.includes('calendario')) {
+        try {
+          const events = await googleCalendarService.getUpcomingEvents(48); // Next 48 hours
+          if (events && events.length > 0) {
+            const eventList = events.map(e => 
+              `- ${e.summary} (${new Date(e.start.dateTime || e.start.date).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })})`
+            ).join('\n');
+            contextData.push(`AGENDA (Próximas 48h):\n${eventList}`);
+          } else {
+            contextData.push(`AGENDA: No hay eventos programados en las próximas 48 horas.`);
+          }
+        } catch (err) {
+          console.error('Error fetching calendar:', err);
+          contextData.push(`AGENDA: Error al consultar el calendario (${err.message}).`);
+        }
+      }
+
+      // B. Promotions Context
+      if (lowerMsg.includes('promocion') || lowerMsg.includes('oferta') || lowerMsg.includes('descuento') || lowerMsg.includes('precio')) {
+        try {
+          const promos = promotionsService.loadPromotions();
+          if (promos.active) {
+            const servicePromos = promos.promotions.services.map(p => `- ${p.serviceName}: $${p.promoPrice}`).join('\n');
+            const productPromos = promos.promotions.products.map(p => `- ${p.productName}: $${p.promoPrice}`).join('\n');
+            contextData.push(`PROMOCIONES ACTIVAS:\nServicios:\n${servicePromos}\nProductos:\n${productPromos}`);
+          }
+        } catch (err) {
+          console.error('Error fetching promotions:', err);
+        }
+      }
+
+      systemPrompt = `Eres el Asistente Virtual Interno de BIOSKIN.
+      
+      TU OBJETIVO:
+      Ayudar al personal de la clínica con información precisa sobre tratamientos, agenda, promociones y protocolos.
+      
+      INFORMACIÓN DE BIOSKIN:
+      - Ubicación: Cuenca, Ecuador (Av. Ordoñez Lasso y calle de la Menta).
+      - Especialidad: Medicina Estética y Dermatología.
+      - Directora: Dra. Daniela Creamer.
+      
+      CONTEXTO ACTUAL (Usa esto si es relevante para la pregunta):
+      ${contextData.join('\n\n')}
+      
+      INSTRUCCIONES:
+      - Responde de manera profesional, clara y concisa.
+      - Si te preguntan por la agenda, usa la información provista arriba. Si no hay info, indícalo.
+      - Si te preguntan por tratamientos, explica beneficios, procedimientos y cuidados generales.
+      - Si te preguntan por promociones, menciona las vigentes.
+      - NO inventes información médica crítica. Si no sabes, sugiere consultar con la Dra. Daniela.
+      - Eres una herramienta interna, no estás hablando con un paciente, sino con el staff.
+      `;
+
+    } else {
+      // --- DRAFTING MODE LOGIC (Original) ---
+      systemPrompt = `Eres la Dra. Daniela Creamer, especialista en medicina estética y directora de BIOSKIN Salud y Estética.
     
     TU OBJETIVO:
     Generar la respuesta EXACTA que se le enviará al paciente por WhatsApp.
@@ -217,6 +287,7 @@ export default async function handler(req, res) {
     - Si pregunta precios: Da un rango o invita a evaluación.
     - Si pregunta por citas: Ofrece horarios con entusiasmo.
     `;
+    }
 
     // 5. Call Gemini
     const model = 'gemini-flash-latest';
