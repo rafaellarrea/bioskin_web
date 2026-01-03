@@ -39,6 +39,7 @@ import {
   APPOINTMENT_STATES 
 } from '../lib/appointment-state-machine.js';
 import { notifyNewConversation } from '../lib/admin-notifications.js';
+import { processInternalChatMessage } from '../lib/internal-chat-service.js';
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -503,35 +504,22 @@ async function processWhatsAppMessage(body) {
         await upsertConversation(sessionId, from);
         await saveMessage(sessionId, 'user', userMessage, 0, messageId);
 
-        // 2. Call Internal Chat API (Assistant Mode)
-        // We use the absolute URL of the deployed app or localhost depending on env
-        const apiUrl = process.env.VERCEL_URL 
-          ? `https://${process.env.VERCEL_URL}/api/internal-chat`
-          : 'http://localhost:3000/api/internal-chat';
-          
-        console.log(`🔄 Llamando a API Interna: ${apiUrl}`);
+        // 2. Call Internal Chat Service directly
+        console.log(`🔄 Procesando con Asistente Interno (Direct Call)`);
         
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: userMessage,
-            sessionId: sessionId,
-            mode: 'assistant',
-            isNewSession: false // We manage session persistence in DB
-          })
+        const aiResponse = await processInternalChatMessage({
+          message: userMessage,
+          sessionId: sessionId,
+          mode: 'assistant',
+          isNewSession: false // We manage session persistence in DB
         });
 
-        if (!response.ok) {
-          throw new Error(`Internal API Error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const aiResponse = data.response;
-
-        // 3. Save AI response
-        await saveMessage(sessionId, 'assistant', aiResponse, 0);
-
+        // 3. Save AI response (already done inside processInternalChatMessage)
+        // But we need to ensure it's saved in the same place where we look for history.
+        // processInternalChatMessage uses 'chat_messages' table.
+        // saveMessage uses 'chat_messages' table (in neon-chatbot-db-vercel.js).
+        // So it should be fine.
+        
         // 4. Send to WhatsApp
         await sendWhatsAppMessage(from, aiResponse);
         
