@@ -21,6 +21,7 @@ project2.0/
 │   └── utils/                    # Utilidades helper
 ├── api/                          # Vercel Serverless Functions
 │   ├── ai-blog/                  # Endpoints generación IA
+│   ├── internal-chat.js          # Asistente Interno + Cron Agenda Diaria
 │   ├── clinical-records.js       # Endpoint Fichas Clínicas (Neon DB)
 │   ├── search.js                 # Endpoint búsqueda IA
 │   ├── getEvents.js             # Google Calendar API

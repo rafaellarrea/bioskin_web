@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 2, 2026: Internal Assistant & Vercel Optimization**
+- 🤖 **Asistente Interno**: Integración con Google Calendar (ver/cancelar citas) y generación de frases motivacionales con IA.
+- 📅 **Agenda Diaria**: Sistema de notificación automática vía WhatsApp con agenda del día y frase motivacional.
+- ⚡ **Optimización Vercel**: Consolidación de Cron Job en `api/internal-chat.js` para cumplir límite de 12 funciones serverless.
+
 ### ✅ **Jan 2, 2026: Internal Chat Assistant Upgrade**
 - 🤖 **Persona**: Actualizado prompt del sistema para clonar a "Dra. Daniela Creamer" con saludo formal obligatorio.
 - 📜 **Historial**: Implementada barra lateral con historial de conversaciones pasadas.
