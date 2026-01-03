@@ -479,6 +479,73 @@ async function processWhatsAppMessage(body) {
     const userMessage = message.text.body;
     console.log(`📨 Mensaje de ${from}: "${userMessage}"`);
 
+    // =================================================================================
+    // 🛡️ STAFF FILTER & INTERNAL ASSISTANT ROUTING
+    // =================================================================================
+    const STAFF_NUMBERS = ['593997061321', '593969890689', '593998653732'];
+    const normalizedFrom = from.replace(/\D/g, '');
+    
+    // Check if sender is staff
+    const isStaff = STAFF_NUMBERS.some(num => normalizedFrom.includes(num) || num.includes(normalizedFrom));
+
+    if (isStaff) {
+      console.log(`🛡️ STAFF DETECTADO (${from}) - Enrutando a Asistente Interno...`);
+      
+      try {
+        // Call Internal Assistant Logic (reusing api/internal-chat logic but directly)
+        // We need to fetch the response from the internal chat API or import the logic.
+        // Since we are in the same Vercel project, we can call the handler logic if we refactor,
+        // but for now, let's make a fetch call to our own API or replicate the call.
+        // Better: Let's use the same Gemini logic here but with the "assistant" mode prompt.
+        
+        // 1. Save message to DB (to keep history)
+        const sessionId = `staff_${normalizedFrom}`;
+        await upsertConversation(sessionId, from);
+        await saveMessage(sessionId, 'user', userMessage, 0, messageId);
+
+        // 2. Call Internal Chat API (Assistant Mode)
+        // We use the absolute URL of the deployed app or localhost depending on env
+        const apiUrl = process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}/api/internal-chat`
+          : 'http://localhost:3000/api/internal-chat';
+          
+        console.log(`🔄 Llamando a API Interna: ${apiUrl}`);
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage,
+            sessionId: sessionId,
+            mode: 'assistant',
+            isNewSession: false // We manage session persistence in DB
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Internal API Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const aiResponse = data.response;
+
+        // 3. Save AI response
+        await saveMessage(sessionId, 'assistant', aiResponse, 0);
+
+        // 4. Send to WhatsApp
+        await sendWhatsAppMessage(from, aiResponse);
+        
+        console.log('✅ Respuesta de Asistente Interno enviada al staff');
+        return; // STOP HERE for staff
+
+      } catch (error) {
+        console.error('❌ Error en Asistente Interno:', error);
+        await sendWhatsAppMessage(from, '⚠️ Error en el Asistente Interno. Por favor revisa los logs.');
+        return;
+      }
+    }
+    // =================================================================================
+
     // Generar ID de sesión (número de teléfono como identificador)
     const sessionId = `whatsapp_${from}`;
     console.log(`🔑 Session ID generado: ${sessionId}`);
