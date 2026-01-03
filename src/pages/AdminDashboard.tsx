@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface UpcomingAppointment {
@@ -212,6 +212,13 @@ export default function AdminDashboard() {
       icon: ClipboardList,
       path: '/admin/clinical-records',
       color: 'from-pink-500 to-pink-600'
+    },
+    {
+      title: 'Inventario',
+      description: 'Control de stock, lotes y vencimientos',
+      icon: Package,
+      path: '/admin/inventory',
+      color: 'from-cyan-500 to-cyan-600'
     }
   ];
 

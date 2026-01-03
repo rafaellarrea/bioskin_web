@@ -118,6 +118,12 @@ Tables:
 Tables:
 - chat_conversations (id, session_id, phone_number, last_message_at, total_messages)
 - chat_messages (id, session_id, role, content, tokens_used, timestamp)
+
+// Inventory System (Neon PostgreSQL)
+Tables:
+- inventory_items (id, sku, name, category, unit_of_measure)
+- inventory_batches (id, item_id, batch_number, expiration_date, quantity)
+- inventory_movements (id, batch_id, movement_type, quantity_change)
 ```
 
 #### **AI Service**

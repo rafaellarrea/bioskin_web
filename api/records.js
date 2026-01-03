@@ -84,6 +84,155 @@ export default async function handler(req, res) {
       case 'init':
         return res.status(200).json({ message: 'Database initialized (skipped)' });
 
+      // ==========================================
+      // INVENTORY MODULE ACTIONS
+      // ==========================================
+
+      case 'inventoryListItems':
+        try {
+          const items = await pool.query(`
+            SELECT 
+              i.*, 
+              COALESCE(SUM(b.quantity_current), 0) as total_stock,
+              MIN(b.expiration_date) as next_expiry
+            FROM inventory_items i
+            LEFT JOIN inventory_batches b ON i.id = b.item_id AND b.status = 'active'
+            GROUP BY i.id
+            ORDER BY i.name ASC
+          `);
+          return res.status(200).json(items.rows);
+        } catch (err) {
+          console.error('Error listing inventory:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryGetItem':
+        try {
+          const itemId = req.query.id;
+          const itemResult = await pool.query('SELECT * FROM inventory_items WHERE id = $1', [itemId]);
+          
+          if (itemResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Item not found' });
+          }
+
+          const batchesResult = await pool.query(`
+            SELECT * FROM inventory_batches 
+            WHERE item_id = $1 AND status = 'active' 
+            ORDER BY expiration_date ASC
+          `, [itemId]);
+
+          const movementsResult = await pool.query(`
+            SELECT m.*, b.batch_number 
+            FROM inventory_movements m
+            JOIN inventory_batches b ON m.batch_id = b.id
+            WHERE b.item_id = $1
+            ORDER BY m.created_at DESC
+            LIMIT 50
+          `, [itemId]);
+
+          return res.status(200).json({
+            item: itemResult.rows[0],
+            batches: batchesResult.rows,
+            movements: movementsResult.rows
+          });
+        } catch (err) {
+          console.error('Error getting inventory item:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryCreateItem':
+        try {
+          const { sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain } = body;
+          const newItem = await pool.query(`
+            INSERT INTO inventory_items (sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+          `, [sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain]);
+          return res.status(201).json(newItem.rows[0]);
+        } catch (err) {
+          console.error('Error creating inventory item:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryAddBatch':
+        try {
+          const { item_id, batch_number, expiration_date, quantity, cost_per_unit, user_id } = body;
+          
+          // Start transaction
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+            
+            // Create Batch
+            const newBatch = await client.query(`
+              INSERT INTO inventory_batches (item_id, batch_number, expiration_date, quantity_initial, quantity_current, cost_per_unit, status)
+              VALUES ($1, $2, $3, $4, $4, $5, 'active')
+              RETURNING *
+            `, [item_id, batch_number, expiration_date, quantity, cost_per_unit]);
+
+            // Record Movement
+            await client.query(`
+              INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, user_id)
+              VALUES ($1, 'PURCHASE', $2, 'Ingreso inicial de lote', $3)
+            `, [newBatch.rows[0].id, quantity, user_id]);
+
+            await client.query('COMMIT');
+            return res.status(201).json(newBatch.rows[0]);
+          } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+          } finally {
+            client.release();
+          }
+        } catch (err) {
+          console.error('Error adding batch:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryConsume':
+        try {
+          const { batch_id, quantity, reason, user_id, reference_id } = body;
+          
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+            
+            // Check current stock
+            const batchRes = await client.query('SELECT quantity_current FROM inventory_batches WHERE id = $1', [batch_id]);
+            if (batchRes.rows.length === 0) throw new Error('Batch not found');
+            
+            const currentQty = batchRes.rows[0].quantity_current;
+            if (currentQty < quantity) throw new Error('Insufficient stock in this batch');
+
+            const newQty = currentQty - quantity;
+            const newStatus = newQty === 0 ? 'depleted' : 'active';
+
+            // Update Batch
+            await client.query(`
+              UPDATE inventory_batches 
+              SET quantity_current = $1, status = $2 
+              WHERE id = $3
+            `, [newQty, newStatus, batch_id]);
+
+            // Record Movement
+            await client.query(`
+              INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id)
+              VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5)
+            `, [batch_id, -quantity, reason, reference_id, user_id]);
+
+            await client.query('COMMIT');
+            return res.status(200).json({ success: true, new_quantity: newQty });
+          } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+          } finally {
+            client.release();
+          }
+        } catch (err) {
+          console.error('Error consuming inventory:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
       case 'listPatients':
         const patients = await pool.query('SELECT * FROM patients ORDER BY last_name, first_name');
         return res.status(200).json(patients.rows);

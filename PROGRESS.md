@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 3, 2026: Inventory Module Initialization**
+- 📦 **Inventario**: Inicializada base de datos de inventario en Neon (tablas items, batches, movements).
+- 🧪 **Testing**: Creado y ejecutado script de prueba para verificar flujo de inventario.
+
 ### ✅ **Jan 3, 2026: Admin UI & Data Updates**
 - 🏥 **Ficha Clínica**: Agregada opción "Ninguno" por defecto en antecedentes y ampliada paleta de tratamientos con 28 nuevos servicios.
 - 🔙 **Navegación**: Agregado botón "Volver" faltante en Asistente de Respuestas (Gema).
