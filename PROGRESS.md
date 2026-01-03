@@ -10,6 +10,19 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 3, 2026: Admin UI & Data Updates**
+- 🏥 **Ficha Clínica**: Agregada opción "Ninguno" por defecto en antecedentes y ampliada paleta de tratamientos con 28 nuevos servicios.
+- 🔙 **Navegación**: Agregado botón "Volver" faltante en Asistente de Respuestas (Gema).
+- 🛠️ **Scripts**: Implementados scripts de actualización masiva para opciones de antecedentes y tratamientos.
+
+### ✅ **Jan 3, 2026: Chat Assistant & Clinical Records Fixes**
+- 💬 **Prompt Tuning**: Optimizado prompt del asistente interno para incluir descripción y beneficios de tratamientos de forma concisa.
+- 🐛 **Recetas**: Corregido bug que impedía guardar items de receta si solo tenían nombre comercial (sin principio activo).
+- 🧪 **Testing**: Verificada integridad de guardado de recetas mediante script de prueba.
+
+### ✅ **Jan 3, 2026: Chat Assistant Optimization**
+- 💬 **Prompt Tuning**: Optimizado prompt del asistente interno para respuestas más concretas y breves en WhatsApp.
+
 ### ✅ **Jan 2, 2026: Internal Assistant & Vercel Optimization**
 - 🤖 **Asistente Interno**: Integración con Google Calendar (ver/cancelar citas) y generación de frases motivacionales con IA.
 - 📅 **Agenda Diaria**: Sistema de notificación automática vía WhatsApp con agenda del día y frase motivacional.

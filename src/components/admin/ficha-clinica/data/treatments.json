@@ -2858,5 +2858,285 @@
     "activo": 1,
     "creado_en": "2025-09-29 01:21:38",
     "categoria_id": 5
+  },
+  {
+    "id": 33436,
+    "categoria": "Medicina Estética",
+    "elemento": "Consulta + Escáner Facial",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33437,
+    "categoria": "Medicina Estética",
+    "elemento": "Limpieza Facial",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33438,
+    "categoria": "Medicina Estética",
+    "elemento": "Dermaplaning + limpieza",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33439,
+    "categoria": "Medicina Estética",
+    "elemento": "Mesoterapia Facial",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33440,
+    "categoria": "Medicina Estética",
+    "elemento": "Plasma rico en plaquetas (PRP)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33441,
+    "categoria": "Medicina Estética",
+    "elemento": "Exosomas (aplicación tópica o mesoterapia)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33442,
+    "categoria": "Medicina Estética",
+    "elemento": "Hollywood Peel",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33443,
+    "categoria": "Medicina Estética",
+    "elemento": "Láser CO₂ Fraccionado (Superficial)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33444,
+    "categoria": "Medicina Estética",
+    "elemento": "Láser CO₂ Ablativo (Profundo)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33445,
+    "categoria": "Medicina Estética",
+    "elemento": "Tratamiento vascular / lesiones (Nd :YAG )",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33446,
+    "categoria": "Medicina Estética",
+    "elemento": "IPL (Elight) – Fotofacial / Rejuvenecimiento",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33447,
+    "categoria": "Medicina Estética",
+    "elemento": "Depilación con IPL (Elight)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33448,
+    "categoria": "Medicina Estética",
+    "elemento": "IPL despigmentante",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33449,
+    "categoria": "Medicina Estética",
+    "elemento": "HIFU Facial Completo (7D)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33450,
+    "categoria": "Medicina Estética",
+    "elemento": "HIFU Zona Específica (Papada/Óvalo/Ojos)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33451,
+    "categoria": "Medicina Estética",
+    "elemento": "Crio-Radiofrecuencia facial",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33452,
+    "categoria": "Medicina Estética",
+    "elemento": "Relleno de Labios",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33453,
+    "categoria": "Medicina Estética",
+    "elemento": "Bioestimuladores de Colágeno",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33454,
+    "categoria": "Medicina Estética",
+    "elemento": "Protocolo Anti-acné (combinado)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33455,
+    "categoria": "Medicina Estética",
+    "elemento": "Tratamiento de cicatrices con láser CO2",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33456,
+    "categoria": "Medicina Estética",
+    "elemento": "Hidratación Profunda",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33457,
+    "categoria": "Medicina Estética",
+    "elemento": "Tratamiento Antiaging",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33458,
+    "categoria": "Medicina Estética",
+    "elemento": "Tratamiento Antimanchas",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33459,
+    "categoria": "Medicina Estética",
+    "elemento": "Remoción de Tatuajes",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33460,
+    "categoria": "Medicina Estética",
+    "elemento": "HIFU Corporal (7D)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33461,
+    "categoria": "Medicina Estética",
+    "elemento": "Lipopapada sin cirugía (3 sesiones mesoterapia+1 sesion hifu+ 3 sesiones crioradiofrecuencia bipolar)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33462,
+    "categoria": "Medicina Estética",
+    "elemento": "Skin Booster (Ácido Hialurónico)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
+  },
+  {
+    "id": 33463,
+    "categoria": "Medicina Estética",
+    "elemento": "Skin Booster (Exosomas)",
+    "descripcion": "Sincronizado desde Web",
+    "es_maestro": 1,
+    "activo": 1,
+    "creado_en": "2026-01-03 22:17:22",
+    "categoria_id": 2
   }
 ]

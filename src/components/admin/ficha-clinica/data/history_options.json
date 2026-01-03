@@ -16,6 +16,7 @@
     "Ninguna rutina establecida"
   ],
   "antecedente_personal": [
+    "Ninguno",
     "Diabetes mellitus tipo 1",
     "Diabetes mellitus tipo 2",
     "Hipertensión arterial",
@@ -103,6 +104,7 @@
     "AB TEST"
   ],
   "antecedente_familiar": [
+    "Ninguno",
     "Diabetes mellitus familiar",
     "Hipertensión arterial familiar",
     "Cardiopatía isquémica familiar",
@@ -162,6 +164,7 @@
     "Sin antecedentes familiares relevantes"
   ],
   "alergia": [
+    "Ninguna alergia conocida",
     "Penicilina",
     "Amoxicilina",
     "Ampicilina",
@@ -231,6 +234,7 @@
     "Sin alergias conocidas"
   ],
   "habito": [
+    "Ninguno",
     "Tabaquismo activo",
     "Ex-fumador (menos de 1 año)",
     "Ex-fumador (más de 1 año)",
@@ -294,6 +298,7 @@
     "Sin hábitos relevantes"
   ],
   "obstetrico": [
+    "Ninguno",
     "Nulípara (sin embarazos)",
     "Primípara (1 embarazo)",
     "Multípara (2-4 embarazos)",
@@ -376,6 +381,7 @@
     "No aplica (paciente masculino)"
   ],
   "quirurgico": [
+    "Ninguna cirugía previa",
     "Cirugía cardiovascular",
     "Marcapasos",
     "Stent coronario",
@@ -487,6 +493,7 @@
     "Sin cirugías previas"
   ],
   "dispositivo_metalico": [
+    "Ninguno",
     "Marcapasos cardíaco",
     "Desfibrilador automático implantable (DAI)",
     "Stent coronario",
@@ -552,6 +559,7 @@
     "Sin dispositivos metálicos"
   ],
   "medicacion": [
+    "Ninguno",
     "Anticoagulantes orales (warfarina)",
     "Anticoagulantes nuevos (rivaroxabán, apixabán)",
     "Aspirina antiagregante",
@@ -673,6 +681,7 @@
     "Sin medicación actual"
   ],
   "cuidados_piel": [
+    "Ninguno",
     "Sin rutina específica",
     "Rutina básica (limpieza y humectación)",
     "Rutina completa (limpieza, tónico, sérum, humectante, protector solar)",
@@ -782,6 +791,7 @@
     "Mezcla inadecuada de ingredientes activos"
   ],
   "rutina_piel": [
+    "Ninguna rutina establecida",
     "Sin rutina establecida",
     "Rutina matutina básica",
     "Rutina nocturna básica",
@@ -866,6 +876,7 @@
     "Compartir productos de cuidado"
   ],
   "otros": [
+    "Ninguno",
     "Trastornos de la alimentación",
     "Anorexia nerviosa",
     "Bulimia nerviosa",
@@ -1058,6 +1069,7 @@
     "Otros datos relevantes"
   ],
   "rutina_facial": [
+    "Ninguna rutina establecida",
     "Limpieza diaria (mañana y noche)",
     "Limpieza ocasional",
     "Uso de protector solar diario",

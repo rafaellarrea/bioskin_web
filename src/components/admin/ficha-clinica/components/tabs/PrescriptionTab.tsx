@@ -88,7 +88,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       const body = {
         ...currentPrescription,
         ficha_id: recordId,
-        items: currentPrescription.items.filter(i => i.medicamento) // Filter empty rows
+        items: currentPrescription.items.filter(i => i.medicamento || i.nombre_comercial) // Filter empty rows
       };
 
       const res = await fetch(`/api/records?action=${action}`, {
@@ -192,7 +192,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: name,
-          items: currentPrescription.items.filter(i => i.medicamento)
+          items: currentPrescription.items.filter(i => i.medicamento || i.nombre_comercial)
         })
       });
       loadTemplates();
@@ -209,7 +209,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       const items = JSON.parse(template.items_json);
       setCurrentPrescription(prev => ({
         ...prev,
-        items: [...prev.items.filter(i => i.medicamento), ...items]
+        items: [...prev.items.filter(i => i.medicamento || i.nombre_comercial), ...items]
       }));
       setMessage({ type: 'success', text: 'Plantilla aplicada' });
     }
