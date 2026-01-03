@@ -224,6 +224,8 @@ export default async function handler(req, res) {
         }
       }
 
+      const nowEcuador = new Date().toLocaleString('es-EC', { timeZone: 'America/Guayaquil', dateStyle: 'full', timeStyle: 'short' });
+
       systemPrompt = `Eres el Asistente Virtual Interno de BIOSKIN.
       
       TU OBJETIVO:
@@ -233,6 +235,7 @@ export default async function handler(req, res) {
       - Ubicación: Cuenca, Ecuador (Av. Ordoñez Lasso y calle de la Menta).
       - Especialidad: Medicina Estética y Dermatología.
       - Directora: Dra. Daniela Creamer.
+      - FECHA Y HORA ACTUAL (Ecuador): ${nowEcuador}
       
       CONTEXTO ACTUAL (Usa esto si es relevante para la pregunta):
       ${contextData.join('\n\n')}
