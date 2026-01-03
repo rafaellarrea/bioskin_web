@@ -44,8 +44,10 @@ npm run preview
 ## 📚 Documentación
 
 - **📖 Arquitectura**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **📊 Progreso**: [docs/PROGRESS.md](docs/PROGRESS.md)
-- **🧹 Limpieza**: [docs/ANALISIS-LIMPIEZA.md](docs/ANALISIS-LIMPIEZA.md)
+- **🤖 Chatbot & WhatsApp**: [docs/CHATBOT-SYSTEM.md](docs/CHATBOT-SYSTEM.md)
+- **📊 Analytics**: [docs/ANALYTICS.md](docs/ANALYTICS.md)
+- **🔐 Variables de Entorno**: [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
+- **📈 Progreso**: [docs/PROGRESS.md](docs/PROGRESS.md)
 - **🚀 Sistema de Blogs**: [blog-system/README.md](blog-system/README.md)
 
 ## ⚙️ Configuración
