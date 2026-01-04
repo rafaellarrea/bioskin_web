@@ -95,6 +95,7 @@ export default async function handler(req, res) {
               i.*,
               COALESCE(SUM(b.quantity_current), 0) as total_stock,
               COALESCE(SUM(b.quantity_initial), 0) as total_initial,
+              COUNT(b.id) as batch_count,
               MIN(b.expiration_date) as next_expiry
             FROM inventory_items i
             LEFT JOIN inventory_batches b ON i.id = b.item_id AND b.status = 'active'
@@ -243,12 +244,14 @@ export default async function handler(req, res) {
             const newQty = currentQty - quantity;
             const newStatus = newQty <= 0 ? 'depleted' : 'active';
 
-            // Update Batch
-            await client.query(`
-              UPDATE inventory_batches 
-              SET quantity_current = $1, status = $2 
-              WHERE id = $3
-            `, [newQty, newStatus, batch_id]);
+            // Update Batch only if quantity > 0
+            if (quantity > 0) {
+              await client.query(`
+                UPDATE inventory_batches 
+                SET quantity_current = $1, status = $2 
+                WHERE id = $3
+              `, [newQty, newStatus, batch_id]);
+            }
 
             // Update Item Preference if provided
             if (preferred_display_unit) {
@@ -259,11 +262,13 @@ export default async function handler(req, res) {
               `, [preferred_display_unit, itemId]);
             }
 
-            // Record Movement
-            await client.query(`
-              INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id)
-              VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5)
-            `, [batch_id, -quantity, reason, reference_id, user_id]);
+            // Record Movement only if quantity > 0
+            if (quantity > 0) {
+              await client.query(`
+                INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id)
+                VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5)
+              `, [batch_id, -quantity, reason, reference_id, user_id]);
+            }
 
             await client.query('COMMIT');
             return res.status(200).json({ success: true, new_quantity: newQty });

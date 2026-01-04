@@ -211,6 +211,11 @@ export default function AdminInventory() {
               setSelectedItem(null);
             }}
             onSave={handleConsumeStock}
+            onRestock={() => {
+              setShowConsumeModal(false);
+              // Keep selectedItem
+              setShowStockModal(true);
+            }}
           />
         )}
       </div>

@@ -11,6 +11,7 @@ interface InventoryItem {
   unit_of_measure: string;
   total_stock: number;
   total_initial?: number;
+  batch_count?: number;
   preferred_display_unit?: 'absolute' | 'percentage';
   min_stock_level: number;
   next_expiry: string;
@@ -173,12 +174,22 @@ export default function InventoryList({ items, onSelectItem, onAddStock, onConsu
                                     <div className="flex flex-col items-center">
                                       <span className="font-bold text-gray-800 text-lg">{percentage}%</span>
                                       <span className="text-[10px] text-gray-400">({item.total_stock} {item.unit_of_measure})</span>
+                                      {item.batch_count && item.batch_count > 0 && (
+                                        <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 rounded mt-1">
+                                          {item.batch_count} {item.batch_count === 1 ? 'Unidad' : 'Unidades'}
+                                        </span>
+                                      )}
                                     </div>
                                   ) : (
-                                    <>
+                                    <div className="flex flex-col items-center">
                                       <span className="font-bold text-gray-800 text-lg">{item.total_stock}</span>
                                       <span className="text-xs text-gray-500 ml-1">{item.unit_of_measure}</span>
-                                    </>
+                                      {item.batch_count && item.batch_count > 0 && (
+                                        <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 rounded mt-1">
+                                          {item.batch_count} {item.batch_count === 1 ? 'Unidad' : 'Unidades'}
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                 </td>
                                 <td className="p-4">

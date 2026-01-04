@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, Droplet } from 'lucide-react';
+import { X, Save, AlertCircle, Droplet, RefreshCw } from 'lucide-react';
 
 interface ConsumeModalProps {
   item: any;
   onClose: () => void;
   onSave: (data: any) => Promise<void>;
+  onRestock?: () => void;
 }
 
-export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProps) {
+export default function ConsumeModal({ item, onClose, onSave, onRestock }: ConsumeModalProps) {
   const [batches, setBatches] = useState<any[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
@@ -192,8 +193,8 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
                 </span>
               </div>
               
-              <div className="grid grid-cols-5 gap-2">
-                {[0.2, 0.4, 0.5, 0.8, 1.0].map((level) => (
+              <div className="grid grid-cols-6 gap-2">
+                {[0, 0.2, 0.4, 0.5, 0.8, 1.0].map((level) => (
                   <button
                     key={level}
                     type="button"
@@ -206,11 +207,13 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
                   >
                     <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
                       <div 
-                        className="absolute bottom-0 left-0 right-0 bg-orange-400 transition-all duration-300"
+                        className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${level === 0 ? 'bg-red-400' : 'bg-orange-400'}`}
                         style={{ height: `${level * 100}%` }}
                       ></div>
                     </div>
-                    <span className="text-[10px] font-medium text-gray-600">{level * 100}%</span>
+                    <span className={`text-[10px] font-medium ${level === 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                      {level === 0 ? 'Agotado' : `${level * 100}%`}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -218,7 +221,7 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
               <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600 space-y-2">
                 <div className="flex justify-between items-center">
                    <span>Nivel restante seleccionado:</span>
-                   <span className="font-medium text-gray-800">{remainingLevel ? Math.round(remainingLevel * 100) : 0}%</span>
+                   <span className="font-medium text-gray-800">{remainingLevel !== null ? Math.round(remainingLevel * 100) : 0}%</span>
                 </div>
                 <div className="flex justify-between items-center border-t border-gray-200 pt-2">
                    <span>Consumo a registrar:</span>
@@ -229,6 +232,22 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
               <p className="text-[10px] text-center text-gray-400 mt-1">
                 Selecciona el porcentaje del total original que queda disponible actualmente.
               </p>
+
+              {onRestock && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => { onClose(); onRestock(); }}
+                    className="w-full py-2 px-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Reponer / Nuevo Envase
+                  </button>
+                  <p className="text-[10px] text-center text-gray-400 mt-1">
+                    Registrará un nuevo lote y aumentará el conteo de unidades.
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div>

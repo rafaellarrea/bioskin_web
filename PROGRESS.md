@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Restock & Visual Fixes**
+- 🔄 **Reposición**: Agregado botón "Reponer / Nuevo Envase" en modal de consumo para facilitar el flujo de reabastecimiento.
+- 📉 **Agotado**: Agregada opción "Agotado" (0%) en selector visual.
+- 🔢 **Conteo**: El listado de inventario ahora muestra el conteo de unidades/lotes activos (ej. "2 Unidades").
+- 🛠️ **Corrección**: Permitido guardar consumo "0" si el objetivo es solo actualizar la preferencia visual (porcentaje).
+
 ### ✅ **Jan 4, 2026: Inventory Display Preference**
 - 👁️ **Visualización**: Implementada preferencia de visualización (Porcentaje vs Absoluto) basada en el último método de actualización de stock.
 - 🗄️ **Base de Datos**: Agregada columna `preferred_display_unit` a `inventory_items` y migración automática.
