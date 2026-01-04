@@ -142,12 +142,12 @@ export default async function handler(req, res) {
 
       case 'inventoryCreateItem':
         try {
-          const { sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain } = body;
+          const { sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration } = body;
           const newItem = await pool.query(`
-            INSERT INTO inventory_items (sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO inventory_items (sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
-          `, [sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain]);
+          `, [sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration]);
           return res.status(201).json(newItem.rows[0]);
         } catch (err) {
           console.error('Error creating inventory item:', err);
@@ -201,11 +201,11 @@ export default async function handler(req, res) {
             const batchRes = await client.query('SELECT quantity_current FROM inventory_batches WHERE id = $1', [batch_id]);
             if (batchRes.rows.length === 0) throw new Error('Batch not found');
             
-            const currentQty = batchRes.rows[0].quantity_current;
+            const currentQty = parseFloat(batchRes.rows[0].quantity_current);
             if (currentQty < quantity) throw new Error('Insufficient stock in this batch');
 
             const newQty = currentQty - quantity;
-            const newStatus = newQty === 0 ? 'depleted' : 'active';
+            const newStatus = newQty <= 0 ? 'depleted' : 'active';
 
             // Update Batch
             await client.query(`

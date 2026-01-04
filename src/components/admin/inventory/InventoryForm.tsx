@@ -14,7 +14,8 @@ export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
     category: 'Inyectable',
     unit_of_measure: 'Vial',
     min_stock_level: 5,
-    requires_cold_chain: false
+    requires_cold_chain: false,
+    sanitary_registration: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +81,17 @@ export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
               rows={2}
               value={formData.description}
               onChange={e => setFormData({...formData, description: e.target.value})}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Registro Sanitario</label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+              value={formData.sanitary_registration}
+              onChange={e => setFormData({...formData, sanitary_registration: e.target.value})}
+              placeholder="Ej. ISP-12345"
             />
           </div>
 

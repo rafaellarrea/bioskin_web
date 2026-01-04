@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Package, Plus, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
 import AdminLayout from '../components/admin/AdminLayout';
 import InventoryList from '../components/admin/inventory/InventoryList';
 import InventoryForm from '../components/admin/inventory/InventoryForm';
 import StockMovementModal from '../components/admin/inventory/StockMovementModal';
+import ConsumeModal from '../components/admin/inventory/ConsumeModal';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminInventory() {
@@ -12,11 +13,20 @@ export default function AdminInventory() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showConsumeModal, setShowConsumeModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const fetchInventory = async () => {
     setLoading(true);
@@ -40,6 +50,7 @@ export default function AdminInventory() {
       body: JSON.stringify(data)
     });
     if (!res.ok) throw new Error('Error al crear producto');
+    setSuccessMessage('Producto creado exitosamente');
     fetchInventory();
   };
 
@@ -50,12 +61,31 @@ export default function AdminInventory() {
       body: JSON.stringify({ ...data, user_id: username })
     });
     if (!res.ok) throw new Error('Error al agregar stock');
+    setSuccessMessage('Stock agregado exitosamente');
+    fetchInventory();
+  };
+
+  const handleConsumeStock = async (data: any) => {
+    const res = await fetch('/api/records?action=inventoryConsume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, user_id: username })
+    });
+    if (!res.ok) throw new Error('Error al registrar consumo');
+    setSuccessMessage('Consumo registrado exitosamente');
     fetchInventory();
   };
 
   return (
     <AdminLayout title="Inventario y Stock" subtitle="Gestión de productos, lotes y vencimientos">
       <div className="space-y-6">
+        {successMessage && (
+          <div className="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in">
+            <CheckCircle className="w-5 h-5" />
+            {successMessage}
+          </div>
+        )}
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -117,6 +147,10 @@ export default function AdminInventory() {
               setSelectedItem(item);
               setShowStockModal(true);
             }}
+            onConsumeStock={(item) => {
+              setSelectedItem(item);
+              setShowConsumeModal(true);
+            }}
           />
         )}
 
@@ -136,6 +170,17 @@ export default function AdminInventory() {
               setSelectedItem(null);
             }}
             onSave={handleAddStock}
+          />
+        )}
+
+        {showConsumeModal && selectedItem && (
+          <ConsumeModal 
+            item={selectedItem}
+            onClose={() => {
+              setShowConsumeModal(false);
+              setSelectedItem(null);
+            }}
+            onSave={handleConsumeStock}
           />
         )}
       </div>
