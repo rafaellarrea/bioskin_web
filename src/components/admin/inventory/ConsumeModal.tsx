@@ -15,6 +15,7 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'manual' | 'visual'>('visual');
+  const [remainingLevel, setRemainingLevel] = useState<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -28,7 +29,7 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
           }
         }
       })
-      .catch(err => setError('Error cargando lotes'))
+      .catch(() => setError('Error cargando lotes'))
       .finally(() => setLoading(false));
   }, [item.id]);
 
@@ -73,27 +74,38 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
     }
   };
 
-  const handleLevelSelect = (level: number) => {
-    // If user selects "50%", it means they used 50% of a unit (0.5)
-    // Or does it mean the bottle is AT 50%?
-    // The prompt says: "no tengo que cada vez que use 0.5... sino que cada cierto tiempo verificar visualmente"
-    // This implies setting the CURRENT level.
-    // BUT, our backend expects "quantity to consume".
-    // So if I select "Current Level: 50%", I need to know the PREVIOUS level to calculate consumption.
-    // But we don't track "per bottle" level easily if there are multiple bottles in a batch.
-    // Assuming 1 Unit = 1 Bottle.
-    // If the batch has 5.5 units. That means 5 full bottles and one half full.
-    // If I say "Current Level of open bottle is 25%".
-    // Then the new total should be 5.25.
-    // Consumption = 5.5 - 5.25 = 0.25.
+  const getBatchCurrentLevel = () => {
+    const batch = batches.find(b => b.id === parseInt(selectedBatchId));
+    if (!batch) return 1;
+    const qty = typeof batch.quantity_current === 'string' ? parseFloat(batch.quantity_current) : batch.quantity_current;
+    if (qty === 0) return 0;
+    const decimal = qty % 1;
+    // If decimal is very close to 0 (floating point), treat as 1 (full) unless total is < 1
+    if (decimal < 0.001) return qty >= 1 ? 1 : decimal;
+    return decimal;
+  };
+
+  const handleLevelSelect = (targetLevel: number) => {
+    const batch = batches.find(b => b.id === parseInt(selectedBatchId));
+    if (!batch) return;
+
+    const currentLevel = getBatchCurrentLevel();
+    let calculatedConsumption = 0;
     
-    // To implement this correctly without complex "per bottle" tracking:
-    // We can just interpret the visual selector as "Amount Consumed from a single unit".
-    // "I used 25% of a bottle" -> Consumed 0.25.
-    // "I used 50% of a bottle" -> Consumed 0.5.
-    // This is the safest interpretation that fits the current schema.
+    if (targetLevel <= currentLevel) {
+      // Simple consumption: 0.8 -> 0.6 (Consumed 0.2)
+      calculatedConsumption = currentLevel - targetLevel;
+    } else {
+      // New bottle case: 0.1 -> 0.9 (Finished 0.1, Opened new, used 0.1)
+      calculatedConsumption = currentLevel + (1 - targetLevel);
+    }
     
-    setQuantity(level.toString());
+    // Round to 2 decimals
+    calculatedConsumption = Math.round(calculatedConsumption * 100) / 100;
+    if (calculatedConsumption < 0) calculatedConsumption = 0;
+
+    setQuantity(calculatedConsumption.toString());
+    setRemainingLevel(targetLevel);
   };
 
   return (
@@ -164,75 +176,43 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
 
           {mode === 'visual' ? (
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Cantidad Consumida (Aprox)</label>
-              <div className="grid grid-cols-5 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleLevelSelect(0.2)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                    quantity === '0.2' ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' : 'border-gray-200 hover:border-[#deb887]/50'
-                  }`}
-                >
-                  <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
-                    <div className="absolute bottom-0 left-0 right-0 bg-orange-400 h-[20%]"></div>
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-600">20%</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleLevelSelect(0.4)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                    quantity === '0.4' ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' : 'border-gray-200 hover:border-[#deb887]/50'
-                  }`}
-                >
-                  <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
-                    <div className="absolute bottom-0 left-0 right-0 bg-orange-400 h-[40%]"></div>
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-600">40%</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleLevelSelect(0.5)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                    quantity === '0.5' ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' : 'border-gray-200 hover:border-[#deb887]/50'
-                  }`}
-                >
-                  <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
-                    <div className="absolute bottom-0 left-0 right-0 bg-orange-400 h-[50%]"></div>
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-600">50%</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleLevelSelect(0.8)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                    quantity === '0.8' ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' : 'border-gray-200 hover:border-[#deb887]/50'
-                  }`}
-                >
-                  <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
-                    <div className="absolute bottom-0 left-0 right-0 bg-orange-400 h-[80%]"></div>
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-600">80%</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleLevelSelect(1.0)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                    quantity === '1' ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' : 'border-gray-200 hover:border-[#deb887]/50'
-                  }`}
-                >
-                  <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
-                    <div className="absolute bottom-0 left-0 right-0 bg-orange-400 h-full"></div>
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-600">100%</span>
-                </button>
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">Nivel Restante en Envase</label>
+                <span className="text-xs text-gray-500">
+                  Actual: {Math.round(getBatchCurrentLevel() * 100)}%
+                </span>
               </div>
-              <p className="text-xs text-center text-gray-500 mt-2">
-                Selecciona la cantidad aproximada que se consumió del envase.
+              
+              <div className="grid grid-cols-5 gap-2">
+                {[0.2, 0.4, 0.5, 0.8, 1.0].map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => handleLevelSelect(level)}
+                    className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
+                      remainingLevel === level 
+                        ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' 
+                        : 'border-gray-200 hover:border-[#deb887]/50'
+                    }`}
+                  >
+                    <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
+                      <div 
+                        className="absolute bottom-0 left-0 right-0 bg-orange-400 transition-all duration-300"
+                        style={{ height: `${level * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-600">{level * 100}%</span>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="bg-gray-50 p-2 rounded-lg text-xs text-gray-600 flex justify-between items-center">
+                <span>Consumo calculado:</span>
+                <span className="font-bold text-[#deb887] text-sm">{quantity} unidades</span>
+              </div>
+              
+              <p className="text-[10px] text-center text-gray-400 mt-1">
+                Selecciona cuánto producto QUEDA en el envase abierto.
               </p>
             </div>
           ) : (

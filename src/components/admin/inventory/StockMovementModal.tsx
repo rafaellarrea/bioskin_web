@@ -22,9 +22,13 @@ export default function StockMovementModal({ item, onClose, onSave }: StockMovem
     setLoading(true);
     setError(null);
     try {
+      // Auto-generate batch number if empty
+      const finalBatchNumber = formData.batch_number.trim() || `LOTE-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(Math.random() * 1000)}`;
+      
       await onSave({
         item_id: item.id,
-        ...formData
+        ...formData,
+        batch_number: finalBatchNumber
       });
       onClose();
     } catch (err: any) {
@@ -56,12 +60,11 @@ export default function StockMovementModal({ item, onClose, onSave }: StockMovem
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Número de Lote *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Número de Lote <span className="text-gray-400 font-normal">(Opcional)</span></label>
             <input
               type="text"
-              required
               className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-              placeholder="Ej. L-2024-001"
+              placeholder="Ej. L-2024-001 (Se generará uno si se deja vacío)"
               value={formData.batch_number}
               onChange={e => setFormData({...formData, batch_number: e.target.value})}
             />
