@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Consumption UI**
+- 🎛️ **Selector Visual**: Reemplazado toggle por checkbox para activar modo visual de nivel restante.
+- 📉 **Lógica**: Clarificado que el selector visual define el nivel restante en el envase, calculando el consumo automáticamente.
+
 ### ✅ **Jan 4, 2026: Prescription Print Styling**
 - 📏 **Estilos**: Reducido tamaño de fuente y espaciado en receta médica para optimizar espacio en formato media hoja A4.
 

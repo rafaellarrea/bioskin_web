@@ -152,25 +152,20 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
           </div>
 
           {isConsumable && (
-            <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
-              <button
-                type="button"
-                onClick={() => setMode('visual')}
-                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  mode === 'visual' ? 'bg-white text-[#deb887] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Selector Visual
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('manual')}
-                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  mode === 'manual' ? 'bg-white text-[#deb887] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Entrada Manual
-              </button>
+            <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <input
+                type="checkbox"
+                id="visualMode"
+                checked={mode === 'visual'}
+                onChange={(e) => setMode(e.target.checked ? 'visual' : 'manual')}
+                className="w-4 h-4 text-[#deb887] border-gray-300 rounded focus:ring-[#deb887] cursor-pointer"
+              />
+              <label htmlFor="visualMode" className="text-sm text-gray-700 select-none cursor-pointer flex-1">
+                Usar selector visual de nivel restante
+                <span className="block text-xs text-gray-500 font-normal">
+                  (Recomendado si no se puede medir cantidad exacta)
+                </span>
+              </label>
             </div>
           )}
 
