@@ -227,11 +227,11 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         <head>
           <title>Receta Médica - ${patientName}</title>
           <style>
-            @page { size: landscape; margin: 0; }
-            body { font-family: 'Arial', sans-serif; padding: 40px; max-width: 100%; margin: 0; box-sizing: border-box; }
-            .container { display: flex; gap: 60px; height: 100%; }
+            @page { size: A4 portrait; margin: 0; }
+            body { font-family: 'Arial', sans-serif; padding: 0; max-width: 100%; margin: 0; box-sizing: border-box; }
+            .container { display: flex; gap: 40px; height: 140mm; padding: 40px; }
             .column { flex: 1; position: relative; display: flex; flex-direction: column; }
-            .column:first-child { border-right: 1px dashed #ccc; padding-right: 60px; }
+            .column:first-child { border-right: 1px dashed #ccc; padding-right: 40px; }
             
             .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px; }
             .logo { height: 60px; object-fit: contain; }

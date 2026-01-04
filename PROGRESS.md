@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Prescription Print Layout**
+- 🖨️ **Impresión**: Ajustado diseño de receta médica para imprimir en media hoja A4 (formato A5 horizontal superior).
+
 ### ✅ **Jan 4, 2026: Inventory Visual Overhaul**
 - 🎨 **Animaciones**: Implementado `framer-motion` para transiciones suaves y efectos "game-like" en lista de inventario.
 - 👁️ **Contraste**: Mejorada legibilidad en modo oscuro (textos blancos/grises claros) y feedback visual en botones.
