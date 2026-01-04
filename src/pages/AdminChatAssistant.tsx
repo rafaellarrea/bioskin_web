@@ -51,7 +51,7 @@ export default function AdminChatAssistant() {
 
   const fetchConversations = async () => {
     try {
-      const res = await fetch('/api/internal-chat?action=list');
+      const res = await fetch('/api/internal-bot-api?type=internal-chat&action=list');
       if (res.ok) {
         const data = await res.json();
         setConversations(data.conversations || []);
@@ -64,7 +64,7 @@ export default function AdminChatAssistant() {
   const loadConversation = async (sid: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/internal-chat?action=get&sessionId=${sid}`);
+      const res = await fetch(`/api/internal-bot-api?type=internal-chat&action=get&sessionId=${sid}`);
       if (res.ok) {
         const data = await res.json();
         const loadedMessages = data.messages.map((m: any, idx: number) => ({
@@ -89,7 +89,7 @@ export default function AdminChatAssistant() {
     if (!confirm('¿Estás seguro de eliminar este chat?')) return;
     
     try {
-      const res = await fetch(`/api/internal-chat?sessionId=${sid}`, { method: 'DELETE' });
+      const res = await fetch(`/api/internal-bot-api?type=internal-chat&sessionId=${sid}`, { method: 'DELETE' });
       if (res.ok) {
         setConversations(prev => prev.filter(c => c.session_id !== sid));
         if (sessionId === sid) startNewSession();
@@ -128,7 +128,7 @@ export default function AdminChatAssistant() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/internal-chat', {
+      const response = await fetch('/api/internal-bot-api?type=internal-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

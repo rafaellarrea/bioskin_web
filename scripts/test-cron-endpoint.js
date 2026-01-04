@@ -17,7 +17,7 @@ if (!CRON_SECRET) {
 }
 
 async function testCronEndpoint() {
-  const url = `${BASE_URL}/api/internal-chat?action=daily-agenda`;
+  const url = `${BASE_URL}/api/internal-bot-api?type=internal-chat&action=daily-agenda`;
   console.log(`🚀 Testing Cron Endpoint: ${url}`);
   console.log(`🔑 Using Secret: ${CRON_SECRET.substring(0, 5)}...`);
 

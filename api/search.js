@@ -1,12 +1,10 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -155,13 +153,15 @@ export default async function handler(req, res) {
       }
     `;
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "system", content: "Eres un asistente útil que responde en JSON." }, { role: "user", content: prompt }],
-      model: "gpt-3.5-turbo", // Use a fast model
-      response_format: { type: "json_object" },
+    const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.0-flash",
+        generationConfig: {
+            responseMimeType: "application/json"
+        }
     });
 
-    const responseContent = completion.choices[0].message.content;
+    const result = await model.generateContent(prompt);
+    const responseContent = result.response.text();
     const parsedResponse = JSON.parse(responseContent);
 
     res.status(200).json(parsedResponse);

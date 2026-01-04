@@ -8,13 +8,13 @@
     "api/whatsapp-chatbot.js": {
       "maxDuration": 60
     },
-    "api/internal-chat.js": {
+    "api/internal-bot-api.js": {
       "maxDuration": 60
     }
   },
   "crons": [
     {
-      "path": "/api/internal-chat?action=daily-agenda",
+      "path": "/api/internal-bot-api?type=internal-chat&action=daily-agenda",
       "schedule": "0 12 * * *"
     }
   ]

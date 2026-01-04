@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_ENDPOINT = '/api/gemini';
+const API_ENDPOINT = '/api/internal-bot-api';
 
 export const geminiClient = {
   async analyzeImage(images: File[], prompt: string, context: string = '') {
@@ -20,8 +20,7 @@ export const geminiClient = {
         });
       }));
 
-      const response = await axios.post(API_ENDPOINT, {
-        action: 'diagnosis',
+      const response = await axios.post(`${API_ENDPOINT}?type=ai&action=diagnosis`, {
         prompt,
         context,
         images: processedImages
@@ -36,8 +35,7 @@ export const geminiClient = {
 
   async askProtocol(question: string) {
     try {
-      const response = await axios.post(API_ENDPOINT, {
-        action: 'protocol',
+      const response = await axios.post(`${API_ENDPOINT}?type=ai&action=protocol`, {
         prompt: question
       });
 
