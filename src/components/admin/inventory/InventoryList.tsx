@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, AlertTriangle, Plus, History, Search, Droplet, Minus } from 'lucide-react';
+import { Package, AlertTriangle, Plus, History, Search, Droplet, Minus, Edit2, Trash2, Info } from 'lucide-react';
 
 interface InventoryItem {
   id: number;
@@ -13,6 +13,7 @@ interface InventoryItem {
   next_expiry: string;
   requires_cold_chain: boolean;
   sanitary_registration?: string;
+  description?: string;
 }
 
 interface InventoryListProps {
@@ -20,9 +21,11 @@ interface InventoryListProps {
   onSelectItem: (item: InventoryItem) => void;
   onAddStock: (item: InventoryItem) => void;
   onConsumeStock: (item: InventoryItem) => void;
+  onEditItem: (item: InventoryItem) => void;
+  onDeleteItem: (item: InventoryItem) => void;
 }
 
-export default function InventoryList({ items, onSelectItem, onAddStock, onConsumeStock }: InventoryListProps) {
+export default function InventoryList({ items, onSelectItem, onAddStock, onConsumeStock, onEditItem, onDeleteItem }: InventoryListProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filterCategory, setFilterCategory] = React.useState('all');
 
@@ -122,10 +125,21 @@ export default function InventoryList({ items, onSelectItem, onAddStock, onConsu
                           return (
                             <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                               <td className="p-4">
-                                <div className="font-medium text-gray-900">{item.name}</div>
+                                <div className="font-medium text-gray-900 flex items-center gap-2">
+                                  {item.name}
+                                  {item.description && (
+                                    <div className="group relative">
+                                      <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
+                                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                        {item.description}
+                                        <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-800"></div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                                 <div className="text-xs text-gray-500">SKU: {item.sku || 'N/A'}</div>
                                 {item.requires_cold_chain && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mt-1">
+                                  <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mt-1 border border-blue-100">
                                     ❄️ Cadena de Frío
                                   </span>
                                 )}
@@ -144,27 +158,36 @@ export default function InventoryList({ items, onSelectItem, onAddStock, onConsu
                                 {item.next_expiry ? new Date(item.next_expiry).toLocaleDateString() : '-'}
                               </td>
                               <td className="p-4 text-right space-x-2">
-                                <button
-                                  onClick={() => onConsumeStock(item)}
-                                  className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                                  title="Registrar Uso / Consumo"
-                                >
-                                  {item.category === 'Consumible' ? <Droplet className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
-                                </button>
-                                <button
-                                  onClick={() => onAddStock(item)}
-                                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Agregar Stock (Entrada)"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => onSelectItem(item)}
-                                  className="p-2 text-[#deb887] hover:bg-[#deb887]/10 rounded-lg transition-colors"
-                                  title="Ver Detalles"
-                                >
-                                  <History className="w-4 h-4" />
-                                </button>
+                                <div className="flex justify-end gap-1">
+                                  <button
+                                    onClick={() => onConsumeStock(item)}
+                                    className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors group relative"
+                                    title="Registrar Uso / Consumo"
+                                  >
+                                    {item.category === 'Consumible' ? <Droplet className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                                  </button>
+                                  <button
+                                    onClick={() => onAddStock(item)}
+                                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                    title="Agregar Stock (Entrada)"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => onEditItem(item)}
+                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="Editar Producto"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => onDeleteItem(item)}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Eliminar Producto"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           );

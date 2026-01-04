@@ -2,21 +2,22 @@ import React, { useState } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
 
 interface InventoryFormProps {
+  initialData?: any;
   onClose: () => void;
   onSave: (data: any) => Promise<void>;
 }
 
-export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
+export default function InventoryForm({ initialData, onClose, onSave }: InventoryFormProps) {
   const [formData, setFormData] = useState({
-    sku: '',
-    name: '',
-    description: '',
-    category: 'Inyectable',
-    group_name: '',
-    unit_of_measure: 'Vial',
-    min_stock_level: 5,
-    requires_cold_chain: false,
-    sanitary_registration: ''
+    sku: initialData?.sku || '',
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    category: initialData?.category || 'Inyectable',
+    group_name: initialData?.group_name || '',
+    unit_of_measure: initialData?.unit_of_measure || 'Vial',
+    min_stock_level: initialData?.min_stock_level || 5,
+    requires_cold_chain: initialData?.requires_cold_chain || false,
+    sanitary_registration: initialData?.sanitary_registration || ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,10 @@ export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
     setLoading(true);
     setError(null);
     try {
-      await onSave(formData);
+      await onSave({
+        ...formData,
+        id: initialData?.id // Include ID if editing
+      });
       onClose();
     } catch (err: any) {
       setError(err.message || 'Error al guardar');
@@ -39,7 +43,7 @@ export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-          <h3 className="font-bold text-gray-800">Nuevo Producto</h3>
+          <h3 className="font-bold text-gray-800">{initialData ? 'Editar Producto' : 'Nuevo Producto'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>

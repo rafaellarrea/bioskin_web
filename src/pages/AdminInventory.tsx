@@ -44,14 +44,35 @@ export default function AdminInventory() {
   };
 
   const handleCreateItem = async (data: any) => {
-    const res = await fetch('/api/records?action=inventoryCreateItem', {
+    const action = data.id ? 'inventoryUpdateItem' : 'inventoryCreateItem';
+    const res = await fetch(`/api/records?action=${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Error al crear producto');
-    setSuccessMessage('Producto creado exitosamente');
+    if (!res.ok) throw new Error(data.id ? 'Error al actualizar producto' : 'Error al crear producto');
+    setSuccessMessage(data.id ? 'Producto actualizado exitosamente' : 'Producto creado exitosamente');
     fetchInventory();
+  };
+
+  const handleDeleteItem = async (item: any) => {
+    if (!window.confirm(`¿Estás seguro de eliminar "${item.name}"? Esta acción no se puede deshacer.`)) return;
+    
+    try {
+      const res = await fetch(`/api/records?action=inventoryDeleteItem&id=${item.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al eliminar');
+      }
+      
+      setSuccessMessage('Producto eliminado exitosamente');
+      fetchInventory();
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   const handleAddStock = async (data: any) => {
@@ -140,9 +161,14 @@ export default function AdminInventory() {
           <InventoryList 
             items={items} 
             onSelectItem={(item) => {
-              // TODO: Implement detail view / consumption
-              alert(`Detalles de ${item.name} (Próximamente)`);
+              setSelectedItem(item);
+              // Logic to show details modal if needed
             }}
+            onEditItem={(item) => {
+              setSelectedItem(item);
+              setShowForm(true);
+            }}
+            onDeleteItem={handleDeleteItem}
             onAddStock={(item) => {
               setSelectedItem(item);
               setShowStockModal(true);
@@ -157,7 +183,11 @@ export default function AdminInventory() {
         {/* Modals */}
         {showForm && (
           <InventoryForm 
-            onClose={() => setShowForm(false)} 
+            initialData={selectedItem}
+            onClose={() => {
+              setShowForm(false);
+              setSelectedItem(null);
+            }}
             onSave={handleCreateItem} 
           />
         )}

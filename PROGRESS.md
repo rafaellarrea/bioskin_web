@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory CRUD & UI Polish**
+- 🔄 **CRUD Completo**: Implementadas funciones de Edición y Eliminación de productos.
+- 🎨 **UI Mejorada**: Botones de acción con iconos claros, tooltips para descripciones y uso de colores corporativos.
+- 🛠️ **Flexibilidad**: Edición completa de items incluyendo cambio de Grupo/Categoría.
+
 ### ✅ **Jan 4, 2026: Inventory Subcategories**
 - 🗂️ **Estructura**: Agregado campo `group_name` para subcategorizar productos (ej. Protectores Solares > Facial/Corporal).
 - 🎨 **UI**: Actualizada lista de inventario para agrupar visualmente por Categoría > Subcategoría.

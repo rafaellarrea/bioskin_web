@@ -154,6 +154,39 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: err.message });
         }
 
+      case 'inventoryUpdateItem':
+        try {
+          const { id, sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration } = body;
+          const updatedItem = await pool.query(`
+            UPDATE inventory_items 
+            SET sku = $1, name = $2, description = $3, category = $4, group_name = $5, unit_of_measure = $6, min_stock_level = $7, requires_cold_chain = $8, sanitary_registration = $9
+            WHERE id = $10
+            RETURNING *
+          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, id]);
+          
+          if (updatedItem.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
+          return res.status(200).json(updatedItem.rows[0]);
+        } catch (err) {
+          console.error('Error updating inventory item:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryDeleteItem':
+        try {
+          const { id } = req.query;
+          // Check if item has active batches or history
+          const check = await pool.query('SELECT COUNT(*) FROM inventory_batches WHERE item_id = $1', [id]);
+          if (parseInt(check.rows[0].count) > 0) {
+            return res.status(400).json({ error: 'No se puede eliminar: El item tiene historial de lotes.' });
+          }
+          
+          await pool.query('DELETE FROM inventory_items WHERE id = $1', [id]);
+          return res.status(200).json({ success: true });
+        } catch (err) {
+          console.error('Error deleting inventory item:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
       case 'inventoryAddBatch':
         try {
           const { item_id, batch_number, expiration_date, quantity, cost_per_unit, user_id } = body;
