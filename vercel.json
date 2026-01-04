@@ -6,10 +6,12 @@
   ],
   "functions": {
     "api/whatsapp-chatbot.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "lib/**"
     },
     "api/internal-bot-api.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "lib/**"
     }
   },
   "crons": [
