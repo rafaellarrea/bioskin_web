@@ -1,5 +1,6 @@
 import React from 'react';
 import { Package, AlertTriangle, Plus, History, Search, Droplet, Minus, Edit2, Trash2, Info } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface InventoryItem {
   id: number;
@@ -90,116 +91,142 @@ export default function InventoryList({ items, onSelectItem, onAddStock, onConsu
           No se encontraron productos
         </div>
       ) : (
-        categories.map(category => (
-          <div key={category} className="space-y-6">
-            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
-              <span className="w-2 h-8 bg-[#deb887] rounded-full"></span>
-              {category}
-            </h3>
-            
-            {Object.keys(groupedItems[category]).sort().map(sub => (
-              <div key={sub} className="ml-2 space-y-3">
-                {sub !== 'Otros' && sub !== 'General' && (
-                  <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2 ml-1">
-                    <div className="w-1.5 h-1.5 bg-[#deb887] rounded-full"></div>
-                    {sub}
-                  </h4>
-                )}
-                
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                          <th className="p-4 font-semibold text-gray-600">Producto</th>
-                          <th className="p-4 font-semibold text-gray-600">Reg. Sanitario</th>
-                          <th className="p-4 font-semibold text-gray-600 text-center">Stock Total</th>
-                          <th className="p-4 font-semibold text-gray-600">Estado</th>
-                          <th className="p-4 font-semibold text-gray-600">Próx. Vencimiento</th>
-                          <th className="p-4 font-semibold text-gray-600 text-right">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {groupedItems[category][sub].map((item) => {
-                          const status = getStockStatus(item);
-                          return (
-                            <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="p-4">
-                                <div className="font-medium text-gray-900 flex items-center gap-2">
-                                  {item.name}
-                                  {item.description && (
-                                    <div className="group relative">
-                                      <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
-                                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                        {item.description}
-                                        <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-800"></div>
+        <AnimatePresence>
+          {categories.map((category, catIndex) => (
+            <motion.div 
+              key={category} 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: catIndex * 0.1 }}
+              className="space-y-6"
+            >
+              <h3 className="text-xl font-bold text-white flex items-center gap-2 border-b border-gray-700 pb-2">
+                <span className="w-2 h-8 bg-[#deb887] rounded-full shadow-[0_0_10px_#deb887]"></span>
+                {category}
+              </h3>
+              
+              {Object.keys(groupedItems[category]).sort().map((sub, subIndex) => (
+                <motion.div 
+                  key={sub} 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: (catIndex * 0.1) + (subIndex * 0.05) }}
+                  className="ml-2 space-y-3"
+                >
+                  {sub !== 'Otros' && sub !== 'General' && (
+                    <h4 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2 ml-1">
+                      <div className="w-1.5 h-1.5 bg-[#deb887] rounded-full"></div>
+                      {sub}
+                    </h4>
+                  )}
+                  
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                          <tr>
+                            <th className="p-4 font-semibold text-gray-600">Producto</th>
+                            <th className="p-4 font-semibold text-gray-600">Reg. Sanitario</th>
+                            <th className="p-4 font-semibold text-gray-600 text-center">Stock Total</th>
+                            <th className="p-4 font-semibold text-gray-600">Estado</th>
+                            <th className="p-4 font-semibold text-gray-600">Próx. Vencimiento</th>
+                            <th className="p-4 font-semibold text-gray-600 text-right">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {groupedItems[category][sub].map((item) => {
+                            const status = getStockStatus(item);
+                            return (
+                              <motion.tr 
+                                key={item.id} 
+                                whileHover={{ scale: 1.005, backgroundColor: "rgba(249, 250, 251, 1)" }}
+                                className="transition-colors cursor-default"
+                              >
+                                <td className="p-4">
+                                  <div className="font-medium text-gray-900 flex items-center gap-2">
+                                    {item.name}
+                                    {item.description && (
+                                      <div className="group relative">
+                                        <Info className="w-3.5 h-3.5 text-gray-400 cursor-help hover:text-[#deb887] transition-colors" />
+                                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                          {item.description}
+                                          <div className="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500">SKU: {item.sku || 'N/A'}</div>
+                                  {item.requires_cold_chain && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mt-1 border border-blue-100">
+                                      ❄️ Cadena de Frío
+                                    </span>
                                   )}
-                                </div>
-                                <div className="text-xs text-gray-500">SKU: {item.sku || 'N/A'}</div>
-                                {item.requires_cold_chain && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded mt-1 border border-blue-100">
-                                    ❄️ Cadena de Frío
+                                </td>
+                                <td className="p-4 text-sm text-gray-600">{item.sanitary_registration || '-'}</td>
+                                <td className="p-4 text-center">
+                                  <span className="font-bold text-gray-800 text-lg">{item.total_stock}</span>
+                                  <span className="text-xs text-gray-500 ml-1">{item.unit_of_measure}</span>
+                                </td>
+                                <td className="p-4">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color} shadow-sm`}>
+                                    {status.label}
                                   </span>
-                                )}
-                              </td>
-                              <td className="p-4 text-sm text-gray-600">{item.sanitary_registration || '-'}</td>
-                              <td className="p-4 text-center">
-                                <span className="font-bold text-gray-800">{item.total_stock}</span>
-                                <span className="text-xs text-gray-500 ml-1">{item.unit_of_measure}</span>
-                              </td>
-                              <td className="p-4">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
-                                  {status.label}
-                                </span>
-                              </td>
-                              <td className="p-4 text-sm text-gray-600">
-                                {item.next_expiry ? new Date(item.next_expiry).toLocaleDateString() : '-'}
-                              </td>
-                              <td className="p-4 text-right space-x-2">
-                                <div className="flex justify-end gap-1">
-                                  <button
-                                    onClick={() => onConsumeStock(item)}
-                                    className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors group relative"
-                                    title="Registrar Uso / Consumo"
-                                  >
-                                    {item.category === 'Consumible' ? <Droplet className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
-                                  </button>
-                                  <button
-                                    onClick={() => onAddStock(item)}
-                                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                    title="Agregar Stock (Entrada)"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => onEditItem(item)}
-                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    title="Editar Producto"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => onDeleteItem(item)}
-                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Eliminar Producto"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                </td>
+                                <td className="p-4 text-sm text-gray-600">
+                                  {item.next_expiry ? new Date(item.next_expiry).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="p-4 text-right space-x-2">
+                                  <div className="flex justify-end gap-1">
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => onConsumeStock(item)}
+                                      className="p-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors shadow-sm"
+                                      title="Registrar Uso / Consumo"
+                                    >
+                                      {item.category === 'Consumible' ? <Droplet className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => onAddStock(item)}
+                                      className="p-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors shadow-sm"
+                                      title="Agregar Stock (Entrada)"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => onEditItem(item)}
+                                      className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors shadow-sm"
+                                      title="Editar Producto"
+                                    >
+                                      <Edit2 className="w-4 h-4" />
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.1 }}
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => onDeleteItem(item)}
+                                      className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors shadow-sm"
+                                      title="Eliminar Producto"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </motion.button>
+                                  </div>
+                                </td>
+                              </motion.tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))
+                </motion.div>
+              ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       )}
     </div>
   );

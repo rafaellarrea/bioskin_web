@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Visual Overhaul**
+- 🎨 **Animaciones**: Implementado `framer-motion` para transiciones suaves y efectos "game-like" en lista de inventario.
+- 👁️ **Contraste**: Mejorada legibilidad en modo oscuro (textos blancos/grises claros) y feedback visual en botones.
+
 ### ✅ **Jan 4, 2026: Inventory CRUD & UI Polish**
 - 🔄 **CRUD Completo**: Implementadas funciones de Edición y Eliminación de productos.
 - 🎨 **UI Mejorada**: Botones de acción con iconos claros, tooltips para descripciones y uso de colores corporativos.
