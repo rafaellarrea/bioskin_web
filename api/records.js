@@ -92,8 +92,9 @@ export default async function handler(req, res) {
         try {
           const items = await pool.query(`
             SELECT 
-              i.*, 
+              i.*,
               COALESCE(SUM(b.quantity_current), 0) as total_stock,
+              COALESCE(SUM(b.quantity_initial), 0) as total_initial,
               MIN(b.expiration_date) as next_expiry
             FROM inventory_items i
             LEFT JOIN inventory_batches b ON i.id = b.item_id AND b.status = 'active'
@@ -224,17 +225,19 @@ export default async function handler(req, res) {
 
       case 'inventoryConsume':
         try {
-          const { batch_id, quantity, reason, user_id, reference_id } = body;
+          const { batch_id, quantity, reason, user_id, reference_id, preferred_display_unit } = body;
           
           const client = await pool.connect();
           try {
             await client.query('BEGIN');
             
             // Check current stock
-            const batchRes = await client.query('SELECT quantity_current FROM inventory_batches WHERE id = $1', [batch_id]);
+            const batchRes = await client.query('SELECT quantity_current, item_id FROM inventory_batches WHERE id = $1', [batch_id]);
             if (batchRes.rows.length === 0) throw new Error('Batch not found');
             
             const currentQty = parseFloat(batchRes.rows[0].quantity_current);
+            const itemId = batchRes.rows[0].item_id;
+
             if (currentQty < quantity) throw new Error('Insufficient stock in this batch');
 
             const newQty = currentQty - quantity;
@@ -246,6 +249,15 @@ export default async function handler(req, res) {
               SET quantity_current = $1, status = $2 
               WHERE id = $3
             `, [newQty, newStatus, batch_id]);
+
+            // Update Item Preference if provided
+            if (preferred_display_unit) {
+              await client.query(`
+                UPDATE inventory_items
+                SET preferred_display_unit = $1
+                WHERE id = $2
+              `, [preferred_display_unit, itemId]);
+            }
 
             // Record Movement
             await client.query(`

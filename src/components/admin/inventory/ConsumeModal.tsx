@@ -64,7 +64,8 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
       await onSave({
         batch_id: selectedBatchId,
         quantity: qty,
-        reason
+        reason,
+        preferred_display_unit: mode === 'visual' ? 'percentage' : 'absolute'
       });
       onClose();
     } catch (err: any) {

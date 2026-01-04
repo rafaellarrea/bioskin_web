@@ -10,6 +10,8 @@ interface InventoryItem {
   group_name?: string;
   unit_of_measure: string;
   total_stock: number;
+  total_initial?: number;
+  preferred_display_unit?: 'absolute' | 'percentage';
   min_stock_level: number;
   next_expiry: string;
   requires_cold_chain: boolean;
@@ -136,6 +138,9 @@ export default function InventoryList({ items, onSelectItem, onAddStock, onConsu
                         <tbody className="divide-y divide-gray-100">
                           {groupedItems[category][sub].map((item) => {
                             const status = getStockStatus(item);
+                            const showPercentage = item.preferred_display_unit === 'percentage' && item.total_initial && item.total_initial > 0;
+                            const percentage = showPercentage ? Math.round((item.total_stock / item.total_initial!) * 100) : 0;
+
                             return (
                               <motion.tr 
                                 key={item.id} 
@@ -164,8 +169,17 @@ export default function InventoryList({ items, onSelectItem, onAddStock, onConsu
                                 </td>
                                 <td className="p-4 text-sm text-gray-600">{item.sanitary_registration || '-'}</td>
                                 <td className="p-4 text-center">
-                                  <span className="font-bold text-gray-800 text-lg">{item.total_stock}</span>
-                                  <span className="text-xs text-gray-500 ml-1">{item.unit_of_measure}</span>
+                                  {showPercentage ? (
+                                    <div className="flex flex-col items-center">
+                                      <span className="font-bold text-gray-800 text-lg">{percentage}%</span>
+                                      <span className="text-[10px] text-gray-400">({item.total_stock} {item.unit_of_measure})</span>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold text-gray-800 text-lg">{item.total_stock}</span>
+                                      <span className="text-xs text-gray-500 ml-1">{item.unit_of_measure}</span>
+                                    </>
+                                  )}
                                 </td>
                                 <td className="p-4">
                                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color} shadow-sm`}>

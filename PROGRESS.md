@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Display Preference**
+- 👁️ **Visualización**: Implementada preferencia de visualización (Porcentaje vs Absoluto) basada en el último método de actualización de stock.
+- 🗄️ **Base de Datos**: Agregada columna `preferred_display_unit` a `inventory_items` y migración automática.
+- 📊 **Dashboard**: El listado de inventario ahora muestra el porcentaje de stock restante si se usó el selector visual.
+
 ### ✅ **Jan 4, 2026: Inventory Consumption Logic**
 - 🧮 **Cálculo**: Ajustada lógica de selector visual para calcular consumo basado en el porcentaje del total inicial del lote (ej. 40% de 500ml = 200ml restantes).
 - 📊 **UI**: Mejorada visualización de "Nivel Restante" vs "Consumo a Registrar" en el modal.
