@@ -229,30 +229,30 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
           <style>
             @page { size: A4 portrait; margin: 0; }
             body { font-family: 'Arial', sans-serif; padding: 0; max-width: 100%; margin: 0; box-sizing: border-box; }
-            .container { display: flex; gap: 40px; height: 140mm; padding: 40px; }
+            .container { display: flex; gap: 30px; height: 140mm; padding: 30px; }
             .column { flex: 1; position: relative; display: flex; flex-direction: column; }
-            .column:first-child { border-right: 1px dashed #ccc; padding-right: 40px; }
+            .column:first-child { border-right: 1px dashed #ccc; padding-right: 30px; }
             
-            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 15px; }
-            .logo { height: 60px; object-fit: contain; }
+            .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .logo { height: 45px; object-fit: contain; }
             .doctor-info { text-align: right; }
-            .doctor-info h2 { margin: 0; font-size: 12px; color: #333; letter-spacing: 2px; font-weight: normal; }
-            .doctor-info h3 { margin: 5px 0 0; font-size: 14px; font-weight: bold; }
+            .doctor-info h2 { margin: 0; font-size: 10px; color: #333; letter-spacing: 2px; font-weight: normal; }
+            .doctor-info h3 { margin: 5px 0 0; font-size: 12px; font-weight: bold; }
 
-            .patient-info { margin-bottom: 30px; font-size: 12px; }
+            .patient-info { margin-bottom: 15px; font-size: 10px; }
             .patient-info p { margin: 5px 0; }
             .patient-details { display: flex; justify-content: space-between; margin-top: 10px; }
 
-            .section-title { font-weight: bold; margin-bottom: 15px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 2px; width: 20px; border-bottom: 3px solid #000; }
-            .section-header { font-weight: bold; margin-bottom: 15px; font-size: 12px; text-transform: uppercase; }
+            .section-title { font-weight: bold; margin-bottom: 10px; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 2px; width: 20px; border-bottom: 3px solid #000; }
+            .section-header { font-weight: bold; margin-bottom: 10px; font-size: 10px; text-transform: uppercase; }
 
             .product-list { list-style-type: decimal; padding-left: 20px; margin: 0; }
-            .product-list li { margin-bottom: 8px; font-size: 12px; line-height: 1.4; }
+            .product-list li { margin-bottom: 6px; font-size: 10px; line-height: 1.4; }
 
-            .routine-section { margin-bottom: 20px; }
-            .routine-title { font-size: 12px; color: #333; margin-bottom: 10px; text-transform: uppercase; }
+            .routine-section { margin-bottom: 15px; }
+            .routine-title { font-size: 10px; color: #333; margin-bottom: 8px; text-transform: uppercase; }
 
-            .footer { margin-top: auto; font-size: 10px; color: #666; padding-top: 20px; }
+            .footer { margin-top: auto; font-size: 8px; color: #666; padding-top: 10px; }
             .footer-item { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
             .icon { margin-right: 5px; }
           </style>
