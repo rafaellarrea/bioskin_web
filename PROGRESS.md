@@ -11,7 +11,7 @@
 ## 🎯 Últimas Actualizaciones
 
 ### ✅ **Jan 4, 2026: Serverless Function Optimization**
-- 🐛 **Bugfix**: Corregido error `MODULE_NOT_FOUND` en Vercel incluyendo explícitamente `lib/**` en `vercel.json`.
+- 🐛 **Bugfix**: Corregido error `MODULE_NOT_FOUND` en Vercel reemplazando `chatbot-appointment-service.js` por `internal-bot-appointment-service.js` (archivo duplicado).
 - ⚡ **Consolidación API**: Fusionados `api/internal-chat.js` y `api/gemini.js` en `api/internal-bot-api.js` para reducir uso de funciones serverless.
 - 🧹 **Limpieza**: Eliminados archivos obsoletos y actualizadas referencias en frontend y scripts.
 
