@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Consumption Logic**
+- 🧮 **Cálculo**: Ajustada lógica de selector visual para calcular consumo basado en el porcentaje del total inicial del lote (ej. 40% de 500ml = 200ml restantes).
+- 📊 **UI**: Mejorada visualización de "Nivel Restante" vs "Consumo a Registrar" en el modal.
+
 ### ✅ **Jan 4, 2026: Inventory Consumption UI**
 - 🎛️ **Selector Visual**: Reemplazado toggle por checkbox para activar modo visual de nivel restante.
 - 📉 **Lógica**: Clarificado que el selector visual define el nivel restante en el envase, calculando el consumo automáticamente.

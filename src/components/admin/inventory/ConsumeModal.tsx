@@ -77,34 +77,47 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
   const getBatchCurrentLevel = () => {
     const batch = batches.find(b => b.id === parseInt(selectedBatchId));
     if (!batch) return 1;
-    const qty = typeof batch.quantity_current === 'string' ? parseFloat(batch.quantity_current) : batch.quantity_current;
-    if (qty === 0) return 0;
-    const decimal = qty % 1;
-    // If decimal is very close to 0 (floating point), treat as 1 (full) unless total is < 1
-    if (decimal < 0.001) return qty >= 1 ? 1 : decimal;
-    return decimal;
+    const current = parseFloat(batch.quantity_current);
+    const initial = parseFloat(batch.quantity_initial) || 1;
+    
+    if (initial === 0) return 0;
+    
+    // Calculate percentage of INITIAL capacity
+    let level = current / initial;
+    if (level > 1) level = 1;
+    return level;
   };
 
   const handleLevelSelect = (targetLevel: number) => {
     const batch = batches.find(b => b.id === parseInt(selectedBatchId));
     if (!batch) return;
 
-    const currentLevel = getBatchCurrentLevel();
-    let calculatedConsumption = 0;
+    // Calculate based on INITIAL quantity (Total Capacity)
+    // If quantity_initial is not available or 0, we can't calculate percentage accurately for volume
+    // But we assume it is available. If not, we might fallback to current (which is wrong if already consumed)
+    // or 1 if it's unit based.
+    const initialQty = parseFloat(batch.quantity_initial) || 1;
+    const currentQty = parseFloat(batch.quantity_current);
     
-    if (targetLevel <= currentLevel) {
-      // Simple consumption: 0.8 -> 0.6 (Consumed 0.2)
-      calculatedConsumption = currentLevel - targetLevel;
-    } else {
-      // New bottle case: 0.1 -> 0.9 (Finished 0.1, Opened new, used 0.1)
-      calculatedConsumption = currentLevel + (1 - targetLevel);
-    }
+    // Target quantity based on percentage of INITIAL capacity
+    // e.g. 500ml * 0.4 = 200ml remaining
+    const targetRemaining = initialQty * targetLevel;
+    
+    // Consumption is the difference between current and target
+    // e.g. Current 300ml - Target 200ml = 100ml to consume
+    let calculatedConsumption = currentQty - targetRemaining;
     
     // Round to 2 decimals
     calculatedConsumption = Math.round(calculatedConsumption * 100) / 100;
-    if (calculatedConsumption < 0) calculatedConsumption = 0;
 
-    setQuantity(calculatedConsumption.toString());
+    if (calculatedConsumption < 0) {
+      setError('El nivel seleccionado es mayor al stock actual. Use "Agregar Stock" para corregir.');
+      setQuantity('0');
+    } else {
+      setError(null);
+      setQuantity(calculatedConsumption.toString());
+    }
+    
     setRemainingLevel(targetLevel);
   };
 
@@ -201,13 +214,19 @@ export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProp
                 ))}
               </div>
               
-              <div className="bg-gray-50 p-2 rounded-lg text-xs text-gray-600 flex justify-between items-center">
-                <span>Consumo calculado:</span>
-                <span className="font-bold text-[#deb887] text-sm">{quantity} unidades</span>
+              <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600 space-y-2">
+                <div className="flex justify-between items-center">
+                   <span>Nivel restante seleccionado:</span>
+                   <span className="font-medium text-gray-800">{remainingLevel ? Math.round(remainingLevel * 100) : 0}%</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-gray-200 pt-2">
+                   <span>Consumo a registrar:</span>
+                   <span className="font-bold text-[#deb887] text-sm">{quantity} {item.unit_of_measure}</span>
+                </div>
               </div>
               
               <p className="text-[10px] text-center text-gray-400 mt-1">
-                Selecciona cuánto producto QUEDA en el envase abierto.
+                Selecciona el porcentaje del total original que queda disponible actualmente.
               </p>
             </div>
           ) : (
