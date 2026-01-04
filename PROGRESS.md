@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Module Enhancements**
+- 📦 **Inventario**: Agregado campo "Registro Sanitario" y soporte para cantidades decimales (NUMERIC).
+- 🎨 **UI**: Implementada vista agrupada por items y selector visual de nivel restante para consumibles.
+- ⚙️ **Lógica**: Lotes opcionales (auto-generados) y cálculo de consumo basado en nivel restante visual.
+
 ### ✅ **Jan 4, 2026: Serverless Function Optimization**
 - 🐛 **Bugfix**: Corregido error `MODULE_NOT_FOUND` en Vercel reemplazando `chatbot-appointment-service.js` por `internal-bot-appointment-service.js` (archivo duplicado).
 - ⚡ **Consolidación API**: Fusionados `api/internal-chat.js` y `api/gemini.js` en `api/internal-bot-api.js` para reducir uso de funciones serverless.
