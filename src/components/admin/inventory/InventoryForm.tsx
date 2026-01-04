@@ -12,6 +12,7 @@ export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
     name: '',
     description: '',
     category: 'Inyectable',
+    group_name: '',
     unit_of_measure: 'Vial',
     min_stock_level: 5,
     requires_cold_chain: false,
@@ -109,6 +110,19 @@ export default function InventoryForm({ onClose, onSave }: InventoryFormProps) {
                 <option value="Equipamiento">Equipamiento</option>
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Grupo / Subcategoría</label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+                placeholder="Ej. Protectores Solares"
+                value={formData.group_name}
+                onChange={e => setFormData({...formData, group_name: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Unidad de Medida</label>
               <select

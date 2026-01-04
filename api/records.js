@@ -142,12 +142,12 @@ export default async function handler(req, res) {
 
       case 'inventoryCreateItem':
         try {
-          const { sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration } = body;
+          const { sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration } = body;
           const newItem = await pool.query(`
-            INSERT INTO inventory_items (sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO inventory_items (sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *
-          `, [sku, name, description, category, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration]);
+          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration]);
           return res.status(201).json(newItem.rows[0]);
         } catch (err) {
           console.error('Error creating inventory item:', err);

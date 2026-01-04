@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 4, 2026: Inventory Subcategories**
+- 🗂️ **Estructura**: Agregado campo `group_name` para subcategorizar productos (ej. Protectores Solares > Facial/Corporal).
+- 🎨 **UI**: Actualizada lista de inventario para agrupar visualmente por Categoría > Subcategoría.
+- 📝 **Formulario**: Nuevo campo para asignar Grupo/Familia al crear productos.
+
 ### ✅ **Jan 4, 2026: Inventory Module Enhancements**
 - 📦 **Inventario**: Agregado campo "Registro Sanitario" y soporte para cantidades decimales (NUMERIC).
 - 🎨 **UI**: Implementada vista agrupada por items y selector visual de nivel restante para consumibles.
