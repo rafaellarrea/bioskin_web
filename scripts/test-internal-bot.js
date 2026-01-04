@@ -6,13 +6,14 @@
  *   node scripts/test-chatbot.js "Tu mensaje aquí"
  */
 
+import 'dotenv/config';
 import { 
   initChatbotDatabase, 
   upsertConversation, 
   saveMessage, 
   getConversationHistory 
 } from '../lib/neon-chatbot-db-vercel.js';
-import { chatbotAI } from '../lib/chatbot-ai-service.js';
+import { chatbotAI } from '../lib/internal-bot-service.js';
 
 async function testChatbot(message) {
   console.log('🤖 Prueba del Chatbot de WhatsApp\n');

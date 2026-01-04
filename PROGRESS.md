@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 3, 2026: Codebase Cleanup**
+- 🧹 **AI Blog Removal**: Eliminados archivos y endpoints relacionados con la generación automática de blogs con IA (`api/ai-blog`, `lib/dynamic-blogs-storage.js`, etc.) para simplificar el proyecto.
+
 ### ✅ **Jan 3, 2026: Inventory Module Initialization**
 - 📦 **Inventario**: Inicializada base de datos de inventario en Neon (tablas items, batches, movements).
 - 🧪 **Testing**: Creado y ejecutado script de prueba para verificar flujo de inventario.

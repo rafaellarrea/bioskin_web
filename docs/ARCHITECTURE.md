@@ -20,7 +20,6 @@ project2.0/
 │   ├── data/                     # Datos centralizados
 │   └── utils/                    # Utilidades helper
 ├── api/                          # Vercel Serverless Functions
-│   ├── ai-blog/                  # Endpoints generación IA
 │   ├── internal-chat.js          # Asistente Interno + Cron Agenda Diaria
 │   ├── clinical-records.js       # Endpoint Fichas Clínicas (Neon DB)
 │   ├── search.js                 # Endpoint búsqueda IA
@@ -68,31 +67,10 @@ interface Product {
 // src/pages/ProductDetail.tsx - Dynamic product pages
 ```
 
-#### **Blog System with AI**
-```typescript
-// AI Blog Generation (v2.0 - Production Ready)
-api/ai-blog/generate.js      // Main generation endpoint
-api/ai-blog/generate-safe.js // Robust version with fallback
-api/blogs/test.js            // System diagnostic endpoint
-
-// Core AI Services
-lib/ai-service.js            // OpenAI integration + specialized prompts
-lib/database.js              // SQLite with weekly controls
-
-// Database Schema
-data/blogs.db                // SQLite: blogs, tags, citations, blog_tags
-```
-
 ### **Backend Architecture**
 
 #### **API Endpoints**
 ```javascript
-// AI Blog Generation
-api/ai-blog/generate.js      // POST - Generate blog with weekly limits
-api/ai-blog/generate-safe.js // POST - Safe generation with fallback  
-api/ai-blog/stats.js         // GET  - Weekly statistics and limits
-api/blogs/test.js            // GET  - System diagnostic
-
 // Calendar & Email Integration
 api/getEvents.js          // GET  - Google Calendar events
 api/sendEmail.js          // POST - Email + WhatsApp notifications
@@ -128,11 +106,10 @@ Tables:
 
 #### **AI Service**
 ```javascript
-// lib/ai-service.js - OpenAI GPT-4o-mini integration (Blogs)
+// lib/ai-service.js - OpenAI GPT-4o-mini integration (Base Client)
 Features:
-- Weekly limits control (2 blogs/week: 1 medical + 1 technical)
-- Structured prompts (500-700 words)
-- Content validation and formatting
+- OpenAI Client Initialization
+- Configuration Validation
 
 // lib/chatbot-ai-service.js - OpenAI GPT-4o-mini integration (Chatbot)
 Features:
@@ -197,9 +174,7 @@ Features:
 ```javascript
 // GPT-4o-mini for content generation
 Model: gpt-4o-mini
-Usage: Blog content generation with structured prompts
-Limits: 2 requests/week (1 medical + 1 technical)
-Output: 500-700 words structured content
+Usage: Chatbot and Internal Assistant
 ```
 
 ### **Vercel Deployment**
@@ -232,8 +207,6 @@ Responsive: Mobile-first approach
 - BlogCard: Blog listing item
 - ServiceCard: Service showcase
 - TestimonialCard: Customer testimonials
-- BlogAdmin: Complete admin interface for AI blog generation
-- BlogAdminPage: Admin page wrapper with navigation
 
 // Custom Hooks
 - useBlogAdmin: State management for blog administration
@@ -245,14 +218,6 @@ Responsive: Mobile-first approach
 
 ```
 User Request → HashRouter → Page Component → Custom Hook → API Call → Database → Response → UI Update
-
-Example Blog Generation:
-1. UI (test-openai.html) → 
-2. POST /api/ai-blog/generate → 
-3. checkWeeklyLimits() → 
-4. generateBlogWithAI() → 
-5. SQLite INSERT → 
-6. Response with blog data
 ```
 
 ---
@@ -304,7 +269,6 @@ WHATSAPP_PHONE_NUMBER_ID=123456789            # WhatsApp Business phone ID
 ## 🧪 Testing Strategy
 
 ### **Development Testing**
-- `/test-openai.html` - AI system testing interface
 - Manual testing with forceGeneration flag
 - Weekly limits validation
 - API endpoint verification

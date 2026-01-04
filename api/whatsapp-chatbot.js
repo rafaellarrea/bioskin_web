@@ -10,21 +10,21 @@ import {
   updateUserInfo,
   getGlobalSettings
 } from '../lib/neon-chatbot-db-vercel.js';
-import { cleanupService } from '../lib/chatbot-cleanup.js';
-import { chatbotAI } from '../lib/chatbot-ai-service.js';
+import { cleanupService } from '../lib/internal-bot-cleanup.js';
+import { chatbotAI } from '../lib/internal-bot-service.js';
 import { FallbackStorage } from '../lib/fallback-storage.js';
 import { 
   classifyTechnical, 
   generateTechnicalReply,
   generateEngineerTransferSummary,
   generateEngineerWhatsAppLink 
-} from '../lib/chatbot-technical-ai-service.js';
+} from '../lib/internal-bot-technical-service.js';
 import {
   classifyMedical,
   generateMedicalReply,
   generateDoctorTransferSummary,
   generateDoctorWhatsAppLink
-} from '../lib/chatbot-medical-ai-service.js';
+} from '../lib/internal-bot-medical-service.js';
 import { findServiceByKeyword as findTreatmentByKeyword } from '../lib/services-adapter.js';
 import {
   checkAvailability,
@@ -1533,7 +1533,7 @@ async function processWhatsAppMessage(body) {
       
       switch (intent) {
         case 'greeting':
-          fallbackResponse = `${getTimeBasedGreeting()}, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?`;
+          fallbackResponse = `${getTimeBasedGreeting()}, soy el Asistente Interno de BIOSKIN 🏥 ¿En qué puedo ayudarte?`;
           break;
         case 'appointment':
           fallbackResponse = '¿Le gustaría ver todas las opciones disponibles o prefiere agendar en: https://saludbioskin.vercel.app/#/appointment?';
@@ -1593,7 +1593,7 @@ async function processWhatsAppMessage(body) {
         
         switch (intent) {
           case 'greeting':
-            fallbackResponse = `${getTimeBasedGreeting()}, soy Salomé de BIOSKIN 😊 ¿En qué puedo asistirle?`;
+            fallbackResponse = `${getTimeBasedGreeting()}, soy el Asistente Interno de BIOSKIN 🏥 ¿En qué puedo ayudarte?`;
             break;
           case 'appointment':
             fallbackResponse = '¿Le gustaría ver todas las opciones disponibles o prefiere agendar en: https://saludbioskin.vercel.app/#/appointment?';

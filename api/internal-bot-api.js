@@ -9,7 +9,7 @@ import {
   updateGlobalSettings,
   getDatabaseStats
 } from '../lib/neon-chatbot-db-vercel.js';
-import { cleanupService } from '../lib/chatbot-cleanup.js';
+import { cleanupService } from '../lib/internal-bot-cleanup.js';
 import { FallbackStorage } from '../lib/fallback-storage.js';
 import { sql } from '@vercel/postgres';
 
