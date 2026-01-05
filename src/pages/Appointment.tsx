@@ -162,6 +162,7 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
         email: formData.email,
         message:
           'Teléfono: ' + formData.phone + '\n' +
+          'Email: ' + formData.email + '\n' +
           'Servicio: ' + formData.service + '\n' +
           'Fecha: ' + selectedDay + '\n' +
           'Hora: ' + selectedHour + ' (2 horas)' + '\n' +

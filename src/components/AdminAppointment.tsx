@@ -194,6 +194,7 @@ const AdminAppointment: React.FC<AdminAppointmentProps> = ({ onBack }) => {
           email: formData.email,
           message:
             'Teléfono: ' + formData.phone + '\n' +
+            'Email: ' + formData.email + '\n' +
             'Servicio: ' + formData.service + '\n' +
             'Fecha: ' + selectedDay + '\n' +
             'Hora: ' + selectedHour + ' (2 horas)' + '\n' +
