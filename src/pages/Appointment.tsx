@@ -178,8 +178,7 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
   setSubmitting(false);
 };
 
-  const handleNextStep = () => {
-    if (step =Review = (e: React.FormEvent) => {
+  const handleReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone || !formData.service) {
       setError('Por favor completa todos los campos obligatorios');
@@ -189,7 +188,8 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
     setStep(4);
   };
 
-  const handle== 1 && selectedDay) setStep(2);
+  const handleNextStep = () => {
+    if (step === 1 && selectedDay) setStep(2);
     else if (step === 2 && selectedHour) setStep(3);
   };
 
@@ -446,7 +446,7 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                     <motion.div
                       key="step3"
                       initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1,Review}}
+                      animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.3 }}
                       className="h-full flex flex-col"
