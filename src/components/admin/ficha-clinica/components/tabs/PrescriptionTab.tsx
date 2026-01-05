@@ -88,7 +88,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       const body = {
         ...currentPrescription,
         ficha_id: recordId,
-        items: currentPrescription.items.filter(i => i.medicamento || i.nombre_comercial) // Filter empty rows
+        items: currentPrescription.items.filter(i => i.medicamento || i.nombre_comercial || i.indicaciones) // Filter empty rows (allow if only indications exist)
       };
 
       const res = await fetch(`/api/records?action=${action}`, {
@@ -667,12 +667,21 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                     <option value="ambos">🔄 Ambos</option>
                   </select>
                 </div>
-                <div className="lg:col-span-2 space-y-1.5">
+                <div className="lg:col-span-2 space-y-1.5 flex flex-col">
                   <label className="text-xs font-medium text-gray-500 uppercase">Indicaciones Adicionales</label>
-                  <input
-                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                  <textarea
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white min-h-[42px] overflow-hidden resize-none"
                     value={item.indicaciones}
-                    onChange={e => updateItem(idx, 'indicaciones', e.target.value)}
+                    onChange={e => {
+                      updateItem(idx, 'indicaciones', e.target.value);
+                      e.target.style.height = 'auto'; 
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                    onFocus={e => {
+                      e.target.style.height = 'auto'; 
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                    rows={1}
                     placeholder="Instrucciones específicas para el paciente..."
                   />
                 </div>
