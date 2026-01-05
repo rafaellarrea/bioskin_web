@@ -291,6 +291,17 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                         <p className="font-medium">Elige la hora</p>
                         <p className="text-xs text-gray-400">Horarios disponibles</p>
                       </div>
+                    </div>
+
+                    <div className={`flex items-center gap-4 transition-opacity duration-300 ${step >= 3 ? 'opacity-100' : 'opacity-50'}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${step >= 3 ? 'bg-[#deb887] border-[#deb887] text-white' : 'border-gray-600 text-gray-400'}`}>
+                        3
+                      </div>
+                      <div>
+                        <p className="font-medium">Tus datos</p>
+                        <p className="text-xs text-gray-400">Información de contacto</p>
+                      </div>
+                    </div>
                     
                     <div className={`flex items-center gap-4 transition-opacity duration-300 ${step >= 4 ? 'opacity-100' : 'opacity-50'}`}>
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${step >= 4 ? 'bg-[#deb887] border-[#deb887] text-white' : 'border-gray-600 text-gray-400'}`}>
@@ -299,16 +310,6 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                       <div>
                         <p className="font-medium">Revisión</p>
                         <p className="text-xs text-gray-400">Confirma tu cita</p>
-                      </div>
-                    </div>
-                    </div>
-                    <div className={`flex items-center gap-4 transition-opacity duration-300 ${step >= 3 ? 'opacity-100' : 'opacity-50'}`}>
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${step >= 3 ? 'bg-[#deb887] border-[#deb887] text-white' : 'border-gray-600 text-gray-400'}`}>
-                        3
-                      </div>
-                      <div>
-                        <p className="font-medium">Tus datos</p>
-                        <p className="text-xs text-gray-400">Información de contacto</p>
                       </div>
                     </div>
                   </div>
