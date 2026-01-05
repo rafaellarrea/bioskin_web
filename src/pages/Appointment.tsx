@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Footer from '../components/Footer';
-import { CalendarDays, ShieldCheck, Smile, Clock, ChevronRight, Check, AlertCircle, User, Mail, Phone, FileText } from 'lucide-react';
+import { CalendarDays, ShieldCheck, Smile, Clock, ChevronRight, Check, AlertCircle, User, Mail, Phone, FileText, ClipboardCheck, Edit3 } from 'lucide-react';
 import { SEO } from '../components/SEO';
 
 // Helpers para español
@@ -132,8 +132,7 @@ const Appointment = () => {
 
   useEffect(() => { setSelectedHour(''); }, [selectedDay]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async () => {
   setSubmitting(true);
   setError('');
   try {
@@ -180,7 +179,17 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
 };
 
   const handleNextStep = () => {
-    if (step === 1 && selectedDay) setStep(2);
+    if (step =Review = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.phone || !formData.service) {
+      setError('Por favor completa todos los campos obligatorios');
+      return;
+    }
+    setError('');
+    setStep(4);
+  };
+
+  const handle== 1 && selectedDay) setStep(2);
     else if (step === 2 && selectedHour) setStep(3);
   };
 
@@ -282,6 +291,16 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                         <p className="font-medium">Elige la hora</p>
                         <p className="text-xs text-gray-400">Horarios disponibles</p>
                       </div>
+                    
+                    <div className={`flex items-center gap-4 transition-opacity duration-300 ${step >= 4 ? 'opacity-100' : 'opacity-50'}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${step >= 4 ? 'bg-[#deb887] border-[#deb887] text-white' : 'border-gray-600 text-gray-400'}`}>
+                        4
+                      </div>
+                      <div>
+                        <p className="font-medium">Revisión</p>
+                        <p className="text-xs text-gray-400">Confirma tu cita</p>
+                      </div>
+                    </div>
                     </div>
                     <div className={`flex items-center gap-4 transition-opacity duration-300 ${step >= 3 ? 'opacity-100' : 'opacity-50'}`}>
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${step >= 3 ? 'bg-[#deb887] border-[#deb887] text-white' : 'border-gray-600 text-gray-400'}`}>
@@ -427,7 +446,7 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                     <motion.div
                       key="step3"
                       initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      animate={{ opacity: 1,Review}}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.3 }}
                       className="h-full flex flex-col"
@@ -517,15 +536,124 @@ const end = `${endDay}T${pad(endHour)}:${pad(m)}:00${TIMEZONE}`;
                           Atrás
                         </button>
                         <button
+                          onClick={handleReview}
+                          className={`flex items-center gap-2 px-8 py-3 rounded-full font-medium transition-all duration-300 bg-[#deb887] text-white shadow-lg hover:bg-[#c9a677] transform hover:-translate-y-1`}
+                        >
+                          Revisar Cita
+                          <ClipboardCheck size={18} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {step === 4 && (
+                    <motion.div
+                      key="step4"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full flex flex-col"
+                    >
+                      <h3 className="text-2xl font-serif text-gray-900 mb-6 flex items-center gap-3">
+                        <ClipboardCheck className="text-[#deb887]" />
+                        Revisión de Cita
+                      </h3>
+                      
+                      <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-100">
+                        <h4 className="font-serif text-lg text-[#deb887] mb-4 border-b border-gray-200 pb-2">Resumen de la Cita</h4>
+                        
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                              <CalendarDays className="w-5 h-5 text-[#deb887]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Fecha</p>
+                              <p className="font-medium text-gray-900">{days.find(d => d.iso === selectedDay)?.dayName} {days.find(d => d.iso === selectedDay)?.dateNum} de {days.find(d => d.iso === selectedDay)?.month}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                              <Clock className="w-5 h-5 text-[#deb887]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Hora</p>
+                              <p className="font-medium text-gray-900">{formatTimeLabel(selectedHour)}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                              <FileText className="w-5 h-5 text-[#deb887]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Servicio</p>
+                              <p className="font-medium text-gray-900">{formData.service}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <h4 className="font-serif text-lg text-[#deb887] mt-6 mb-4 border-b border-gray-200 pb-2">Tus Datos</h4>
+                        
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                              <User className="w-5 h-5 text-[#deb887]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Nombre</p>
+                              <p className="font-medium text-gray-900">{formData.name}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                              <Mail className="w-5 h-5 text-[#deb887]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Email</p>
+                              <p className="font-medium text-gray-900">{formData.email}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-white rounded-lg shadow-sm">
+                              <Phone className="w-5 h-5 text-[#deb887]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Teléfono</p>
+                              <p className="font-medium text-gray-900">{formData.phone}</p>
+                            </div>
+                          </div>
+
+                          {formData.message && (
+                            <div className="bg-yellow-50 p-4 rounded-xl mt-4 text-sm text-gray-700 italic border border-yellow-100">
+                              "{formData.message}"
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-auto flex justify-between items-center gap-4">
+                        <button
+                          onClick={() => setStep(3)}
+                          className="flex items-center gap-2 text-gray-500 hover:text-gray-800 font-medium px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Edit3 size={18} />
+                          Editar
+                        </button>
+                        <button
                           onClick={handleSubmit}
                           disabled={submitting}
-                          className={`flex items-center gap-2 px-8 py-3 rounded-full font-medium transition-all duration-300 ${
+                          className={`flex-1 flex items-center justify-center gap-2 px-8 py-3 rounded-full font-medium transition-all duration-300 ${
                             submitting
                               ? 'bg-gray-400 cursor-wait'
                               : 'bg-[#deb887] text-white shadow-lg hover:bg-[#c9a677] transform hover:-translate-y-1'
                           }`}
                         >
-                          {submitting ? 'Enviando...' : 'Confirmar Cita'}
+                          {submitting ? 'Confirmando...' : 'Confirmar Cita'}
                           {!submitting && <Check size={18} />}
                         </button>
                       </div>
