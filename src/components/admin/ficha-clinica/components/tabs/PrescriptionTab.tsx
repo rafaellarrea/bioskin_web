@@ -536,139 +536,159 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
           </div>
         </div>
 
-        {/* Items Table */}
-        <div className="flex-1 overflow-auto border border-gray-200 rounded-xl shadow-sm bg-white custom-scrollbar">
-          <table className="w-full text-sm min-w-[1200px]">
-            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th className="p-3 text-left w-48 font-semibold text-gray-700">Principio Activo</th>
-                <th className="p-3 text-left w-48 font-semibold text-gray-700">Nombre Comercial</th>
-                <th className="p-3 text-left w-32 font-semibold text-gray-700">Presentación</th>
-                <th className="p-3 text-left w-24 font-semibold text-gray-700">Dosis</th>
-                <th className="p-3 text-left w-32 font-semibold text-gray-700">Frecuencia</th>
-                <th className="p-3 text-left w-24 font-semibold text-gray-700">Vía</th>
-                <th className="p-3 text-left w-32 font-semibold text-gray-700">Duración</th>
-                <th className="p-3 text-left w-32 font-semibold text-gray-700">Rutina</th>
-                <th className="p-3 text-left min-w-[200px] font-semibold text-gray-700">Indicaciones</th>
-                <th className="p-3 w-12"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {currentPrescription.items.map((item, idx) => (
-                <motion.tr 
-                  key={idx} 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="p-2">
-                    <input
-                      list={`meds-${idx}`}
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.medicamento}
-                      onChange={e => updateItem(idx, 'medicamento', e.target.value)}
-                      placeholder="Buscar..."
-                    />
-                    <datalist id={`meds-${idx}`}>
-                      {prescriptionOptions.medications.map((m, i) => <option key={i} value={m} />)}
-                    </datalist>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.nombre_comercial}
-                      onChange={e => updateItem(idx, 'nombre_comercial', e.target.value)}
-                      placeholder="Opcional"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      list={`pres-${idx}`}
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.presentacion}
-                      onChange={e => updateItem(idx, 'presentacion', e.target.value)}
-                    />
-                    <datalist id={`pres-${idx}`}>
-                      {prescriptionOptions.presentations.map((p, i) => <option key={i} value={p} />)}
-                    </datalist>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      list={`dose-${idx}`}
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.dosis}
-                      onChange={e => updateItem(idx, 'dosis', e.target.value)}
-                    />
-                    <datalist id={`dose-${idx}`}>
-                      {prescriptionOptions.doses.map((d, i) => <option key={i} value={d} />)}
-                    </datalist>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      list={`freq-${idx}`}
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.frecuencia}
-                      onChange={e => updateItem(idx, 'frecuencia', e.target.value)}
-                    />
-                    <datalist id={`freq-${idx}`}>
-                      {prescriptionOptions.frequencies.map((f, i) => <option key={i} value={f} />)}
-                    </datalist>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      list={`route-${idx}`}
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.via}
-                      onChange={e => updateItem(idx, 'via', e.target.value)}
-                    />
-                    <datalist id={`route-${idx}`}>
-                      {prescriptionOptions.routes.map((r, i) => <option key={i} value={r} />)}
-                    </datalist>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      list={`dur-${idx}`}
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.duracion}
-                      onChange={e => updateItem(idx, 'duracion', e.target.value)}
-                    />
-                    <datalist id={`dur-${idx}`}>
-                      {prescriptionOptions.durations.map((d, i) => <option key={i} value={d} />)}
-                    </datalist>
-                  </td>
-                  <td className="p-2">
-                    <select
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.rutina}
-                      onChange={e => updateItem(idx, 'rutina', e.target.value as any)}
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="mañana">Mañana</option>
-                      <option value="noche">Noche</option>
-                      <option value="ambos">Ambos</option>
-                    </select>
-                  </td>
-                  <td className="p-2">
-                    <input
-                      className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all"
-                      value={item.indicaciones}
-                      onChange={e => updateItem(idx, 'indicaciones', e.target.value)}
-                    />
-                  </td>
-                  <td className="p-2 text-center">
-                    <motion.button 
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => removeItem(idx)} 
-                      className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </motion.button>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Items List (Cards) */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar pb-24 bg-gray-50/50 rounded-xl border border-gray-200">
+          {currentPrescription.items.map((item, idx) => (
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative hover:shadow-md transition-all group"
+            >
+              <div className="absolute top-4 right-4 z-10">
+                <Tooltip content="Eliminar medicamento">
+                  <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => removeItem(idx)} 
+                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </motion.button>
+                </Tooltip>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 pr-12">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1">
+                    Principio Activo <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    list={`meds-${idx}`}
+                    className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white font-medium"
+                    value={item.medicamento}
+                    onChange={e => updateItem(idx, 'medicamento', e.target.value)}
+                    placeholder="Buscar medicamento..."
+                  />
+                  <datalist id={`meds-${idx}`}>
+                    {prescriptionOptions.medications.map((m, i) => <option key={i} value={m} />)}
+                  </datalist>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Nombre Comercial</label>
+                  <input
+                    className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
+                    value={item.nombre_comercial}
+                    onChange={e => updateItem(idx, 'nombre_comercial', e.target.value)}
+                    placeholder="Opcional"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Presentación</label>
+                  <input
+                    list={`pres-${idx}`}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                    value={item.presentacion}
+                    onChange={e => updateItem(idx, 'presentacion', e.target.value)}
+                    placeholder="Ej. Tabletas"
+                  />
+                  <datalist id={`pres-${idx}`}>
+                    {prescriptionOptions.presentations.map((p, i) => <option key={i} value={p} />)}
+                  </datalist>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Dosis</label>
+                  <input
+                    list={`dose-${idx}`}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                    value={item.dosis}
+                    onChange={e => updateItem(idx, 'dosis', e.target.value)}
+                    placeholder="Ej. 500mg"
+                  />
+                  <datalist id={`dose-${idx}`}>
+                    {prescriptionOptions.doses.map((d, i) => <option key={i} value={d} />)}
+                  </datalist>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Frecuencia</label>
+                  <input
+                    list={`freq-${idx}`}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                    value={item.frecuencia}
+                    onChange={e => updateItem(idx, 'frecuencia', e.target.value)}
+                    placeholder="Ej. Cada 8 horas"
+                  />
+                  <datalist id={`freq-${idx}`}>
+                    {prescriptionOptions.frequencies.map((f, i) => <option key={i} value={f} />)}
+                  </datalist>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Vía</label>
+                  <input
+                    list={`route-${idx}`}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                    value={item.via}
+                    onChange={e => updateItem(idx, 'via', e.target.value)}
+                    placeholder="Ej. Oral"
+                  />
+                  <datalist id={`route-${idx}`}>
+                    {prescriptionOptions.routes.map((r, i) => <option key={i} value={r} />)}
+                  </datalist>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Duración</label>
+                  <input
+                    list={`dur-${idx}`}
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                    value={item.duracion}
+                    onChange={e => updateItem(idx, 'duracion', e.target.value)}
+                    placeholder="Ej. 7 días"
+                  />
+                  <datalist id={`dur-${idx}`}>
+                    {prescriptionOptions.durations.map((d, i) => <option key={i} value={d} />)}
+                  </datalist>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Rutina</label>
+                  <select
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white cursor-pointer"
+                    value={item.rutina}
+                    onChange={e => updateItem(idx, 'rutina', e.target.value as any)}
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="mañana">☀️ Mañana</option>
+                    <option value="noche">🌙 Noche</option>
+                    <option value="ambos">🔄 Ambos</option>
+                  </select>
+                </div>
+                <div className="lg:col-span-2 space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 uppercase">Indicaciones Adicionales</label>
+                  <input
+                    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all hover:bg-gray-50 focus:bg-white"
+                    value={item.indicaciones}
+                    onChange={e => updateItem(idx, 'indicaciones', e.target.value)}
+                    placeholder="Instrucciones específicas para el paciente..."
+                  />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+
+          {currentPrescription.items.length === 0 && (
+            <div className="text-center py-12 flex flex-col items-center gap-3 text-gray-400">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                <FileText className="w-6 h-6 opacity-40" />
+              </div>
+              <p>No hay medicamentos en esta receta</p>
+              <p className="text-xs opacity-60">Haga clic en "Agregar Medicamento" para comenzar</p>
+            </div>
+          )}
         </div>
         
         <motion.button

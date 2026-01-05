@@ -445,10 +445,11 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ onBack }) => {
                         href={getWhatsAppLink(event)!}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-green-500 hover:text-green-700 p-3 hover:bg-green-100 rounded-lg transition-colors ml-4"
+                        className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors ml-4 shadow-sm hover:shadow-md"
                         title="Enviar recordatorio por WhatsApp"
                       >
                         <MessageCircle className="w-5 h-5" />
+                        <span className="font-medium text-sm hidden sm:inline">Contactar</span>
                       </a>
                     )}
 
