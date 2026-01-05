@@ -215,6 +215,12 @@ public/test-openai.html       # Interface testing avanzada
 
 ---
 
+### ✅ **Jan 5, 2026: WhatsApp Notification & Admin Calendar**
+- ✅ **Bot Interno**: Agregada URL de calendario admin en respuestas de agenda.
+- ✅ **Admin Calendar**: Implementado botón de recordatorio WhatsApp para citas.
+
+---
+
 ## 📈 Métricas Actuales
 - **Archivos totales**: ~45 archivos
 - **Componentes React**: 12 componentes
