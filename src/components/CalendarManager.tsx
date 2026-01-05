@@ -9,7 +9,8 @@ import {
   User,
   MapPin,
   FileText,
-  Ban
+  Ban,
+  MessageCircle
 } from 'lucide-react';
 
 interface CalendarManagerProps {
@@ -182,6 +183,42 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ onBack }) => {
     } else {
       return `${dateStr} • Todo el día`;
     }
+  };
+
+  // Generar link de WhatsApp para recordatorio
+  const getWhatsAppLink = (event: CalendarEvent) => {
+    if (event.eventType !== 'appointment') return null;
+
+    // Intentar extraer teléfono de la descripción
+    // Formato esperado en descripción: "Teléfono: 09..."
+    const phoneMatch = event.description?.match(/Teléfono:\s*([\d\+\-\s]+)/);
+    let phone = phoneMatch ? phoneMatch[1].replace(/\D/g, '') : '';
+    
+    if (!phone) return null;
+    
+    // Formatear a 593 (Ecuador)
+    if (phone.startsWith('0')) {
+      phone = '593' + phone.substring(1);
+    } else if (!phone.startsWith('593') && phone.length === 9) {
+       phone = '593' + phone;
+    }
+
+    // Extraer nombre
+    let patientName = "Paciente";
+    if (event.summary.startsWith('Cita: ')) {
+        const parts = event.summary.substring(6).split(' - ');
+        if (parts.length > 0) patientName = parts[0];
+    } else {
+        patientName = event.summary;
+    }
+
+    const start = new Date(event.start.dateTime || event.start.date || '');
+    const dateStr = start.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    const timeStr = event.start.dateTime ? start.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+
+    const message = `Hola ${patientName}, le saludamos de BIOSKIN. Le recordamos su cita pendiente para el ${dateStr} a las ${timeStr}. Por favor confirme su asistencia.`;
+    
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
   // Filtrar eventos por tipo
@@ -401,6 +438,19 @@ const CalendarManager: React.FC<CalendarManagerProps> = ({ onBack }) => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Botón WhatsApp Recordatorio (solo si hay teléfono válido) */}
+                    {getWhatsAppLink(event) && (
+                      <a
+                        href={getWhatsAppLink(event)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-500 hover:text-green-700 p-3 hover:bg-green-100 rounded-lg transition-colors ml-4"
+                        title="Enviar recordatorio por WhatsApp"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                      </a>
+                    )}
 
                     {/* Botón eliminar */}
                     <button
