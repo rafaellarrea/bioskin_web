@@ -155,7 +155,7 @@ export default function AdminInventory() {
         
         {/* Inventory View - Integrates Stats & List */}
         {activeTab === 'inventory' && (
-          <div className="animate-fade-in space-y-6">
+          <div className="animate-enter space-y-6">
             {/* Quick Stats Integrated */}
             <InventoryOverview items={items} />
             
@@ -200,13 +200,13 @@ export default function AdminInventory() {
 
         {/* Other Tabs */}
         {activeTab === 'batches' && (
-          <div className="animate-fade-in">
+          <div className="animate-enter">
              <InventoryBatches />
           </div>
         )}
         
         {activeTab === 'movements' && (
-          <div className="animate-fade-in">
+          <div className="animate-enter">
              <InventoryMovements />
           </div>
         )}
