@@ -88,6 +88,49 @@ export default async function handler(req, res) {
       // INVENTORY MODULE ACTIONS
       // ==========================================
 
+      case 'inventoryListMovements':
+        try {
+          const limit = req.query.limit || 100;
+          const movements = await pool.query(`
+            SELECT 
+              m.*, 
+              i.name as item_name, 
+              i.sku,
+              b.batch_number,
+              b.expiration_date
+            FROM inventory_movements m
+            JOIN inventory_batches b ON m.batch_id = b.id
+            JOIN inventory_items i ON b.item_id = i.id
+            ORDER BY m.created_at DESC
+            LIMIT $1
+          `, [limit]);
+          return res.status(200).json(movements.rows);
+        } catch (err) {
+          console.error('Error listing movements:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryListBatches':
+        try {
+          // Returns all active batches, useful for expiry monitoring
+          const batches = await pool.query(`
+            SELECT 
+              b.*, 
+              i.name as item_name, 
+              i.sku,
+              i.category,
+              i.unit_of_measure
+            FROM inventory_batches b
+            JOIN inventory_items i ON b.item_id = i.id
+            WHERE b.status = 'active' AND b.quantity_current > 0
+            ORDER BY b.expiration_date ASC
+          `);
+          return res.status(200).json(batches.rows);
+        } catch (err) {
+          console.error('Error listing batches:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
       case 'inventoryListItems':
         try {
           const items = await pool.query(`
