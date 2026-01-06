@@ -91,7 +91,9 @@ export default async function handler(req, res) {
       case 'inventoryListMovements':
         try {
           const limit = req.query.limit || 100;
-          const movements = await pool.query(`
+          const { type, startDate, endDate } = req.query;
+          
+          let query = `
             SELECT 
               m.*, 
               i.name as item_name, 
@@ -101,13 +103,74 @@ export default async function handler(req, res) {
             FROM inventory_movements m
             JOIN inventory_batches b ON m.batch_id = b.id
             JOIN inventory_items i ON b.item_id = i.id
-            ORDER BY m.created_at DESC
-            LIMIT $1
-          `, [limit]);
+            WHERE 1=1
+          `;
+          
+          const params = [];
+          let paramCount = 1;
+
+          if (type && type !== 'all') {
+            if (type === 'IN') {
+              query += ` AND m.quantity_change > 0`;
+            } else if (type === 'OUT') {
+              query += ` AND m.quantity_change < 0`;
+            }
+          }
+
+          if (startDate) {
+            query += ` AND m.created_at >= $${paramCount}`;
+            params.push(startDate);
+            paramCount++;
+          }
+
+          if (endDate) {
+            query += ` AND m.created_at <= $${paramCount}`;
+            params.push(endDate);
+            paramCount++;
+          }
+
+          query += ` ORDER BY m.created_at DESC LIMIT $${paramCount}`;
+          params.push(limit);
+
+          const movements = await pool.query(query, params);
           return res.status(200).json(movements.rows);
         } catch (err) {
           console.error('Error listing movements:', err);
           return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryDeleteMovement':
+        try {
+           const { id } = req.query;
+           // This is a soft audit log, usually we don't delete movements to preserve traceability.
+           // However, for admin cleanup it might be useful.
+           // NOTE: Deleting a movement does NOT revert the stock change in this implementation 
+           // to avoid complex inconsistencies. It's just a log cleanup.
+           await pool.query('DELETE FROM inventory_movements WHERE id = $1', [id]);
+           return res.status(200).json({ success: true });
+        } catch (err) {
+          console.error('Error deleting movement:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryClearMovements':
+        try {
+          // Clear older than X days, or all if no param
+          // For safety, let's just allow clearing by explicit ID array or single ID for now in UI,
+          // but here we can implement a bulk clear.
+          // Let's implement 'clear older than' logic
+          const { days } = body;
+          if (days) {
+             await pool.query(`DELETE FROM inventory_movements WHERE created_at < NOW() - INTERVAL '${parseInt(days)} days'`);
+          } else {
+             // Dangerous: Clear all
+             // await pool.query('DELETE FROM inventory_movements');
+             return res.status(400).json({ error: 'Days parameter required for bulk cleanup' });
+          }
+          return res.status(200).json({ success: true });
+        } catch (err) {
+           console.error('Error clearing movements:', err);
+           return res.status(500).json({ error: err.message });
         }
 
       case 'inventoryListBatches':

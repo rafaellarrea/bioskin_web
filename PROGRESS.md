@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 6, 2026: Inventory Audit Improvements**
+- 🛡️ **Auditoría**: Mejorado módulo de auditoría de movimientos con eliminación y limpieza de historial.
+- 🔍 **Filtros**: Agregados filtros por rango de fechas y tipo de movimiento (Ingreso/Salida).
+- 🧹 **Limpieza**: Implementada función para depuración masiva de registros antiguos.
+
 ### ✅ **Jan 4, 2026: Inventory Restock & Visual Fixes**
 - 🔄 **Reposición**: Agregado botón "Reponer / Nuevo Envase" en modal de consumo para facilitar el flujo de reabastecimiento.
 - 📉 **Agotado**: Agregada opción "Agotado" (0%) en selector visual.
