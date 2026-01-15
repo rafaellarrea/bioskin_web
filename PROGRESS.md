@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 15, 2026: Inventory Batch Deletion**
+- 🗑️ **Eliminación**: Implementada eliminación explícita de lotes con limpieza en cascada de movimientos.
+- 🛡️ **Integridad**: Actualizada eliminación de productos para borrar automáticamente historial de lotes y movimientos asociados.
+
 ### ✅ **Jan 6, 2026: Inventory Audit Improvements**
 - 🛡️ **Auditoría**: Mejorado módulo de auditoría de movimientos con eliminación y limpieza de historial.
 - 🔍 **Filtros**: Agregados filtros por rango de fechas y tipo de movimiento (Ingreso/Salida).
