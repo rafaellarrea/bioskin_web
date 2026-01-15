@@ -1,7 +1,7 @@
 import React from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+import { Calendar, AlertTriangle, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
 
 interface Batch {
   id: number;
@@ -32,6 +32,26 @@ export default function InventoryBatches() {
       console.error('Error fetching batches:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteBatch = async (batchId: number, batchNumber: string) => {
+    if (!window.confirm(`¿Estás seguro de eliminar el lote "${batchNumber}"? Se eliminará todo el historial de movimientos asociado y esta acción no se puede deshacer.`)) return;
+
+    try {
+      const res = await fetch(`/api/records?action=inventoryDeleteBatch&id=${batchId}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        fetchBatches();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Error al eliminar el lote');
+      }
+    } catch (error) {
+      console.error('Error removing batch:', error);
+      alert('Error en la conexión');
     }
   };
 
@@ -71,6 +91,14 @@ export default function InventoryBatches() {
                   <StatusIcon className="w-3 h-3" />
                   {status.label}
                 </div>
+
+                <button 
+                  onClick={() => handleDeleteBatch(batch.id, batch.batch_number)}
+                  className="absolute bottom-3 right-3 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 z-10"
+                  title="Eliminar lote"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
                 
                 <div className="mb-4">
                   <h4 className="font-semibold text-gray-800 line-clamp-1" title={batch.item_name}>{batch.item_name}</h4>

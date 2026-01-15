@@ -282,16 +282,50 @@ export default async function handler(req, res) {
       case 'inventoryDeleteItem':
         try {
           const { id } = req.query;
-          // Check if item has active batches or history
-          const check = await pool.query('SELECT COUNT(*) FROM inventory_batches WHERE item_id = $1', [id]);
-          if (parseInt(check.rows[0].count) > 0) {
-            return res.status(400).json({ error: 'No se puede eliminar: El item tiene historial de lotes.' });
-          }
           
-          await pool.query('DELETE FROM inventory_items WHERE id = $1', [id]);
-          return res.status(200).json({ success: true });
+          // Use a client for transaction to ensure clean cascading delete
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+
+            // 1. Find associated batches to clean up linked movements properly
+            const batchesCheck = await client.query('SELECT id FROM inventory_batches WHERE item_id = $1', [id]);
+            const batchIds = batchesCheck.rows.map(b => b.id);
+
+            if (batchIds.length > 0) {
+              // 2. Delete linked movements (requires manual deletion as they might not cascade)
+              await client.query('DELETE FROM inventory_movements WHERE batch_id = ANY($1)', [batchIds]);
+              
+              // 3. Delete batches (if not set to CASCADE in DB, this ensures it works)
+              await client.query('DELETE FROM inventory_batches WHERE item_id = $1', [id]);
+            }
+
+            // 4. Finally delete the item
+            await client.query('DELETE FROM inventory_items WHERE id = $1', [id]);
+            
+            await client.query('COMMIT');
+            return res.status(200).json({ success: true });
+          } catch (txError) {
+            await client.query('ROLLBACK');
+            throw txError;
+          } finally {
+            client.release();
+          }
         } catch (err) {
           console.error('Error deleting inventory item:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
+      case 'inventoryDeleteBatch':
+        try {
+          const { id } = req.query;
+          
+          await pool.query('DELETE FROM inventory_movements WHERE batch_id = $1', [id]);
+          await pool.query('DELETE FROM inventory_batches WHERE id = $1', [id]);
+          
+          return res.status(200).json({ success: true });
+        } catch (err) {
+          console.error('Error deleting batch:', err);
           return res.status(500).json({ error: err.message });
         }
 
