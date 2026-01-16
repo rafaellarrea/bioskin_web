@@ -140,6 +140,9 @@ export default function InventoryForm({ initialData, onClose, onSave }: Inventor
                 <option value="Caja">Caja</option>
                 <option value="mL">mL</option>
                 <option value="Kit">Kit</option>
+                <option value="Gramos">Gramos</option>
+                <option value="Onzas">Onzas</option>
+                <option value="UI">Unidades Internacionales (Relleno)</option>
               </select>
             </div>
           </div>
