@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 15, 2026: Inventory Units Update**
+- 📏 **Unidades**: Agregada opciones "Gramos", "Onzas" y "UI" al formulario de productos.
+
 ### ✅ **Jan 15, 2026: Inventory Batch Deletion**
 - 🗑️ **Eliminación**: Implementada eliminación explícita de lotes con limpieza en cascada de movimientos.
 - 🛡️ **Integridad**: Actualizada eliminación de productos para borrar automáticamente historial de lotes y movimientos asociados.
