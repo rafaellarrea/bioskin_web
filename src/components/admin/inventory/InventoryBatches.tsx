@@ -56,6 +56,9 @@ export default function InventoryBatches() {
   };
 
   const getExpiryStatus = (date: string) => {
+    // Check for dummy date (No Expiry)
+    if (date.startsWith('2099')) return { label: 'Permanente', color: 'bg-blue-100 text-blue-700', icon: CheckCircle };
+
     const days = differenceInDays(new Date(date), new Date());
     if (days < 0) return { label: 'Vencido', color: 'bg-red-100 text-red-700', icon: AlertCircle };
     if (days < 30) return { label: 'Por Vencer', color: 'bg-orange-100 text-orange-700', icon: AlertTriangle };
@@ -117,7 +120,7 @@ export default function InventoryBatches() {
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Vence:</span>
                     <span className={`font-medium ${status.color.replace('bg-', 'text-').split(' ')[0]}`}>
-                      {format(new Date(batch.expiration_date), 'dd/MM/yyyy')}
+                      {batch.expiration_date.startsWith('2099') ? 'Sin Vencimiento' : format(new Date(batch.expiration_date), 'dd/MM/yyyy')}
                     </span>
                   </div>
                 </div>

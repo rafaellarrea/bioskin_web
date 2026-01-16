@@ -14,6 +14,7 @@ export default function StockMovementModal({ item, onClose, onSave }: StockMovem
     quantity: 1,
     cost_per_unit: 0
   });
+  const [noExpiry, setNoExpiry] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +29,7 @@ export default function StockMovementModal({ item, onClose, onSave }: StockMovem
       await onSave({
         item_id: item.id,
         ...formData,
+        expiration_date: noExpiry ? '2099-12-31' : formData.expiration_date,
         batch_number: finalBatchNumber
       });
       onClose();
@@ -71,13 +73,29 @@ export default function StockMovementModal({ item, onClose, onSave }: StockMovem
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Vencimiento *</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">Fecha de Vencimiento *</label>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="noExpiry"
+                  checked={noExpiry}
+                  onChange={(e) => {
+                    setNoExpiry(e.target.checked);
+                    if (e.target.checked) setFormData({...formData, expiration_date: ''});
+                  }}
+                  className="w-4 h-4 text-[#deb887] rounded focus:ring-[#deb887]"
+                />
+                <label htmlFor="noExpiry" className="text-xs text-gray-500 cursor-pointer select-none">No aplica</label>
+              </div>
+            </div>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Calendar className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${noExpiry ? 'text-gray-300' : 'text-gray-400'}`} />
               <input
                 type="date"
-                required
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+                required={!noExpiry}
+                disabled={noExpiry}
+                className={`w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none ${noExpiry ? 'bg-gray-50 text-gray-400' : ''}`}
                 value={formData.expiration_date}
                 onChange={e => setFormData({...formData, expiration_date: e.target.value})}
               />
