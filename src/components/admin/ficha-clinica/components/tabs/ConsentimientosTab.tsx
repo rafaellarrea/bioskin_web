@@ -1216,11 +1216,11 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
 
         <div id="printable-consent" className="bg-white p-8 md:p-12 max-w-4xl mx-auto shadow-xl print:shadow-none print:p-0 rounded-xl">
           <table className="w-full">
-            <thead className="hidden print:table-header-group"><tr><td className="h-[2cm]"></td></tr></thead>
-            <tfoot className="hidden print:table-footer-group"><tr><td className="h-[2cm]"></td></tr></tfoot>
+            <thead className="hidden print:table-header-group"><tr><td className="h-[1.5cm]"></td></tr></thead>
+            <tfoot className="hidden print:table-footer-group"><tr><td className="h-[1.5cm]"></td></tr></tfoot>
             <tbody>
               <tr>
-                <td className="print:px-[2cm] align-top">
+                <td className="print:px-[1.5cm] align-top">
                   {/* Header */}
                   <div className="flex flex-col md:flex-row justify-between items-start mb-8 border-b-2 border-[#deb887] pb-6 gap-4 md:gap-0">
                     <div className="flex items-center gap-6">
