@@ -1177,6 +1177,10 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
       >
         <style>{`
           @media print {
+            @page {
+              margin: 0;
+              size: auto;
+            }
             body * {
               visibility: hidden;
             }
@@ -1189,7 +1193,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
               top: 0;
               width: 100%;
               margin: 0;
-              padding: 20px;
+              padding: 40px !important;
               background: white;
             }
             .no-print {
