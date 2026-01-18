@@ -618,6 +618,14 @@ export default async function handler(req, res) {
         });
       }
 
+      case 'deleteConsultationHistory': {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ error: 'ID required' });
+        
+        await pool.query('DELETE FROM consultation_history WHERE id = $1', [id]);
+        return res.status(200).json({ success: true });
+      }
+
       case 'saveConsultation': {
         const { recordId, reason, current_illness } = body;
         
