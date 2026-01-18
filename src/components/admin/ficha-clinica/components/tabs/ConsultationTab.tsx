@@ -156,27 +156,35 @@ export default function ConsultationTab({ recordId, initialData, historyData = [
           />
         </div>
 
-        {historyData && historyData.length > 0 && (
-          <div className="mt-8 pt-8 border-t border-gray-100">
-            <h4 className="text-lg font-bold text-gray-800 mb-4">Historial de Motivos de Consulta</h4>
-            <div className="space-y-4">
-              {historyData.map((item, index) => (
-                <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:border-[#deb887]/30 transition-colors">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                       <span className="w-1.5 h-1.5 rounded-full bg-[#deb887]"></span>
-                       {new Date(item.created_at).toLocaleDateString()}
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium">
-                      {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+        <div className="mt-8 pt-8 border-t border-gray-100">
+            <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-[#deb887] rounded-full"></span>
+              Historial de Motivos de Consulta
+            </h4>
+            
+            {historyData && historyData.length > 0 ? (
+              <div className="space-y-4">
+                {historyData.map((item, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:border-[#deb887]/30 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#deb887]"></span>
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </span>
+                      <span className="text-xs text-gray-400 font-medium">
+                        {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed font-medium">{item.reason}</p>
                   </div>
-                  <p className="text-gray-700 text-sm leading-relaxed font-medium">{item.reason}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p className="text-gray-400 text-sm">No hay historial registrado aún.</p>
+              </div>
+            )}
+        </div>
       </motion.div>
     </motion.div>
   );
