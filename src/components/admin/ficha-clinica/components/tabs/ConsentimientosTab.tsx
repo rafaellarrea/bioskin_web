@@ -1178,7 +1178,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
         <style>{`
           @media print {
             @page {
-              margin: 0;
+              margin: 1.5cm;
               size: auto;
             }
             body * {
@@ -1193,8 +1193,13 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
               top: 0;
               width: 100%;
               margin: 0;
-              padding: 40px !important;
+              padding: 0 !important;
               background: white;
+            }
+            /* Hide URL/Title headers/footers in some browsers */
+            @page {
+                margin-top: 1.5cm;
+                margin-bottom: 1.5cm;
             }
             .no-print {
               display: none !important;
