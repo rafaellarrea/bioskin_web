@@ -1399,6 +1399,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
             <div className="text-center text-xs text-gray-400 mt-12 border-t border-gray-100 pt-4">
               Documento generado el {new Date().toLocaleDateString()}  BIOSKIN SALUD Y ESTÉTICA
             </div>
+            </div>
                 </td>
               </tr>
             </tbody>
