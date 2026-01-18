@@ -74,8 +74,12 @@ CREATE TABLE IF NOT EXISTS consultation_history (
     id SERIAL PRIMARY KEY,
     record_id INTEGER REFERENCES clinical_records(id) ON DELETE CASCADE,
     reason TEXT,
+    current_illness TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Add column if not exists
+ALTER TABLE consultation_history ADD COLUMN IF NOT EXISTS current_illness TEXT;
 
 -- Physical Exam
 CREATE TABLE IF NOT EXISTS physical_exams (

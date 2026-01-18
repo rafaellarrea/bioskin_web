@@ -647,11 +647,11 @@ export default async function handler(req, res) {
         }
         
         // Save to history
-        if (reason && reason.trim()) {
+        if ((reason && reason.trim()) || (current_illness && current_illness.trim())) {
           try {
             await pool.query(
-              'INSERT INTO consultation_history (record_id, reason) VALUES ($1, $2)',
-              [recordId, reason]
+              'INSERT INTO consultation_history (record_id, reason, current_illness) VALUES ($1, $2, $3)',
+              [recordId, reason, current_illness]
             );
           } catch (histErr) {
             console.error('Error saving consultation history:', histErr);
