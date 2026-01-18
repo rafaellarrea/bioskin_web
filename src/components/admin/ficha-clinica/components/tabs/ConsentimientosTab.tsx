@@ -1178,7 +1178,7 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
         <style>{`
           @media print {
             @page {
-              margin: 1.5cm;
+              margin: 0;
               size: auto;
             }
             body * {
@@ -1195,11 +1195,6 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
               margin: 0;
               padding: 0 !important;
               background: white;
-            }
-            /* Hide URL/Title headers/footers in some browsers */
-            @page {
-                margin-top: 1.5cm;
-                margin-bottom: 1.5cm;
             }
             .no-print {
               display: none !important;
@@ -1220,21 +1215,27 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
         </div>
 
         <div id="printable-consent" className="bg-white p-8 md:p-12 max-w-4xl mx-auto shadow-xl print:shadow-none print:p-0 rounded-xl">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start mb-8 border-b-2 border-[#deb887] pb-6 gap-4 md:gap-0">
-            <div className="flex items-center gap-6">
-              <img src="/images/logo/logo.png" alt="BioSkin Logo" className="h-24 w-auto object-contain" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">BIOSKIN SALUD Y ESTETICA</h2>
-                <p className="text-base font-bold text-[#deb887] mt-1">DRA. DANIELA CREAMER</p>
-                <p className="text-sm text-gray-500">Cosmiatría y Dermatocosmiatría Clínica</p>
-              </div>
-            </div>
-            <div className="text-right text-sm text-gray-600 space-y-1">
-              <p><strong>Fecha:</strong> {new Date().toLocaleDateString()}</p>
-              <p><strong>Expediente:</strong> #{recordId}</p>
-            </div>
-          </div>
+          <table className="w-full">
+            <thead className="hidden print:table-header-group"><tr><td className="h-[2cm]"></td></tr></thead>
+            <tfoot className="hidden print:table-footer-group"><tr><td className="h-[2cm]"></td></tr></tfoot>
+            <tbody>
+              <tr>
+                <td className="print:px-[2cm] align-top">
+                  {/* Header */}
+                  <div className="flex flex-col md:flex-row justify-between items-start mb-8 border-b-2 border-[#deb887] pb-6 gap-4 md:gap-0">
+                    <div className="flex items-center gap-6">
+                      <img src="/images/logo/logo.png" alt="BioSkin Logo" className="h-24 w-auto object-contain" />
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">BIOSKIN SALUD Y ESTETICA</h2>
+                        <p className="text-base font-bold text-[#deb887] mt-1">DRA. DANIELA CREAMER</p>
+                        <p className="text-sm text-gray-500">Cosmiatría y Dermatocosmiatría Clínica</p>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-gray-600 space-y-1">
+                      <p><strong>Fecha:</strong> {new Date().toLocaleDateString()}</p>
+                      <p><strong>Expediente:</strong> #{recordId}</p>
+                    </div>
+                  </div>
 
           {/* Patient Info */}
           <div className="bg-gray-50 p-6 rounded-xl mb-10 text-sm border border-gray-100">
@@ -1398,7 +1399,10 @@ export default function ConsentimientosTab({ patientId, recordId, patient }: Pro
             <div className="text-center text-xs text-gray-400 mt-12 border-t border-gray-100 pt-4">
               Documento generado el {new Date().toLocaleDateString()}  BIOSKIN SALUD Y ESTÉTICA
             </div>
-          </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </motion.div>
     );
