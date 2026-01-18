@@ -589,7 +589,8 @@ export default async function handler(req, res) {
           prescriptions, 
           consents, 
           injectables,
-          consultation
+          consultation,
+          consultationHistory
         ] = await Promise.all([
           safeQuery('SELECT * FROM medical_history WHERE record_id = $1', [targetRecordId]),
           safeQuery('SELECT * FROM physical_exams WHERE record_id = $1 ORDER BY created_at DESC', [targetRecordId]),
@@ -598,7 +599,8 @@ export default async function handler(req, res) {
           safeQuery('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
           safeQuery('SELECT * FROM consent_forms WHERE record_id = $1 ORDER BY id DESC', [targetRecordId]),
           safeQuery('SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC', [targetRecordId]),
-          safeQuery('SELECT * FROM consultation_info WHERE record_id = $1', [targetRecordId])
+          safeQuery('SELECT * FROM consultation_info WHERE record_id = $1', [targetRecordId]),
+          safeQuery('SELECT * FROM consultation_history WHERE record_id = $1 ORDER BY created_at DESC', [targetRecordId])
         ]);
 
         return res.status(200).json({
@@ -611,7 +613,8 @@ export default async function handler(req, res) {
           prescriptions: prescriptions.rows,
           consentForms: consents.rows,
           injectables: injectables.rows,
-          consultation: consultation.rows[0] || {}
+          consultation: consultation.rows[0] || {},
+          consultationHistory: consultationHistory.rows || []
         });
       }
 
@@ -633,6 +636,19 @@ export default async function handler(req, res) {
             'INSERT INTO consultation_info (record_id, reason, current_illness) VALUES ($1, $2, $3)',
             [recordId, reason, current_illness]
           );
+        }
+        
+        // Save to history
+        if (reason && reason.trim()) {
+          try {
+            await pool.query(
+              'INSERT INTO consultation_history (record_id, reason) VALUES ($1, $2)',
+              [recordId, reason]
+            );
+          } catch (histErr) {
+            console.error('Error saving consultation history:', histErr);
+            // Don't fail the whole request
+          }
         }
         
         return res.status(200).json({ success: true });

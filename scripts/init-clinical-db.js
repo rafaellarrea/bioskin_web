@@ -59,6 +59,24 @@ CREATE TABLE IF NOT EXISTS medical_history (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Consultation Info (Current)
+CREATE TABLE IF NOT EXISTS consultation_info (
+    id SERIAL PRIMARY KEY,
+    record_id INTEGER REFERENCES clinical_records(id) ON DELETE CASCADE,
+    reason TEXT,
+    current_illness TEXT,
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(record_id)
+);
+
+-- Consultation History (Log)
+CREATE TABLE IF NOT EXISTS consultation_history (
+    id SERIAL PRIMARY KEY,
+    record_id INTEGER REFERENCES clinical_records(id) ON DELETE CASCADE,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Physical Exam
 CREATE TABLE IF NOT EXISTS physical_exams (
     id SERIAL PRIMARY KEY,

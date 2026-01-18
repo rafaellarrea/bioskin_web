@@ -252,6 +252,7 @@ export default function ClinicalRecordManager() {
                   <ConsultationTab 
                     recordId={parseInt(recordId!)} 
                     initialData={recordData.consultation} 
+                    historyData={recordData.consultationHistory}
                     onSave={() => fetchData(false)} 
                   />
                 )}
