@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
 
 interface UpcomingAppointment {
   id: string;
@@ -20,6 +20,54 @@ export default function AdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+  // Health Check States
+  const [showHealthModal, setShowHealthModal] = useState(false);
+  const [healthLogs, setHealthLogs] = useState<string[]>([]);
+  const [calStatus, setCalStatus] = useState<'pending' | 'loading' | 'success' | 'error'>('pending');
+  const [emailStatus, setEmailStatus] = useState<'pending' | 'loading' | 'success' | 'error'>('pending');
+  const healthLogsEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (healthLogsEndRef.current) {
+        healthLogsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [healthLogs]);
+
+  const runTest = async (type: 'calendar' | 'email') => {
+    const isCalendar = type === 'calendar';
+    const setStatus = isCalendar ? setCalStatus : setEmailStatus;
+    const endpoint = isCalendar ? '/api/test-calendar' : '/api/test-email';
+
+    setStatus('loading');
+    setHealthLogs(prev => [...prev, `\n> Iniciando prueba de ${type}...`]);
+
+    try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        
+        if (data.logs) {
+            setHealthLogs(prev => [...prev, ...data.logs.map((l: string) => `> ${l}`)]);
+        }
+
+        if (data.success) {
+            setStatus('success');
+            setHealthLogs(prev => [...prev, `> ✅ PRUEBA EXITOSA`]);
+        } else {
+            setStatus('error');
+            setHealthLogs(prev => [...prev, `> ❌ ERROR: ${data.message}`]);
+            if(data.error) setHealthLogs(prev => [...prev, `> Detalle: ${data.error}`]);
+            
+            // Special Advice
+            if(type === 'email' && (data.code === 'EAUTH' || (data.response && data.response.includes('BadCredentials')))) {
+                 setHealthLogs(prev => [...prev, `> 💡 CONSEJO: Error de autenticación. Verifica la App Password de Gmail o la Autenticación de 2 Pasos.`]);
+            }
+        }
+    } catch (e: any) {
+        setStatus('error');
+        setHealthLogs(prev => [...prev, `> ❌ Error de comunicación: ${e.message}`]);
+    }
+  };
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -372,8 +420,131 @@ export default function AdminDashboard() {
               </button>
             );
           })}
+
+          {/* System Health Card */}
+          <button
+            onClick={() => setShowHealthModal(true)}
+            className="group relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-0 group-hover:opacity-10 transition-opacity" />
+            
+            <div className="relative p-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-6">
+                <Activity className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#deb887] transition-colors">
+                Estado del Sistema
+              </h3>
+              
+              <p className="text-gray-600 leading-relaxed">
+                Verificar conexión con Google Calendar y Servicio de Correo
+              </p>
+
+              <div className="mt-6 flex items-center text-[#deb887] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>Verificar</span>
+                <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </button>
         </div>
       </div>
+
+      {/* Health Check Modal */}
+      {showHealthModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-auto overflow-hidden animate-in fade-in zoom-in duration-200">
+             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                   <Activity className="w-6 h-6 text-emerald-600" />
+                   Diagnóstico del Sistema
+                </h3>
+                <button onClick={() => setShowHealthModal(false)} className="text-gray-400 hover:text-gray-600">
+                   <X className="w-6 h-6" />
+                </button>
+             </div>
+
+             <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                   {/* Calendar Status */}
+                   <div className="p-4 border border-gray-100 rounded-lg bg-gray-50">
+                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                         <Calendar className="w-4 h-4" /> Google Calendar
+                      </h4>
+                      <div className="flex items-center gap-2 mb-3">
+                         <span className={`h-3 w-3 rounded-full ${
+                             calStatus === 'success' ? 'bg-green-500' :
+                             calStatus === 'error' ? 'bg-red-500' :
+                             calStatus === 'loading' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-300'
+                         }`}></span>
+                         <span className="text-sm font-medium">
+                            {calStatus === 'success' ? 'Conectado' :
+                             calStatus === 'error' ? 'Error' :
+                             calStatus === 'loading' ? 'Verificando...' : 'Pendiente'}
+                         </span>
+                      </div>
+                      <button 
+                         onClick={() => runTest('calendar')}
+                         disabled={calStatus === 'loading' || emailStatus === 'loading'}
+                         className="w-full py-2 bg-white border border-gray-200 rounded text-sm font-medium hover:bg-gray-50 disabled:opacity-50 text-gray-700"
+                      >
+                         Probar Conexión
+                      </button>
+                   </div>
+
+                   {/* Email Status */}
+                   <div className="p-4 border border-gray-100 rounded-lg bg-gray-50">
+                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                         <Mail className="w-4 h-4" /> Email Service
+                      </h4>
+                       <div className="flex items-center gap-2 mb-3">
+                         <span className={`h-3 w-3 rounded-full ${
+                             emailStatus === 'success' ? 'bg-green-500' :
+                             emailStatus === 'error' ? 'bg-red-500' :
+                             emailStatus === 'loading' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-300'
+                         }`}></span>
+                         <span className="text-sm font-medium">
+                            {emailStatus === 'success' ? 'Operativo' :
+                             emailStatus === 'error' ? 'Fallo' :
+                             emailStatus === 'loading' ? 'Enviando...' : 'Pendiente'}
+                         </span>
+                      </div>
+                      <button 
+                         onClick={() => runTest('email')}
+                         disabled={calStatus === 'loading' || emailStatus === 'loading'}
+                         className="w-full py-2 bg-white border border-gray-200 rounded text-sm font-medium hover:bg-gray-50 disabled:opacity-50 text-gray-700"
+                      >
+                         Probar Envío
+                      </button>
+                   </div>
+                </div>
+
+                {/* Logs Console */}
+                <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm max-h-60 overflow-y-auto">
+                   <div className="text-gray-400 border-b border-gray-700 pb-2 mb-2 flex justify-between">
+                      <span>Console Output</span>
+                      <button onClick={() => setHealthLogs([])} className="text-xs hover:text-white">Clear</button>
+                   </div>
+                   <div className="space-y-1">
+                      {healthLogs.length === 0 && <span className="text-gray-600 italic">Esperando pruebas...</span>}
+                      {healthLogs.map((log, i) => (
+                         <div key={i} className={`${
+                             log.includes('❌') ? 'text-red-400' :
+                             log.includes('✅') ? 'text-green-400' :
+                             log.includes('💡') ? 'text-yellow-300' : 'text-gray-300'
+                         }`}>
+                            {log}
+                         </div>
+                      ))}
+                      <div ref={healthLogsEndRef} />
+                   </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
