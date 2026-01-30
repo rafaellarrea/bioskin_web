@@ -212,19 +212,65 @@ export default async function handler(req, res) {
     ? `https://wa.me/593${phoneClean}?text=${encodeURIComponent(whatsappMessage)}`
     : "";
 
+  let calendarSuccess = false;
+  let emailSuccess = false;
+  let errorDetails = [];
+
+  // --- 1. INTENTO DE CREAR EVENTO EN GOOGLE CALENDAR (PRIORIDAD) ---
+  try {
+    if (start && end) {
+      if (!process.env.GOOGLE_CREDENTIALS_BASE64) {
+          throw new Error('Credenciales de Google no configuradas');
+      }
+
+      const decoded = Buffer.from(process.env.GOOGLE_CREDENTIALS_BASE64, 'base64').toString('utf8');
+      const credentials = JSON.parse(decoded);
+
+      const auth = new google.auth.JWT(
+        credentials.client_email,
+        undefined,
+        credentials.private_key,
+        ['https://www.googleapis.com/auth/calendar']
+      );
+
+      const calendar = google.calendar({ version: 'v3', auth });
+
+      await calendar.events.insert({
+        calendarId: credentials.calendar_id,
+        requestBody: {
+          summary: `Cita: ${paciente} - ${email}`,
+          description: message,
+          start: { dateTime: start, timeZone: "America/Guayaquil" },
+          end: { dateTime: end, timeZone: "America/Guayaquil" }
+        }
+      });
+      console.log("✅ Evento creado exitosamente en Google Calendar");
+      calendarSuccess = true;
+    } else {
+      console.log("⚠️ No se encontró fecha u hora válida en el body para Calendar.");
+    }
+  } catch (calErr) {
+      console.error('❌ Error creando evento en Calendar:', calErr);
+      errorDetails.push(`Calendar: ${calErr.message}`);
+  }
+
   // --- Nodemailer setup ---
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT),
-    secure: false,
+    secure: false, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    tls: {
+      rejectUnauthorized: false // Bypass self-signed certs (importante para entornos locales/dev)
+    }
   });
 
+  // --- 2. INTENTO DE ENVÍO DE CORREOS ---
   try {
-    // --- 1. ENVÍA CORREO AL STAFF BIOSKIN CON BOTÓN WHATSAPP ---
+    // --- ENVÍA CORREO AL STAFF BIOSKIN CON BOTÓN WHATSAPP ---
     await transporter.sendMail({
       from: `Formulario BIOSKIN <${process.env.EMAIL_USER}>`,
       to: `${process.env.EMAIL_TO}, salud.bioskin@gmail.com, rafa1227_g@hotmail.com, dannypau.95@gmail.com`,
@@ -256,7 +302,7 @@ export default async function handler(req, res) {
       `,
     });
 
-    // --- 2. ENVÍA CORREO AL PACIENTE (sin botón WhatsApp) ---
+    // --- ENVÍA CORREO AL PACIENTE (sin botón WhatsApp) ---
     await transporter.sendMail({
       from: `BIO SKIN Salud y Estética <${process.env.EMAIL_USER}>`,
       to: email,
@@ -278,38 +324,31 @@ export default async function handler(req, res) {
       `,
     });
 
-    // --- 3. CREA EVENTO EN GOOGLE CALENDAR ---
-    const decoded = Buffer.from(process.env.GOOGLE_CREDENTIALS_BASE64, 'base64').toString('utf8');
-    const credentials = JSON.parse(decoded);
+    emailSuccess = true;
+    console.log("✅ Correos enviados exitosamente");
 
-    const auth = new google.auth.JWT(
-      credentials.client_email,
-      undefined,
-      credentials.private_key,
-      ['https://www.googleapis.com/auth/calendar']
-    );
+  } catch (emailErr) {
+    console.error('❌ Error enviando correos:', emailErr);
+    errorDetails.push(`Email: ${emailErr.message}`);
+  }
 
-    const calendar = google.calendar({ version: 'v3', auth });
-
-    if (start && end) {
-      await calendar.events.insert({
-        calendarId: credentials.calendar_id,
-        requestBody: {
-          summary: `Cita: ${paciente} - ${email}`,
-          description: message,
-          start: { dateTime: start, timeZone: "America/Guayaquil" },
-          end: { dateTime: end, timeZone: "America/Guayaquil" }
-        }
+  // --- RESPUESTA FINAL AL CLIENTE ---
+  // Si al menos uno de los dos procesos importantes funcionó (Calendar o Email), lo consideramos éxito parcial
+  if (calendarSuccess || emailSuccess) {
+      if (!calendarSuccess && start && end) {
+          console.warn('⚠️ Alerta: Cita procesada pero falló inserción en Calendar.');
+      }
+      return res.status(200).json({ 
+          success: true, 
+          message: 'Solicitud procesada',
+          details: { calendar: calendarSuccess, email: emailSuccess }
       });
-      console.log("✅ Evento creado exitosamente");
-    } else {
-      console.log("⚠️ No se encontró fecha u hora válida en el body.");
-    }
-
-    return res.status(200).json({ success: true, message: 'Todo enviado y registrado con éxito' });
-
-  } catch (err) {
-    console.error('❌ Error al procesar la solicitud:', err);
-    return res.status(500).json({ success: false, message: 'Error al procesar la solicitud' });
+  } else {
+    // Si NADA funciona, entonces error 500
+    return res.status(500).json({ 
+        success: false, 
+        message: 'Error al procesar la solicitud',
+        errors: errorDetails
+    });
   }
 }

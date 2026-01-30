@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jan 29, 2026: Google Calendar Integration Verification**
+- 🛡️ **Diagnóstico**: Verificada y confirmada conectividad completa con API Google Calendar.
+- 🧪 **Testing**: Creado script `scripts/verify-calendar-integration.js` para pruebas CRUD automáticas.
+- 🔍 **Análisis**: Identificada riesgo en `api/sendEmail.js` donde fallos de correo bloquean agendamiento.
+
 ### ✅ **Jan 15, 2026: Inventory Units Update**
 - 📏 **Unidades**: Agregada opciones "Gramos", "Onzas" y "UI" al formulario de productos.
 
