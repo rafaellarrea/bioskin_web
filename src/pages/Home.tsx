@@ -17,7 +17,7 @@ const Home = () => {
     "telephone": "+593969890689",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Av. Ordoñez Lasso y calle de la Menta, Centro Médico Santa María, 2do piso, Cons. 203",
+      "streetAddress": "Av. Ordoñez Lasso y calle del Culantro, Edificio Torre Victoria, Planta Baja",
       "addressLocality": "Cuenca",
       "addressRegion": "Azuay",
       "postalCode": "010107",
@@ -25,8 +25,8 @@ const Home = () => {
     },
     "geo": {
       "@type": "GeoCoordinates",
-      "latitude": -2.900128,
-      "longitude": -79.005896
+      "latitude": -2.878367,
+      "longitude": -79.068850
     },
     "openingHoursSpecification": {
       "@type": "OpeningHoursSpecification",

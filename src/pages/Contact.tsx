@@ -70,8 +70,8 @@ const Contact: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">Dirección</h3>
-                        <p className="text-gray-600">Av. Ordoñez Lasso y calle de la Menta</p>
-                        <p className="text-gray-500 text-sm mt-1">Centro Médico Santa María, 2do piso, Cons. 203</p>
+                        <p className="text-gray-600">Av. Ordoñez Lasso y calle del Culantro</p>
+                        <p className="text-gray-500 text-sm mt-1">Edificio Torre Victoria, Planta Baja</p>
                         <p className="text-gray-500 text-sm">Cuenca, Ecuador</p>
                       </div>
                     </motion.div>
@@ -158,7 +158,7 @@ const Contact: React.FC = () => {
                     style={{ border: 0 }}
                     loading="lazy"
                     allowFullScreen
-                    src="https://maps.google.com/maps?q=-2.881413,-79.061966&z=16&output=embed"
+                    src="https://maps.google.com/maps?q=-2.878367,-79.068850&z=16&output=embed"
                     title="Ubicación Bio Skin Salud y Estética"
                     className="grayscale hover:grayscale-0 transition-all duration-500"
                   ></iframe>

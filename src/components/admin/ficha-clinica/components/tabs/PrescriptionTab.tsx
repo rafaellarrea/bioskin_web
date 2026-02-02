@@ -203,6 +203,20 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
     }
   };
 
+  const handleDeleteTemplate = async () => {
+    if (!selectedTemplate || !confirm('¿Eliminar esta plantilla?')) return;
+
+    try {
+      await fetch(`/api/records?action=deleteTemplate&id=${selectedTemplate}`, { method: 'DELETE' });
+      loadTemplates();
+      setSelectedTemplate('');
+      setMessage({ type: 'success', text: 'Plantilla eliminada' });
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      setMessage({ type: 'error', text: 'Error al eliminar la plantilla' });
+    }
+  };
+
   const handleApplyTemplate = () => {
     const template = templates.find(t => t.id.toString() === selectedTemplate);
     if (template) {
@@ -288,7 +302,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
 
                <div class="footer">
                   <div class="footer-item"><span class="icon"></span> 0998653732 / 0969890689</div>
-                  <div class="footer-item"><span class="icon"></span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
+                  <div class="footer-item"><span class="icon"></span> Av. Ordoñez Lasso y Calle del Culantro, Edificio Torre Victoria, Planta Baja.</div>
                </div>
             </div>
 
@@ -336,7 +350,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                
                <div class="footer">
                   <div class="footer-item"><span class="icon"></span> 0998653732 / 0969890689</div>
-                  <div class="footer-item"><span class="icon"></span> Av. Ordoñez Lasso y Calle del Culantro. Centro Médico Santa María / Consultorio 203.</div>
+                  <div class="footer-item"><span class="icon"></span> Av. Ordoñez Lasso y Calle del Culantro, Edificio Torre Victoria, Planta Baja.</div>
                </div>
             </div>
           </div>
@@ -476,6 +490,19 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                 Aplicar
               </motion.button>
             </Tooltip>
+
+            {selectedTemplate && (
+              <Tooltip content="Eliminar Plantilla">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleDeleteTemplate} 
+                  className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 transition-colors"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </motion.button>
+              </Tooltip>
+            )}
 
             <Tooltip content="Guardar como Plantilla">
               <motion.button 

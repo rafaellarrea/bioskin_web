@@ -298,6 +298,11 @@
 - 🐛 **Fix Technical AI**: Agregado import faltante `getOpenAIClient` en servicio técnico.
 - ⚡ **Estabilidad**: El sistema ahora maneja correctamente la concurrencia de mensajes sin crashear.
 
+### ✅ **Feb 01, 2026: Actualización de Dirección y Mapa**
+- 📍 **Nueva Ubicación**: Actualizada dirección a Av. Ordoñez Lasso y calle del Culantro, Edificio Torre Victoria.
+- 🗺️ **Mapa**: Coordenadas actualizadas en la página de contacto (-2.878367, -79.068850).
+- 🤖 **IA & Bots**: Actualizados prompts de sistemas con nueva dirección.
+
 ### ✅ **Nov 27, 2025: Debounce y Agrupación de Mensajes**
 - ⏳ **Espera Inteligente**: El bot espera 10 segundos antes de responder para agrupar mensajes consecutivos.
 - 🛑 **Prevención de Conflictos**: Si llega un nuevo mensaje durante la espera, el proceso anterior se cancela.
