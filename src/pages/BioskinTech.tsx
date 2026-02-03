@@ -413,6 +413,14 @@ const BioskinTech = () => {
               </span>
             </a>
           </div>
+
+          <div className="mt-16 flex flex-col items-center">
+            <p className="text-gray-500 font-mono text-xs uppercase tracking-[0.2em] mb-4">Acceso Directo Móvil</p>
+            <div className="p-2 bg-white rounded-lg shadow-[0_0_20px_rgba(222,184,135,0.3)] group hover:shadow-[0_0_30px_rgba(222,184,135,0.5)] transition-all duration-500">
+              <img src="/images/qr/bioskin-tech.png" alt="QR Bioskin Tech" className="w-32 h-32 md:w-40 md:h-40 object-contain" />
+            </div>
+            <p className="text-[#deb887] text-[10px] font-mono mt-3 opacity-60">SCAN FOR ACCESS /// SYSTEM_ID: BIOSKIN_TECH</p>
+          </div>
         </div>
       </section>
     </>

@@ -228,6 +228,19 @@ const Services = () => {
         </div>
       </section>
 
+      {/* QR Section */}
+      <section className="py-16 bg-white border-t border-gray-100">
+        <div className="container-custom px-6 text-center">
+          <h2 className="text-xl md:text-2xl font-serif text-[#deb887] mb-8">Guarda nuestro Catálogo</h2>
+          <div className="flex flex-col items-center">
+             <div className="p-4 bg-white shadow-xl rounded-2xl border border-gray-100 transform hover:scale-105 transition-transform duration-300">
+                <img src="/images/qr/services.png" alt="QR Servicios" className="w-40 h-40 object-contain mix-blend-multiply" />
+             </div>
+             <p className="mt-4 text-sm text-gray-500 font-light">Escanea para acceder rápidamente a nuestros servicios</p>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </>
   );
