@@ -66,7 +66,7 @@ const BioskinTech = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed mb-10 border-l-2 border-[#deb887]/50 pl-6 text-left">
-              Analítica avanzada, soporte técnico de precisión y tecnología biomédica para maximizar el rendimiento de tu clínica.
+              Analítica avanzada, soporte técnico de precisión y tecnología biomédica para maximizar el rendimiento de tu consultorio estético.
             </p>
 
             <motion.div 
@@ -75,8 +75,13 @@ const BioskinTech = () => {
               transition={{ delay: 0.8 }}
               className="flex justify-center gap-6"
             >
-              <a href="#services" className="group relative px-8 py-3 bg-transparent border border-[#deb887] text-[#deb887] uppercase tracking-widest font-mono text-sm hover:bg-[#deb887] hover:text-black transition-all duration-300">
-                <span className="relative z-10">Iniciar Diagnóstico</span>
+              <a 
+                href={`https://wa.me/${whatsappNumber}?text=Hola,%20quisiera%20iniciar%20un%20diagnóstico%20técnico%20con%20BIOSKIN%20TECH`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative px-8 py-3 bg-transparent border border-[#deb887] text-[#deb887] uppercase tracking-widest font-mono text-sm hover:bg-[#deb887] hover:text-black transition-all duration-300"
+              >
+                <span className="relative z-10 flex items-center gap-2"><Settings className="w-4 h-4" /> Iniciar Diagnóstico</span>
                 <div className="absolute inset-0 bg-[#deb887]/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </a>
             </motion.div>
@@ -104,9 +109,9 @@ const BioskinTech = () => {
                 <p className="text-[#deb887] font-mono text-xs mb-4 uppercase tracking-widest">Ingeniero Mecatrónico</p>
                 
                 <p className="text-gray-400 leading-relaxed text-sm border-t border-gray-800 pt-4 mt-4">
-                  Especialista con amplia trayectoria en el área de la bioingeniería estética. 
-                  Lidera la división técnica garantizando que cada equipo opere bajo estándares clínicos rigurosos, 
-                  fusionando la mecánica de precisión con la electrónica avanzada.
+                  Profesional con sólida formación en ingeniería y amplia experiencia en el sector biomédico. 
+                  Dirige las operaciones técnicas asegurando la fiabilidad operativa mediante protocolos estandarizados, 
+                  gestión eficiente de recursos y supervisión integral de procesos de mantenimiento.
                 </p>
               </div>
             </motion.div>
@@ -173,10 +178,76 @@ const BioskinTech = () => {
               icon={<Target className="w-8 h-8 text-[#deb887]" />}
               title="SOLUCIÓN ACTIVA"
               subtitle="Protocolo Bioskin"
-              description="Ingeniería certificada, repuestos críticos en stock y validación de operatividad inmediata."
+              description="Ingeniería certificada, gestión de logística de repuestos multimarca y validación de funcionalidad operativa."
               borderColor="border-[#deb887]/50"
               glow
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Compliance / Pain Point Section */}
+      <section className="py-20 bg-[#111] relative overflow-hidden border-t border-b border-gray-900">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-5"></div>
+        <div className="container-custom px-6 relative z-10">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-flex items-center gap-2 text-yellow-500 border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 rounded-full mb-6">
+              <Shield className="w-5 h-5" />
+              <span className="text-xs font-mono uppercase tracking-widest font-bold">Alerta Normativa ARCSA</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              ¿PASARÍA TU CONSULTORIO UNA <span className="text-[#deb887] underline decoration-wavy decoration-[#deb887]/30 underline-offset-8">INSPECCIÓN TÉCNICA</span> HOY?
+            </h2>
+            <p className="text-gray-400 text-lg leading-relaxed">
+              La falta de informes técnicos y hojas de vida de equipos es la <span className="text-white font-bold">causa #1 de sanciones</span> en auditorías de control sanitario en Ecuador.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center bg-[#0a0a0a] p-8 rounded-sm border border-gray-800">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="w-2 h-8 bg-red-500"></span>
+                Riesgos de Cumplimiento
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex gap-3 text-gray-400 text-sm">
+                  <span className="text-red-500 font-bold shrink-0">01.</span>
+                  <span>Sin <strong className="text-gray-300">Hoja de Vida</strong> actualizada, el equipo no es apto para uso ante la autoridad.</span>
+                </li>
+                <li className="flex gap-3 text-gray-400 text-sm">
+                  <span className="text-red-500 font-bold shrink-0">02.</span>
+                  <span>Las sanciones económicas superan hasta <strong className="text-gray-300">10x</strong> el costo de un plan de mantenimiento.</span>
+                </li>
+                <li className="flex gap-3 text-gray-400 text-sm">
+                  <span className="text-red-500 font-bold shrink-0">03.</span>
+                  <span>Responsabilidad civil total en caso de incidentes con pacientes por equipos no certificados.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-900/50 p-6 border border-gray-800 relative">
+              <div className="absolute -top-3 -right-3 bg-[#deb887] text-black text-xs font-bold px-3 py-1 font-mono uppercase">Solución Garantizada</div>
+              <h3 className="text-xl font-bold text-white mb-4">
+                El Estándar Bioskin Tech
+              </h3>
+              <p className="text-gray-400 text-sm mb-6">
+                Regularizamos tu equipamiento con documentación técnica validada para presentar en tu próxima inspección.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <CheckCircle className="w-5 h-5 text-[#deb887]" />
+                  <span>Informe Técnico detallado para carpeta ARCSA</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <CheckCircle className="w-5 h-5 text-[#deb887]" />
+                  <span>Etiquetado de mantenimiento y calibración</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <CheckCircle className="w-5 h-5 text-[#deb887]" />
+                  <span>Respaldo documental de intervenciones</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -208,12 +279,12 @@ const BioskinTech = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Mantenimiento Preventivo</h3>
                 <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                  Protocolos semestrales de optimización y calibración. Aseguramos la precisión de disparo en láseres y la estabilidad de frecuencia en sistemas RF.
+                  Servicio orientado a la preservación de equipos médicos básicos y aparatología estética. Ejecutamos rutinas de limpieza y vérificación para extender la vida útil de su inversión.
                 </p>
                 <ul className="space-y-2 font-mono text-xs text-gray-500">
-                  <li className="flex items-center"><span className="text-[#deb887] mr-2">ᐳ</span> Calibración energética</li>
-                  <li className="flex items-center"><span className="text-[#deb887] mr-2">ᐳ</span> Limpieza de óptica interna</li>
-                  <li className="flex items-center"><span className="text-[#deb887] mr-2">ᐳ</span> Certificación de estado</li>
+                  <li className="flex items-center"><span className="text-[#deb887] mr-2">ᐳ</span> Informe técnico detallado</li>
+                  <li className="flex items-center"><span className="text-[#deb887] mr-2">ᐳ</span> Calibraciones generales</li>
+                  <li className="flex items-center"><span className="text-[#deb887] mr-2">ᐳ</span> Limpieza interna y externa</li>
                 </ul>
               </motion.div>
 
@@ -229,12 +300,12 @@ const BioskinTech = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Reparaciones Técnicas</h3>
                 <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                  Diagnóstico profundo y sustitución de componentes dañados con rigor técnico. Soluciones duraderas para equipos críticos.
+                  Diagnóstico de fallos y corrección de averías. Priorizamos la recuperación funcional del equipo mediante la sustitución o ajuste de componentes afectados.
                 </p>
                 <ul className="space-y-2 font-mono text-xs text-gray-500">
-                  <li className="flex items-center"><span className="text-red-500 mr-2">ᐳ</span> Microelectrónica</li>
-                  <li className="flex items-center"><span className="text-red-500 mr-2">ᐳ</span> Ajuste de cavidades láser</li>
-                  <li className="flex items-center"><span className="text-red-500 mr-2">ᐳ</span> Recuperación de enfriamiento</li>
+                  <li className="flex items-center"><span className="text-red-500 mr-2">ᐳ</span> Electrónica general</li>
+                  <li className="flex items-center"><span className="text-red-500 mr-2">ᐳ</span> Ajustes mecánicos y de sistemas</li>
+                  <li className="flex items-center"><span className="text-red-500 mr-2">ᐳ</span> Verificaciones y pruebas de carga</li>
                 </ul>
               </motion.div>
             </div>
