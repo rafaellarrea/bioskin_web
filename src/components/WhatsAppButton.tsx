@@ -4,8 +4,15 @@ import { Tooltip } from './ui/Tooltip';
 
 export default function WhatsAppButton() {
   const { pathname } = useLocation();
-  const phoneNumber = "593969890689";
-  const message = "Hola, me gustaría obtener más información sobre sus tratamientos.";
+  
+  // Lógica para cambiar el número según la página
+  const isTechPage = pathname === '/bioskin-tech' || pathname === '/bioskin-tech/';
+  const phoneNumber = isTechPage ? "593984232889" : "593969890689";
+  
+  const message = isTechPage 
+    ? "Hola, necesito soporte técnico especializado BIOSKIN TECH."
+    : "Hola, me gustaría obtener más información sobre sus tratamientos.";
+    
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   // No mostrar en rutas de administración

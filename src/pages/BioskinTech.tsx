@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Settings, Wrench, Shield, Cpu, Award, Clock, CheckCircle, ArrowRight, Zap, Target } from 'lucide-react';
 import { SEO } from '../components/SEO';
@@ -362,14 +363,23 @@ const BioskinTech = () => {
                 </div>
               </div>
 
-              <a 
-                href={`https://wa.me/${whatsappNumber}?text=Hola,%20me%20interesa%20información%20sobre%20ventas%20BIOSKIN%20TECH`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative z-10 w-full py-4 bg-[#deb887] text-black font-bold text-center uppercase tracking-widest hover:bg-white transition-colors duration-300"
-              >
-                Solicitar Cotización <ArrowRight className="inline-block w-4 h-4 ml-2" />
-              </a>
+              <div className="flex flex-col gap-4 relative z-10 w-full">
+                <a 
+                  href={`https://wa.me/${whatsappNumber}?text=Hola,%20me%20interesa%20información%20sobre%20ventas%20BIOSKIN%20TECH`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-4 bg-[#deb887] text-black font-bold text-center uppercase tracking-widest hover:bg-white transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                  Solicitar Cotización <ArrowRight className="w-4 h-4" />
+                </a>
+                
+                <Link 
+                  to="/products"
+                  className="w-full py-4 bg-transparent border border-white/20 text-white font-mono text-center uppercase tracking-widest hover:bg-white/10 transition-colors duration-300 flex items-center justify-center gap-2 text-sm"
+                >
+                  <Cpu className="w-4 h-4" /> Ver Catálogo Aparatología
+                </Link>
+              </div>
             </motion.div>
           </div>
         </div>
