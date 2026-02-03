@@ -1,7 +1,7 @@
 import qrcode
 import os
 
-# URLs
+# URLs - Updated for Vercel
 urls = {
     "bioskin-tech": "https://saludbioskin.vercel.app/#/bioskin-tech",
     "services": "https://saludbioskin.vercel.app/#/services"
