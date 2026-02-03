@@ -30,6 +30,7 @@ export default function Navbar() {
     { path: '/services', label: 'Servicios' },
     { path: '/diagnosis', label: 'Diagnóstico' },
     { path: '/products', label: 'Productos' },
+    { path: '/bioskin-tech', label: 'BioSkin Tech' },
     { path: '/blogs', label: 'Blog' },
     { path: '/about', label: 'Nosotros' },
     { path: '/contact', label: 'Contacto' },

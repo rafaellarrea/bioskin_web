@@ -10,6 +10,7 @@ import Results from './pages/Results';
 import Diagnosis from './pages/Diagnosis';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
+import BioskinTech from './pages/BioskinTech';
 import Blogs from './pages/Blogs';
 import BlogDetail from './pages/BlogDetail';
 import Appointment from './pages/Appointment';
@@ -55,6 +56,9 @@ function App() {
               <Route path="/products/cosmeticos" element={<Products initialCategory="cosmetic" />} />
               <Route path="/products/:slug" element={<ProductDetail />} />
               <Route path="/products" element={<Products />} />
+
+              {/* RUTA BIOSKIN TECH */}
+              <Route path="/bioskin-tech" element={<BioskinTech />} />
 
               {/* RUTAS DE BLOG */}
               <Route path="/blogs/:slug" element={<BlogDetail />} />
