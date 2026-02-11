@@ -29,12 +29,12 @@ export default function Navbar() {
     { path: '/', label: 'Inicio' },
     { path: '/services', label: 'Servicios' },
     { path: '/diagnosis', label: 'Diagnóstico' },
+    { path: '/appointment', label: 'Agenda' },
     { path: '/products', label: 'Productos' },
     { path: '/bioskin-tech', label: 'BioSkin Tech' },
     { path: '/blogs', label: 'Blog' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/contact', label: 'Contacto' },
-    { path: '/appointment', label: 'Agenda' }
+    { path: '/contact', label: 'Contacto' }
   ];
 
   const isActive = (path: string) => {
