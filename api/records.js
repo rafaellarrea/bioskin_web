@@ -1317,6 +1317,91 @@ export default async function handler(req, res) {
         }
       }
 
+      // ==========================================
+      // FINANCE MODULE ACTIONS
+      // ==========================================
+
+      case 'financeList': {
+        const { startDate, endDate, registered_by } = req.query;
+        let query = `SELECT * FROM financial_records WHERE 1=1`;
+        const params = [];
+        let paramCount = 1;
+
+        // Filtros opcionales
+        if (startDate && startDate !== 'null' && startDate !== 'undefined') {
+          query += ` AND date >= $${paramCount}`;
+          params.push(startDate);
+          paramCount++;
+        }
+        if (endDate && endDate !== 'null' && endDate !== 'undefined') {
+          query += ` AND date <= $${paramCount}`;
+          params.push(endDate);
+          paramCount++;
+        }
+        if (registered_by && registered_by !== 'all' && registered_by !== 'null') {
+          query += ` AND registered_by = $${paramCount}`;
+          params.push(registered_by);
+          paramCount++;
+        }
+
+        query += ` ORDER BY date DESC, created_at DESC`;
+        
+        try {
+          const result = await pool.query(query, params);
+          return res.status(200).json(result.rows);
+        } catch (err) {
+          console.error('Error listing finance records:', err);
+          return res.status(500).json({ error: err.message });
+        }
+      }
+
+      case 'financeDelete': {
+        const { id } = body;
+        if (!id) return res.status(400).json({ error: 'Missing ID' });
+        try {
+          await pool.query('DELETE FROM financial_records WHERE id = $1', [id]);
+          return res.status(200).json({ success: true });
+        } catch (err) {
+          return res.status(500).json({ error: err.message });
+        }
+      }
+
+      case 'financeStats': {
+        // Stats generales y por usuario
+        const { startDate, endDate } = req.query;
+        let query = `
+          SELECT 
+            type, 
+            registered_by,
+            SUM(total) as total_amount,
+            COUNT(*) as count
+          FROM financial_records
+          WHERE status = 'confirmed'
+        `;
+        const params = [];
+        let paramCount = 1;
+
+        if (startDate && startDate !== 'null') {
+          query += ` AND date >= $${paramCount}`;
+          params.push(startDate);
+          paramCount++;
+        }
+        if (endDate && endDate !== 'null') {
+          query += ` AND date <= $${paramCount}`;
+          params.push(endDate);
+          paramCount++;
+        }
+        
+        query += ` GROUP BY type, registered_by`;
+
+        try {
+          const result = await pool.query(query, params);
+          return res.status(200).json(result.rows);
+        } catch (err) {
+          return res.status(500).json({ error: err.message });
+        }
+      }
+
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }

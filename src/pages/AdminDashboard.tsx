@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 interface UpcomingAppointment {
@@ -37,7 +37,8 @@ export default function AdminDashboard() {
   const runTest = async (type: 'calendar' | 'email') => {
     const isCalendar = type === 'calendar';
     const setStatus = isCalendar ? setCalStatus : setEmailStatus;
-    const endpoint = isCalendar ? '/api/test-calendar' : '/api/test-email';
+    // Modified: Centralized endpoint to save serverless function slots
+    const endpoint = `/api/system-status?type=${type}`;
 
     setStatus('loading');
     setHealthLogs(prev => [...prev, `\n> Iniciando prueba de ${type}...`]);
@@ -260,6 +261,13 @@ export default function AdminDashboard() {
       icon: ClipboardList,
       path: '/admin/clinical-records',
       color: 'from-pink-500 to-pink-600'
+    },
+    {
+      title: 'Finanzas',
+      description: 'Gestión de Ingresos y Egresos (Rafael/Daniela)',
+      icon: DollarSign,
+      path: '/admin/finance',
+      color: 'from-amber-500 to-amber-600'
     },
     {
       title: 'Inventario',

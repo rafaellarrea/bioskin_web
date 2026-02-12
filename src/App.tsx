@@ -35,6 +35,7 @@ import NewPatientForm from './components/admin/ficha-clinica/components/NewPatie
 import PatientDetail from './components/admin/ficha-clinica/components/PatientDetail';
 import ClinicalRecordManager from './components/admin/ficha-clinica/components/ClinicalRecordManager';
 import ConsentSigning from './pages/ConsentSigning';
+import AdminFinance from './pages/AdminFinance';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
               <Route path="/admin/protocols" element={<AdminProtocols />} />
               <Route path="/admin/chat-assistant" element={<AdminChatAssistant />} />
               <Route path="/admin/inventory" element={<AdminInventory />} />
+              <Route path="/admin/finance" element={<AdminFinance />} />
               <Route path="/admin/clinical-records" element={<PatientList />} />
               <Route path="/admin/clinical-records/new" element={<NewPatientForm />} />
               <Route path="/admin/clinical-records/edit/:patientId" element={<NewPatientForm />} />
