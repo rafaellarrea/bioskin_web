@@ -113,8 +113,29 @@ const AdminFinance = () => {
   };
 
   const saveEdit = async () => {
-    alert("Funcionalidad de edición completa pendiente de backend update endpoint. (Visual only)");
-    setEditingId(null);
+    if (!editingId) return;
+    try {
+      setLoading(true);
+      const res = await fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'financeUpdate', 
+          ...editFormData 
+        })
+      });
+      
+      if (!res.ok) throw new await res.text();
+      
+      alert("✅ Registro actualizado correctamente");
+      fetchData(); // Refresh data
+      setEditingId(null);
+    } catch(e) {
+      console.error(e);
+      alert('Error updating record: ' + e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditChange = (field: keyof FinanceRecord, value: any) => {

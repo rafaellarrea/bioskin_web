@@ -1402,6 +1402,32 @@ export default async function handler(req, res) {
         }
       }
 
+      case 'financeUpdate': {
+        const { id, date, invoice_number, entity, description, type, subtotal, tax, total } = body;
+        if (!id) return res.status(400).json({ error: 'Missing ID' });
+
+        try {
+          await pool.query(`
+            UPDATE financial_records 
+            SET 
+              date = $1, 
+              invoice_number = $2, 
+              entity = $3, 
+              description = $4, 
+              type = $5, 
+              subtotal = $6, 
+              tax = $7, 
+              total = $8
+            WHERE id = $9
+          `, [date, invoice_number, entity, description, type, subtotal, tax, total, id]);
+          
+          return res.status(200).json({ success: true, message: 'Record updated' });
+        } catch (err) {
+          console.error('Error updating finance record:', err);
+          return res.status(500).json({ error: err.message });
+        }
+      }
+
       default:
         return res.status(400).json({ error: 'Invalid action' });
     }
