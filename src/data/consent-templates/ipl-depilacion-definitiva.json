@@ -1,0 +1,40 @@
+{
+  "procedure_type": "Tratamiento de Depilación Definitiva con Luz Pulsada Intensa (IPL)",
+  "description": "El procedimiento utiliza tecnología de luz policromática de alta intensidad que es absorbida por la melanina del folículo piloso, transformándose en calor (fototermólisis selectiva). \n1. Se aplica un gel conductor frío sobre la zona a tratar para proteger la epidermis y facilitar la transmisión de la luz.\n2. Se realizan disparos controlados de IPL que debilitan y destruyen progresivamente las células germinativas del vello en fase de crecimiento (anágena).\n3. El tratamiento requiere múltiples sesiones (generalmente entre 6 y 10) espaciadas según el ciclo de crecimiento del vello en cada zona corporal.\nEste método busca la reducción permanente del vello, aunque factores hormonales o fisiológicos pueden influir en la necesidad de sesiones de mantenimiento futuras.",
+  "objectives": [
+    "Lograr la eliminación progresiva y permanente del vello en las zonas tratadas.",
+    "Debilitar el grosor y reducir la densidad del vello restante.",
+    "Tratar y prevenir la aparición de foliculitis (vellos encarnados).",
+    "Mejorar la suavidad y apariencia general de la textura de la piel."
+  ],
+  "risks": [
+    "Sensación de calor, pinchazo o 'latigazo' elástico durante el disparo.",
+    "Eritema (enrojecimiento) y edema perifolicular (pequeñas inflamaciones en el poro) transitorios.",
+    "Quemaduras superficiales o formación de pequeñas ampollas si la piel está recientemente bronceada.",
+    "Cambios pigmentarios: hiperpigmentación o hipopigmentación temporal (especialmente en fototipos oscuros).",
+    "Crecimiento paradójico (aumento del vello en zonas adyacentes), aunque es poco frecuente.",
+    "Leve picazón o prurito tras la sesión.",
+    "Resultados variables según el color del vello (menor eficacia en vello rubio, pelirrojo o canoso)."
+  ],
+  "benefits": [
+    "Reducción duradera del vello corporal y facial.",
+    "Piel más lisa y libre de irritaciones causadas por métodos de depilación tradicionales (cuchilla, cera).",
+    "Procedimiento rápido que permite retomar actividades cotidianas de inmediato.",
+    "Eficacia en áreas extensas de forma cómoda."
+  ],
+  "pre_care": [
+    "No exponerse al sol, solárium o usar autobronceadores al menos 1 semana antes.",
+    "No extraer el vello de raíz (cera, pinzas, depiladoras eléctricas) 3 semanas antes; usar solo rasuradora.",
+    "Rasurar la zona 24 a 48 horas antes de la sesión (según indicación médica).",
+    "Acudir con la zona limpia, sin restos de desodorante, cremas, maquillaje o perfumes.",
+    "Informar sobre el uso de medicamentos fotosensibilizantes (antibióticos, isotretinoína, etc.)."
+  ],
+  "post_care": [
+    "Aplicar gel de aloe vera o crema hidratante calmante recomendada.",
+    "Evitar la exposición solar directa y usar protector solar SPF 50+ en zonas expuestas.",
+    "Evitar duchas con agua muy caliente, saunas, gimnasio o piscinas durante las primeras 24-48 horas.",
+    "No utilizar productos con alcohol, ácidos o exfoliantes en la zona tratada por 5 días.",
+    "No arrancar el vello que pueda aparecer tras la sesión; este caerá por sí solo en los días siguientes.",
+    "Cumplir con el cronograma de sesiones para asegurar la efectividad del tratamiento."
+  ]
+}

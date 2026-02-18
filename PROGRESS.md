@@ -11,6 +11,7 @@
 ## 🎯 Últimas Actualizaciones
 
 ### ✅ **Feb 18, 2026: Consent Forms Update**
+- 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Depilación Definitiva con IPL".
 - 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Lesiones Pigmentadas Láser Nd:YAG".
 
 ### ✅ **Jan 29, 2026: Google Calendar Integration Verification**
