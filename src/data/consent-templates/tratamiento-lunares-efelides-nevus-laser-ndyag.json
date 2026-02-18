@@ -1,0 +1,42 @@
+{
+  "procedure_type": "Tratamiento de Lesiones Pigmentadas (Lunares, Efélides y Nevus) con Láser Nd:YAG",
+  "description": "El procedimiento consiste en la aplicación de luz láser de alta energía (Nd:YAG) que es absorbida selectivamente por el pigmento (melanina) de la lesión sin dañar significativamente el tejido circundante. \n1. Valoración previa de la lesión para descartar signos de malignidad.\n2. Aplicación de anestesia tópica o local infiltrada (según profundidad y extensión de la lesión) para maximizar el confort del paciente.\n3. Disparo del láser Nd:YAG sobre la lesión, lo que genera una fragmentación del pigmento que será eliminado gradualmente por el sistema linfático o mediante la formación de una costra superficial.\nEste tratamiento busca aclarar o eliminar manchas y lesiones benignas, aunque el número de sesiones puede variar según la profundidad del pigmento.",
+  "objectives": [
+    "Eliminar o aclarar significativamente las lesiones pigmentadas (pecas, lunares benignos, nevus).",
+    "Homogeneizar el tono de la piel en la zona tratada.",
+    "Mejorar la apariencia estética mediante tecnología no invasiva o mínimamente invasiva.",
+    "Estimular la renovación celular en el área tratada."
+  ],
+  "risks": [
+    "Molestia o sensación de 'picadura' durante el disparo del láser.",
+    "Eritema (enrojecimiento) e inflamación transitoria en la zona tratada.",
+    "Formación de costras finas o descamación (parte normal del proceso de curación).",
+    "Cambios pigmentarios: Hiperpigmentación post-inflamatoria (mancha oscura) o hipopigmentación (mancha clara), especialmente si hay exposición solar.",
+    "Hematoma o pequeñas petequias (puntos de sangre) temporales.",
+    "Infección local si no se siguen las pautas de higiene (poco frecuente).",
+    "Cicatrización anómala o cambios en la textura cutánea (raro).",
+    "Persistencia de parte del pigmento, requiriendo sesiones adicionales.",
+    "Recurrencia de la lesión con el tiempo debido a factores genéticos o exposición solar."
+  ],
+  "benefits": [
+    "Resultados estéticos notables con mínimo tiempo de recuperación.",
+    "Tratamiento selectivo que preserva la integridad de la piel sana circundante.",
+    "Procedimiento rápido y ambulatorio.",
+    "Mejora la confianza y satisfacción del paciente con su imagen personal."
+  ],
+  "pre_care": [
+    "Evitar la exposición solar intensa o bronceado (solárium) al menos 4 semanas antes.",
+    "No utilizar productos con retinoles, ácidos exfoliantes o sustancias irritantes 5 días antes.",
+    "Informar sobre antecedentes de herpes simple (para posible profilaxis).",
+    "Informar sobre tendencia a cicatrización queloide o uso de medicamentos fotosensibilizantes.",
+    "Acudir con la piel limpia, sin maquillaje, cremas o perfumes en la zona."
+  ],
+  "post_care": [
+    "Aplicar fotoprotección solar estricta (SPF 50+) de forma diaria y recurrente.",
+    "No arrancar ni manipular las costras que se formen; dejar que caigan naturalmente.",
+    "Mantener la zona hidratada con la crema reparadora o ungüento indicado.",
+    "Evitar el ejercicio intenso, saunas, piscinas y ambientes con calor excesivo por 48-72 horas.",
+    "Lavar la zona con jabón neutro y secar a toques, sin frotar.",
+    "Evitar la exposición solar directa durante al menos 30 días tras el tratamiento."
+  ]
+}

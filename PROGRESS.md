@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Feb 18, 2026: Consent Forms Update**
+- 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Lesiones Pigmentadas Láser Nd:YAG".
+
 ### ✅ **Jan 29, 2026: Google Calendar Integration Verification**
 - 🛡️ **Diagnóstico**: Verificada y confirmada conectividad completa con API Google Calendar.
 - 🧪 **Testing**: Creado script `scripts/verify-calendar-integration.js` para pruebas CRUD automáticas.
