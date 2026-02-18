@@ -11,6 +11,7 @@
 ## 🎯 Últimas Actualizaciones
 
 ### ✅ **Feb 18, 2026: Consent Forms Update**
+- 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Melasma con Láser Nd:YAG".
 - 📄 **Consentimiento**: Agregada plantilla para "Rejuvenecimiento Facial con Láser de CO2 Fraccionado".
 - 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Depilación Definitiva con IPL".
 - 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Lesiones Pigmentadas Láser Nd:YAG".

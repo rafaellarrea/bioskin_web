@@ -1,0 +1,38 @@
+{
+  "procedure_type": "Tratamiento de Melasma (en sus tres variantes) con Láser Nd:YAG",
+  "description": "El procedimiento consiste en la aplicación de tecnología láser Nd:YAG sobre las zonas hiperpigmentadas del rostro o cuerpo. \n1. Se realiza una evaluación clínica para determinar el tipo de melasma y la profundidad del pigmento.\n2. Se aplican pulsos de luz láser que interactúan con la melanina de forma selectiva para fragmentar el pigmento sin dañar la superficie de la piel.\n3. El protocolo (energía, número de pasadas y frecuencia) es establecido por el médico de acuerdo con la respuesta cutánea de cada paciente.\nDebido a que el melasma es una condición crónica y multifactorial influenciada por factores genéticos, hormonales y ambientales, el tratamiento busca el control, la atenuación y la estabilización de las lesiones.",
+  "objectives": [
+    "Aclarar y reducir la extensión de las manchas de melasma.",
+    "Fragmentar el depósito de pigmento tanto en capas superficiales como profundas.",
+    "Unificar el tono de la piel y mejorar la luminosidad cutánea.",
+    "Controlar la actividad de los melanocitos para prevenir la progresión de las lesiones."
+  ],
+  "risks": [
+    "Eritema (enrojecimiento) leve y transitorio tras la sesión.",
+    "Sensación de hormigueo, calor o leve prurito (picazón) durante el tratamiento.",
+    "Hiperpigmentación post-inflamatoria (oscurecimiento temporal) si no se sigue la fotoprotección.",
+    "Hipopigmentación (puntos claros) en casos de sesiones muy seguidas o pieles sensibles.",
+    "Efecto rebote de la mancha debido a estímulos externos (sol, calor, cambios hormonales).",
+    "Necesidad de múltiples sesiones para observar resultados significativos.",
+    "Recurrencia natural de la patología al ser una condición crónica."
+  ],
+  "benefits": [
+    "Tratamiento no ablativo que no requiere tiempo de recuperación ni baja laboral.",
+    "Capacidad de tratar pigmento profundo (dérmico) de difícil manejo con tópicos.",
+    "Mejora la calidad global y la textura de la piel tratada.",
+    "Procedimiento seguro y controlado bajo supervisión profesional."
+  ],
+  "pre_care": [
+    "Informar al especialista sobre cualquier cambio en la medicación habitual o estado hormonal.",
+    "Evitar la exposición solar directa y el uso de cámaras de bronceado antes de la sesión.",
+    "Suspender el uso de ácidos o sustancias irritantes según el tiempo previo indicado en consulta.",
+    "Acudir a la sesión con la piel limpia y libre de cualquier producto cosmético."
+  ],
+  "post_care": [
+    "Uso riguroso de protector solar de amplio espectro según las indicaciones del médico.",
+    "Evitar fuentes de calor intenso (saunas, ejercicio extremo, vapor) por 4 días post tratamiento.",
+    "Aplicar únicamente los productos hidratantes o despigmentantes recomendados en consulta.",
+    "No manipular la zona ni realizar exfoliaciones mecánicas o químicas sin autorización.",
+    "Asistir puntualmente a las sesiones programadas para dar continuidad al protocolo."
+  ]
+}
