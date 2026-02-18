@@ -1,0 +1,44 @@
+{
+  "procedure_type": "Rejuvenecimiento Facial con Láser de CO2 Fraccionado",
+  "description": "El procedimiento utiliza un haz de luz infrarroja que se fracciona en múltiples puntos microscópicos (píxeles) para vaporizar columnas de tejido térmico, dejando piel sana entre ellas para acelerar la curación. \n1. Aplicación de anestesia tópica de alta potencia o infiltrada para minimizar la molestia.\n2. Emisión de columnas de energía que penetran en la dermis, eliminando capas superficiales dañadas y estimulando la producción de nuevo colágeno y elastina.\n3. El proceso genera una renovación dermo-epidérmica profunda que requiere un tiempo de recuperación (down-time) de aproximadamente 5 a 10 días.\nEste tratamiento es el estándar de oro para el tratamiento de arrugas, cicatrices de acné y laxitud cutánea, aunque los resultados finales se aprecian progresivamente hasta los 3-6 meses post-sesión.",
+  "objectives": [
+    "Reducir arrugas finas, medias y líneas de expresión.",
+    "Mejorar la textura, firmeza y tensión de la piel (efecto lifting biológico).",
+    "Disminuir la apariencia de poros dilatados y cicatrices (especialmente de acné).",
+    "Eliminar manchas solares y homogeneizar el tono cutáneo.",
+    "Estimular la síntesis de colágeno a largo plazo."
+  ],
+  "risks": [
+    "Sensación de calor intenso o quemazón durante y horas después del tratamiento.",
+    "Eritema (enrojecimiento) persistente y edema (inflamación) marcado, especialmente en párpados.",
+    "Formación de microcostras y descamación profunda (parte esperada del proceso).",
+    "Exudación serosa o formación de pequeñas ampollas.",
+    "Riesgo de infección bacteriana o reactivación del virus del herpes simple.",
+    "Hiperpigmentación post-inflamatoria (manchas oscuras), evitable con fotoprotección estricta.",
+    "Hipopigmentación (manchas claras) en pieles muy claras o tras tratamientos agresivos.",
+    "Cicatrización hipertrófica o queloide (extremadamente raro si se siguen los cuidados).",
+    "Prurito (picazón) intenso durante la fase de epitelización."
+  ],
+  "benefits": [
+    "Resultados significativos en una sola sesión en comparación con láseres no ablativos.",
+    "Mejora global y profunda de la calidad de la piel.",
+    "Efecto de rejuvenecimiento natural y duradero.",
+    "Tratamiento altamente personalizable según el grado de envejecimiento del paciente."
+  ],
+  "pre_care": [
+    "Suspensión estricta de retinoides (ácido retinoico, retinol) y ácidos 7 días antes.",
+    "Informar sobre uso de isotretinoína oral en el último año.",
+    "Iniciar profilaxis antiviral (si el médico lo indica) 2 días antes para evitar herpes.",
+    "Evitar la exposición solar y bronceado artificial 4 semanas antes del procedimiento.",
+    "Acudir sin maquillaje y con el rostro perfectamente limpio."
+  ],
+  "post_care": [
+    "Aplicar cremas reepitelizantes y emolientes indicadas varias veces al día para mantener la piel húmeda.",
+    "Lavar el rostro suavemente con agua termal o limpiadores syndet, sin frotar.",
+    "Uso de compresas frías para aliviar la sensación de calor en las primeras 24 horas.",
+    "Prohibición total de exposición solar; uso de protector solar físico (mineral) y medios físicos (sombrero, sombrilla).",
+    "No arrancar, exfoliar ni manipular las microcostras; dejar que caigan solas.",
+    "Evitar ambientes contaminados, ejercicio intenso, saunas y piscinas por 7-10 días.",
+    "Dormir con la cabeza ligeramente elevada para reducir el edema facial."
+  ]
+}
