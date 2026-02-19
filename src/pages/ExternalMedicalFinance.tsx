@@ -914,8 +914,9 @@ export default function ExternalMedicalFinance() {
                                 </ResponsiveContainer>
                             </div>
                             
-                            {/* PRINT ONLY: Fixed Size Chart */}
-                            <div className="hidden print:block w-[500px] h-[300px]">
+
+                            {/* PRINT ONLY: Fixed Size Chart - PRE-RENDERED but hidden from flow */}
+                            <div className="fixed -left-[9999px] top-0 print:static print:block w-[500px] h-[300px]">
                                 <BarChart width={500} height={300} data={[
                                         { name: 'Ingresos', value: totalIncome },
                                         { name: 'Gastos', value: totalExpenses + totalFees },
@@ -962,8 +963,8 @@ export default function ExternalMedicalFinance() {
                                 </ResponsiveContainer>
                             </div>
 
-                            {/* PRINT ONLY: Fixed Size Chart */}
-                            <div className="hidden print:block w-[500px] h-[300px]">
+                            {/* PRINT ONLY: Fixed Size Chart - PRE-RENDERED */}
+                            <div className="fixed -left-[9999px] top-0 print:static print:block w-[500px] h-[300px]">
                                 <PieChart width={500} height={300}>
                                     <Pie
                                         data={[
