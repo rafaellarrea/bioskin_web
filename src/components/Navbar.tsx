@@ -42,6 +42,11 @@ export default function Navbar() {
     return pathname === path;
   };
 
+  // Ocultar Navbar en la ruta de gestión médica externa
+  if (pathname === '/medical-finance') {
+    return null;
+  }
+
   return (
     <>
       {/* Navegación Principal - Desktop & Mobile */}

@@ -36,6 +36,7 @@ import PatientDetail from './components/admin/ficha-clinica/components/PatientDe
 import ClinicalRecordManager from './components/admin/ficha-clinica/components/ClinicalRecordManager';
 import ConsentSigning from './pages/ConsentSigning';
 import AdminFinance from './pages/AdminFinance';
+import ExternalMedicalFinance from './pages/ExternalMedicalFinance';
 
 function App() {
   return (
@@ -88,6 +89,9 @@ function App() {
               
               {/* RUTA DE FIRMA REMOTA */}
               <Route path="/consent-signing/:token" element={<ConsentSigning />} />
+
+              {/* RUTA GESTIÓN MÉDICA EXTERNA */}
+              <Route path="/medical-finance" element={<ExternalMedicalFinance />} />
 
               <Route path="/appointment" element={<Appointment />} />
               <Route path="/about" element={<About />} />

