@@ -146,9 +146,16 @@ export default function ExternalMedicalFinance() {
       
       // Backend now returns an ARRAY of records
       if (Array.isArray(data)) {
+        // If we were editing a single record and the result is a single record, preserve the ID
+        if (parsedRecords.length === 1 && parsedRecords[0].id && data.length === 1) {
+            data[0].id = parsedRecords[0].id;
+        }
         setParsedRecords(data);
       } else {
         // Fallback for single record response
+         if (parsedRecords.length === 1 && parsedRecords[0].id) {
+            data.id = parsedRecords[0].id;
+        }
         setParsedRecords([data]);
       }
       
@@ -308,7 +315,7 @@ export default function ExternalMedicalFinance() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 print:hidden">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-gray-500" />
-                {idToEdit ? 'Editar Registro' : 'Ingreso de Datos'}
+                {parsedRecords.some(r => r.id) ? 'Editar Registro' : 'Ingreso de Datos'}
               </h2>
 
               {/* Assistant Selector */}
@@ -377,17 +384,18 @@ export default function ExternalMedicalFinance() {
                   ) : (
                     <>
                       <Calculator className="w-5 h-5" />
-                      {idToEdit ? 'Reprocesar con IA' : 'Procesar con IA'}
+                      {parsedRecords.some(r => r.id) ? 'Reprocesar con IA' : 'Procesar con IA'}
                     </>
                   )}
                 </button>
-                {idToEdit && (
+                {parsedRecords.some(r => r.id) && (
                   <button
                     onClick={() => {
-                        setIdToEdit(null);
+                        setEditingIndex(null);
                         setRawNote('');
-                        setParsedData(null);
+                        setParsedRecords([]);
                         setSuccess('');
+                        setViewMode('list');
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
                   >
