@@ -891,35 +891,80 @@ export default function ExternalMedicalFinance() {
             {records.length > 0 && (
                 <div className="p-6 border-b border-gray-100 print:break-inside-avoid print:order-2 print:border-t-2 print:mt-4">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4 print:text-lg print:text-gray-800 print:font-bold">Análisis Visual</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64 print:h-[300px] print:block">
-                        <div className="h-full print:w-[48%] print:inline-block print:align-top">
-                            {/* Recharts sometimes fails with ResponsiveContainer in print. 
-                                We use a simple key change or conditional to force re-render if needed, 
-                                but essentially we need isAnimationActive={false} */}
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={[
-                                    { name: 'Ingresos', value: totalIncome },
-                                    { name: 'Gastos', value: totalExpenses + totalFees },
-                                    { name: 'Neto', value: totalNetJPB }
-                                ]}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip formatter={(value: any) => `$${Number(value).toFixed(2)}`} />
-                                    <Bar dataKey="value" fill="#3b82f6" isAnimationActive={false}>
-                                        {
-                                            [0, 1, 2].map((_, index) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64 print:h-[350px] print:block">
+                        <div className="h-full print:w-[48%] print:inline-block print:align-top bg-white">
+                            {/* Force re-render for print or simply use non-responsive fixed chart */}
+                            <div className="print:hidden h-full w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={[
+                                        { name: 'Ingresos', value: totalIncome },
+                                        { name: 'Gastos', value: totalExpenses + totalFees },
+                                        { name: 'Neto', value: totalNetJPB }
+                                    ]}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                                        <Bar dataKey="value" fill="#3b82f6">
+                                            {[0, 1, 2].map((_, index) => (
                                                 <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
-                                            ))
-                                        }
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            
+                            {/* PRINT ONLY: Fixed Size Chart */}
+                            <div className="hidden print:block w-[500px] h-[300px]">
+                                <BarChart width={500} height={300} data={[
+                                        { name: 'Ingresos', value: totalIncome },
+                                        { name: 'Gastos', value: totalExpenses + totalFees },
+                                        { name: 'Neto', value: totalNetJPB }
+                                    ]}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" stroke="#000" tick={{fill: 'black'}} />
+                                        <YAxis stroke="#000" tick={{fill: 'black'}} />
+                                        <Bar dataKey="value" fill="#3b82f6" isAnimationActive={false} label={{ position: 'top', fill: 'black', fontSize: 12 }}>
+                                            {[0, 1, 2].map((_, index) => (
+                                                <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                             </div>
                         </div>
-                        <div className="h-full flex flex-col items-center justify-center text-center print:w-[48%] print:inline-block print:align-top">
-                            <p className="text-sm text-gray-500 mb-2">Distribución Financiera Global</p>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
+
+                        <div className="h-full flex flex-col items-center justify-center text-center print:w-[48%] print:inline-block print:align-top bg-white">
+                            <p className="text-sm text-gray-500 mb-2 print:text-black print:font-bold">Distribución Financiera Global</p>
+                            
+                            <div className="print:hidden h-full w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={[
+                                                { name: 'Gastos Op.', value: totalExpenses },
+                                                { name: 'Honorarios', value: totalFees },
+                                                { name: 'Neto JPB', value: totalNetJPB }
+                                            ]}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={40}
+                                            outerRadius={80}
+                                            fill="#8884d8"
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                        >
+                                            <Cell fill="#ef4444" />
+                                            <Cell fill="#f97316" />
+                                            <Cell fill="#22c55e" />
+                                        </Pie>
+                                        <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            {/* PRINT ONLY: Fixed Size Chart */}
+                            <div className="hidden print:block w-[500px] h-[300px]">
+                                <PieChart width={500} height={300}>
                                     <Pie
                                         data={[
                                             { name: 'Gastos Op.', value: totalExpenses },
@@ -928,20 +973,20 @@ export default function ExternalMedicalFinance() {
                                         ]}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={40}
-                                        outerRadius={80}
+                                        innerRadius={0}
+                                        outerRadius={100}
                                         fill="#8884d8"
-                                        paddingAngle={5}
+                                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        labelLine={true}
                                         dataKey="value"
                                         isAnimationActive={false}
                                     >
-                                        <Cell fill="#ef4444" /> {/* Gastos */}
-                                        <Cell fill="#f97316" /> {/* Honorarios */}
-                                        <Cell fill="#22c55e" /> {/* Neto */}
+                                        <Cell fill="#ef4444" />
+                                        <Cell fill="#f97316" />
+                                        <Cell fill="#22c55e" />
                                     </Pie>
-                                    <Tooltip formatter={(value: any) => `$${Number(value).toFixed(2)}`} />
                                 </PieChart>
-                            </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
                 </div>
