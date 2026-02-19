@@ -380,56 +380,53 @@ export default function ExternalMedicalFinance() {
              <div className="print:break-before-auto border-t-2 border-gray-200 pt-8 mt-4">
                  <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase border-l-4 border-purple-600 pl-3">Análisis Gráfico</h3>
                  <div className="grid grid-cols-2 gap-8">
-                     {/* We need to render static versions of charts or just clone them here. 
-                         Recharts might not animate/render well if hidden initially. 
-                         Let's try rendering them directly here specifically for print.
-                     */}
-                     <div className="h-64 border border-gray-100 rounded-lg p-2">
-                        <p className="text-center text-xs text-gray-500 mb-2">Comparativa General</p>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={[
-                                { name: 'Ingresos', value: totalIncome },
-                                { name: 'Gastos', value: totalExpenses + totalFees },
-                                { name: 'Neto', value: totalNetJPB }
-                            ]}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" tick={{fontSize: 12}} />
-                                <YAxis tick={{fontSize: 12}} />
-                                <Bar dataKey="value" fill="#3b82f6" label={{ position: 'top', fontSize: 10 }}>
-                                    {[0, 1, 2].map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                     {/* FIXED WIDTH CHARTS FOR PRINT - NO RESPONSIVE CONTAINER */}
+                     <div className="h-64 border border-gray-100 rounded-lg p-2 flex justify-center items-center overflow-hidden">
+                        <div style={{ width: '400px', height: '250px' }}>
+                            <p className="text-center text-xs text-gray-500 mb-2 font-bold">Comparativa General</p>
+                            <BarChart width={400} height={220} data={[
+                                    { name: 'Ingresos', value: totalIncome },
+                                    { name: 'Gastos', value: totalExpenses + totalFees },
+                                    { name: 'Neto', value: totalNetJPB }
+                                ]}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" tick={{fontSize: 10, fill: 'black'}} interval={0} />
+                                    <YAxis tick={{fontSize: 10, fill: 'black'}} />
+                                    <Bar dataKey="value" fill="#3b82f6" isAnimationActive={false} label={{ position: 'top', fontSize: 10, fill: 'black' }}>
+                                        {[0, 1, 2].map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                        </div>
                      </div>
 
-                     <div className="h-64 border border-gray-100 rounded-lg p-2 flex flex-col items-center">
-                        <p className="text-center text-xs text-gray-500 mb-2">Distribución de Gastos</p>
-                         <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={[
-                                            { name: 'Gastos Op.', value: totalExpenses },
-                                            { name: 'Honorarios', value: totalFees },
-                                            { name: 'Neto JPB', value: totalNetJPB }
-                                        ]}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={0}
-                                        outerRadius={70}
-                                        fill="#8884d8"
-                                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                        labelLine={true}
-                                        dataKey="value"
-                                        isAnimationActive={false}
-                                    >
-                                        <Cell fill="#ef4444" /> {/* Gastos */}
-                                        <Cell fill="#f97316" /> {/* Honorarios */}
-                                        <Cell fill="#22c55e" /> {/* Neto */}
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
+                     <div className="h-64 border border-gray-100 rounded-lg p-2 flex flex-col items-center overflow-hidden">
+                        <div style={{ width: '400px', height: '250px' }}>
+                            <p className="text-center text-xs text-gray-500 mb-2 font-bold">Distribución de Gastos</p>
+                             <PieChart width={400} height={220}>
+                                <Pie
+                                    data={[
+                                        { name: 'Gastos Op.', value: totalExpenses },
+                                        { name: 'Honorarios', value: totalFees },
+                                        { name: 'Neto JPB', value: totalNetJPB }
+                                    ]}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={0}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                    labelLine={true}
+                                    dataKey="value"
+                                    isAnimationActive={false}
+                                >
+                                    <Cell fill="#ef4444" /> {/* Gastos */}
+                                    <Cell fill="#f97316" /> {/* Honorarios */}
+                                    <Cell fill="#22c55e" /> {/* Neto */}
+                                </Pie>
+                            </PieChart>
+                        </div>
                      </div>
                  </div>
              </div>
