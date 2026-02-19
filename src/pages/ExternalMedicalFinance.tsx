@@ -2,23 +2,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Calculator, 
-  FileText, 
-  Save, 
-  Download, 
-  User, 
-  Calendar, 
-  DollarSign, 
-  CheckCircle,
-  AlertTriangle,
-  Loader2,
-  Trash2,
-  Edit,
-  Filter,
-  List as ListIcon,
-  PlusCircle,
-  X
-} from 'lucide-react';
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 interface FinanceRecord {
   id?: number;
@@ -35,6 +30,9 @@ interface FinanceRecord {
   raw_note: string;  details?: string; // Added details field  assistant_name: string;
   created_at?: string;
 }
+
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function ExternalMedicalFinance() {
   const navigate = useNavigate();
@@ -183,10 +181,22 @@ export default function ExternalMedicalFinance() {
         let url = '/api/external-finance?action=save-record';
         let payload: any = record;
 
-        // Check if it's an update (has ID)
-        if (record.id) {
-            url = '/api/external-finance?action=update';
-            payload = { id: record.id, updates: record };
+
+
+        // Calculate net before saving
+        const fees = (record.doctor_fees || []).reduce((acc, f) => acc + (f.amount || 0), 0);
+        const net = (
+            (record.total_payment || 0) + 
+            (record.additional_income || 0) - 
+            (record.expenses || 0) - 
+            fees
+        );
+
+        // Assign to payload for save
+        if (!payload.updates) {
+             payload.net_income_juan_pablo = net;
+        } else {
+             payload.updates.net_income_juan_pablo = net;
         }
 
         const response = await fetch(url, {
@@ -637,11 +647,22 @@ export default function ExternalMedicalFinance() {
           </div>
         )}
 
-        {/* VIEW: LIST */}
-        {viewMode === 'list' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {/* Filters */}
-            <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center">
+
+        // Calculate totals for summary
+        const totalIncome = records.reduce((acc, r) => acc + (Number(r.total_payment) || 0), 0);
+        const totalExpenses = records.reduce((acc, r) => acc + (Number(r.expenses) || 0), 0);
+        const totalFees = records.reduce((acc, r) => {
+            const fees = (r.doctor_fees || []).reduce((facc, f) => facc + (Number(f.amount) || 0), 0);
+            return acc + fees;
+        }, 0);
+        // Recalculate Net JPB strictly from data
+        const totalNetJPB = records.reduce((acc, r) => {
+             // Use stored net income if reliable, or calculate on fly
+             return acc + (Number(r.net_income_juan_pablo) || 0);
+        }, 0);
+
+        {/* Filters */}
+            <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center print:hidden">
                 <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-700">Filtros:</span>
@@ -651,6 +672,7 @@ export default function ExternalMedicalFinance() {
                     value={filters.assistant}
                     onChange={(e) => setFilters({...filters, assistant: e.target.value})}
                 >
+
                     <option value="">Todas las asistentes</option>
                     <option value="Marietha">Marietha</option>
                     <option value="Diana">Diana</option>
@@ -661,10 +683,91 @@ export default function ExternalMedicalFinance() {
                     value={filters.month}
                     onChange={(e) => setFilters({...filters, month: e.target.value})}
                 />
-                <div className="ml-auto text-sm text-gray-500">
-                    {records.length} registros encontrados
+                
+                <button 
+                  onClick={() => window.print()}
+                  className="ml-auto bg-gray-100 p-2 rounded hover:bg-gray-200 text-gray-700 font-medium text-xs flex items-center gap-1"
+                >
+                    <Download className="w-4 h-4" />
+                    Exportar PDF
+                </button>
+            </div>
+
+            {/* Stats Summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white border-b border-gray-100">
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                    <p className="text-xs font-semibold text-blue-500 uppercase tracking-wider mb-1">Total Ingresos</p>
+                    <p className="text-2xl font-bold text-gray-900">${totalIncome.toFixed(2)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-red-50 border border-red-100">
+                    <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-1">Gastos Operativos</p>
+                    <p className="text-2xl font-bold text-gray-900">${totalExpenses.toFixed(2)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-orange-50 border border-orange-100">
+                    <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider mb-1">Honorarios Médicos</p>
+                    <p className="text-2xl font-bold text-gray-900">${totalFees.toFixed(2)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+                    <p className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">Neto Dr. JPB</p>
+                    <p className="text-2xl font-bold text-gray-900">${totalNetJPB.toFixed(2)}</p>
                 </div>
             </div>
+
+            {/* Charts Section */}
+            {records.length > 0 && (
+                <div className="p-6 border-b border-gray-100 print:break-inside-avoid">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Análisis Visual</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64">
+                        <div className="h-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={[
+                                    { name: 'Ingresos', value: totalIncome },
+                                    { name: 'Gastos', value: totalExpenses + totalFees },
+                                    { name: 'Neto', value: totalNetJPB }
+                                ]}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                                    <Bar dataKey="value" fill="#3b82f6">
+                                        {
+                                            [0, 1, 2].map((result, index) => (
+                                                <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
+                                            ))
+                                        }
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="h-full flex flex-col items-center justify-center text-center">
+                            <p className="text-sm text-gray-500 mb-2">Distribución Financiera Global</p>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'Gastos Op.', value: totalExpenses },
+                                            { name: 'Honorarios', value: totalFees },
+                                            { name: 'Neto JPB', value: totalNetJPB }
+                                        ]}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={40}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        <Cell fill="#ef4444" /> {/* Gastos */}
+                                        <Cell fill="#f97316" /> {/* Honorarios */}
+                                        <Cell fill="#22c55e" /> {/* Neto */}
+                                    </Pie>
+                                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Table */}
             <div className="overflow-x-auto">
@@ -674,21 +777,32 @@ export default function ExternalMedicalFinance() {
                 <div className="p-12 text-center text-gray-500">No se encontraron registros.</div>
               ) : (
                 <table className="w-full text-left border-collapse">
+
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
                       <th className="p-4 border-b">Fecha</th>
-                      <th className="p-4 border-b">Paciente</th>                      <th className="p-4 border-b">Tipo</th>                      <th className="p-4 border-b">Asistente</th>
-                      <th className="p-4 border-b text-right">Total</th>
+                      <th className="p-4 border-b">Paciente / Concepto</th>
+                      <th className="p-4 border-b">Tipo / Detalles</th>
+                      <th className="p-4 border-b">Asistente</th>
+                      <th className="p-4 border-b text-right">Total / Gasto</th>
                       <th className="p-4 border-b text-right">Neto Dr. JPB</th>
-                      <th className="p-4 border-b text-center">Acciones</th>
+                      <th className="p-4 border-b text-center print:hidden">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
+
                     {records.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 text-sm text-gray-600 border-b">{record.intervention_date}</td>
-                        <td className="p-4 text-sm font-medium text-gray-900 border-b">{record.patient_name}</td>
-                        <td className="p-4 text-sm text-gray-500 border-b">{record.intervention_type || '-'}</td>
+                        <td className="p-4 text-sm text-gray-600 border-b whitespace-nowrap">{record.intervention_date}</td>
+                        <td className="p-4 text-sm font-medium text-gray-900 border-b">
+                            {record.patient_name}
+                            {record.intervention_type && record.intervention_type.toLowerCase().includes('compra') && <span className="text-xs text-red-500 block">Gasto Operativo</span>}
+                        </td>
+                        <td className="p-4 text-sm text-gray-500 border-b">
+                            <span className="font-medium text-gray-700 block">{record.intervention_type || '-'}</span>
+                            {record.details && <span className="text-xs text-gray-400 italic block mt-1">{record.details}</span>}
+                            {record.clinic && <span className="text-xs text-blue-400 block">{record.clinic}</span>}
+                        </td>
                         <td className="p-4 text-sm text-gray-600 border-b">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${
                                 record.assistant_name === 'Marietha' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'
@@ -696,9 +810,17 @@ export default function ExternalMedicalFinance() {
                                 {record.assistant_name}
                             </span>
                         </td>
-                        <td className="p-4 text-sm text-gray-600 text-right">${record.total_payment}</td>
-                        <td className="p-4 text-sm font-bold text-blue-600 text-right">${record.net_income_juan_pablo}</td>
-                        <td className="p-4 flex justify-center gap-2">
+                        <td className="p-4 text-sm text-gray-600 text-right">
+                          {record.total_payment > 0 ? (
+                             <span className="text-gray-900">${record.total_payment}</span>
+                          ) : (
+                             <span className="text-red-500">-${record.expenses}</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-sm font-bold text-blue-600 text-right">
+                            ${(record.net_income_juan_pablo || 0).toFixed(2)}
+                        </td>
+                        <td className="p-4 flex justify-center gap-2 print:hidden">
                             <button 
                                 onClick={() => handleEdit(record)}
                                 className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
