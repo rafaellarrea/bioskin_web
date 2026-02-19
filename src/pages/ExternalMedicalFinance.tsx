@@ -6,7 +6,7 @@ import {
   Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
+  CartesianGrid,
   Tooltip, 
   ResponsiveContainer,
   PieChart,
@@ -273,28 +273,167 @@ export default function ExternalMedicalFinance() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 print:p-0 print:bg-white">
+    <div className="min-h-screen bg-gray-50 p-6 print:p-0 print:bg-white print:overflow-hidden">
       <style>{`
         @media print {
-          @page { margin: 1.5cm; size: landscape; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .print-hidden { display: none !important; }
-          .print-visible { display: block !important; }
+          @page { margin: 1cm; size: landscape; }
+          /* Hide everything by default */
+          body * { visibility: hidden; }
+          /* Only show the print container and its children */
+          .print-container, .print-container * { 
+            visibility: visible; 
+          }
+          .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+          }
+          /* Hide unwanted floaters */
+          .whatsapp-button, .print-hidden-force { display: none !important; }
+          
+          /* Ensure charts render correctly */
           .recharts-wrapper { margin: 0 auto; }
         }
       `}</style>
+      
+      {/* Explicit Print Container - Only this will show */}
+      <div className="print-container hidden print:block">
+         <div className="w-full max-w-[1100px] mx-auto">
+             {/* Report Header */}
+             <div className="mb-8 text-center border-b-2 border-gray-800 pb-4">
+                <h1 className="text-3xl font-bold text-gray-900 uppercase tracking-wide mb-2">Reporte Financiero Médico</h1>
+                <h2 className="text-xl text-gray-700 font-semibold">Dr. Juan Pablo Brito</h2>
+                <p className="text-sm text-gray-500 mt-2">
+                    Período: {filters.month ? new Date(filters.month + '-01').toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }) : 'Histórico Completo'} 
+                    {filters.assistant && ` | Asistente: ${filters.assistant}`}
+                </p>
+             </div>
 
-      {/* Print Only Header */}
-      <div className="hidden print-visible mb-8 text-center border-b-2 border-gray-800 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">Reporte Financiero Médico</h1>
-        <h2 className="text-xl text-gray-700 mt-1">Dr. Juan Pablo Brito</h2>
-        <p className="text-sm text-gray-500 mt-2">
-            Período: {filters.month ? new Date(filters.month + '-01').toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }) : 'Histórico Completo'} 
-            {filters.assistant && ` | Asistente: ${filters.assistant}`}
-        </p>
+             {/* Summary Cards for Print */}
+             <div className="grid grid-cols-4 gap-4 mb-8">
+                <div className="p-4 border border-gray-200 rounded-lg text-center bg-gray-50">
+                    <p className="text-xs text-gray-500 uppercase">Ingresos Totales</p>
+                    <p className="text-xl font-bold text-gray-900">${totalIncome.toFixed(2)}</p>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-lg text-center bg-gray-50">
+                    <p className="text-xs text-red-500 uppercase">Gastos Operativos</p>
+                    <p className="text-xl font-bold text-gray-900">${totalExpenses.toFixed(2)}</p>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-lg text-center bg-gray-50">
+                    <p className="text-xs text-orange-500 uppercase">Honorarios</p>
+                    <p className="text-xl font-bold text-gray-900">${totalFees.toFixed(2)}</p>
+                </div>
+                <div className="p-4 border border-gray-200 rounded-lg text-center bg-green-50">
+                    <p className="text-xs text-green-600 uppercase">Neto JPB</p>
+                    <p className="text-xl font-bold text-gray-900">${totalNetJPB.toFixed(2)}</p>
+                </div>
+             </div>
+
+             {/* Print Table */}
+             <div className="mb-8">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 uppercase border-l-4 border-blue-600 pl-3">Detalle de Registros</h3>
+                <table className="w-full text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-gray-300">
+                      <th className="py-2 text-gray-600 font-bold">Fecha</th>
+                      <th className="py-2 text-gray-600 font-bold">Paciente</th>
+                      <th className="py-2 text-gray-600 font-bold">Intervención</th>
+                      <th className="py-2 text-right text-gray-600 font-bold">Total / Gasto</th>
+                      <th className="py-2 text-right text-gray-600 font-bold">Neto Dr. JPB</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records.map((record, i) => (
+                      <tr key={record.id || i} className="border-b border-gray-100 print:break-inside-avoid">
+                        <td className="py-2 text-gray-700">{new Date(record.intervention_date).toLocaleDateString('es-EC')}</td>
+                        <td className="py-2 font-medium text-gray-900">{record.patient_name}</td>
+                        <td className="py-2 text-gray-600 text-xs">{record.intervention_type}</td>
+                        <td className="py-2 text-right">
+                          {Number(record.total_payment) > 0 ? (
+                             <span className="text-gray-900">${Number(record.total_payment).toFixed(2)}</span>
+                          ) : (
+                             <span className="text-red-500">-${Number(record.expenses).toFixed(2)}</span>
+                          )}
+                        </td>
+                        <td className="py-2 text-right font-bold text-gray-800">
+                            ${(Number(record.net_income_juan_pablo) || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+             </div>
+             
+             {/* Charts at Bottom - Page Break Before if needed */}
+             <div className="print:break-before-auto border-t-2 border-gray-200 pt-8 mt-4">
+                 <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase border-l-4 border-purple-600 pl-3">Análisis Gráfico</h3>
+                 <div className="grid grid-cols-2 gap-8">
+                     {/* We need to render static versions of charts or just clone them here. 
+                         Recharts might not animate/render well if hidden initially. 
+                         Let's try rendering them directly here specifically for print.
+                     */}
+                     <div className="h-64 border border-gray-100 rounded-lg p-2">
+                        <p className="text-center text-xs text-gray-500 mb-2">Comparativa General</p>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={[
+                                { name: 'Ingresos', value: totalIncome },
+                                { name: 'Gastos', value: totalExpenses + totalFees },
+                                { name: 'Neto', value: totalNetJPB }
+                            ]}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" tick={{fontSize: 12}} />
+                                <YAxis tick={{fontSize: 12}} />
+                                <Bar dataKey="value" fill="#3b82f6" label={{ position: 'top', fontSize: 10 }}>
+                                    {[0, 1, 2].map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                     </div>
+
+                     <div className="h-64 border border-gray-100 rounded-lg p-2 flex flex-col items-center">
+                        <p className="text-center text-xs text-gray-500 mb-2">Distribución de Gastos</p>
+                         <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'Gastos Op.', value: totalExpenses },
+                                            { name: 'Honorarios', value: totalFees },
+                                            { name: 'Neto JPB', value: totalNetJPB }
+                                        ]}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={0}
+                                        outerRadius={70}
+                                        fill="#8884d8"
+                                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        labelLine={true}
+                                        dataKey="value"
+                                        isAnimationActive={false}
+                                    >
+                                        <Cell fill="#ef4444" /> {/* Gastos */}
+                                        <Cell fill="#f97316" /> {/* Honorarios */}
+                                        <Cell fill="#22c55e" /> {/* Neto */}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                     </div>
+                 </div>
+             </div>
+             
+             {/* Print Footer */}
+             <div className="mt-12 text-center text-xs text-gray-400 border-t border-gray-200 pt-4">
+                 <p>Generado automáticamente el {new Date().toLocaleDateString('es-EC')} a las {new Date().toLocaleTimeString('es-EC')}</p>
+                 <p>Documento confidencial - Uso exclusivo médico</p>
+             </div>
+         </div>
       </div>
 
-      {/* Screen Header */}
+      {/* Screen Header - HIDDEN ON PRINT due to css rules above */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center print:hidden">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
