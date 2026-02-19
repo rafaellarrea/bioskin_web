@@ -1025,10 +1025,8 @@ export default function ExternalMedicalFinance() {
                 </table>
               )}
             </div>
-            
-            </div> {/* End Report Container */}
-
-          </div> {/* End View List Container */}
+          </div>
+        </div>
         )}
       </div>
     </div>
