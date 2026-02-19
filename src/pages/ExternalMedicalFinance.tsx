@@ -783,7 +783,7 @@ export default function ExternalMedicalFinance() {
             )}
 
             {/* Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               {loading && records.length === 0 ? (
                 <div className="p-12 text-center text-gray-500">Cargando registros...</div>
               ) : records.length === 0 ? (
@@ -824,14 +824,14 @@ export default function ExternalMedicalFinance() {
                             </span>
                         </td>
                         <td className="p-4 text-sm text-gray-600 text-right">
-                          {record.total_payment > 0 ? (
+                          {Number(record.total_payment) > 0 ? (
                              <span className="text-gray-900">${record.total_payment}</span>
                           ) : (
                              <span className="text-red-500">-${record.expenses}</span>
                           )}
                         </td>
                         <td className="p-4 text-sm font-bold text-blue-600 text-right">
-                            ${(record.net_income_juan_pablo || 0).toFixed(2)}
+                            ${(Number(record.net_income_juan_pablo) || 0).toFixed(2)}
                         </td>
                         <td className="p-4 flex justify-center gap-2 print:hidden">
                             <button 
