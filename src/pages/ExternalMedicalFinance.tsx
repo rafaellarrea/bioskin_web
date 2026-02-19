@@ -8,12 +8,27 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell
 } from 'recharts';
+import { 
+  Calculator, 
+  User, 
+  PlusCircle, 
+  List as ListIcon, 
+  FileText, 
+  Loader2, 
+  AlertTriangle, 
+  CheckCircle, 
+  X, 
+  Save, 
+  Filter, 
+  Download, 
+  Edit, 
+  Trash2 
+} from 'lucide-react';
 
 interface FinanceRecord {
   id?: number;
@@ -22,17 +37,16 @@ interface FinanceRecord {
   intervention_type?: string;
   clinic: string;
   total_payment: number;
-  abono?: number; // Add abono field
+  abono?: number; 
   doctor_fees: { name: string; amount: number }[];
   expenses: number;
   additional_income: number;
   net_income_juan_pablo: number;
-  raw_note: string;  details?: string; // Added details field  assistant_name: string;
+  raw_note: string;
+  details?: string;
+  assistant_name?: string;
   created_at?: string;
 }
-
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function ExternalMedicalFinance() {
   const navigate = useNavigate();
@@ -252,10 +266,6 @@ export default function ExternalMedicalFinance() {
       const fees = [...(updated[recordIndex].doctor_fees || []), { name: 'Nuevo Honorario', amount: 0 }];
       updated[recordIndex].doctor_fees = fees;
       setParsedRecords(updated);
-  };
-
-  const handleExportPDF = () => {
-    window.print();
   };
 
   const handleLogout = () => {
@@ -648,20 +658,23 @@ export default function ExternalMedicalFinance() {
         )}
 
 
-        // Calculate totals for summary
-        const totalIncome = records.reduce((acc, r) => acc + (Number(r.total_payment) || 0), 0);
-        const totalExpenses = records.reduce((acc, r) => acc + (Number(r.expenses) || 0), 0);
-        const totalFees = records.reduce((acc, r) => {
-            const fees = (r.doctor_fees || []).reduce((facc, f) => facc + (Number(f.amount) || 0), 0);
-            return acc + fees;
-        }, 0);
-        // Recalculate Net JPB strictly from data
-        const totalNetJPB = records.reduce((acc, r) => {
-             // Use stored net income if reliable, or calculate on fly
-             return acc + (Number(r.net_income_juan_pablo) || 0);
-        }, 0);
 
-        {/* Filters */}
+        {/* VIEW: LIST */}
+        {viewMode === 'list' && (() => {
+          // Calculate totals for summary INSIDE the render block or move outside of return
+          // Moving outside required state derived from records, but here we can compute locally
+          
+          const totalIncome = records.reduce((acc, r) => acc + (Number(r.total_payment) || 0), 0);
+          const totalExpenses = records.reduce((acc, r) => acc + (Number(r.expenses) || 0), 0);
+          const totalFees = records.reduce((acc, r) => {
+             const fees = (r.doctor_fees || []).reduce((facc, f) => facc + (Number(f.amount) || 0), 0);
+             return acc + fees;
+          }, 0);
+          const totalNetJPB = records.reduce((acc, r) => acc + (Number(r.net_income_juan_pablo) || 0), 0);
+
+          return (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {/* Filters */}
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center print:hidden">
                 <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-gray-500" />
@@ -728,10 +741,10 @@ export default function ExternalMedicalFinance() {
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" />
                                     <YAxis />
-                                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                                    <Tooltip formatter={(value: any) => `$${Number(value).toFixed(2)}`} />
                                     <Bar dataKey="value" fill="#3b82f6">
                                         {
-                                            [0, 1, 2].map((result, index) => (
+                                            [0, 1, 2].map((_, index) => (
                                                 <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
                                             ))
                                         }
@@ -761,7 +774,7 @@ export default function ExternalMedicalFinance() {
                                         <Cell fill="#f97316" /> {/* Honorarios */}
                                         <Cell fill="#22c55e" /> {/* Neto */}
                                     </Pie>
-                                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                                    <Tooltip formatter={(value: any) => `$${Number(value).toFixed(2)}`} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
@@ -842,8 +855,10 @@ export default function ExternalMedicalFinance() {
                 </table>
               )}
             </div>
+
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
