@@ -30,11 +30,22 @@ async function main() {
         additional_income NUMERIC(10, 2) DEFAULT 0,
         net_income_juan_pablo NUMERIC(10, 2),
         raw_note TEXT,
+        intervention_type VARCHAR(255),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    console.log('✅ Table external_finance_records created successfully.');
+    // Add column if it doesn't exist (for existing tables)
+    await pool.query(`
+      DO $$ 
+      BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='external_finance_records' AND column_name='intervention_type') THEN
+          ALTER TABLE external_finance_records ADD COLUMN intervention_type VARCHAR(255);
+        END IF;
+      END $$;
+    `);
+
+    console.log('✅ Table external_finance_records created/updated successfully with intervention_type.');
 
   } catch (error) {
     console.error('❌ Error initializing database:', error);

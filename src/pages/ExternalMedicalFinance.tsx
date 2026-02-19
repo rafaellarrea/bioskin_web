@@ -24,6 +24,7 @@ interface FinanceRecord {
   id?: number;
   patient_name: string;
   intervention_date: string;
+  intervention_type?: string;
   clinic: string;
   total_payment: number;
   doctor_fees: { name: string; amount: number }[];
@@ -400,10 +401,18 @@ export default function ExternalMedicalFinance() {
                          className="font-medium text-gray-900 text-right w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
                       />
                     </div>
+
                     <div>
-                        <label className="text-xs text-gray-500 uppercase tracking-wider">Registrado Por</label>
-                        <p className="font-medium text-gray-700">{parsedData.assistant_name}</p>
+                      <label className="text-xs text-gray-500 uppercase tracking-wider">Intervención</label>
+                      <input 
+                        type="text" 
+                        value={parsedData.intervention_type || ''}
+                        onChange={(e) => setParsedData({...parsedData, intervention_type: e.target.value})}
+                        className="font-medium text-gray-900 w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
+                        placeholder="Consulta, Botox, etc."
+                      />
                     </div>
+
                     <div className="text-right">
                       <label className="text-xs text-gray-500 uppercase tracking-wider">Clínica</label>
                       <input 
@@ -412,6 +421,11 @@ export default function ExternalMedicalFinance() {
                          onChange={(e) => setParsedData({...parsedData, clinic: e.target.value})}
                          className="text-right w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
                       />
+                    </div>
+
+                    <div>
+                        <label className="text-xs text-gray-500 uppercase tracking-wider">Registrado Por</label>
+                        <p className="font-medium text-gray-700">{parsedData.assistant_name}</p>
                     </div>
                   </div>
 
@@ -583,8 +597,7 @@ export default function ExternalMedicalFinance() {
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
                       <th className="p-4 border-b">Fecha</th>
-                      <th className="p-4 border-b">Paciente</th>
-                      <th className="p-4 border-b">Asistente</th>
+                      <th className="p-4 border-b">Paciente</th>                      <th className="p-4 border-b">Tipo</th>                      <th className="p-4 border-b">Asistente</th>
                       <th className="p-4 border-b text-right">Total</th>
                       <th className="p-4 border-b text-right">Neto Dr. JPB</th>
                       <th className="p-4 border-b text-center">Acciones</th>
@@ -593,9 +606,10 @@ export default function ExternalMedicalFinance() {
                   <tbody className="divide-y divide-gray-100">
                     {records.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 text-sm text-gray-600">{record.intervention_date}</td>
-                        <td className="p-4 text-sm font-medium text-gray-900">{record.patient_name}</td>
-                        <td className="p-4 text-sm text-gray-600">
+                        <td className="p-4 text-sm text-gray-600 border-b">{record.intervention_date}</td>
+                        <td className="p-4 text-sm font-medium text-gray-900 border-b">{record.patient_name}</td>
+                        <td className="p-4 text-sm text-gray-500 border-b">{record.intervention_type || '-'}</td>
+                        <td className="p-4 text-sm text-gray-600 border-b">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${
                                 record.assistant_name === 'Marietha' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'
                             }`}>
