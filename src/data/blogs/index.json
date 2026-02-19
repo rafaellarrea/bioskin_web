@@ -1,9 +1,35 @@
 {
-  "lastUpdated": "2025-12-01T21:56:44.728Z",
-  "total": 14,
-  "organized": 14,
+  "lastUpdated": "2026-02-19T00:00:47.552Z",
+  "total": 15,
+  "organized": 15,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762468562212",
+      "title": "Láser CO2 Fraccionado: El Estándar de Oro para Renovar tu Piel",
+      "slug": "laser-co2-fraccionado-bioskin",
+      "category": "tecnologia-estetica",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2026-02-10T10:00:00.000Z",
+      "savedAt": "2026-02-19T00:00:47.551Z",
+      "readTime": 5,
+      "tags": [
+        "láser CO2",
+        "rejuvenecimiento",
+        "cicatrices acné",
+        "tecnología BIOSKIN"
+      ],
+      "featured": true,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/laser-co2-fraccionado-bioskin/index.json",
+        "images": "public/images/blog/laser-co2/",
+        "metadata": "src/data/blogs/laser-co2-fraccionado-bioskin/metadata.json"
+      },
+      "images": [],
+      "status": "published"
+    },
     {
       "id": "blog-1764626204727",
       "title": "Tratamientos Preventivos: La Clave para una Belleza Sostenible",

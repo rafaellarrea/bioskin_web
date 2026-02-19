@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Feb 18, 2026: New Blog Post**
+- 📝 **Blog**: Publicado artículo "Láser CO2 Fraccionado: El Estándar de Oro".
+- 📂 **Estructura**: Creada carpeta `src/data/blogs/laser-co2-fraccionado-bioskin`.
+
 ### ✅ **Feb 18, 2026: Consent Forms Update**
 - 📄 **Consentimiento**: Agregada plantilla para "Tratamiento de Melasma con Láser Nd:YAG".
 - 📄 **Consentimiento**: Agregada plantilla para "Rejuvenecimiento Facial con Láser de CO2 Fraccionado".
