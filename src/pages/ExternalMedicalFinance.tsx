@@ -273,8 +273,28 @@ export default function ExternalMedicalFinance() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 p-6 print:p-0 print:bg-white">
+      <style>{`
+        @media print {
+          @page { margin: 1.5cm; size: landscape; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .print-hidden { display: none !important; }
+          .print-visible { display: block !important; }
+          .recharts-wrapper { margin: 0 auto; }
+        }
+      `}</style>
+
+      {/* Print Only Header */}
+      <div className="hidden print-visible mb-8 text-center border-b-2 border-gray-800 pb-4">
+        <h1 className="text-2xl font-bold text-gray-900 uppercase tracking-wide">Reporte Financiero Médico</h1>
+        <h2 className="text-xl text-gray-700 mt-1">Dr. Juan Pablo Brito</h2>
+        <p className="text-sm text-gray-500 mt-2">
+            Período: {filters.month ? new Date(filters.month + '-01').toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }) : 'Histórico Completo'} 
+            {filters.assistant && ` | Asistente: ${filters.assistant}`}
+        </p>
+      </div>
+
+      {/* Screen Header */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center print:hidden">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
@@ -726,11 +746,16 @@ export default function ExternalMedicalFinance() {
                 </div>
             </div>
 
-            {/* Charts Section */}
+
+            {/* Report Container */}
+            <div className="flex flex-col print:flex-col-reverse print:gap-8">
+            
+            {/* Charts Section - Will be at BOTTOM in print due to column-reverse (if placed first) or using order */}
+            {/* Actually, let's keep them in DOM order for screen, but use order classes for print */}
             {records.length > 0 && (
-                <div className="p-6 border-b border-gray-100 print:break-inside-avoid">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Análisis Visual</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64">
+                <div className="p-6 border-b border-gray-100 print:break-inside-avoid print:order-2 print:border-t-2 print:mt-4">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4 print:text-lg print:text-gray-800 print:font-bold">Análisis Visual</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64 print:h-80">
                         <div className="h-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={[
@@ -782,21 +807,21 @@ export default function ExternalMedicalFinance() {
                 </div>
             )}
 
-            {/* Table */}
-            <div className="overflow-x-auto print:overflow-visible">
+            {/* Table - Will be at TOP in print (order 1) */}
+            <div className="overflow-x-auto print:overflow-visible print:order-1">
               {loading && records.length === 0 ? (
                 <div className="p-12 text-center text-gray-500">Cargando registros...</div>
               ) : records.length === 0 ? (
                 <div className="p-12 text-center text-gray-500">No se encontraron registros.</div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse text-sm print:text-xs">
 
                   <thead>
-                    <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                    <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider print:bg-gray-100 print:text-black">
                       <th className="p-4 border-b">Fecha</th>
                       <th className="p-4 border-b">Paciente / Concepto</th>
-                      <th className="p-4 border-b">Tipo / Detalles</th>
-                      <th className="p-4 border-b">Asistente</th>
+                      <th className="p-4 border-b print:hidden">Tipo / Detalles</th>
+                      <th className="p-4 border-b print:hidden">Asistente</th>
                       <th className="p-4 border-b text-right">Total / Gasto</th>
                       <th className="p-4 border-b text-right">Neto Dr. JPB</th>
                       <th className="p-4 border-b text-center print:hidden">Acciones</th>
@@ -805,32 +830,41 @@ export default function ExternalMedicalFinance() {
                   <tbody className="divide-y divide-gray-100">
 
                     {records.map((record) => (
-                      <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="p-4 text-sm text-gray-600 border-b whitespace-nowrap">{record.intervention_date}</td>
-                        <td className="p-4 text-sm font-medium text-gray-900 border-b">
-                            {record.patient_name}
-                            {record.intervention_type && record.intervention_type.toLowerCase().includes('compra') && <span className="text-xs text-red-500 block">Gasto Operativo</span>}
+                      <tr key={record.id} className="hover:bg-gray-50 transition-colors print:break-inside-avoid">
+                        <td className="p-4 text-gray-600 border-b whitespace-nowrap">
+                            {/* Format date properly */}
+                            {new Date(record.intervention_date).toLocaleDateString('es-EC')}
                         </td>
-                        <td className="p-4 text-sm text-gray-500 border-b">
+                        <td className="p-4 font-medium text-gray-900 border-b">
+                            {record.patient_name}
+                            <span className="print:hidden">
+                            {record.intervention_type && record.intervention_type.toLowerCase().includes('compra') && <span className="text-xs text-red-500 block">Gasto Operativo</span>}
+                            </span>
+                             {/* Show intervention type inline for print */}
+                             <span className="hidden print:block text-gray-500 text-xs italic">
+                                {record.intervention_type}
+                             </span>
+                        </td>
+                        <td className="p-4 text-gray-500 border-b print:hidden">
                             <span className="font-medium text-gray-700 block">{record.intervention_type || '-'}</span>
                             {record.details && <span className="text-xs text-gray-400 italic block mt-1">{record.details}</span>}
                             {record.clinic && <span className="text-xs text-blue-400 block">{record.clinic}</span>}
                         </td>
-                        <td className="p-4 text-sm text-gray-600 border-b">
+                        <td className="p-4 text-gray-600 border-b print:hidden">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${
                                 record.assistant_name === 'Marietha' ? 'bg-purple-100 text-purple-700' : 'bg-pink-100 text-pink-700'
                             }`}>
                                 {record.assistant_name}
                             </span>
                         </td>
-                        <td className="p-4 text-sm text-gray-600 text-right">
+                        <td className="p-4 text-gray-600 text-right font-medium">
                           {Number(record.total_payment) > 0 ? (
-                             <span className="text-gray-900">${record.total_payment}</span>
+                             <span className="text-gray-900">${Number(record.total_payment).toFixed(2)}</span>
                           ) : (
-                             <span className="text-red-500">-${record.expenses}</span>
+                             <span className="text-red-500">-${Number(record.expenses).toFixed(2)}</span>
                           )}
                         </td>
-                        <td className="p-4 text-sm font-bold text-blue-600 text-right">
+                        <td className="p-4 font-bold text-blue-600 text-right">
                             ${(Number(record.net_income_juan_pablo) || 0).toFixed(2)}
                         </td>
                         <td className="p-4 flex justify-center gap-2 print:hidden">
@@ -854,6 +888,8 @@ export default function ExternalMedicalFinance() {
                   </tbody>
                 </table>
               )}
+            </div>
+            
             </div>
 
           </div>
