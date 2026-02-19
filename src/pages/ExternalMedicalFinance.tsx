@@ -461,7 +461,7 @@ export default function ExternalMedicalFinance() {
                       <p className="text-xs text-gray-500 uppercase mb-2">Honorarios Médicos & Gastos</p>
                       
                       {/* Editable Doctor Fees List */}
-                      {parsedData.doctor_fees.map((fee, idx) => (
+                      {(parsedData.doctor_fees || []).map((fee, idx) => (
                         <div key={idx} className="flex justify-between items-center text-red-500 text-sm mb-1 group">
                           <input 
                             value={fee.name}
