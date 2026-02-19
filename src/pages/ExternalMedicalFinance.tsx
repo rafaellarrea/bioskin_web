@@ -27,6 +27,7 @@ interface FinanceRecord {
   intervention_type?: string;
   clinic: string;
   total_payment: number;
+  abono?: number; // Add abono field
   doctor_fees: { name: string; amount: number }[];
   expenses: number;
   additional_income: number;
@@ -504,6 +505,19 @@ export default function ExternalMedicalFinance() {
                                 value={record.total_payment}
                                 onChange={(e) => updateStagedRecord(index, 'total_payment', parseFloat(e.target.value) || 0)}
                                 className="font-medium text-gray-900 w-24 text-right bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center text-blue-600 text-sm">
+                          <span>› Abono / Pago Parcial</span>
+                          <div className="flex items-center">
+                            <span className="mr-1">$</span>
+                            <input 
+                                type="number"
+                                value={record.abono || 0}
+                                onChange={(e) => updateStagedRecord(index, 'abono', parseFloat(e.target.value) || 0)}
+                                className="font-medium text-gray-900 w-24 text-right bg-transparent border-b border-blue-200 focus:border-blue-500 outline-none"
                             />
                           </div>
                         </div>
