@@ -27,8 +27,22 @@ export default async function handler(req, res) {
         if (!note || !assistant) {
           return res.status(400).json({ error: 'Missing note or assistant name' });
         }
+        
+        // AI now returns an ARRAY of records
         const parsedData = await parseMedicalNote(note);
-        return res.status(200).json({ ...parsedData, assistant_name: assistant, raw_note: note });
+        
+        // Ensure we handle both single object and array return types from the service
+        // The service logic was updated to return array, but keeping it robust here
+        const records = Array.isArray(parsedData) ? parsedData : [parsedData];
+        
+        // Add assistant and raw_note to *each* record
+        const completeRecords = records.map(r => ({
+          ...r,
+          assistant_name: assistant,
+          raw_note: note 
+        }));
+
+        return res.status(200).json(completeRecords);
       } 
       
       else if (action === 'save-record') {

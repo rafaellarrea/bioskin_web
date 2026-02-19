@@ -45,8 +45,10 @@ export default function ExternalMedicalFinance() {
   // Form State
   const [assistant, setAssistant] = useState<string>('');
   const [rawNote, setRawNote] = useState('');
-  const [parsedData, setParsedData] = useState<FinanceRecord | null>(null);
-  const [idToEdit, setIdToEdit] = useState<number | null>(null);
+  
+  // Staging area for parsed records before saving (Multirecord workflow)
+  const [parsedRecords, setParsedRecords] = useState<FinanceRecord[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // List State
   const [records, setRecords] = useState<FinanceRecord[]>([]);
@@ -106,10 +108,11 @@ export default function ExternalMedicalFinance() {
   };
 
   const handleEdit = (record: FinanceRecord) => {
-    setParsedData(record);
+    // If we're editing an existing saved record, we treat it as "staging" a single record
+    setParsedRecords([record]);
+    setEditingIndex(0); // It's the first (and only) item in staging
     setRawNote(record.raw_note || '');
     setAssistant(record.assistant_name);
-    setIdToEdit(record.id || null);
     setViewMode('create');
     setSuccess('');
     setError('');
@@ -140,9 +143,16 @@ export default function ExternalMedicalFinance() {
       if (!response.ok) throw new Error('Error al procesar la nota');
 
       const data = await response.json();
-      setParsedData(data);
-      // If we are editing, keep the ID, otherwise null (new record)
-      // Actually usually user processes a NEW note, so we might want to reset ID unless re-processing
+      
+      // Backend now returns an ARRAY of records
+      if (Array.isArray(data)) {
+        setParsedRecords(data);
+      } else {
+        // Fallback for single record response
+        setParsedRecords([data]);
+      }
+      
+      setEditingIndex(null); // Just show the list of parsed items first
     } catch (err) {
       console.error(err);
       setError('Error al conectar con la IA para procesar la nota');
@@ -151,46 +161,80 @@ export default function ExternalMedicalFinance() {
     }
   };
 
-  const handleSave = async () => {
-    if (!parsedData) return;
+  const handleSaveAll = async () => {
+    if (parsedRecords.length === 0) return;
 
     setLoading(true);
     try {
-      let url = '/api/external-finance?action=save-record';
-      let payload: any = parsedData;
+      // Loop through all staged records and save them
+      // In a real bulk API we'd send them all at once, but loop reduces risk of partial failures blocking all if API is simple
+      // Optimization: We could add a 'bulk-save' action to API later
+      
+      let successCount = 0;
+      
+      for (const record of parsedRecords) {
+        let url = '/api/external-finance?action=save-record';
+        let payload: any = record;
 
-      if (idToEdit) {
-        url = '/api/external-finance?action=update';
-        payload = { id: idToEdit, updates: parsedData };
+        // Check if it's an update (has ID)
+        if (record.id) {
+            url = '/api/external-finance?action=update';
+            payload = { id: record.id, updates: record };
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) successCount++;
       }
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error('Error al guardar el registro');
-
-      setSuccess(idToEdit ? 'Registro actualizado exitosamente' : 'Registro guardado exitosamente');
-      
-      // Clear form after successful save
-      if (!idToEdit) {
+      if (successCount === parsedRecords.length) {
+        setSuccess(`${successCount} registros guardados exitosamente`);
         setRawNote('');
-        setParsedData(null);
-      } else {
-        // If editing, maybe go back to list?
+        setParsedRecords([]); // Clear staging
         setTimeout(() => setViewMode('list'), 1500);
+      } else {
+        setError(`Guardado parcial: ${successCount} de ${parsedRecords.length} guardados.`);
       }
-      
-      setIdToEdit(null);
 
     } catch (err) {
       console.error(err);
-      setError('Error al guardar el registro');
+      setError('Error al guardar los registros');
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Helper to update a specific record in the staging array
+  const updateStagedRecord = (index: number, field: keyof FinanceRecord, value: any) => {
+    const updated = [...parsedRecords];
+    updated[index] = { ...updated[index], [field]: value };
+    setParsedRecords(updated);
+  };
+    
+  const updateStagedDoctorFees = (recordIndex: number, feeIndex: number, field: 'name' | 'amount', value: any) => {
+      const updated = [...parsedRecords];
+      const fees = [...(updated[recordIndex].doctor_fees || [])];
+      fees[feeIndex] = { ...fees[feeIndex], [field]: value };
+      updated[recordIndex].doctor_fees = fees;
+      setParsedRecords(updated);
+  };
+
+  const removeStagedFee = (recordIndex: number, feeIndex: number) => {
+      const updated = [...parsedRecords];
+      const fees = updated[recordIndex].doctor_fees.filter((_, i) => i !== feeIndex);
+      updated[recordIndex].doctor_fees = fees;
+      setParsedRecords(updated);
+  };
+
+  const addStagedFee = (recordIndex: number) => {
+      const updated = [...parsedRecords];
+      const fees = [...(updated[recordIndex].doctor_fees || []), { name: 'Nuevo Honorario', amount: 0 }];
+      updated[recordIndex].doctor_fees = fees;
+      setParsedRecords(updated);
   };
 
   const handleExportPDF = () => {
