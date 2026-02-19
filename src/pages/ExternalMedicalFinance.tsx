@@ -1025,9 +1025,7 @@ export default function ExternalMedicalFinance() {
                 </table>
               )}
             </div>
-            
-            </div>
-
+          </div>
         )}
       </div>
     </div>
