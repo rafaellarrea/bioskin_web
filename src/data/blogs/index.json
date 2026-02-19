@@ -1,9 +1,35 @@
 {
-  "lastUpdated": "2026-02-19T00:05:05.539Z",
-  "total": 16,
-  "organized": 16,
+  "lastUpdated": "2026-02-19T00:11:25.680Z",
+  "total": 17,
+  "organized": 17,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762468562214",
+      "title": "Luminosidad y Firmeza: El Poder del IPL y la Radiofrecuencia Bipolar",
+      "slug": "ipl-radiofrecuencia-bipolar-beneficios",
+      "category": "tecnologia-estetica",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2026-02-18T09:00:00.000Z",
+      "savedAt": "2026-02-19T00:11:25.679Z",
+      "readTime": 4,
+      "tags": [
+        "IPL",
+        "radiofrecuencia bipolar",
+        "lifting sin cirugía",
+        "facial glow"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/ipl-radiofrecuencia-bipolar-beneficios/index.json",
+        "images": "public/images/blog/rf-ipl/",
+        "metadata": "src/data/blogs/ipl-radiofrecuencia-bipolar-beneficios/metadata.json"
+      },
+      "images": [],
+      "status": "published"
+    },
     {
       "id": "blog-1762468562213",
       "title": "Analizador Facial Inteligente: ¿Qué dice realmente tu piel?",

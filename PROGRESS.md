@@ -11,6 +11,8 @@
 ## 🎯 Últimas Actualizaciones
 
 ### ✅ **Feb 18, 2026: New Blog Post**
+- 📝 **Blog**: Publicado artículo "Luminosidad y Firmeza: IPL + RF".
+- 📂 **Estructura**: Creada carpeta `src/data/blogs/ipl-radiofrecuencia-bipolar-beneficios`.
 - 📝 **Blog**: Publicado artículo "Analizador Facial Inteligente".
 - 📂 **Estructura**: Creada carpeta `src/data/blogs/analizador-facial-inteligente-diagnostico`.
 - 📝 **Blog**: Publicado artículo "Láser CO2 Fraccionado: El Estándar de Oro".
