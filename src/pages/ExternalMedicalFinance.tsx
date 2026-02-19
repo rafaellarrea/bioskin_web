@@ -411,188 +411,189 @@ export default function ExternalMedicalFinance() {
               )}
             </div>
 
-            {/* Results Section */}
+            {/* Results Section - NOW HANDLES LIST OF PARSED RECORDS */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 print:shadow-none print:border-none">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                Resumen Procesado {idToEdit && <span className="text-sm font-normal text-gray-500 ml-2">(Modo Edición)</span>}
+                Resumen Procesado ({parsedRecords.length} Registros)
               </h2>
 
-              {!parsedData ? (
+              {parsedRecords.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-gray-400 py-12 border-2 border-dashed border-gray-200 rounded-lg">
                   <Calculator className="w-12 h-12 mb-4 opacity-50" />
                   <p>Los datos procesados aparecerán aquí</p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {/* Header Info */}
-                  <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-                    <div>
-                      <label className="text-xs text-gray-500 uppercase tracking-wider">Paciente</label>
-                      <input 
-                        type="text" 
-                        value={parsedData.patient_name}
-                        onChange={(e) => setParsedData({...parsedData, patient_name: e.target.value})}
-                        className="font-semibold text-lg text-gray-900 w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
-                      />
-                    </div>
-                    <div className="text-right">
-                      <label className="text-xs text-gray-500 uppercase tracking-wider">Fecha</label>
-                      <input 
-                         type="date"
-                         value={parsedData.intervention_date}
-                         onChange={(e) => setParsedData({...parsedData, intervention_date: e.target.value})}
-                         className="font-medium text-gray-900 text-right w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs text-gray-500 uppercase tracking-wider">Intervención</label>
-                      <input 
-                        type="text" 
-                        value={parsedData.intervention_type || ''}
-                        onChange={(e) => setParsedData({...parsedData, intervention_type: e.target.value})}
-                        className="font-medium text-gray-900 w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
-                        placeholder="Consulta, Botox, etc."
-                      />
-                    </div>
-
-                    <div className="text-right">
-                      <label className="text-xs text-gray-500 uppercase tracking-wider">Clínica</label>
-                      <input 
-                         type="text"
-                         value={parsedData.clinic || ''}
-                         onChange={(e) => setParsedData({...parsedData, clinic: e.target.value})}
-                         className="text-right w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                        <label className="text-xs text-gray-500 uppercase tracking-wider">Registrado Por</label>
-                        <p className="font-medium text-gray-700">{parsedData.assistant_name}</p>
-                    </div>
-                  </div>
-
-                  {/* Financial Breakdown */}
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-center text-gray-600">
-                      <span>Pago Total (Ingreso)</span>
-                      <div className="flex items-center">
-                        <span className="mr-1">$</span>
-                        <input 
-                            type="number"
-                            value={parsedData.total_payment}
-                            onChange={(e) => setParsedData({...parsedData, total_payment: parseFloat(e.target.value) || 0})}
-                            className="font-medium text-gray-900 w-24 text-right bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center text-green-600">
-                        <span>+ Valores Adicionales</span>
-                        <div className="flex items-center">
-                            <span className="mr-1">+$</span>
-                            <input 
-                                type="number"
-                                value={parsedData.additional_income || 0}
-                                onChange={(e) => setParsedData({...parsedData, additional_income: parseFloat(e.target.value) || 0})}
-                                className="font-medium w-24 text-right bg-transparent border-b border-green-200 focus:border-green-500 outline-none"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-200 my-2 pt-2">
-                      <p className="text-xs text-gray-500 uppercase mb-2">Honorarios Médicos & Gastos</p>
-                      
-                      {/* Editable Doctor Fees List */}
-                      {(parsedData.doctor_fees || []).map((fee, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-red-500 text-sm mb-1 group">
-                          <input 
-                            value={fee.name}
-                            onChange={(e) => {
-                                const newFees = [...parsedData.doctor_fees];
-                                newFees[idx].name = e.target.value;
-                                setParsedData({...parsedData, doctor_fees: newFees});
+                <div className="space-y-8">
+                  {/* Iterate over all parsed records */}
+                  {parsedRecords.map((record, index) => (
+                    <div key={index} className="border border-gray-200 rounded-xl p-5 bg-gray-50/50 hover:bg-white transition-colors hover:shadow-md">
+                      <div className="mb-4 flex justify-between items-start">
+                        <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded font-bold">Registro #{index + 1}</span>
+                        <button 
+                            onClick={() => {
+                                const newRecords = parsedRecords.filter((_, i) => i !== index);
+                                setParsedRecords(newRecords);
                             }}
-                            className="bg-transparent border-b border-transparent hover:border-red-200 focus:border-red-500 outline-none w-full mr-2"
+                            className="text-gray-400 hover:text-red-500"
+                            title="Descartar este registro"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Header Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
+                        <div>
+                          <label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Paciente</label>
+                          <input 
+                            type="text" 
+                            value={record.patient_name}
+                            onChange={(e) => updateStagedRecord(index, 'patient_name', e.target.value)}
+                            className="font-semibold text-lg text-gray-900 w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent"
                           />
+                        </div>
+                        <div className="text-right">
+                          <label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Fecha</label>
+                          <input 
+                             type="date"
+                             value={record.intervention_date}
+                             onChange={(e) => updateStagedRecord(index, 'intervention_date', e.target.value)}
+                             className="font-medium text-gray-900 text-right w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Intervención</label>
+                          <input 
+                            type="text" 
+                            value={record.intervention_type || ''}
+                            onChange={(e) => updateStagedRecord(index, 'intervention_type', e.target.value)}
+                            className="font-medium text-gray-900 w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent"
+                            placeholder="Consulta, Botox, etc."
+                          />
+                        </div>
+
+                        <div className="text-right">
+                          <label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Clínica</label>
+                          <input 
+                             type="text"
+                             value={record.clinic || ''}
+                             onChange={(e) => updateStagedRecord(index, 'clinic', e.target.value)}
+                             className="text-right w-full border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Financial Breakdown */}
+                      <div className="mt-4 space-y-3">
+                        <div className="flex justify-between items-center text-gray-600">
+                          <span>Pago Total (Ingreso)</span>
                           <div className="flex items-center">
-                            <span>-$</span>
+                            <span className="mr-1">$</span>
                             <input 
                                 type="number"
-                                value={fee.amount}
-                                onChange={(e) => {
-                                    const newFees = [...parsedData.doctor_fees];
-                                    newFees[idx].amount = parseFloat(e.target.value) || 0;
-                                    setParsedData({...parsedData, doctor_fees: newFees});
-                                }}
-                                className="w-16 text-right bg-transparent border-b border-transparent hover:border-red-200 focus:border-red-500 outline-none"
+                                value={record.total_payment}
+                                onChange={(e) => updateStagedRecord(index, 'total_payment', parseFloat(e.target.value) || 0)}
+                                className="font-medium text-gray-900 w-24 text-right bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none"
                             />
-                            <button 
-                                onClick={() => {
-                                    const newFees = parsedData.doctor_fees.filter((_, i) => i !== idx);
-                                    setParsedData({...parsedData, doctor_fees: newFees});
-                                }}
-                                className="ml-2 text-red-300 hover:text-red-600 opacity-0 group-hover:opacity-100"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
                           </div>
                         </div>
-                      ))}
-                      
-                      <button 
-                        onClick={() => setParsedData({
-                            ...parsedData, 
-                            doctor_fees: [...parsedData.doctor_fees, { name: 'Nuevo Doctor', amount: 0 }]
-                        })}
-                        className="text-xs text-blue-500 hover:underline mt-1 mb-2 block"
-                      >
-                        + Agregar Honorario
-                      </button>
+                        
+                        <div className="flex justify-between items-center text-green-600">
+                            <span>+ Valores Adicionales</span>
+                            <div className="flex items-center">
+                                <span className="mr-1">+$</span>
+                                <input 
+                                    type="number"
+                                    value={record.additional_income || 0}
+                                    onChange={(e) => updateStagedRecord(index, 'additional_income', parseFloat(e.target.value) || 0)}
+                                    className="font-medium w-24 text-right bg-transparent border-b border-green-200 focus:border-green-500 outline-none"
+                                />
+                            </div>
+                        </div>
 
-                      <div className="flex justify-between items-center text-red-500 text-sm">
-                        <span>- Gastos Operativos</span>
-                        <div className="flex items-center">
-                            <span>-$</span>
-                            <input 
-                                type="number"
-                                value={parsedData.expenses || 0}
-                                onChange={(e) => setParsedData({...parsedData, expenses: parseFloat(e.target.value) || 0})}
-                                className="w-24 text-right bg-transparent border-b border-red-200 focus:border-red-500 outline-none"
-                            />
+                        <div className="border-t border-gray-200 my-2 pt-2">
+                          <p className="text-xs text-gray-500 uppercase mb-2">Honorarios Médicos & Gastos</p>
+                          
+                          {/* Editable Doctor Fees List */}
+                          {(record.doctor_fees || []).map((fee, feeIdx) => (
+                            <div key={feeIdx} className="flex justify-between items-center text-red-500 text-sm mb-1 group">
+                              <input 
+                                value={fee.name}
+                                onChange={(e) => updateStagedDoctorFees(index, feeIdx, 'name', e.target.value)}
+                                className="bg-transparent border-b border-transparent hover:border-red-200 focus:border-red-500 outline-none w-full mr-2"
+                              />
+                              <div className="flex items-center">
+                                <span>-$</span>
+                                <input 
+                                    type="number"
+                                    value={fee.amount}
+                                    onChange={(e) => updateStagedDoctorFees(index, feeIdx, 'amount', parseFloat(e.target.value) || 0)}
+                                    className="w-16 text-right bg-transparent border-b border-transparent hover:border-red-200 focus:border-red-500 outline-none"
+                                />
+                                <button 
+                                    onClick={() => removeStagedFee(index, feeIdx)}
+                                    className="ml-2 text-red-300 hover:text-red-600 opacity-0 group-hover:opacity-100"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          <button 
+                            onClick={() => addStagedFee(index)}
+                            className="text-xs text-blue-500 hover:underline mt-1 mb-2 block"
+                          >
+                            + Agregar Honorario
+                          </button>
+
+                          <div className="flex justify-between items-center text-red-500 text-sm">
+                            <span>- Gastos Operativos</span>
+                            <div className="flex items-center">
+                                <span>-$</span>
+                                <input 
+                                    type="number"
+                                    value={record.expenses || 0}
+                                    onChange={(e) => updateStagedRecord(index, 'expenses', parseFloat(e.target.value) || 0)}
+                                    className="w-24 text-right bg-transparent border-b border-red-200 focus:border-red-500 outline-none"
+                                />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="border-t-2 border-gray-300 pt-3 mt-3 flex justify-between items-center">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900 text-lg">Neto Dr. Juan Pablo Brito</span>
+                            {/* Ideally calculate on backend, but for display: total + add - expenses - fees */}
+                            <span className="text-xs text-gray-400">Total calculado al guardar</span>
+                          </div>
+                          <button 
+                            className="text-xs bg-gray-100 px-2 py-1 rounded"
+                            title="El cálculo final se realizará en el servidor"
+                          >
+                           Estimado: ${(
+                             (record.total_payment || 0) + 
+                             (record.additional_income || 0) - 
+                             (record.expenses || 0) - 
+                             (record.doctor_fees || []).reduce((acc, f) => acc + (f.amount || 0), 0)
+                           ).toFixed(2)}
+                          </button>
                         </div>
                       </div>
                     </div>
-
-                    <div className="border-t-2 border-gray-300 pt-3 mt-3 flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-lg">Neto Dr. Juan Pablo Brito</span>
-                        <span className="text-xs text-gray-400">Calculado automáticamente al guardar</span>
-                      </div>
-                      <span className="font-bold text-blue-600 text-2xl">
-                        ${parsedData.net_income_juan_pablo} 
-                        {/* Note: This is static from AI, ideally we recalculate on frontend edit, but simplistic for now */}
-                      </span>
-                    </div>
-                  </div>
+                  ))}
 
                   {/* Final Actions */}
-                  <div className="flex gap-4 pt-4 border-t border-gray-100 print:hidden">
+                  <div className="flex gap-4 pt-4 border-t border-gray-100 print:hidden sticky bottom-0 bg-white p-4 shadow-lg border-t-2 border-blue-100">
                     <button
-                      onClick={handleSave}
-                      disabled={loading}
-                      className="flex-1 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center justify-center gap-2 shadow-sm transition-colors"
+                      onClick={handleSaveAll}
+                      disabled={loading || parsedRecords.length === 0}
+                      className="flex-1 py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg flex items-center justify-center gap-2 shadow-sm transition-colors"
                     >
-                      <Save className="w-4 h-4" />
-                      {idToEdit ? 'Actualizar Registro' : 'Guardar Registro'}
-                    </button>
-                    <button
-                      onClick={handleExportPDF}
-                      className="flex-1 py-2 px-4 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium flex items-center justify-center gap-2 transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      Exportar PDF
+                      <Save className="w-5 h-5" />
+                      {editingIndex !== null ? 'Actualizar Registro' : `Guardar Todos (${parsedRecords.length})`}
                     </button>
                   </div>
                 </div>
