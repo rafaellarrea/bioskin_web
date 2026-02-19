@@ -32,8 +32,7 @@ interface FinanceRecord {
   expenses: number;
   additional_income: number;
   net_income_juan_pablo: number;
-  raw_note: string;
-  assistant_name: string;
+  raw_note: string;  details?: string; // Added details field  assistant_name: string;
   created_at?: string;
 }
 
@@ -439,6 +438,8 @@ export default function ExternalMedicalFinance() {
                     <div key={index} className="border border-gray-200 rounded-xl p-5 bg-gray-50/50 hover:bg-white transition-colors hover:shadow-md">
                       <div className="mb-4 flex justify-between items-start">
                         <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded font-bold">Registro #{index + 1}</span>
+                        <div className="flex gap-2">
+                            {/* Details toggle could go here, but for now just show it if exists */}
                         <button 
                             onClick={() => {
                                 const newRecords = parsedRecords.filter((_, i) => i !== index);
@@ -449,10 +450,22 @@ export default function ExternalMedicalFinance() {
                         >
                             <X className="w-4 h-4" />
                         </button>
+                        </div>
                       </div>
 
                       {/* Header Info */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
+                        <div className="col-span-1 md:col-span-2">
+                           <label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Detalles / Notas</label>
+                           <input 
+                              type="text"
+                              value={record.details || ''}
+                              onChange={(e) => updateStagedRecord(index, 'details', e.target.value)}
+                              placeholder="Detalles adicionales (ej: factura, transferencia...)"
+                              className="w-full text-sm text-gray-600 border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none bg-transparent italic"
+                           />
+                        </div>
+
                         <div>
                           <label className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Paciente</label>
                           <input 

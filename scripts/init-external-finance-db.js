@@ -46,6 +46,10 @@ async function main() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='external_finance_records' AND column_name='abono') THEN
           ALTER TABLE external_finance_records ADD COLUMN abono NUMERIC(10, 2) DEFAULT 0;
         END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='external_finance_records' AND column_name='details') THEN
+          ALTER TABLE external_finance_records ADD COLUMN details TEXT;
+        END IF;
       END $$;
     `);
 
