@@ -272,6 +272,15 @@ export default function ExternalMedicalFinance() {
     navigate('/admin/login');
   };
 
+  // Calculate totals for summary (Used in both List View & Print View)
+  const totalIncome = records.reduce((acc, r) => acc + (Number(r.total_payment) || 0), 0);
+  const totalExpenses = records.reduce((acc, r) => acc + (Number(r.expenses) || 0), 0);
+  const totalFees = records.reduce((acc, r) => {
+     const fees = (r.doctor_fees || []).reduce((facc, f) => facc + (Number(f.amount) || 0), 0);
+     return acc + fees;
+  }, 0);
+  const totalNetJPB = records.reduce((acc, r) => acc + (Number(r.net_income_juan_pablo) || 0), 0);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 print:p-0 print:bg-white print:overflow-hidden">
       <style>{`
@@ -819,19 +828,7 @@ export default function ExternalMedicalFinance() {
 
 
         {/* VIEW: LIST */}
-        {viewMode === 'list' && (() => {
-          // Calculate totals for summary INSIDE the render block or move outside of return
-          // Moving outside required state derived from records, but here we can compute locally
-          
-          const totalIncome = records.reduce((acc, r) => acc + (Number(r.total_payment) || 0), 0);
-          const totalExpenses = records.reduce((acc, r) => acc + (Number(r.expenses) || 0), 0);
-          const totalFees = records.reduce((acc, r) => {
-             const fees = (r.doctor_fees || []).reduce((facc, f) => facc + (Number(f.amount) || 0), 0);
-             return acc + fees;
-          }, 0);
-          const totalNetJPB = records.reduce((acc, r) => acc + (Number(r.net_income_juan_pablo) || 0), 0);
-
-          return (
+        {viewMode === 'list' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Filters */}
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center print:hidden">
@@ -1031,9 +1028,7 @@ export default function ExternalMedicalFinance() {
             
             </div>
 
-          </div>
-          );
-        })()}
+        )}
       </div>
     </div>
   );
