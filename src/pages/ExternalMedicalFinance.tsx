@@ -891,8 +891,11 @@ export default function ExternalMedicalFinance() {
             {records.length > 0 && (
                 <div className="p-6 border-b border-gray-100 print:break-inside-avoid print:order-2 print:border-t-2 print:mt-4">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4 print:text-lg print:text-gray-800 print:font-bold">Análisis Visual</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64 print:h-80">
-                        <div className="h-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64 print:h-[300px] print:block">
+                        <div className="h-full print:w-[48%] print:inline-block print:align-top">
+                            {/* Recharts sometimes fails with ResponsiveContainer in print. 
+                                We use a simple key change or conditional to force re-render if needed, 
+                                but essentially we need isAnimationActive={false} */}
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={[
                                     { name: 'Ingresos', value: totalIncome },
@@ -903,7 +906,7 @@ export default function ExternalMedicalFinance() {
                                     <XAxis dataKey="name" />
                                     <YAxis />
                                     <Tooltip formatter={(value: any) => `$${Number(value).toFixed(2)}`} />
-                                    <Bar dataKey="value" fill="#3b82f6">
+                                    <Bar dataKey="value" fill="#3b82f6" isAnimationActive={false}>
                                         {
                                             [0, 1, 2].map((_, index) => (
                                                 <Cell key={`cell-${index}`} fill={index === 0 ? '#3b82f6' : index === 1 ? '#ea384c' : '#22c55e'} />
@@ -913,7 +916,7 @@ export default function ExternalMedicalFinance() {
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
-                        <div className="h-full flex flex-col items-center justify-center text-center">
+                        <div className="h-full flex flex-col items-center justify-center text-center print:w-[48%] print:inline-block print:align-top">
                             <p className="text-sm text-gray-500 mb-2">Distribución Financiera Global</p>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -930,6 +933,7 @@ export default function ExternalMedicalFinance() {
                                         fill="#8884d8"
                                         paddingAngle={5}
                                         dataKey="value"
+                                        isAnimationActive={false}
                                     >
                                         <Cell fill="#ef4444" /> {/* Gastos */}
                                         <Cell fill="#f97316" /> {/* Honorarios */}
