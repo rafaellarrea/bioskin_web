@@ -1,9 +1,35 @@
 {
-  "lastUpdated": "2026-02-19T00:00:47.552Z",
-  "total": 15,
-  "organized": 15,
+  "lastUpdated": "2026-02-19T00:05:05.539Z",
+  "total": 16,
+  "organized": 16,
   "legacy": 0,
   "blogs": [
+    {
+      "id": "blog-1762468562213",
+      "title": "Analizador Facial Inteligente: ¿Qué dice realmente tu piel?",
+      "slug": "analizador-facial-inteligente-diagnostico",
+      "category": "tecnologia-estetica",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2026-02-15T15:30:00.000Z",
+      "savedAt": "2026-02-19T00:05:05.518Z",
+      "readTime": 4,
+      "tags": [
+        "diagnóstico facial",
+        "inteligencia artificial",
+        "skincare científico",
+        "BIOSKIN"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "src/data/blogs/analizador-facial-inteligente-diagnostico/index.json",
+        "images": "public/images/blog/analizador-facial/",
+        "metadata": "src/data/blogs/analizador-facial-inteligente-diagnostico/metadata.json"
+      },
+      "images": [],
+      "status": "published"
+    },
     {
       "id": "blog-1762468562212",
       "title": "Láser CO2 Fraccionado: El Estándar de Oro para Renovar tu Piel",
