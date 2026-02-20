@@ -862,6 +862,16 @@ export default function ExternalMedicalFinance() {
         {/* VIEW: LIST */}
         {viewMode === 'list' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden print-container">
+            {/* Titulo para impresión */}
+            <div className="hidden print:block p-8 pb-4 text-center border-b-2 border-gray-800">
+                <h1 className="text-3xl font-bold text-gray-900 uppercase tracking-widest mb-2 font-serif">Reporte Financiero BioSkin</h1>
+                <h2 className="text-xl text-gray-600 font-light">
+                    {filters.month ? `Período: ${new Date(filters.month + '-05').toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}` : 'Reporte General'}
+                </h2>
+                {filters.assistant && <p className="text-sm text-gray-500 mt-1 uppercase">Asistente: {filters.assistant}</p>}
+                <p className="text-xs text-gray-400 mt-2">Generado el {new Date().toLocaleDateString('es-EC')} a las {new Date().toLocaleTimeString('es-EC')}</p>
+            </div>
+
             {/* Filters */}
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center print:hidden">
                 <div className="flex items-center gap-2">
@@ -894,8 +904,8 @@ export default function ExternalMedicalFinance() {
                 </button>
             </div>
 
-            {/* Stats Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white border-b border-gray-100">
+            {/* Stats Summary - Now Resumen Total (Step 6) - Hide here in print, move to bottom */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white border-b border-gray-100 print:hidden">
                 <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
                     <p className="text-xs font-semibold text-blue-500 uppercase tracking-wider mb-1">Total Ingresos</p>
                     <p className="text-2xl font-bold text-gray-900">${totalIncome.toFixed(2)}</p>
@@ -916,12 +926,11 @@ export default function ExternalMedicalFinance() {
 
 
             {/* Report Container */}
-            <div className="flex flex-col print:flex-col-reverse print:gap-8">
+            <div className="flex flex-col">
             
-            {/* Charts Section - Will be at BOTTOM in print due to column-reverse (if placed first) or using order */}
-            {/* Actually, let's keep them in DOM order for screen, but use order classes for print */}
+            {/* Charts Section - Will be at BOTTOM in print (Step 7) */}
             {records.length > 0 && (
-                <div className="p-6 border-b border-gray-100 print:break-inside-avoid print:order-2 print:border-t-2 print:mt-4">
+                <div className="p-6 border-b border-gray-100 print:break-inside-avoid print:order-12 print:border-t-2 print:mt-8 page-break-before">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4 print:text-lg print:text-gray-800 print:font-bold">Análisis Visual</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-64 print:h-[350px] print:block">
                         <div className="h-full print:w-[48%] print:inline-block print:align-top bg-white">
@@ -1123,43 +1132,69 @@ export default function ExternalMedicalFinance() {
               )}
 
               {/* Breakdown Summary Section */}
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-4 bg-gray-50 border border-gray-100 rounded-lg print:bg-white print:border-none print:break-inside-avoid">
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-4 bg-gray-50 border border-gray-100 rounded-lg print:bg-white print:border-none print:break-inside-avoid print:order-4 print:mt-4 print:grid-cols-2">
                   <div className="print:border print:border-gray-200 print:rounded print:p-4">
-                      <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">Consolidado de Honorarios</h3>
+                      {/* Step 4: Detalle de Egresos (incluyendo Honorarios) */}
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">4. Detalle de Egresos & Honorarios</h3>
                       <table className="w-full text-sm">
                           <tbody>
+                                {/* Gastos Operativos Summary */}
+                                <tr className="border-b border-gray-100">
+                                    <td className="py-2 text-gray-600 font-medium">Gastos Operativos (Compras, Insumos)</td>
+                                    <td className="py-2 text-right font-medium text-red-600">${totalExpenses.toFixed(2)}</td>
+                                </tr>
                               {Object.entries(feesBreakdown).map(([name, amount]) => (
                                   <tr key={name} className="border-b border-gray-100 last:border-0">
-                                      <td className="py-2 text-gray-600">{name}</td>
-                                      <td className="py-2 text-right font-medium text-gray-900">${amount.toFixed(2)}</td>
+                                      <td className="py-2 text-gray-600 pl-4">{name}</td>
+                                      <td className="py-2 text-right font-medium text-orange-600">${amount.toFixed(2)}</td>
                                   </tr>
                               ))}
-                              <tr className="border-t border-gray-300 font-bold bg-gray-100 print:bg-transparent">
-                                  <td className="py-2 pl-2">Total Honorarios</td>
-                                  <td className="py-2 text-right pr-2">${Object.values(feesBreakdown).reduce((a, b) => a + b, 0).toFixed(2)}</td>
+                              <tr className="border-t border-gray-300 font-bold bg-gray-100 print:bg-gray-50 mt-2">
+                                  <td className="py-2 pl-2">Total Egresos (Gastos + Honorarios)</td>
+                                  <td className="py-2 text-right pr-2 text-red-700">${(totalExpenses + totalFees).toFixed(2)}</td>
                               </tr>
                           </tbody>
                       </table>
                   </div>
 
                   <div className="print:border print:border-gray-200 print:rounded print:p-4">
-                      <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">Detalle de Pagos (Ingresos)</h3>
+                       {/* Step 3 & 5: Detalle de Ingresos & Tipo de Pagos */}
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">3. & 5. Detalle de Ingresos</h3>
                       <table className="w-full text-sm">
                           <tbody>
                               {Object.entries(paymentBreakdown).map(([method, amount]) => (
                                   <tr key={method} className="border-b border-gray-100 last:border-0">
                                       <td className="py-2 text-gray-600">{method}</td>
-                                      <td className="py-2 text-right font-medium text-gray-900">${amount.toFixed(2)}</td>
+                                      <td className="py-2 text-right font-medium text-blue-600">${amount.toFixed(2)}</td>
                                   </tr>
                               ))}
-                              <tr className="border-t border-gray-300 font-bold bg-gray-100 print:bg-transparent">
-                                  <td className="py-2 pl-2">Total Ingresos</td>
-                                  <td className="py-2 text-right pr-2">${Object.values(paymentBreakdown).reduce((a, b) => a + b, 0).toFixed(2)}</td>
+                              {/* Add separate line for Additional Income if needed, or assume it's part of total payment flow */}
+                               
+                              <tr className="border-t border-gray-300 font-bold bg-gray-100 print:bg-blue-50">
+                                  <td className="py-2 pl-2">Total Ingresos Brutos</td>
+                                  <td className="py-2 text-right pr-2 text-blue-700">${totalIncome.toFixed(2)}</td>
                               </tr>
                           </tbody>
                       </table>
                   </div>
               </div>
+
+               {/* Step 6: Resumen Total (Print Only Version at Bottom) */}
+               <div className="hidden print:grid grid-cols-3 gap-4 p-6 border-t-2 border-gray-800 bg-gray-50 print:order-6 break-inside-avoid mt-4">
+                    <div className="text-center">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">TOTAL INGRESOS</p>
+                        <p className="text-2xl font-bold text-gray-900">${totalIncome.toFixed(2)}</p>
+                    </div>
+                    <div className="text-center border-l border-r border-gray-300">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">TOTAL EGRESOS</p>
+                         <p className="text-xs text-gray-400 mb-1">(Operativo + Honorarios)</p>
+                        <p className="text-2xl font-bold text-red-600">${(totalExpenses + totalFees).toFixed(2)}</p>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">NETO FINAL (Dr. JPB)</p>
+                        <p className="text-3xl font-bold text-green-600 border-b-4 border-green-500 inline-block px-4 pb-1">${totalNetJPB.toFixed(2)}</p>
+                    </div>
+               </div>
             </div>
           </div>
         </div>
