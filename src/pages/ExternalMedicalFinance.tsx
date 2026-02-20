@@ -864,12 +864,14 @@ export default function ExternalMedicalFinance() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden print-container">
             {/* Titulo para impresión */}
             <div className="hidden print:block p-8 pb-4 text-center border-b-2 border-gray-800">
-                <h1 className="text-3xl font-bold text-gray-900 uppercase tracking-widest mb-2 font-serif">Reporte Financiero BioSkin</h1>
-                <h2 className="text-xl text-gray-600 font-light">
-                    {filters.month ? `Período: ${new Date(filters.month + '-05').toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}` : 'Reporte General'}
-                </h2>
-                {filters.assistant && <p className="text-sm text-gray-500 mt-1 uppercase">Asistente: {filters.assistant}</p>}
-                <p className="text-xs text-gray-400 mt-2">Generado el {new Date().toLocaleDateString('es-EC')} a las {new Date().toLocaleTimeString('es-EC')}</p>
+                <h1 className="text-3xl font-bold text-gray-900 uppercase tracking-widest mb-2 font-serif">Reporte Financiero</h1>
+                <h2 className="text-xl font-bold text-gray-800 uppercase tracking-wider mb-4">Dr. Juan Pablo Brito</h2>
+                
+                <h3 className="text-lg text-gray-600 font-light border-t border-gray-200 pt-2 inline-block px-8">
+                    {filters.month ? `Período: ${new Date(filters.month + '-05').toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}` : 'Reporte General Histórico'}
+                </h3>
+                
+                {filters.assistant && <p className="text-sm text-gray-500 mt-2 uppercase tracking-wide">Asistente: {filters.assistant}</p>}
             </div>
 
             {/* Filters */}
