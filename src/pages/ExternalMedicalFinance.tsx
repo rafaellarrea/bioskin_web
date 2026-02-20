@@ -861,7 +861,7 @@ export default function ExternalMedicalFinance() {
 
         {/* VIEW: LIST */}
         {viewMode === 'list' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden print-container">
             {/* Filters */}
             <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 items-center print:hidden">
                 <div className="flex items-center gap-2">
@@ -1123,8 +1123,8 @@ export default function ExternalMedicalFinance() {
               )}
 
               {/* Breakdown Summary Section */}
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-4 bg-gray-50 border border-gray-100 rounded-lg print:bg-white print:border-none">
-                  <div>
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-4 bg-gray-50 border border-gray-100 rounded-lg print:bg-white print:border-none print:break-inside-avoid">
+                  <div className="print:border print:border-gray-200 print:rounded print:p-4">
                       <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">Consolidado de Honorarios</h3>
                       <table className="w-full text-sm">
                           <tbody>
@@ -1142,7 +1142,7 @@ export default function ExternalMedicalFinance() {
                       </table>
                   </div>
 
-                  <div>
+                  <div className="print:border print:border-gray-200 print:rounded print:p-4">
                       <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">Detalle de Pagos (Ingresos)</h3>
                       <table className="w-full text-sm">
                           <tbody>
