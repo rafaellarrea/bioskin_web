@@ -50,6 +50,10 @@ async function main() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='external_finance_records' AND column_name='details') THEN
           ALTER TABLE external_finance_records ADD COLUMN details TEXT;
         END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='external_finance_records' AND column_name='payment_method') THEN
+          ALTER TABLE external_finance_records ADD COLUMN payment_method VARCHAR(100);
+        END IF;
       END $$;
     `);
 

@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+- ✅ **Feb 20, 2026: Medical Finance Upgrade**
+- 💰 **Finanzas**: Agregado campo "Método de Pago" (Efectivo/Transferencia/etc) en IA y BBDD.
+- 📊 **Reportes**: Nuevo desglose detallado de Honorarios Médicos y Formas de Pago en PDF.
+- 📝 **UX**: Edición de método de pago antes de guardar registros.
+
 ### ✅ **Feb 18, 2026: New Blog Post**
 - 📝 **Blog**: Publicado artículo "Luminosidad y Firmeza: IPL + RF".
 - 📂 **Estructura**: Creada carpeta `src/data/blogs/ipl-radiofrecuencia-bipolar-beneficios`.

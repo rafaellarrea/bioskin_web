@@ -46,6 +46,7 @@ interface FinanceRecord {
   details?: string;
   assistant_name?: string;
   created_at?: string;
+  payment_method?: string;
 }
 
 export default function ExternalMedicalFinance() {
@@ -280,6 +281,29 @@ export default function ExternalMedicalFinance() {
      return acc + fees;
   }, 0);
   const totalNetJPB = records.reduce((acc, r) => acc + (Number(r.net_income_juan_pablo) || 0), 0);
+
+  // Consolidated breakdowns
+  const feesBreakdown = records.reduce((acc, r) => {
+    (r.doctor_fees || []).forEach(f => {
+      const name = f.name?.trim() || 'Desconocido';
+      acc[name] = (acc[name] || 0) + (Number(f.amount) || 0);
+    });
+    return acc;
+  }, {} as Record<string, number>);
+
+  const paymentBreakdown = records.reduce((acc, r) => {
+    // Focus on Income mainly, but if expenses have payment methods we can include them separately or mixed.
+    // For now, let's track incoming payments (total_payment > 0).
+    // If it's an Expense, it might be paid by 'Efectivo' too, but usually reports separate Income vs Expense.
+    // However, "pagado por la clinica" implies expenses or covered costs.
+    // Let's just group by payment_method and sum total_payment for now.
+    // If total_payment is 0 (expense), we ignore it for "Income Breakdown".
+    if (Number(r.total_payment) > 0) {
+        const method = (r.payment_method || 'Efectivo').trim(); // Default to Efectivo if missing
+        acc[method] = (acc[method] || 0) + Number(r.total_payment);
+    }
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 print:p-0 print:bg-white print:overflow-hidden">
@@ -719,8 +743,19 @@ export default function ExternalMedicalFinance() {
                             />
                           </div>
                         </div>
+
+                        <div className="flex justify-between items-center text-gray-700 text-sm mt-2">
+                          <span>💳 Metodo de Pago</span>
+                          <input 
+                              type="text"
+                              value={record.payment_method || ''}
+                              onChange={(e) => updateStagedRecord(index, 'payment_method', e.target.value)}
+                              placeholder="Efectivo, Tarjeta..."
+                              className="font-medium text-gray-900 w-32 text-right bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none"
+                          />
+                        </div>
                         
-                        <div className="flex justify-between items-center text-green-600">
+                        <div className="flex justify-between items-center text-green-600 mt-2">
                             <span>+ Valores Adicionales</span>
                             <div className="flex items-center">
                                 <span className="mr-1">+$</span>
@@ -1003,6 +1038,8 @@ export default function ExternalMedicalFinance() {
                     <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider print:bg-gray-100 print:text-black">
                       <th className="p-4 border-b">Fecha</th>
                       <th className="p-4 border-b">Paciente / Concepto</th>
+                      <th className="p-4 border-b w-32">Forma Pago</th>
+                      <th className="p-4 border-b w-48">Honorarios</th>
                       <th className="p-4 border-b print:hidden">Tipo / Detalles</th>
                       <th className="p-4 border-b print:hidden">Asistente</th>
                       <th className="p-4 border-b text-right">Total / Gasto</th>
@@ -1027,6 +1064,19 @@ export default function ExternalMedicalFinance() {
                              <span className="hidden print:block text-gray-500 text-xs italic">
                                 {record.intervention_type}
                              </span>
+                        </td>
+                        <td className="p-4 text-gray-600 border-b text-sm">
+                            {(Number(record.total_payment) > 0) ? (record.payment_method || 'Efectivo') : '-'}
+                        </td>
+                        <td className="p-4 text-gray-600 border-b text-xs">
+                            <ul className="list-none space-y-1">
+                                {(record.doctor_fees || []).map((f, i) => (
+                                    <li key={i} className="flex justify-between">
+                                        <span>{f.name}:</span>
+                                        <span className="font-medium">${f.amount}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </td>
                         <td className="p-4 text-gray-500 border-b print:hidden">
                             <span className="font-medium text-gray-700 block">{record.intervention_type || '-'}</span>
@@ -1071,6 +1121,45 @@ export default function ExternalMedicalFinance() {
                   </tbody>
                 </table>
               )}
+
+              {/* Breakdown Summary Section */}
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-4 bg-gray-50 border border-gray-100 rounded-lg print:bg-white print:border-none">
+                  <div>
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">Consolidado de Honorarios</h3>
+                      <table className="w-full text-sm">
+                          <tbody>
+                              {Object.entries(feesBreakdown).map(([name, amount]) => (
+                                  <tr key={name} className="border-b border-gray-100 last:border-0">
+                                      <td className="py-2 text-gray-600">{name}</td>
+                                      <td className="py-2 text-right font-medium text-gray-900">${amount.toFixed(2)}</td>
+                                  </tr>
+                              ))}
+                              <tr className="border-t border-gray-300 font-bold bg-gray-100 print:bg-transparent">
+                                  <td className="py-2 pl-2">Total Honorarios</td>
+                                  <td className="py-2 text-right pr-2">${Object.values(feesBreakdown).reduce((a, b) => a + b, 0).toFixed(2)}</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+
+                  <div>
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase mb-3 border-b pb-2">Detalle de Pagos (Ingresos)</h3>
+                      <table className="w-full text-sm">
+                          <tbody>
+                              {Object.entries(paymentBreakdown).map(([method, amount]) => (
+                                  <tr key={method} className="border-b border-gray-100 last:border-0">
+                                      <td className="py-2 text-gray-600">{method}</td>
+                                      <td className="py-2 text-right font-medium text-gray-900">${amount.toFixed(2)}</td>
+                                  </tr>
+                              ))}
+                              <tr className="border-t border-gray-300 font-bold bg-gray-100 print:bg-transparent">
+                                  <td className="py-2 pl-2">Total Ingresos</td>
+                                  <td className="py-2 text-right pr-2">${Object.values(paymentBreakdown).reduce((a, b) => a + b, 0).toFixed(2)}</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
             </div>
           </div>
         </div>
