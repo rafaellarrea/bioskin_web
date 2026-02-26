@@ -538,9 +538,12 @@ export default function Clinical3D() {
                     <div />
                     <button onClick={() => {
                         // @ts-ignore
-                        window.clinical3d_controls?.object.position.y += 5; 
-                        // @ts-ignore
-                        window.clinical3d_controls?.update();
+                        if (window.clinical3d_controls) {
+                            // @ts-ignore
+                            window.clinical3d_controls.object.position.y += 5; 
+                            // @ts-ignore
+                            window.clinical3d_controls.update();
+                        }
                     }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
                         <Move className="w-4 h-4 rotate-180" />
                     </button>
@@ -559,9 +562,12 @@ export default function Clinical3D() {
                     <div />
                     <button onClick={() => {
                          // @ts-ignore
-                         window.clinical3d_controls?.object.position.y -= 5; 
-                         // @ts-ignore
-                         window.clinical3d_controls?.update();
+                         if (window.clinical3d_controls) {
+                             // @ts-ignore
+                             window.clinical3d_controls.object.position.y -= 5; 
+                             // @ts-ignore
+                             window.clinical3d_controls.update();
+                         }
                     }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
                         <Move className="w-4 h-4" />
                     </button>
