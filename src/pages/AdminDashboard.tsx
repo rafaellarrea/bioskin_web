@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign } from 'lucide-react';
+import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 interface UpcomingAppointment {
@@ -275,6 +275,13 @@ export default function AdminDashboard() {
       icon: Package,
       path: '/admin/inventory',
       color: 'from-cyan-500 to-cyan-600'
+    },
+    {
+      title: 'Prueba 3D Clínica',
+      description: 'Entorno de pruebas para visualización 3D',
+      icon: Cuboid,
+      path: '/admin/clinical-3d',
+      color: 'from-violet-500 to-violet-600'
     }
   ];
 

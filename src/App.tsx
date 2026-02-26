@@ -37,6 +37,7 @@ import ClinicalRecordManager from './components/admin/ficha-clinica/components/C
 import ConsentSigning from './pages/ConsentSigning';
 import AdminFinance from './pages/AdminFinance';
 import ExternalMedicalFinance from './pages/ExternalMedicalFinance';
+import Clinical3D from './pages/Clinical3D';
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
               <Route path="/admin/chat-assistant" element={<AdminChatAssistant />} />
               <Route path="/admin/inventory" element={<AdminInventory />} />
               <Route path="/admin/finance" element={<AdminFinance />} />
+              <Route path="/admin/clinical-3d" element={<Clinical3D />} /> {/* Nueva ruta 3D */}
               <Route path="/admin/clinical-records" element={<PatientList />} />
               <Route path="/admin/clinical-records/new" element={<NewPatientForm />} />
               <Route path="/admin/clinical-records/edit/:patientId" element={<NewPatientForm />} />
