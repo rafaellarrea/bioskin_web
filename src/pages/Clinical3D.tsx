@@ -255,39 +255,38 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
       });
 
       if (faceMesh) {
-        // CORRECCIÓN DE POSICIÓN Y ROTACIÓN
-        // 1. Centrar la geometría en el origen local (0,0,0)
-        // Esto es crucial: movemos el modelo para que su centro geométrico esté en (0,0,0)
-        // Pero como ya lo hemos escalado y posicionado, es mejor ajustar la posición final.
+        // ===== ALGORITMO DE NORMALIZACIÓN ROBUSTO =====
         
+        // 1. Escalar uniformemente
+        const boxCheck = new THREE.Box3().setFromObject(faceMesh);
+        const sizeCheck = boxCheck.getSize(new THREE.Vector3());
+        const maxDim = Math.max(sizeCheck.x, sizeCheck.y, sizeCheck.z);
+        const targetSize = 15; 
+        const scale = targetSize / maxDim;
+        faceMesh.scale.setScalar(scale);
+
+        // 2. Calcular centro geométrico REAL del objeto escalado
+        // Esto ignora dónde está el origen (0,0,0) del modelo 3D
         const box = new THREE.Box3().setFromObject(faceMesh);
         const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
+        
+        // 3. (OPCIONAL) Ajuste visual del centro de rotación
+        // El centro geométrico (center) suele estar en la mitad de la altura total.
+        // Si el modelo es una cabeza+cuello, el centro cae en la mandíbula.
+        // Queremos rotar sobre los ojos/entRECEJO, que está más "arriba" (Y+).
+        const visualOffset = new THREE.Vector3(0, sizeCheck.y * scale * 0.15, 0); // Subir un 15% de la altura
+        const rotationCenter = center.clone().add(visualOffset);
 
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const targetSize = 15; // Reducido un poco para asegurar que entre en cámara
-        const scale = targetSize / maxDim;
-        
-        faceMesh.scale.setScalar(scale);
-        
-        // Calcular de nuevo el centro DESPUÉS de escalar (aunque proporcionalmente es igual)
-        // La posición debe compensar el centro para que (0,0,0) quede en el centro de la caja
-        // faceMesh.position.x = -center.x * scale;
-        // faceMesh.position.y = -center.y * scale; // Esto centra verticalmente (mitad altura)
-        // faceMesh.position.z = -center.z * scale;
-        
-        // REVERTIDO: No movemos el mesh, movemos la cámara (ver abajo)
-        
-        faceMesh.castShadow = true;
-        // Si rota sobre el cuello, significa que (0,0,0) está "abajo" visualmente en el modelo.
-        // Al centrar geométricamente (arriba), el (0,0,0) queda en la mitad de la altura total.
-        // Si el modelo tiene cuello y hombros, la mitad de la altura suele ser la barbilla/boca.
-        // Si queremos que rote sobre los ojos (más arriba), tenemos que BAJAR el modelo.
-        // value negativo en Y mueve el modelo hacia abajo.
-        
-        // Vamos a ser más conservadores y usar un valor fijo relativo al tamaño target.
-        // Si targetSize es 15, bajar 2 o 3 unidades suele ser suficiente para subir el pivote a los ojos.
-        faceMesh.position.y -= 2.5; 
+        // 4. Configurar controles para orbitar este punto exacto
+        if (controlsRef.current) {
+          controlsRef.current.object.position.set(
+            center.x, 
+            center.y, 
+            center.z + 30 // Mover cámara atrás respecto al objeto
+          );
+          controlsRef.current.target.copy(rotationCenter);
+          controlsRef.current.update();
+        }
 
         faceMesh.castShadow = true;
         faceMesh.receiveShadow = true;
