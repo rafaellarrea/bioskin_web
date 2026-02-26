@@ -272,11 +272,13 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
         
         // Calcular de nuevo el centro DESPUÉS de escalar (aunque proporcionalmente es igual)
         // La posición debe compensar el centro para que (0,0,0) quede en el centro de la caja
-        faceMesh.position.x = -center.x * scale;
-        faceMesh.position.y = -center.y * scale; // Esto centra verticalmente (mitad altura)
-        faceMesh.position.z = -center.z * scale;
-
-        // AJUSTE FINO DE ROTACIÓN:
+        // faceMesh.position.x = -center.x * scale;
+        // faceMesh.position.y = -center.y * scale; // Esto centra verticalmente (mitad altura)
+        // faceMesh.position.z = -center.z * scale;
+        
+        // REVERTIDO: No movemos el mesh, movemos la cámara (ver abajo)
+        
+        faceMesh.castShadow = true;
         // Si rota sobre el cuello, significa que (0,0,0) está "abajo" visualmente en el modelo.
         // Al centrar geométricamente (arriba), el (0,0,0) queda en la mitad de la altura total.
         // Si el modelo tiene cuello y hombros, la mitad de la altura suele ser la barbilla/boca.
