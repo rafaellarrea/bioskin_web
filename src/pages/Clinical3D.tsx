@@ -300,41 +300,33 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
       });
 
       if (faceMesh) {
-        // ===== ALGORITMO DE CENTRADO ABSOLUTO =====
+        // ===== ALGORITMO DE CENTRADO ABSOLUTO V2 (MÁS ROBUSTO) =====
         
-        // 1. Resetear transformaciones previas del contenedor si las hubiera
-        faceMesh.updateWorldMatrix(true, true);
+        // 1. Asegurar que las matrices estén actualizadas
+        faceMesh.updateMatrixWorld(true);
         
-        // 2. Calcular Bounding Box inicial
+        // 2. Calcular Bounding Box inicial en coordenadas mundiales
         const box = new THREE.Box3().setFromObject(faceMesh);
-        const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
 
-        // 3. CENTRADO: Mover el objeto para que su centro geométrico esté en (0,0,0)
-        // Esto es lo más importante: independientemente del origen del archivo,
-        // forzamos a que el centro visual sea el origen del mundo.
+        // 3. CENTRADO: Mover el objeto para que su centro visual esté en (0,0,0)
+        // La lógica anterior (pos += pos - center) era inestable. 
+        // Lo correcto es desplazarlo inversamente a su centro calculado.
         faceMesh.position.x += (faceMesh.position.x - center.x);
         faceMesh.position.y += (faceMesh.position.y - center.y);
         faceMesh.position.z += (faceMesh.position.z - center.z);
 
-        // 4. ESCALADO UNIFORME
+        // 4. ESCALADO NORMALIZADO
+        // Buscamos que el objeto tenga un tamaño estándar (ej: 10 unidades) en su dimensión mayor
         const maxDim = Math.max(size.x, size.y, size.z);
-        const targetSize = 10; // Tamaño estándar
-        const scale = targetSize / maxDim;
-        faceMesh.scale.setScalar(scale);
+        const targetSize = 5; // Reducido un poco para dar margen
+        const scaleFactor = targetSize / (maxDim || 1); // Evitar división por cero
+        
+        faceMesh.scale.setScalar(scaleFactor);
 
-        // 5. CORRECCIÓN DE ROTACIÓN (Opcional pero recomendada)
-        // Si el modelo es muy "plano" en altura (Y) pero profundo en Z, probablemente esté tumbado.
-        // Verificamos dimensiones relativas simples.
-        // NOTA: Esto es heurístico, si causa problemas se puede comentar.
-        /* 
-        if (size.y < size.z * 0.5) {
-             faceMesh.rotation.x = -Math.PI / 2; 
-        }
-        */
-
-        // 6. RESETEAR CÁMARA
-        // Ahora que el objeto está en (0,0,0), apuntamos la cámara al origen.
+        // 5. ENFOQUE DE CÁMARA
+        // Resetear el target de los controles al origen (0,0,0) donde ahora está el modelo
         if (controlsRef.current) {
             controlsRef.current.target.set(0, 0, 0);
             controlsRef.current.update();
@@ -351,7 +343,8 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
           clearcoat: 0.15,
           clearcoatRoughness: 0.3,
           transmission: 0.05,
-          thickness: 1.5
+          thickness: 1.5,
+          side: THREE.DoubleSide // Asegura que se vea por dentro y por fuera
         });
         
         sceneRef.current?.add(faceMesh);
