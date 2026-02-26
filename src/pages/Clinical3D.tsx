@@ -5,7 +5,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import { 
   Activity, Save, Layers, Crosshair, 
-  CheckCircle2, AlertCircle, X, Loader2, Database, Upload
+  CheckCircle2, AlertCircle, X, Loader2, Database, Upload,
+  RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -79,13 +80,60 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
 
-  // Usar referencias para los callbacks evita bucles infinitos (Maximum update depth)
-  // y soluciona problemas de cierres (stale closures) con los estados de React.
-  const callbacks = useRef({ onMeshClick, onLoaded, onError });
-  
-  useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError };
-  });
+  const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
+
+  // Funciones de control de cámara manual
+  const handleManualRotate = (direction: 'left' | 'right' | 'up' | 'down') => {
+      // Implementación simple de rotación mediante eventos simulados o acceso directo
+      // Para simplificar, usaremos acceso directo a la cámara si es posible, 
+      // pero OrbitControls "pelea" con la cámara. Lo ideal es mover la cámara y llamar update.
+      // @ts-ignore
+      const controls = window.clinical3d_controls; // Hack para acceso global temporal
+      if (!controls) return;
+      
+      const angle = Math.PI / 8; // 22.5 grados
+      const camera = controls.object;
+      
+      // Moveremos la cámara en coordenadas esféricas relativas al target
+      const position = camera.position.clone().sub(controls.target);
+      let r = position.length();
+      let theta = Math.atan2(position.x, position.z); // horizontal
+      let phi = Math.acos(position.y / r); // vertical
+      
+      if (direction === 'left') theta += angle;
+      if (direction === 'right') theta -= angle;
+      if (direction === 'up') phi = Math.max(0.1, phi - angle);
+      if (direction === 'down') phi = Math.min(Math.PI - 0.1, phi + angle);
+      
+      const newX = r * Math.sin(phi) * Math.sin(theta);
+      const newY = r * Math.cos(phi);
+      const newZ = r * Math.sin(phi) * Math.cos(theta);
+      
+      camera.position.set(newX + controls.target.x, newY + controls.target.y, newZ + controls.target.z);
+      controls.update();
+  };
+
+  const handleZoom = (zoomIn: boolean) => {
+      // @ts-ignore
+      const controls = window.clinical3d_controls;
+      if (!controls) return;
+      
+      const camera = controls.object;
+      const direction = new THREE.Vector3();
+      camera.getWorldDirection(direction);
+      
+      const distance = zoomIn ? 5 : -5;
+      camera.position.add(direction.multiplyScalar(distance));
+      cExponer controles globalmente para los botones de UI (solución rápida)
+    // @ts-ignore
+    window.clinical3d_controls = controls;
+
+    // AXES HELPER (Visualizar centro de rotación)
+    const axesHelper = new THREE.AxesHelper(5);
+    // Oculto por defecto, útil para debug: scene.add(axesHelper);
+
+    // ontrols.update();
+  };
 
   // 1. Inicializar la Escena Básica (Solo se ejecuta una vez)
   useEffect(() => {
@@ -484,6 +532,84 @@ export default function Clinical3D() {
   };
 
   const handleConfirmMarker = async (type: MarkerType) => {
+
+        {/* Controles Visuales (Overlay en el lienzo 3D) */}
+        <div className="absolute right-6 top-6 flex flex-col gap-2 z-20">
+            <div className="bg-slate-900/80 backdrop-blur-md p-2 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-2">
+                <span className="text-[10px] uppercase font-bold text-center text-slate-500 mb-1">Cámara</span>
+                
+                <div className="grid grid-cols-3 gap-1">
+                    <div />
+                    <button onClick={() => {
+                        // @ts-ignore
+                        window.clinical3d_controls?.object.position.y += 5; 
+                        // @ts-ignore
+                        window.clinical3d_controls?.update();
+                    }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
+                        <Move className="w-4 h-4 rotate-180" />
+                    </button>
+                    <div />
+                    
+                    <button onClick={() => handleManualRotate('left')} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
+                        <RotateCcw className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-center justify-center">
+                        <Move className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <button onClick={() => handleManualRotate('right')} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
+                        <RotateCw className="w-4 h-4" />
+                    </button>
+
+                    <div />
+                    <button onClick={() => {
+                         // @ts-ignore
+                         window.clinical3d_controls?.object.position.y -= 5; 
+                         // @ts-ignore
+                         window.clinical3d_controls?.update();
+                    }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
+                        <Move className="w-4 h-4" />
+                    </button>
+                    <div />
+                </div>
+
+                <div className="h-px bg-slate-700 my-1" />
+
+                <div className="flex justify-between gap-2">
+                    <button onClick={() => handleZoom(false)} className="flex-1 p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white flex justify-center">
+                        <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleZoom(true)} className="flex-1 p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white flex justify-center">
+                        <ZoomIn className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <button 
+                  onClick={() => {
+                        // Resetear vista
+                        // @ts-ignore
+                        const c = window.clinical3d_controls;
+                        if(c) {
+                            c.reset();
+                            c.target.set(0,0,0);
+                            c.object.position.set(0,0,40); // Posición inicial hardcodeada
+                            c.update();
+                        }
+                  }}
+                  className="mt-2 text-xs text-center text-cyan-400 hover:text-cyan-300 py-1"
+                >
+                    Resetear Vista
+                </button>
+            </div>
+
+            <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-xl border border-slate-700 shadow-xl">
+                 <p className="text-xs text-slate-400 mb-2">
+                    <strong className="text-white">Click Izquierdo:</strong> Rotar<br/>
+                    <strong className="text-white">Click Derecho:</strong> Mover (Pan)<br/>
+                    <strong className="text-white">Rueda:</strong> Zoom
+                 </p>
+            </div>
+        </div>
+
     if (!pendingMarker) return;
     setIsSaving(true);
     
