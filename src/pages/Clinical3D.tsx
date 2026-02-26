@@ -671,7 +671,7 @@ export default function Clinical3D() {
         </div>
 
         {/* PANTALLA DE CARGA */}
-        {isLoading && ( absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+        {isLoading && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300">
             <div className="flex flex-col items-center">
               <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mb-4" />
@@ -682,7 +682,7 @@ export default function Clinical3D() {
 
         {/* MENSAJE DE ERROR Y SUBIDA MANUAL EN EL CENTRO */}
         {modelError && (
-          <div className="z-20 flex flex-col items-center p-8 bg-slate-900/90 border border-slate-700 rounded-2xl backdrop-blur-md shadow-2xl text-center max-w-md">
+          <div className="z-20 flex flex-col items-center p-8 bg-slate-900/90 border border-slate-700 rounded-2xl backdrop-blur-md shadow-2xl text-center max-w-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <AlertCircle className="w-12 h-12 text-rose-400 mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Se requiere carga manual</h2>
             <p className="text-sm text-slate-400 mb-6">
