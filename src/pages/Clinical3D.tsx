@@ -113,13 +113,14 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
     rendererRef.current = renderer;
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
+    controls.enablePan = true; // Permitir mover el modelo con click derecho
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance = 20;
-    controls.maxDistance = 60;
-    controls.minPolarAngle = Math.PI / 4;
-    controls.maxPolarAngle = Math.PI / 1.2;
+    controls.minDistance = 5;
+    controls.maxDistance = 100;
+    // Eliminamos restricciones de ángulo para libertad total
+    controls.minPolarAngle = 0; 
+    controls.maxPolarAngle = Math.PI; 
     controlsRef.current = controls;
 
     // Iluminación
@@ -255,37 +256,44 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
       });
 
       if (faceMesh) {
-        // ===== ALGORITMO DE NORMALIZACIÓN ROBUSTO =====
+        // ===== ALGORITMO DE CENTRADO ABSOLUTO =====
         
-        // 1. Escalar uniformemente
-        const boxCheck = new THREE.Box3().setFromObject(faceMesh);
-        const sizeCheck = boxCheck.getSize(new THREE.Vector3());
-        const maxDim = Math.max(sizeCheck.x, sizeCheck.y, sizeCheck.z);
-        const targetSize = 15; 
+        // 1. Resetear transformaciones previas del contenedor si las hubiera
+        faceMesh.updateWorldMatrix(true, true);
+        
+        // 2. Calcular Bounding Box inicial
+        const box = new THREE.Box3().setFromObject(faceMesh);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        // 3. CENTRADO: Mover el objeto para que su centro geométrico esté en (0,0,0)
+        // Esto es lo más importante: independientemente del origen del archivo,
+        // forzamos a que el centro visual sea el origen del mundo.
+        faceMesh.position.x += (faceMesh.position.x - center.x);
+        faceMesh.position.y += (faceMesh.position.y - center.y);
+        faceMesh.position.z += (faceMesh.position.z - center.z);
+
+        // 4. ESCALADO UNIFORME
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const targetSize = 10; // Tamaño estándar
         const scale = targetSize / maxDim;
         faceMesh.scale.setScalar(scale);
 
-        // 2. Calcular centro geométrico REAL del objeto escalado
-        // Esto ignora dónde está el origen (0,0,0) del modelo 3D
-        const box = new THREE.Box3().setFromObject(faceMesh);
-        const center = box.getCenter(new THREE.Vector3());
-        
-        // 3. (OPCIONAL) Ajuste visual del centro de rotación
-        // El centro geométrico (center) suele estar en la mitad de la altura total.
-        // Si el modelo es una cabeza+cuello, el centro cae en la mandíbula.
-        // Queremos rotar sobre los ojos/entRECEJO, que está más "arriba" (Y+).
-        const visualOffset = new THREE.Vector3(0, sizeCheck.y * scale * 0.15, 0); // Subir un 15% de la altura
-        const rotationCenter = center.clone().add(visualOffset);
+        // 5. CORRECCIÓN DE ROTACIÓN (Opcional pero recomendada)
+        // Si el modelo es muy "plano" en altura (Y) pero profundo en Z, probablemente esté tumbado.
+        // Verificamos dimensiones relativas simples.
+        // NOTA: Esto es heurístico, si causa problemas se puede comentar.
+        /* 
+        if (size.y < size.z * 0.5) {
+             faceMesh.rotation.x = -Math.PI / 2; 
+        }
+        */
 
-        // 4. Configurar controles para orbitar este punto exacto
+        // 6. RESETEAR CÁMARA
+        // Ahora que el objeto está en (0,0,0), apuntamos la cámara al origen.
         if (controlsRef.current) {
-          controlsRef.current.object.position.set(
-            center.x, 
-            center.y, 
-            center.z + 30 // Mover cámara atrás respecto al objeto
-          );
-          controlsRef.current.target.copy(rotationCenter);
-          controlsRef.current.update();
+            controlsRef.current.target.set(0, 0, 0);
+            controlsRef.current.update();
         }
 
         faceMesh.castShadow = true;
