@@ -124,15 +124,7 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
       
       const distance = zoomIn ? 5 : -5;
       camera.position.add(direction.multiplyScalar(distance));
-      cExponer controles globalmente para los botones de UI (solución rápida)
-    // @ts-ignore
-    window.clinical3d_controls = controls;
-
-    // AXES HELPER (Visualizar centro de rotación)
-    const axesHelper = new THREE.AxesHelper(5);
-    // Oculto por defecto, útil para debug: scene.add(axesHelper);
-
-    // ontrols.update();
+      controls.update();  
   };
 
   // 1. Inicializar la Escena Básica (Solo se ejecuta una vez)
@@ -170,6 +162,10 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
     controls.minPolarAngle = 0; 
     controls.maxPolarAngle = Math.PI; 
     controlsRef.current = controls;
+
+    // Exponer controles globalmente para los botones de UI (solución rápida)
+    // @ts-ignore
+    window.clinical3d_controls = controls;
 
     // Iluminación
     const ambientLight = new THREE.AmbientLight(0xf0f5ff, 0.3);
