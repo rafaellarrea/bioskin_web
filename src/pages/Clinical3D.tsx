@@ -477,8 +477,19 @@ export default function Clinical3D() {
   // Estado para manejar el origen del modelo 3D
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({ 
     type: 'url', 
-    data: 'https://models.readyplayer.me/64f0261b7829c922a9b3a976.glb' // Placeholder model URL fallback
+    data: '' // Iniciamos vacío para que no intente cargar una URL externa que falle
   });
+  
+  // Al montar, forzamos error para pedir carga manual si no hay URL válida
+  useEffect(() => {
+     if (modelSource.type === 'url' && modelSource.data === '') {
+         // Pequeño timeout para que la UI se monte
+         setTimeout(() => {
+             setModelError(true);
+             // setModelLoaded(true); // Opcional: si queremos quitar el spinner, pero mejor dejar error visible
+         }, 500);
+     }
+  }, []);
   const [modelError, setModelError] = useState(false);
   
   const [dbLoaded, setDbLoaded] = useState(false);
@@ -660,7 +671,7 @@ export default function Clinical3D() {
         </div>
 
         {/* PANTALLA DE CARGA */}
-        {isLoading && (
+        {isLoading && ( absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300">
             <div className="flex flex-col items-center">
               <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mb-4" />
