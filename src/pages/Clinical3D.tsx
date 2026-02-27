@@ -6,7 +6,7 @@ import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import { 
   Activity, Save, Layers, Crosshair, 
   CheckCircle2, AlertCircle, X, Loader2, Database, Upload,
-  RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut
+  RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut, Maximize, Scan
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -106,7 +106,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -115,12 +115,112 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
   
+  const clearPolygon = useCallback(() => {
+    polygonPointsRef.current = [];
+    if (polygonGroupRef.current) {
+        // Limpiar hijos
+        while(polygonGroupRef.current.children.length > 0){ 
+            const child = polygonGroupRef.current.children[0];
+            polygonGroupRef.current.remove(child);
+            // @ts-ignore
+            if (child.geometry) child.geometry.dispose();
+             // @ts-ignore
+            if (child.material) child.material.dispose();
+        }
+    }
+    setPolygonPointCount(0);
+  }, []);
+
+  const addPolygonPoint = useCallback((point: THREE.Vector3) => {
+    polygonPointsRef.current.push(point);
+    setPolygonPointCount(prev => prev + 1);
+    
+    // Dibujar punto
+    if (!polygonGroupRef.current) {
+        polygonGroupRef.current = new THREE.Group();
+        // Asegurarse de que esté en la escena
+        if(sceneRef.current) sceneRef.current.add(polygonGroupRef.current);
+    } // Si ya existe, asumimos que está en la escena, si no, lo añadimos
+    else if (sceneRef.current && !sceneRef.current.children.includes(polygonGroupRef.current)) {
+        sceneRef.current.add(polygonGroupRef.current);
+    }
+    
+    // Esfera visual
+    const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15, 16, 16), // Visible
+        new THREE.MeshBasicMaterial({ color: 0xeab308, depthTest: false, transparent: true }) // yellow-500
+    );
+    sphere.position.copy(point);
+    // Render order para que se vea siempre encima
+    sphere.renderOrder = 999;
+    polygonGroupRef.current.add(sphere);
+    
+    // Línea conectora
+    const points = polygonPointsRef.current;
+    if (points.length > 1) {
+        const geometry = new THREE.BufferGeometry().setFromPoints([
+            points[points.length - 2],
+            points[points.length - 1]
+        ]);
+        const line = new THREE.Line(
+            geometry,
+            new THREE.LineBasicMaterial({ color: 0xeab308, depthTest: false, transparent: true, linewidth: 2 })
+        );
+        line.renderOrder = 999;
+        polygonGroupRef.current.add(line);
+    }
+  }, []);
+
+  const finishPolygon = useCallback(() => {
+      const points = polygonPointsRef.current;
+      if (points.length < 1) return;
+      
+      // Proyección Simplificada: Bounding Box
+      const box = new THREE.Box3().setFromPoints(points);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      
+      // La "normal" aproximada es el promedio de la dirección desde el origen al punto (para una esfera centrada en 0,0,0)
+      // O mejor, el promedio de las normales de intersección si las tuviéramos.
+      // Como no las guardamos, usamos la normal del vector Posición->Cámara (cámara mirando al objeto)
+      // O simplemente geometry center.
+      
+      // IMPORTANTE: Para calcular el radio, usamos la diagonal del bounding box
+      const diagonal = size.length();
+      // El radio es la mitad de la diagonal mayor, o similar.
+      // Usaremos la dimensión mayor del box para el diámetro.
+      const maxDim = Math.max(size.x, size.y, size.z); 
+      
+      // radio = dimensión completa (ajuste visual 1.0)
+      const radius = maxDim; 
+      
+      onMeshClick({
+          position: center,
+          rotation: [0, 0, 0],
+          normal: { x: 0, y: 1, z: 0 },
+          zone: "Zona Poligonal",
+          radius: radius
+      });
+      
+      clearPolygon();
+  }, [onMeshClick, clearPolygon]);
+
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon };
+    
+    // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
+    if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
+         // No limpiar automáticamente aquí, puede causar loop si no se maneja bien
+         // Mejor dejar que el usuario limpie o limpie al cambiar de modo explícitamente
+         // Pero para evitar estados inconsistentes:
+         if (polygonPointsRef.current.length > 0) clearPolygon();
+    }
   });
 
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
@@ -370,21 +470,31 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     };
 
     const onClick = (event: MouseEvent) => {
-      // Si venimos de dibujar una zona, ignorar el click estándar (ya procesado en onPointerUp)
-      // O si hubo arrastre de rotación
+      // Si hubo arrastre de cámara, ignorar click
       if (isDragging || !faceMeshRef.current || !cameraRef.current) return;
-      if (callbacks.current.isZoneEditMode) return; // En modo zona, el click puntual se maneja diferente o se ignora si dibujamos
       
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      // ACTUALIZAR RAYCASTER CON LA CÁMARA (CRUCIAL FIX)
+      // Actualizar raycaster
       raycaster.setFromCamera(mouse, cameraRef.current);
-
-      // Habilitar recursividad para detectar mallas dentro del grupo pivote
       const intersects = raycaster.intersectObject(faceMeshRef.current, true);
 
+      // CASO ESPECIAL: MODO POLÍGONO (Agregar puntos)
+      if (callbacks.current.isZoneEditMode && callbacks.current.zoneSelectionMode === 'polygon') {
+          if (intersects.length > 0) {
+              callbacks.current.addPolygonPoint(intersects[0].point);
+          }
+          // Ignorar el resto de la lógica (no queremos seleccionar zona ni dibujar rectángulo)
+          return;
+      }
+      
+      // Si estamos en modo edición ZONA RECTÁNGULO, el click puntual se ignora (se usa drag)
+      if (callbacks.current.isZoneEditMode) return; 
+      
+      // Lógica estándar de click puntual (Marcadores Clínicos)
+      
       if (intersects.length > 0) {
         const intersect = intersects[0];
         const point = intersect.point;
@@ -403,7 +513,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           position: { x: point.x, y: point.y, z: point.z },
           rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z],
           normal: { x: n.x, y: n.y, z: n.z },
-          zone: getFacialZone(point, callbacks.current.zones)
+          zone: getFacialZone(point, callbacks.current.zones),
+          radius: 0.6 // Default para click puntual
         });
       }
     };
@@ -700,6 +811,31 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
                 }}
             />
         )}
+
+        {/* UI Flotante para Modo Polígono */}
+        {isZoneEditMode && zoneSelectionMode === 'polygon' && (
+            <div className="absolute top-24 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 border border-yellow-500/50 p-2 rounded-xl backdrop-blur-md shadow-xl z-50">
+                <span className="text-yellow-400 font-bold px-2 text-sm flex items-center gap-2">
+                    <Maximize className="w-4 h-4" />
+                    {polygonPointCount} Puntos
+                </span>
+                <div className="h-6 w-px bg-slate-700 mx-1" />
+                <button 
+                    onClick={clearPolygon}
+                    disabled={polygonPointCount === 0}
+                    className="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
+                >
+                    Limpiar
+                </button>
+                <button 
+                    onClick={finishPolygon}
+                    disabled={polygonPointCount < 3}
+                    className="px-4 py-1.5 text-xs font-bold bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-yellow-500/20"
+                >
+                    Finalizar Zona
+                </button>
+            </div>
+        )}
     </div>
   );
 };
@@ -717,6 +853,7 @@ export default function Clinical3D() {
   
   // Nuevo Estado: Editor de Zonas
   const [isZoneEditMode, setIsZoneEditMode] = useState(false);
+  const [zoneSelectionMode, setZoneSelectionMode] = useState<'rectangle' | 'polygon'>('rectangle');
   const [pendingZone, setPendingZone] = useState<any>(null);
   const [newZoneName, setNewZoneName] = useState("");
   
@@ -982,7 +1119,8 @@ export default function Clinical3D() {
                 modelSource={modelSource} 
                 markers={markers}
                 zones={zones} 
-                isZoneEditMode={isZoneEditMode} // Propagamos el estado de edición
+                isZoneEditMode={isZoneEditMode}
+                zoneSelectionMode={zoneSelectionMode} // Pasar el modo de selección
                 onMeshClick={handleMeshClick}
                 onLoaded={() => {
                   console.log("Modelo cargado correctamente");
@@ -1003,8 +1141,36 @@ export default function Clinical3D() {
 
         {/* MODO EDICIÓN ZONAS: UI de Control */}
         {isZoneEditMode && modelLoaded && (
-             <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-yellow-500/90 text-slate-900 px-6 py-2 rounded-full backdrop-blur-md shadow-lg font-bold border-2 border-yellow-400 z-50 animate-pulse">
-                MODO REGISTRO DE ZONAS ACTIVO
+             <div className="absolute top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50">
+                <div className="bg-yellow-500/90 text-slate-900 px-6 py-2 rounded-full backdrop-blur-md shadow-lg font-bold border-2 border-yellow-400 animate-pulse text-sm">
+                    MODO REGISTRO DE ZONAS
+                </div>
+                
+                {/* Selector de Herramienta */}
+                <div className="flex bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700 shadow-xl">
+                    <button
+                        onClick={() => setZoneSelectionMode('rectangle')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                            zoneSelectionMode === 'rectangle' 
+                                ? 'bg-yellow-500 text-slate-900 shadow-md' 
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Scan className="w-4 h-4" />
+                        Rectángulo
+                    </button>
+                    <button
+                        onClick={() => setZoneSelectionMode('polygon')}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                            zoneSelectionMode === 'polygon' 
+                                ? 'bg-yellow-500 text-slate-900 shadow-md' 
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <MousePointer2 className="w-4 h-4" />
+                        Puntos (Polígono)
+                    </button>
+                </div>
              </div>
         )}
 
