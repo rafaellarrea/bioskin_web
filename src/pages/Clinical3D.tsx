@@ -106,7 +106,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -116,14 +116,18 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const markersGroupRef = useRef<THREE.Group | null>(null);
   
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode };
   });
 
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
+  
+  // Estado para funcionalidad de dibujo de zonas
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{start: {x: number, y: number}, end: {x: number, y: number}} | null>(null);
 
 
   // Funciones de control de cámara manual
@@ -236,24 +240,130 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const mouse = new THREE.Vector2();
     let isDragging = false;
     let startPos = { x: 0, y: 0 };
+    
+    // Variables locales para dibujo (además del estado React) para acceso síncrono en eventos
+    let localIsDrawing = false;
+    let drawingStartPos = { x: 0, y: 0 };
 
     const onPointerDown = (e: MouseEvent) => {
+      if (callbacks.current.isZoneEditMode) {
+          // Si estamos en modo edición de zona, iniciamos el dibujo
+          if (controlsRef.current) controlsRef.current.enabled = false; // Desactivar rotación
+          
+          localIsDrawing = true;
+          drawingStartPos = { x: e.clientX, y: e.clientY };
+          setIsDrawing(true);
+          setSelectionBox({
+              start: { x: e.clientX, y: e.clientY },
+              end: { x: e.clientX, y: e.clientY }
+          });
+      }
+
+      // Lógica estándar de click vs drag para rotación
       isDragging = false;
       startPos = { x: e.clientX, y: e.clientY };
     };
 
     const onPointerMove = (e: MouseEvent) => {
+      // 1. Lógica de Dibujo de Zona
+      if (localIsDrawing && callbacks.current.isZoneEditMode) {
+          setSelectionBox({
+              start: drawingStartPos,
+              end: { x: e.clientX, y: e.clientY }
+          });
+          return;
+      }
+
+      // 2. Lógica estándar de rotación
       if (Math.abs(e.clientX - startPos.x) > 2 || Math.abs(e.clientY - startPos.y) > 2) {
         isDragging = true;
       }
     };
 
+    const onPointerUp = (e: MouseEvent) => {
+        if (localIsDrawing && callbacks.current.isZoneEditMode) {
+            // Finalizar dibujo
+            localIsDrawing = false;
+            setIsDrawing(false);
+            if (controlsRef.current) controlsRef.current.enabled = true; // Reactivar controles
+
+            // Calcular geometría de la selección
+            const rect = renderer.domElement.getBoundingClientRect();
+            
+            // Coordenadas del cuadro de selección
+            const x1 = Math.min(drawingStartPos.x, e.clientX);
+            const x2 = Math.max(drawingStartPos.x, e.clientX);
+            const y1 = Math.min(drawingStartPos.y, e.clientY);
+            const y2 = Math.max(drawingStartPos.y, e.clientY);
+            
+            const width = x2 - x1;
+            const height = y2 - y1;
+
+            // Si es un click muy pequeño, ignorar como dibujo y dejar pasar como click normal (si se desea)
+            // Pero como hemos desactivado controles, mejor tratamos como "click puntual" si es muy pequeño
+            if (width < 5 && height < 5) {
+                setSelectionBox(null);
+                // Permitir que el evento 'click' maneje esto si es necesario, pero aquí ya consumimos el evento
+                // Podríamos llamar a onClick manualmente si quisiéramos seleccionar un punto
+                // De momento, reseteamos.
+                return;
+            }
+
+            setSelectionBox(null);
+
+            // CALCULAR EL CENTRO Y RADIO EN 3D
+            const centerX = x1 + width / 2;
+            const centerY = y1 + height / 2;
+
+            // Convertir centro 2D a coordenadas normalizadas para Raycaster
+            mouse.x = ((centerX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((centerY - rect.top) / rect.height) * 2 + 1;
+
+            if (!cameraRef.current || !faceMeshRef.current) return;
+
+            raycaster.setFromCamera(mouse, cameraRef.current);
+            const intersects = raycaster.intersectObject(faceMeshRef.current, true);
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                const centerPoint = intersect.point;
+                // Distancia a la cámara para el cálculo del radio proyectado
+                const distance = cameraRef.current.position.distanceTo(centerPoint);
+                const fov = THREE.MathUtils.degToRad(cameraRef.current.fov);
+
+                // Radio aproximado en píxeles (usamos la mitad de la dimensión más grande)
+                const radiusPx = Math.max(width, height) / 2;
+                
+                // Fórmula de proyección inversa: (radiusPx / screenHeight) * (visibleHeightAtDistance)
+                // visibleHeightAtDistance = 2 * distance * tan(fov / 2)
+                const screenHeight = rect.height;
+                const visibleHeight = 2 * distance * Math.tan(fov / 2);
+                const projectedRadius = (radiusPx / screenHeight) * visibleHeight;
+
+                // Llamar al callback con la nueva zona
+                callbacks.current.onMeshClick({
+                    position: { x: centerPoint.x, y: centerPoint.y, z: centerPoint.z },
+                    rotation: [0, 0, 0], // Irrelevante para zona esférica
+                    normal: { x: 0, y: 1, z: 0 }, // Irrelevante
+                    zone: "Nueva Zona", // Placeholder
+                    radius: projectedRadius // Pasamos el radio calculado
+                });
+            }
+        }
+    };
+
     const onClick = (event: MouseEvent) => {
+      // Si venimos de dibujar una zona, ignorar el click estándar (ya procesado en onPointerUp)
+      // O si hubo arrastre de rotación
       if (isDragging || !faceMeshRef.current || !cameraRef.current) return;
+      if (callbacks.current.isZoneEditMode) return; // En modo zona, el click puntual se maneja diferente o se ignora si dibujamos
       
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // ACTUALIZAR RAYCASTER CON LA CÁMARA (CRUCIAL FIX)
+      raycaster.setFromCamera(mouse, cameraRef.current);
 
       // Habilitar recursividad para detectar mallas dentro del grupo pivote
       const intersects = raycaster.intersectObject(faceMeshRef.current, true);
@@ -283,6 +393,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp); // Agregar listener
     renderer.domElement.addEventListener('click', onClick);
 
     // Bucle de Animación
@@ -311,6 +422,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const dom = rendererRef.current.domElement;
         dom.removeEventListener('pointerdown', onPointerDown);
         dom.removeEventListener('pointermove', onPointerMove);
+        dom.removeEventListener('pointerup', onPointerUp);
         dom.removeEventListener('click', onClick);
       }
       cancelAnimationFrame(animationFrameId);
@@ -537,7 +649,25 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     });
   }, [markers]);
 
-  return <div ref={mountRef} className="w-full h-full cursor-crosshair" />;
+  return (
+    <div ref={mountRef} className="w-full h-full cursor-crosshair relative">
+        {selectionBox && (
+            <div 
+                style={{
+                    position: 'absolute',
+                    left: Math.min(selectionBox.start.x, selectionBox.end.x),
+                    top: Math.min(selectionBox.start.y, selectionBox.end.y),
+                    width: Math.abs(selectionBox.end.x - selectionBox.start.x),
+                    height: Math.abs(selectionBox.end.y - selectionBox.start.y),
+                    border: '2px dashed #eab308', // yellow-500
+                    background: 'rgba(234, 179, 8, 0.2)',
+                    pointerEvents: 'none',
+                    zIndex: 50
+                }}
+            />
+        )}
+    </div>
+  );
 };
 
 // ==========================================
@@ -632,6 +762,7 @@ export default function Clinical3D() {
     if (isZoneEditMode) {
         setPendingZone({
             position: interactionData.position,
+            radius: interactionData.radius, // Guardar radio calculado si existe
         });
         setNewZoneName("");
     } else {
@@ -649,7 +780,7 @@ export default function Clinical3D() {
         id: Date.now().toString(),
         name: newZoneName,
         center: pendingZone.position,
-        radius: 4 // Radio por defecto, ajustable en el futuro
+        radius: pendingZone.radius || 4 // Usar radio calculado o fallback
     };
     
     await mockDB.saveZone(newZone);
@@ -794,7 +925,8 @@ export default function Clinical3D() {
               <ThreeScene 
                 modelSource={modelSource} 
                 markers={markers}
-                zones={zones} // Pasamos las zonas registradas
+                zones={zones} 
+                isZoneEditMode={isZoneEditMode} // Propagamos el estado de edición
                 onMeshClick={handleMeshClick}
                 onLoaded={() => {
                   console.log("Modelo cargado correctamente");
