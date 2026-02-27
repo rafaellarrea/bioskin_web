@@ -1043,7 +1043,8 @@ export default function Clinical3D() {
         // Buscar si existe una zona registrada con este nombre
         const registeredZone = zones.find(z => z.name === zoneName);
         
-        if (registeredZone) {s datos para replicar
+        if (registeredZone) {
+            // Si encontramos la zona registrada, usamos sus datos para replicar
             // la visualización exacta que se definió al crearla.
             markerToSave = {
                 ...markerToSave,
@@ -1053,9 +1054,6 @@ export default function Clinical3D() {
                 position: registeredZone.center, 
                 // Usar rotación guardada si existe, sino recalcular (pero preferimos la guardada porque ya estaba bien orientada)
                 rotation: registeredZone.rotation || markerToSave.rotation,
-                
-                // Forzar normal de la zona si tuviéramos acceso, pero rotation ya encapsula la orientación
-                position: registeredZone.center // Opcional: Centrar exactamente en la zona registrada en lugar del click
             };
         } else {
              // Si no hay zona registrada (es una zona autodetectada genérica), usamos un radio default
