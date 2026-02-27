@@ -642,7 +642,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         if (!targetMesh) return;
 
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
-        const size = new THREE.Vector3(0.6, 0.6, 0.6);
+        // Usar el radio guardado en el marcador si existe, sino usar default 0.6
+        // Para visualización, el tamaño del Decal es un Vector3. Asumimos una geometría cuadrada/elipsoide
+        const scale = marker.radius ? marker.radius * 2 : 0.6; // Multiplicar por 2 porque Decal usa dimensiones totales, radius es mitad
+        const size = new THREE.Vector3(scale, scale, scale);
         
         // DecalGeometry requiere una malla con geometría válida
         const decalGeo = new DecalGeometry(targetMesh, pos, euler, size);
@@ -812,8 +815,30 @@ export default function Clinical3D() {
     if (!pendingMarker) return;
     setIsSaving(true);
     
-    const newMarker = { ...pendingMarker, type };
-    const response = await mockDB.save(newMarker);
+    // Si la marcación es ZONAL, intentamos recuperar el radio registrado de esa zona específica
+    let markerToSave = { ...pendingMarker, type };
+    
+    if (type === 'Zonal') {
+        const zoneName = pendingMarker.zone;
+        // Buscar si existe una zona registrada con este nombre
+        const registeredZone = zones.find(z => z.name === zoneName);
+        
+        if (registeredZone) {
+            // Si encontramos la zona registrada, usamos su radio para la visualización del decal
+            // Lo guardamos en el objeto marker para que al renderizar se use este tamaño
+            markerToSave = {
+                ...markerToSave,
+                radius: registeredZone.radius, // Usar el radio registrado
+                position: registeredZone.center // Opcional: Centrar exactamente en la zona registrada en lugar del click
+            };
+        } else {
+             // Si no hay zona registrada (es una zona autodetectada genérica), usamos un radio default
+             // Ya hemos bajado el default a 0.6 en la visualización, pero podemos ser explícitos aquí
+             markerToSave = { ...markerToSave, radius: 0.6 };
+        }
+    }
+
+    const response = await mockDB.save(markerToSave);
     
     if (response.success) {
       setMarkers(prev => [...prev, response.marker]);
