@@ -342,11 +342,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
                 const distance = cameraRef.current.position.distanceTo(centerPoint);
                 const fov = THREE.MathUtils.degToRad(cameraRef.current.fov);
 
-                // Radio aproximado en píxeles (usamos la mitad de la dimensión más grande)
-                const radiusPx = Math.max(width, height) / 2;
+                // Radio aproximado en píxeles (usamos la dimensión más grande)
+                // Antes dividíamos por 2, pero para abarcar visualmente la zona dibujada,
+                // la esfera debería tener el diámetro completo de la selección
+                const radiusPx = Math.max(width, height);
                 
-                // AJUSTE DE ESCALA DEL RADIO: Reducir a un 60% para que sea más preciso visualmente
-                const adjustmentFactor = 0.6; 
+                // AJUSTE DE ESCALA DEL RADIO: Aumentar factor para que cubra mejor el área visual
+                // 1.0 = conversión matemática estricta. 1.1 = un poco de holgura.
+                const adjustmentFactor = 1.0; 
 
                 // Fórmula de proyección inversa: (radiusPx / screenHeight) * (visibleHeightAtDistance)
                 // visibleHeightAtDistance = 2 * distance * tan(fov / 2)
