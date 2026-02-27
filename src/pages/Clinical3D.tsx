@@ -647,29 +647,35 @@ export default function Clinical3D() {
       <div className="flex-1 relative h-full bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center">
         
         {/* Renderizador de Escena */}
-        <div className="absolute inset-0 z-10">
-          <ThreeScene 
-            modelSource={modelSource} 
-            markers={markers}
-            onMeshClick={handleMeshClick}
-            onLoaded={() => {
-              setModelLoaded(true);
-              setModelError(false);
-            }}
-            onError={(msg: string) => {
-              setModelError(true);
-              showNotification(msg, 'error');
-            }}
-          />
+        <div className="absolute inset-0 z-0">
+          {!modelError && (
+              <ThreeScene 
+                modelSource={modelSource} 
+                markers={markers}
+                onMeshClick={handleMeshClick}
+                onLoaded={() => {
+                  console.log("Modelo cargado correctamente");
+                  setModelLoaded(true);
+                  setModelError(false);
+                }}
+                onError={(msg: string) => {
+                  console.error("Error cargando modelo:", msg);
+                  setModelError(true);
+                  // Solo mostramos notificación si no es el error inicial forzado
+                  if (msg !== "No se pudo cargar el modelo automáticamente por seguridad del entorno. Por favor, súbelo manualmente.") {
+                      showNotification(msg, 'error');
+                  }
+                }}
+              />
+          )}
         </div>
 
         {/* PANTALLA DE CARGA */}
-        {isLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300">
-            <div className="flex flex-col items-center">
-              <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mb-4" />
-              <h2 className="text-xl font-light tracking-widest text-white">INICIALIZANDO MÓDULO 3D</h2>
-            </div>
+        {isLoading && !modelError && (
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md transition-opacity duration-300">
+              <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-6" />
+              <h2 className="text-xl font-light tracking-[0.2em] text-cyan-100">INICIALIZANDO MÓDULO 3D</h2>
+              <p className="text-xs text-slate-500 mt-2 tracking-wide">Procesando geometría facial...</p>
           </div>
         )}
 
