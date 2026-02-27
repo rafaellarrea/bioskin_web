@@ -33,7 +33,10 @@ const getFacialZone = (point: THREE.Vector3, registeredZones: Zone[] = []) => {
       for (const zone of registeredZones) {
           const zoneCenter = new THREE.Vector3(zone.center.x, zone.center.y, zone.center.z);
           const dist = point.distanceTo(zoneCenter);
-          if (dist <= zone.radius && dist < minDist) {
+          // AUMENTAR TOLERANCIA DE DETECCIÓN (x1.5)
+          // El radio visual se redujo (x0.8) para que el decal no se saliera, 
+          // pero el radio de detección debe ser mayor para que el click "agarre" la zona.
+          if (dist <= zone.radius * 2.0 && dist < minDist) {
               minDist = dist;
               closestZone = zone;
           }
