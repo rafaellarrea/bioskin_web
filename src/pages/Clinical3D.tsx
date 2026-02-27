@@ -188,21 +188,15 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       
       // Proyección Simplificada: Bounding Box
       const box = new THREE.Box3().setFromPoints(points);
+      
+      // Calcular dimensiones y centro
       const size = new THREE.Vector3();
       box.getSize(size);
       const center = new THREE.Vector3();
       box.getCenter(center);
       
-      // La "normal" aproximada es el promedio de la dirección desde el origen al punto (para una esfera centrada en 0,0,0)
-      // O mejor, el promedio de las normales de intersección si las tuviéramos.
-      // Como no las guardamos, usamos la normal del vector Posición->Cámara (cámara mirando al objeto)
-      // O simplemente geometry center.
-      
-      // IMPORTANTE: Para calcular el radio, usamos la diagonal del bounding box
-      const sizeVec = new THREE.Vector3();
-      box.getSize(sizeVec);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
+      // La "normal" aproximada es el promedio de la dirección desde el origen al punto
+      // Como no las guardamos, usamos la normal del vector Posición->Cámara o (0,1,0) genérico
       
       // FIX: El cálculo del radio estaba siendo demasiado agresivo (usando maxDim completo).
       // El "radius" en DecalGeometry se usa como [size.x, size.y, size.z].
@@ -215,7 +209,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       // estamos limitados a formas "cuadradas/circulares". 
       // La mejor aproximación es usar el promedio de las dimensiones X e Y (del plano cámara).
       
-      const avgDim = (sizeVec.x + sizeVec.y) / 2;
+      const avgDim = (size.x + size.y) / 2;
       
       // Reducimos un poco el factor de escala (0.8) para que no se salga tanto de los puntos
       const radius = avgDim * 0.8; 
