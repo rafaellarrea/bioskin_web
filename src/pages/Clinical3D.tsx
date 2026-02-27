@@ -251,11 +251,16 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           if (controlsRef.current) controlsRef.current.enabled = false; // Desactivar rotación
           
           localIsDrawing = true;
-          drawingStartPos = { x: e.clientX, y: e.clientY };
+          // Usar coordenadas relativas al contenedor para el dibujo visual
+          const rect = renderer.domElement.getBoundingClientRect();
+          const relX = e.clientX - rect.left;
+          const relY = e.clientY - rect.top;
+
+          drawingStartPos = { x: relX, y: relY };
           setIsDrawing(true);
           setSelectionBox({
-              start: { x: e.clientX, y: e.clientY },
-              end: { x: e.clientX, y: e.clientY }
+              start: { x: relX, y: relY },
+              end: { x: relX, y: relY }
           });
       }
 
@@ -267,9 +272,13 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const onPointerMove = (e: MouseEvent) => {
       // 1. Lógica de Dibujo de Zona
       if (localIsDrawing && callbacks.current.isZoneEditMode) {
+          const rect = renderer.domElement.getBoundingClientRect();
+          const relX = e.clientX - rect.left;
+          const relY = e.clientY - rect.top;
+
           setSelectionBox({
               start: drawingStartPos,
-              end: { x: e.clientX, y: e.clientY }
+              end: { x: relX, y: relY }
           });
           return;
       }
@@ -289,12 +298,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
             // Calcular geometría de la selección
             const rect = renderer.domElement.getBoundingClientRect();
+            const relX = e.clientX - rect.left;
+            const relY = e.clientY - rect.top;
             
-            // Coordenadas del cuadro de selección
-            const x1 = Math.min(drawingStartPos.x, e.clientX);
-            const x2 = Math.max(drawingStartPos.x, e.clientX);
-            const y1 = Math.min(drawingStartPos.y, e.clientY);
-            const y2 = Math.max(drawingStartPos.y, e.clientY);
+            // Coordenadas del cuadro de selección (YA SON RELATIVAS)
+            const x1 = Math.min(drawingStartPos.x, relX);
+            const x2 = Math.max(drawingStartPos.x, relX);
+            const y1 = Math.min(drawingStartPos.y, relY);
+            const y2 = Math.max(drawingStartPos.y, relY);
             
             const width = x2 - x1;
             const height = y2 - y1;
@@ -315,9 +326,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             const centerX = x1 + width / 2;
             const centerY = y1 + height / 2;
 
-            // Convertir centro 2D a coordenadas normalizadas para Raycaster
-            mouse.x = ((centerX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((centerY - rect.top) / rect.height) * 2 + 1;
+            // Convertir centro 2D RELATIVO a coordenadas normalizadas (-1 a 1) para Raycaster
+            mouse.x = (centerX / rect.width) * 2 - 1;
+            mouse.y = -(centerY / rect.height) * 2 + 1;
 
             if (!cameraRef.current || !faceMeshRef.current) return;
 
@@ -334,11 +345,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
                 // Radio aproximado en píxeles (usamos la mitad de la dimensión más grande)
                 const radiusPx = Math.max(width, height) / 2;
                 
+                // AJUSTE DE ESCALA DEL RADIO: Reducir a un 60% para que sea más preciso visualmente
+                const adjustmentFactor = 0.6; 
+
                 // Fórmula de proyección inversa: (radiusPx / screenHeight) * (visibleHeightAtDistance)
                 // visibleHeightAtDistance = 2 * distance * tan(fov / 2)
                 const screenHeight = rect.height;
                 const visibleHeight = 2 * distance * Math.tan(fov / 2);
-                const projectedRadius = (radiusPx / screenHeight) * visibleHeight;
+                const projectedRadius = ((radiusPx / screenHeight) * visibleHeight) * adjustmentFactor;
 
                 // Llamar al callback con la nueva zona
                 callbacks.current.onMeshClick({
@@ -784,7 +798,7 @@ export default function Clinical3D() {
         id: Date.now().toString(),
         name: newZoneName,
         center: pendingZone.position,
-        radius: pendingZone.radius || 4 // Usar radio calculado o fallback
+        radius: pendingZone.radius || 0.4 // Reducido de 4 a 0.4 para evitar zonas gigantes por defecto
     };
     
     await mockDB.saveZone(newZone);
