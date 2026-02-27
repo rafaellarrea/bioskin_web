@@ -23,7 +23,26 @@ const PATHOLOGIES = [
 ];
 
 // Función heurística para estimar las zonas faciales
-const getFacialZone = (point: THREE.Vector3) => {
+// AHORA: Sistema dinámico basado en zonas registradas o fallback por defecto.
+const getFacialZone = (point: THREE.Vector3, registeredZones: Zone[] = []) => {
+  // 1. Intentar encontrar zona registrada cercana (Prioridad)
+  if (registeredZones.length > 0) {
+      let closestZone = null;
+      let minDist = Infinity;
+
+      for (const zone of registeredZones) {
+          const zoneCenter = new THREE.Vector3(zone.center.x, zone.center.y, zone.center.z);
+          const dist = point.distanceTo(zoneCenter);
+          if (dist <= zone.radius && dist < minDist) {
+              minDist = dist;
+              closestZone = zone;
+          }
+      }
+      
+      if (closestZone) return closestZone.name;
+  }
+
+  // 2. Fallback Heurístico (Si no hay zonas o no coincide ninguna)
   const { y } = point;
   if (y > 4) return "Frente";
   if (y > 1) return "Glabela y Cejas";
@@ -35,6 +54,13 @@ const getFacialZone = (point: THREE.Vector3) => {
 };
 
 type MarkerType = 'Puntual' | 'Zonal';
+
+interface Zone {
+  id: string;
+  name: string;
+  center: { x: number, y: number, z: number };
+  radius: number;
+}
 
 interface Marker {
   id?: string;
@@ -49,6 +75,7 @@ interface Marker {
 // Base de datos asíncrona simulada
 const mockDB = {
   data: [] as Marker[],
+  zones: [] as Zone[], // Nueva colección para zonas
   save: async (marker: Marker) => {
     return new Promise<{ success: boolean; marker: Marker }>(resolve => {
       setTimeout(() => {
@@ -58,10 +85,18 @@ const mockDB = {
       }, 800);
     });
   },
+  saveZone: async (zone: Zone) => {
+      return new Promise<{ success: boolean; zone: Zone }>(resolve => {
+        setTimeout(() => {
+          mockDB.zones.push(zone);
+          resolve({ success: true, zone });
+        }, 500);
+      });
+  },
   load: async () => {
-    return new Promise<Marker[]>(resolve => {
+    return new Promise<{ markers: Marker[], zones: Zone[] }>(resolve => {
       setTimeout(() => {
-        resolve([...mockDB.data]);
+        resolve({ markers: [...mockDB.data], zones: [...mockDB.zones] });
       }, 1200);
     });
   }
@@ -71,7 +106,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -81,14 +116,15 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
   const markersGroupRef = useRef<THREE.Group | null>(null);
   
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones };
   });
 
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
+
 
   // Funciones de control de cámara manual
   const handleManualRotate = (direction: 'left' | 'right' | 'up' | 'down') => {
@@ -240,7 +276,7 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
           position: { x: point.x, y: point.y, z: point.z },
           rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z],
           normal: { x: n.x, y: n.y, z: n.z },
-          zone: getFacialZone(point)
+          zone: getFacialZone(point, callbacks.current.zones)
         });
       }
     };
@@ -391,6 +427,9 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
              loader.parse(modelSource.data, '', handleLoadedModel, handleLoadError);
         }
       } else if (modelSource.type === 'url') {
+        // Ignorar si la URL está vacía para evitar error prematuro
+        if (!modelSource.data) return;
+
         // Evitar explícitamente fetch en entornos blob con URLs relativas
         const isBlobEnvironment = window.location.href.startsWith('blob:');
         const isRelativeUrl = !modelSource.data.startsWith('http') && !modelSource.data.startsWith('data:') && !modelSource.data.startsWith('blob:');
@@ -509,7 +548,13 @@ export default function Clinical3D() {
   const navigate = useNavigate();
   const [selectedPathology, setSelectedPathology] = useState(PATHOLOGIES[0].id);
   const [markers, setMarkers] = useState<Marker[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [pendingMarker, setPendingMarker] = useState<any>(null);
+  
+  // Nuevo Estado: Editor de Zonas
+  const [isZoneEditMode, setIsZoneEditMode] = useState(false);
+  const [pendingZone, setPendingZone] = useState<any>(null);
+  const [newZoneName, setNewZoneName] = useState("");
   
   // Estado para manejar el origen del modelo 3D
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({ 
@@ -540,7 +585,8 @@ export default function Clinical3D() {
   useEffect(() => {
     const initializeData = async () => {
       const data = await mockDB.load();
-      setMarkers(data);
+      setMarkers(data.markers);
+      setZones(data.zones);
       setDbLoaded(true);
     };
     initializeData();
@@ -583,10 +629,34 @@ export default function Clinical3D() {
   };
 
   const handleMeshClick = (interactionData: any) => {
-    setPendingMarker({
-      ...interactionData,
-      pathologyId: selectedPathology,
-    });
+    if (isZoneEditMode) {
+        setPendingZone({
+            position: interactionData.position,
+        });
+        setNewZoneName("");
+    } else {
+        setPendingMarker({
+            ...interactionData,
+            pathologyId: selectedPathology,
+        });
+    }
+  };
+
+  const handleSaveZone = async () => {
+    if (!pendingZone || !newZoneName.trim()) return;
+    setIsSaving(true);
+    const newZone: Zone = {
+        id: Date.now().toString(),
+        name: newZoneName,
+        center: pendingZone.position,
+        radius: 4 // Radio por defecto, ajustable en el futuro
+    };
+    
+    await mockDB.saveZone(newZone);
+    setZones(prev => [...prev, newZone]);
+    setPendingZone(null);
+    showNotification(`Zona "${newZoneName}" registrada correctamente`, 'success');
+    setIsSaving(false);
   };
 
   const handleConfirmMarker = async (type: MarkerType) => {
@@ -608,12 +678,26 @@ export default function Clinical3D() {
     <div className="w-full h-screen bg-slate-950 flex overflow-hidden font-sans text-slate-100 relative">
       
       {/* Botón Volver */}
-      <div className="absolute top-4 left-4 z-50">
+      <div className="absolute top-4 left-4 z-50 flex items-center gap-3">
         <button 
           onClick={() => navigate('/admin')}
           className="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 backdrop-blur-md rounded-lg text-white text-sm font-medium border border-slate-700 transition-colors"
         >
           ← Volver al Panel
+        </button>
+        
+        {/* Toggle para Modo Registro de Zonas */}
+        <button 
+          onClick={() => setIsZoneEditMode(!isZoneEditMode)}
+          className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all flex items-center gap-2 ${
+            isZoneEditMode 
+              ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' 
+              : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
+          }`}
+          title={isZoneEditMode ? "Salir de Registro" : "Registrar Zonas Anatómicas"}
+        >
+          <Database className="w-4 h-4" />
+          {isZoneEditMode ? 'Finalizar Registro' : 'Configurar Zonas'}
         </button>
       </div>
 
@@ -710,6 +794,7 @@ export default function Clinical3D() {
               <ThreeScene 
                 modelSource={modelSource} 
                 markers={markers}
+                zones={zones} // Pasamos las zonas registradas
                 onMeshClick={handleMeshClick}
                 onLoaded={() => {
                   console.log("Modelo cargado correctamente");
@@ -727,6 +812,50 @@ export default function Clinical3D() {
               />
           )}
         </div>
+
+        {/* MODO EDICIÓN ZONAS: UI de Control */}
+        {isZoneEditMode && modelLoaded && (
+             <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-yellow-500/90 text-slate-900 px-6 py-2 rounded-full backdrop-blur-md shadow-lg font-bold border-2 border-yellow-400 z-50 animate-pulse">
+                MODO REGISTRO DE ZONAS ACTIVO
+             </div>
+        )}
+
+        {/* MODAL CREAR ZONA */}
+        {isZoneEditMode && pendingZone && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm">
+                <div className="bg-slate-900/90 border border-yellow-500/50 p-6 rounded-2xl w-[350px] shadow-2xl relative">
+                    <button onClick={() => setPendingZone(null)} className="absolute top-2 right-2 text-slate-400 hover:text-white"><X className="w-5 h-5"/></button>
+                    
+                    <h3 className="text-lg font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                        <Database className="w-5 h-5" /> Registrar Nueva Zona
+                    </h3>
+                    
+                    <div className="mb-4">
+                        <label className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2 block">Nombre de la Zona</label>
+                        <input 
+                            autoFocus
+                            type="text" 
+                            className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-yellow-500 outline-none"
+                            placeholder="Ej: Frente Central, Pómulo Izq..."
+                            value={newZoneName}
+                            onChange={(e) => setNewZoneName(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSaveZone()}
+                        />
+                         <p className="text-xs text-slate-500 mt-2">
+                            Se registrará el punto seleccionado como el centro de esta zona anatómica.
+                         </p>
+                    </div>
+
+                    <button 
+                        disabled={!newZoneName.trim() || isSaving}
+                        onClick={handleSaveZone}
+                        className="w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSaving ? 'Guardando...' : 'Guardar Zona'}
+                    </button>
+                </div>
+            </div>
+        )}
 
         {/* PANTALLA DE CARGA */}
         {isLoading && !modelError && (
