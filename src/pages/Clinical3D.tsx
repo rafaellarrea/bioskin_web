@@ -540,90 +540,6 @@ export default function Clinical3D() {
   };
 
   const handleConfirmMarker = async (type: MarkerType) => {
-
-        {/* Controles Visuales (Overlay en el lienzo 3D) */}
-        <div className="absolute right-6 top-6 flex flex-col gap-2 z-20">
-            <div className="bg-slate-900/80 backdrop-blur-md p-2 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-2">
-                <span className="text-[10px] uppercase font-bold text-center text-slate-500 mb-1">Cámara</span>
-                
-                <div className="grid grid-cols-3 gap-1">
-                    <div />
-                    <button onClick={() => {
-                        // @ts-ignore
-                        if (window.clinical3d_controls) {
-                            // @ts-ignore
-                            window.clinical3d_controls.object.position.y += 5; 
-                            // @ts-ignore
-                            window.clinical3d_controls.update();
-                        }
-                    }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
-                        <Move className="w-4 h-4 rotate-180" />
-                    </button>
-                    <div />
-                    
-                    <button onClick={() => handleManualRotate('left')} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
-                        <RotateCcw className="w-4 h-4" />
-                    </button>
-                    <div className="flex items-center justify-center">
-                        <Move className="w-4 h-4 text-slate-500" />
-                    </div>
-                    <button onClick={() => handleManualRotate('right')} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
-                        <RotateCw className="w-4 h-4" />
-                    </button>
-
-                    <div />
-                    <button onClick={() => {
-                         // @ts-ignore
-                         if (window.clinical3d_controls) {
-                             // @ts-ignore
-                             window.clinical3d_controls.object.position.y -= 5; 
-                             // @ts-ignore
-                             window.clinical3d_controls.update();
-                         }
-                    }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white">
-                        <Move className="w-4 h-4" />
-                    </button>
-                    <div />
-                </div>
-
-                <div className="h-px bg-slate-700 my-1" />
-
-                <div className="flex justify-between gap-2">
-                    <button onClick={() => handleZoom(false)} className="flex-1 p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white flex justify-center">
-                        <ZoomOut className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleZoom(true)} className="flex-1 p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white flex justify-center">
-                        <ZoomIn className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <button 
-                  onClick={() => {
-                        // Resetear vista
-                        // @ts-ignore
-                        const c = window.clinical3d_controls;
-                        if(c) {
-                            c.reset();
-                            c.target.set(0,0,0);
-                            c.object.position.set(0,0,40); // Posición inicial hardcodeada
-                            c.update();
-                        }
-                  }}
-                  className="mt-2 text-xs text-center text-cyan-400 hover:text-cyan-300 py-1"
-                >
-                    Resetear Vista
-                </button>
-            </div>
-
-            <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-xl border border-slate-700 shadow-xl">
-                 <p className="text-xs text-slate-400 mb-2">
-                    <strong className="text-white">Click Izquierdo:</strong> Rotar<br/>
-                    <strong className="text-white">Click Derecho:</strong> Mover (Pan)<br/>
-                    <strong className="text-white">Rueda:</strong> Zoom
-                 </p>
-            </div>
-        </div>
-
     if (!pendingMarker) return;
     setIsSaving(true);
     
@@ -639,7 +555,7 @@ export default function Clinical3D() {
   };
 
   return (
-    <div className="w-full h-screen bg-slate-950 flex overflow-hidden font-sans text-slate-100">
+    <div className="w-full h-screen bg-slate-950 flex overflow-hidden font-sans text-slate-100 relative">
       
       {/* Botón Volver */}
       <div className="absolute top-4 left-4 z-50">
@@ -650,6 +566,90 @@ export default function Clinical3D() {
           ← Volver al Panel
         </button>
       </div>
+
+        {/* Controles Visuales (Overlay en el lienzo 3D) */}
+        {!modelError && modelLoaded && (
+        <div className="absolute right-6 top-6 flex flex-col gap-2 z-20 pointer-events-auto">
+            <div className="bg-slate-900/80 backdrop-blur-md p-2 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-2">
+                <span className="text-[10px] uppercase font-bold text-center text-slate-500 mb-1">Cámara</span>
+                
+                <div className="grid grid-cols-3 gap-1">
+                    <div />
+                    <button onClick={() => {
+                        // @ts-ignore
+                        if (window.clinical3d_controls) {
+                            // @ts-ignore
+                            window.clinical3d_controls.object.position.y += 5; 
+                            // @ts-ignore
+                            window.clinical3d_controls.update();
+                        }
+                    }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white" title="Mover Arriba">
+                        <Move className="w-4 h-4 rotate-180" />
+                    </button>
+                    <div />
+                    
+                    <button onClick={() => handleManualRotate('left')} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white" title="Rotar Izquierda">
+                        <RotateCcw className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-center justify-center">
+                        <Move className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <button onClick={() => handleManualRotate('right')} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white" title="Rotar Derecha">
+                        <RotateCw className="w-4 h-4" />
+                    </button>
+
+                    <div />
+                    <button onClick={() => {
+                         // @ts-ignore
+                         if (window.clinical3d_controls) {
+                             // @ts-ignore
+                             window.clinical3d_controls.object.position.y -= 5; 
+                             // @ts-ignore
+                             window.clinical3d_controls.update();
+                         }
+                    }} className="p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white" title="Mover Abajo">
+                        <Move className="w-4 h-4" />
+                    </button>
+                    <div />
+                </div>
+
+                <div className="h-px bg-slate-700 my-1" />
+
+                <div className="flex justify-between gap-2">
+                    <button onClick={() => handleZoom(false)} className="flex-1 p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white flex justify-center" title="Alejar">
+                        <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleZoom(true)} className="flex-1 p-2 bg-slate-800 hover:bg-cyan-600 rounded-lg transition-colors text-white flex justify-center" title="Acercar">
+                        <ZoomIn className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <button 
+                  onClick={() => {
+                        // Resetear vista
+                        // @ts-ignore
+                        const c = window.clinical3d_controls;
+                        if(c) {
+                            c.target.set(0,0,0);
+                            c.object.position.set(0,0,40); // Posición inicial hardcodeada
+                            c.update();
+                        }
+                  }}
+                  className="mt-2 text-xs text-center text-cyan-400 hover:text-cyan-300 py-1"
+                >
+                    Resetear Vista
+                </button>
+            </div>
+
+            <div className="bg-slate-900/80 backdrop-blur-md p-3 rounded-xl border border-slate-700 shadow-xl pointer-events-none">
+                 <p className="text-xs text-slate-400 mb-2">
+                    <strong className="text-white">Click Izquierdo:</strong> Rotar<br/>
+                    <strong className="text-white">Click Derecho:</strong> Mover (Pan)<br/>
+                    <strong className="text-white">Rueda:</strong> Zoom
+                 </p>
+            </div>
+        </div>
+        )}
 
       {/* ÁREA DEL LIENZO 3D */}
       <div className="flex-1 relative h-full bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center">
