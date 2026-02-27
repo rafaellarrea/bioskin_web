@@ -578,12 +578,25 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         dummy.position.copy(point);
         dummy.lookAt(point.clone().add(n));
 
+        const zoneDetectedName = getFacialZone(point, callbacks.current.zones);
+        const registeredZone = callbacks.current.zones.find(z => z.name === zoneDetectedName);
+        
+        let finalRadius = 0.6;
+        let finalRotation = [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z];
+        
+        if (registeredZone) {
+            // SI DETECTAMOS ZONA REGISTRADA: Usar sus parámetros visuales para el preview inmediato
+            finalRadius = registeredZone.radius;
+            // Opcional: Si queremos que el preview ya se oriente como la zona final
+            // finalRotation = registeredZone.rotation || finalRotation;
+        }
+
         callbacks.current.onMeshClick({
           position: { x: point.x, y: point.y, z: point.z },
-          rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z],
+          rotation: finalRotation,
           normal: { x: n.x, y: n.y, z: n.z },
-          zone: getFacialZone(point, callbacks.current.zones),
-          radius: 0.6 // Default para click puntual
+          zone: zoneDetectedName,
+          radius: finalRadius // Pasamos el radio correcto desde el inicio
         });
       }
     };
