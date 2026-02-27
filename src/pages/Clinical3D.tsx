@@ -647,8 +647,18 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
         // Usar el radio guardado en el marcador si existe, sino usar default 0.6
         // Para visualización, el tamaño del Decal es un Vector3. Asumimos una geometría cuadrada/elipsoide
-        const scale = marker.radius ? marker.radius * 2 : 0.6; // Multiplicar por 2 porque Decal usa dimensiones totales, radius es mitad
-        const size = new THREE.Vector3(scale, scale, scale);
+        const scale = marker.radius ? marker.radius : 0.6; 
+        
+        // CORRECCIÓN DE PROFUNDIDAD (Z-FIGHTING Y DISTORSIÓN)
+        // El problema es que el Decal es un CUBO proyectado. Si es muy profundo (Z grande), atraviesa la malla y distorsiona la proyección 
+        // en zonas curvas como la nariz o mejillas.
+        // Solución: Reducir drásticamente la dimensión Z (profundidad) del decal para que sea más como una "pegatina" superficial
+        // y no un volumen profundo.
+        const width = scale;
+        const height = scale;
+        const depth = scale * 0.25; // Reducimos la profundidad al 25% del ancho para evitar proyección atravesada
+        
+        const size = new THREE.Vector3(width, height, depth);
         
         // DecalGeometry requiere una malla con geometría válida
         const decalGeo = new DecalGeometry(targetMesh, pos, euler, size);
