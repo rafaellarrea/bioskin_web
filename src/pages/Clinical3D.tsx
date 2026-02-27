@@ -650,7 +650,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   }, [markers]);
 
   return (
-    <div ref={mountRef} className="w-full h-full cursor-crosshair relative">
+    <div className="relative w-full h-full">
+        {/* Contenedor 3D: React nunca debe actualizar sus hijos para no borrar el Canvas */}
+        <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
+        
+        {/* Capa de UI Overlay: React gestiona esto libremente sin afectar al canvas */}
         {selectionBox && (
             <div 
                 style={{

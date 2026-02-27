@@ -335,6 +335,20 @@ lib/internal-chat-service.js                # Prompt chatbot
 
 ---
 
+### ✅ **Fase 14: Módulo Clínico 3D** (Febrero 2026)
+**Descripción**: Implementación de herramientas de visualización y selección en 3D para zonas anatómicas.
+**Logros**:
+- ✅ Feb 27 - Corrección de bug de raycaster en selección de zonas (setFromCamera)
+- ✅ Feb 27 - Implementación de herramienta "Draw to Select" (Dibujar para seleccionar)
+- ✅ Feb 27 - Hardening de carga de modelos 3D para prevenir race conditions
+
+**Archivos modificados**:
+\`\`\`
+src/pages/Clinical3D.tsx                    # Lógica de Three.js y React Overlay
+\`\`\`
+
+---
+
 ## 🔄 Próximas Fases Planificadas
 
 ### **Fase 12: UI Final Blogs** (Pendiente)
@@ -372,5 +386,5 @@ Deployment:   Vercel SPA
 
 ---
 
-**Última actualización**: 05 Enero 2026 - Fix crítico de build en Appointment.tsx y mejoras UX
-**Próxima revisión**: Despliegue en producción y verificación de flujo de citas
+**Última actualización**: 27 Febrero 2026 - Feature Draw-to-Select en Clinical3D.tsx
+**Próxima revisión**: Verificación de selector 3D y despliegue en producción
