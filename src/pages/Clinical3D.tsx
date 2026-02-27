@@ -300,84 +300,77 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
     const loader = new GLTFLoader();
 
     const handleLoadedModel = (gltf: any) => {
-      let faceMesh: any = null;
-      gltf.scene.traverse((child: any) => {
-        if (child.isMesh && !faceMesh) {
-          faceMesh = child; 
-        }
-      });
 
-      if (faceMesh) {
-        // ===== ALGORITMO DE CENTRADO ABSOLUTO V2 (MÁS ROBUSTO) =====
+      // Normalizar la escena completa, no solo la malla
+      const model = gltf.scene;
+
+      if (model) {
+        // ===== ALGORITMO DE CENTRADO ABSOLUTO V3 (CONSOLIDADO) =====
         
-        // 1. Asegurar que las matrices estén actualizadas
-        faceMesh.updateMatrixWorld(true);
+        // 1. Resetear transformaciones previas del contenedor
+        model.updateMatrixWorld(true);
         
-        // 2. Calcular Bounding Box inicial en coordenadas mundiales
-        const box = new THREE.Box3().setFromObject(faceMesh);
-        const center = box.getCenter(new THREE.Vector3());
+        // 2. Calcular Bounding Box de TODO el modelo (incluyendo hijos)
+        const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
 
-        // 3. CENTRADO: Mover el objeto para que su centro visual esté en (0,0,0)
-        // La lógica anterior (pos += pos - center) era inestable. 
-        // Lo correcto es desplazarlo inversamente a su centro calculado.
-        faceMesh.position.x += (faceMesh.position.x - center.x);
-        faceMesh.position.y += (faceMesh.position.y - center.y);
-        faceMesh.position.z += (faceMesh.position.z - center.z);
+        // 3. CENTRADO: Mover todo el grupo para que el centro visual esté en (0,0,0)
+        // Usamos la posición del grupo contenedor
+        model.position.x -= center.x;
+        model.position.y -= center.y;
+        model.position.z -= center.z;
 
-        // 4. ESCALADO NORMALIZADO
-        // Buscamos que el objeto tenga un tamaño estándar (ej: 10 unidades) en su dimensión mayor
+        // 4. CORRECCIÓN DE ROTACIÓN (Detectar Z-up)
+        // Algunos modelos vienen con Z como eje vertical.
+        // Si la profundidad (Z) es mucho mayor que la altura (Y), probablemente esté "acostado".
+        // Sin embargo, para evitar falsos positivos, rotaremos basado en inputs del usuario si es necesario.
+        // Por defecto, asumimos Y-up que es el estándar de WebGL.
+        
+        // Si el usuario reporta que no gira sobre el eje vertical, es probable que la malla interna tenga una rotación extraña.
+        // Vamos a encapsular el modelo en un Grupo Pivot para tener control total.
+        const pivotGroup = new THREE.Group();
+        pivotGroup.add(model);
+        
+        // Asignar el pivotGroup como el objeto principal a manipular
+        // Esto permite que OrbitControls rote alrededor del (0,0,0) donde está el pivot
+        sceneRef.current?.add(pivotGroup);
+        faceMeshRef.current = pivotGroup; // Usamos la referencia para limpieza
+        
+        // Encontrar la malla principal para asignarle material (recursivo)
+        model.traverse((child: any) => {
+             if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                // Material Clínico
+                child.material = new THREE.MeshPhysicalMaterial({
+                  color: 0xfae3db,
+                  roughness: 0.45,
+                  metalness: 0.05,
+                  clearcoat: 0.15,
+                  clearcoatRoughness: 0.3,
+                  transmission: 0.05,
+                  thickness: 1.5,
+                  side: THREE.DoubleSide
+                });
+             }
+        });
+
+        // 5. ESCALADO
         const maxDim = Math.max(size.x, size.y, size.z);
-        const targetSize = 5; // Reducido un poco para dar margen
-        const scaleFactor = targetSize / (maxDim || 1); // Evitar división por cero
-        
-        faceMesh.scale.setScalar(scaleFactor);
+        const targetSize = 5;
+        const scaleFactor = targetSize / (maxDim || 1);
+        model.scale.setScalar(scaleFactor); // Escalamos el modelo interno, no el grupo
 
-        // 5. CORRECCIÓN DE ORIENTACIÓN AUTOMÁTICA
-        // Detectar si el modelo está "tumbado" (Z-up vs Y-up) basándose en las dimensiones.
-        // Si la dimensión Z (profundidad) es mucho mayor que la Y (altura), probablemente esté acostado.
-        // O si el bounding box sugiere que es plano en Y.
-        
-        // Vamos a forzar una rotación inicial para levantar la cara
-        // Muchas mallas faciales vienen con Y como "arriba" en su sistema local, pero a veces vienen rotadas.
-        // Intentaremos detectar la orientación principal.
-        
-        // Heurística simple: Si es más profundo (Z) que alto (Y), rotarlo -90 grados en X
-        if (size.z > size.y * 1.2) {
-             faceMesh.rotation.x = -Math.PI / 2;
-             // Re-centrar después de rotar porque cambia el bounding box
-             faceMesh.updateMatrixWorld();
-             const newBox = new THREE.Box3().setFromObject(faceMesh);
-             const newCenter = newBox.getCenter(new THREE.Vector3());
-             faceMesh.position.sub(newCenter);
-        }
-
-        // 6. ENFOQUE DE CÁMARA
-        // Resetear el target de los controles al origen (0,0,0) donde ahora está el modelo
+        // 6. ENFOQUE
         if (controlsRef.current) {
             controlsRef.current.target.set(0, 0, 0);
             controlsRef.current.update();
         }
 
-        faceMesh.castShadow = true;
-        faceMesh.receiveShadow = true;
-        
-        // Material Clínico Fotorealista
-        faceMesh.material = new THREE.MeshPhysicalMaterial({
-          color: 0xfae3db,
-          roughness: 0.45,
-          metalness: 0.05,
-          clearcoat: 0.15,
-          clearcoatRoughness: 0.3,
-          transmission: 0.05,
-          thickness: 1.5,
-          side: THREE.DoubleSide // Asegura que se vea por dentro y por fuera
-        });
-        
-        sceneRef.current?.add(faceMesh);
-        faceMeshRef.current = faceMesh;
         callbacks.current.onLoaded();
       } else {
+
         callbacks.current.onError("El archivo no contiene una malla 3D válida.");
       }
     };
