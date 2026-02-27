@@ -198,6 +198,21 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       // La "normal" aproximada es el promedio de la dirección desde el origen al punto
       // Como no las guardamos, usamos la normal del vector Posición->Cámara o (0,1,0) genérico
       
+      // FIX CRITICO: CALCULO DE NORMAL Y ROTACIÓN
+      // El problema es que pasábamos rotation: [0,0,0]. El Decal necesita estar orientado hacia la cara.
+      // Si el decal no mira a la superficie, se corta o sale "volando".
+      
+      // 1. Calcular la Normal Promedio
+      // Usamos el vector desde el centro (0,0,0) hacia el punto central de la zona.
+      // En una esfera/cabeza centrada, la normal es simplemente normalize(center).
+      const normal = center.clone().normalize();
+      
+      // 2. Calcular rotación (LookAt)
+      // Creamos un objeto dummy para calcular la rotación necesaria para que el eje Z mire en la dirección de la normal
+      const dummy = new THREE.Object3D();
+      dummy.position.copy(center);
+      dummy.lookAt(center.clone().add(normal));
+      
       // FIX: El cálculo del radio estaba siendo demasiado agresivo (usando maxDim completo).
       // El "radius" en DecalGeometry se usa como [size.x, size.y, size.z].
       // Si usamos maxDim como "radius", estamos dibujando un cuadrado del tamaño de la dimensión máxima.
@@ -218,8 +233,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       if (callbacks.current && callbacks.current.onMeshClick) {
         callbacks.current.onMeshClick({
             position: { x: center.x, y: center.y, z: center.z },
-            rotation: [0, 0, 0],
-            normal: { x: 0, y: 1, z: 0 },
+            rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z], // ROTACIÓN CORREGIDA
+            normal: { x: normal.x, y: normal.y, z: normal.z },
             zone: "Zona Poligonal",
             radius: radius
         });
@@ -777,13 +792,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const scale = marker.radius ? marker.radius : 0.6; 
         
         // CORRECCIÓN DE PROFUNDIDAD (Z-FIGHTING Y DISTORSIÓN)
-        // El problema es que el Decal es un CUBO proyectado. Si es muy profundo (Z grande), atraviesa la malla y distorsiona la proyección 
-        // en zonas curvas como la nariz o mejillas.
-        // Solución: Reducir drásticamente la dimensión Z (profundidad) del decal para que sea más como una "pegatina" superficial
-        // y no un volumen profundo.
+        // Solución v2: Aumentar profundidad del Decal para asegurar intersección completa
         const width = scale;
         const height = scale;
-        const depth = scale * 0.25; // Reducimos la profundidad al 25% del ancho para evitar proyección atravesada
+        const depth = scale * 0.5; // Aumentar profundidad (antes 0.25) para asegurar que "agarre" la curvatura
         
         const size = new THREE.Vector3(width, height, depth);
         
