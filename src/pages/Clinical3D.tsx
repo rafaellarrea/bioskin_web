@@ -152,14 +152,19 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     }
     
     // Esfera visual
+    // Reducido tamaño del marcador visual durante selección (de 0.15 a 0.05)
+    // El usuario se quejó de que eran "demasiado grandes"
     const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(0.15, 16, 16), // Visible
+        new THREE.SphereGeometry(0.04, 16, 16), // Visible - REDUCIDO
         new THREE.MeshBasicMaterial({ color: 0xeab308, depthTest: false, transparent: true }) // yellow-500
     );
     sphere.position.copy(point);
     // Render order para que se vea siempre encima
     sphere.renderOrder = 999;
-    polygonGroupRef.current.add(sphere);
+    
+    if (polygonGroupRef.current) {
+        polygonGroupRef.current.add(sphere);
+    }
     
     // Línea conectora
     const points = polygonPointsRef.current;
@@ -194,25 +199,39 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       // O simplemente geometry center.
       
       // IMPORTANTE: Para calcular el radio, usamos la diagonal del bounding box
-      const diagonal = size.length();
-      // El radio es la mitad de la diagonal mayor, o similar.
-      // Usaremos la dimensión mayor del box para el diámetro.
-      const maxDim = Math.max(size.x, size.y, size.z); 
+      const sizeVec = new THREE.Vector3();
+      box.getSize(sizeVec);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
       
-      // radio = dimensión completa (ajuste visual 1.0)
-      const radius = maxDim; 
+      // FIX: El cálculo del radio estaba siendo demasiado agresivo (usando maxDim completo).
+      // El "radius" en DecalGeometry se usa como [size.x, size.y, size.z].
+      // Si usamos maxDim como "radius", estamos dibujando un cuadrado del tamaño de la dimensión máxima.
+      // Pero si la zona es rectangular alargada, esto crea un cuadrado gigante.
+      // Además, el usuario reporta que sale "completamente diferente".
       
-      onMeshClick({
-          position: center,
-          rotation: [0, 0, 0],
-          normal: { x: 0, y: 1, z: 0 },
-          zone: "Zona Poligonal",
-          radius: radius
-      });
+      // Vamos a calcular el radio proyectado promedio para tratar de ajustar mejor.
+      // Pero dado que nuestro sistema backend solo soporta (center, radius), 
+      // estamos limitados a formas "cuadradas/circulares". 
+      // La mejor aproximación es usar el promedio de las dimensiones X e Y (del plano cámara).
       
-      clearPolygon();
-  }, [onMeshClick, clearPolygon]);
-
+      const avgDim = (sizeVec.x + sizeVec.y) / 2;
+      
+      // Reducimos un poco el factor de escala (0.8) para que no se salga tanto de los puntos
+      const radius = avgDim * 0.8; 
+      
+      if (onMeshClick) {
+        onMeshClick({
+            position: { x: center.x, y: center.y, z: center.z },
+            rotation: [0, 0, 0],
+            normal: { x: 0, y: 1, z: 0 },
+            zone: "Zona Poligonal",
+            radius: radius
+        });
+      }
+      
+      if (clearPolygon) clearPolygon();
+  }, []); // Dependencias vacías para evitar re-creación constante, usamos refs dentro
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
   
   // Estado para funcionalidad de dibujo de zonas
@@ -814,9 +833,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             />
         )}
 
-        {/* UI Flotante para Modo Polígono */}
+        {/* UI Flotante para Modo Polígono - MOVIDO ABAJO PARA EVITAR SOLAPAMIENTO */}
         {isZoneEditMode && zoneSelectionMode === 'polygon' && (
-            <div className="absolute top-24 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 border border-yellow-500/50 p-2 rounded-xl backdrop-blur-md shadow-xl z-50">
+            <div className="absolute top-[160px] left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 border border-yellow-500/50 p-2 rounded-xl backdrop-blur-md shadow-xl z-50 pointer-events-auto">
                 <span className="text-yellow-400 font-bold px-2 text-sm flex items-center gap-2">
                     <Maximize className="w-4 h-4" />
                     {polygonPointCount} Puntos
