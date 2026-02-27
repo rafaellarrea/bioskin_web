@@ -70,6 +70,7 @@ interface Marker {
   rotation: number[];
   normal: { x: number; y: number; z: number };
   zone: string;
+  radius?: number; // Para zonas
 }
 
 // Base de datos asíncrona simulada
@@ -115,6 +116,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
   
+  // Ref para polígonos
+  const polygonPointsRef = useRef<THREE.Vector3[]>([]);
+  const polygonGroupRef = useRef<THREE.Group | null>(null);
+  const [polygonPointCount, setPolygonPointCount] = useState(0);
+
   const clearPolygon = useCallback(() => {
     polygonPointsRef.current = [];
     if (polygonGroupRef.current) {
@@ -207,34 +213,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       clearPolygon();
   }, [onMeshClick, clearPolygon]);
 
-  // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon });
-  
-  // Actualizar refs de callbacks en cada render
-  useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon };
-    
-    // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
-    if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
-         // No limpiar automáticamente aquí, puede causar loop si no se maneja bien
-         // Mejor dejar que el usuario limpie o limpie al cambiar de modo explícitamente
-         // Pero para evitar estados inconsistentes:
-         if (polygonPointsRef.current.length > 0) clearPolygon();
-    }
-  });
-
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
   
   // Estado para funcionalidad de dibujo de zonas
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectionBox, setSelectionBox] = useState<{start: {x: number, y: number}, end: {x: number, y: number}} | null>(null);
 
-
   // Funciones de control de cámara manual
   const handleManualRotate = (direction: 'left' | 'right' | 'up' | 'down') => {
-      // Implementación simple de rotación mediante eventos simulados o acceso directo
-      // Para simplificar, usaremos acceso directo a la cámara si es posible, 
-      // pero OrbitControls "pelea" con la cámara. Lo ideal es mover la cámara y llamar update.
       // @ts-ignore
       const controls = window.clinical3d_controls; // Hack para acceso global temporal
       if (!controls) return;
@@ -274,6 +260,22 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       camera.position.add(direction.multiplyScalar(distance));
       controls.update();  
   };
+
+  // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon });
+  
+  // Actualizar refs de callbacks en cada render
+  useEffect(() => {
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon };
+    
+    // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
+    if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
+         // No limpiar automáticamente aquí, puede causar loop si no se maneja bien
+         // Mejor dejar que el usuario limpie o limpie al cambiar de modo explícitamente
+         // Pero para evitar estados inconsistentes:
+         if (polygonPointsRef.current.length > 0) clearPolygon();
+    }
+  });
 
   // 1. Inicializar la Escena Básica (Solo se ejecuta una vez)
   useEffect(() => {
