@@ -141,29 +141,63 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     polygonPointsRef.current.push(point);
     setPolygonPointCount(prev => prev + 1);
     
-    // Dibujar punto
+    // Dibujar punto COMO DECAL (Pegatina en la malla) en lugar de esfera flotante
     if (!polygonGroupRef.current) {
         polygonGroupRef.current = new THREE.Group();
-        // Asegurarse de que esté en la escena
         if(sceneRef.current) sceneRef.current.add(polygonGroupRef.current);
-    } // Si ya existe, asumimos que está en la escena, si no, lo añadimos
-    else if (sceneRef.current && !sceneRef.current.children.includes(polygonGroupRef.current)) {
+    } else if (sceneRef.current && !sceneRef.current.children.includes(polygonGroupRef.current)) {
         sceneRef.current.add(polygonGroupRef.current);
     }
     
-    // Esfera visual
-    // Reducido tamaño del marcador visual durante selección (de 0.15 a 0.05)
-    // El usuario se quejó de que eran "demasiado grandes"
+    // Necesitamos la normal y el objeto para proyectar el decal del punto
+    // Para simplificar, haremos un Raycaster rápido aquí mismo para obtener la normal exacta en este punto
+    // O mejor, pasamos la normal desde el evento de click (requiere cambiar firma de addPolygonPoint)
+    // Como no queremos cambiar todo el flujo ahora:
+    // Usaremos una pequeña esfera PERO pegada a la superficie (la posición ya es la intersección)
+    // Para que parezca un decal, usamos un disco muy plano orientado a la normal.
+    // O mejor aún: Cambiamos addPolygonPoint para recibir la normal.
+
+    // 1. Esfera muy pequeña (punto de control)
     const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(0.04, 16, 16), // Visible - REDUCIDO
-        new THREE.MeshBasicMaterial({ color: 0xeab308, depthTest: false, transparent: true }) // yellow-500
+        new THREE.SphereGeometry(0.02, 16, 16), 
+        new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true })
     );
     sphere.position.copy(point);
-    // Render order para que se vea siempre encima
-    sphere.renderOrder = 999;
-    
-    if (polygonGroupRef.current) {
-        polygonGroupRef.current.add(sphere);
+    sphere.renderOrder = 999; 
+    polygonGroupRef.current.add(sphere);
+
+    // 2. DECAL VISUAL (Feedback de superficie)
+    // Intentamos encontrar la malla para proyectar un pequeño decal rojo/amarillo
+    const faceMesh = faceMeshRef.current;
+    if (faceMesh) {
+         let targetMesh: THREE.Mesh | null = null;
+         if (faceMesh.type === 'Group' || faceMesh.type === 'Scene') {
+             faceMesh.traverse((child: any) => {
+                 if (child.isMesh && !targetMesh) targetMesh = child;
+             });
+         } else if ((faceMesh as any).isMesh) {
+             targetMesh = faceMesh as THREE.Mesh;
+         }
+
+         if (targetMesh) {
+             // Calcular normal aproximada (desde el centro 0,0,0 hacia el punto)
+             // Esto es suficiente para cabezas centradas
+             const n = point.clone().normalize();
+             const dummy = new THREE.Object3D();
+             dummy.position.copy(point);
+             dummy.lookAt(point.clone().add(n));
+
+             const decalSize = new THREE.Vector3(0.1, 0.1, 0.2); // Pequeño decal de 10cm
+             const decalGeo = new DecalGeometry(targetMesh, point, dummy.rotation, decalSize);
+             const decalMat = new THREE.MeshBasicMaterial({ 
+                 color: 0xeab308, // Amarillo
+                 depthTest: false, // Siempre visible encima
+                 transparent: true,
+                 opacity: 0.8
+             });
+             const decalMesh = new THREE.Mesh(decalGeo, decalMat);
+             polygonGroupRef.current.add(decalMesh);
+         }
     }
     
     // Línea conectora
@@ -792,10 +826,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const scale = marker.radius ? marker.radius : 0.6; 
         
         // CORRECCIÓN DE PROFUNDIDAD (Z-FIGHTING Y DISTORSIÓN)
-        // Solución v2: Aumentar profundidad del Decal para asegurar intersección completa
+        // Solución v3: Aumentar DRASTICAMENTE la profundidad (User request: "aun no es suficiente el volumen")
         const width = scale;
         const height = scale;
-        const depth = scale * 0.5; // Aumentar profundidad (antes 0.25) para asegurar que "agarre" la curvatura
+        // Aumentamos a 1.5x el tamaño para asegurar que atraviese la nariz completa o pómulos prominentes
+        const depth = scale * 1.5; 
         
         const size = new THREE.Vector3(width, height, depth);
         
