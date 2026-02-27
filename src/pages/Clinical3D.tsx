@@ -79,6 +79,14 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
   const controlsRef = useRef<OrbitControls | null>(null);
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
+  
+  // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
+  const callbacks = useRef({ onMeshClick, onLoaded, onError });
+  
+  // Actualizar refs de callbacks en cada render
+  useEffect(() => {
+    callbacks.current = { onMeshClick, onLoaded, onError };
+  });
 
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
 
