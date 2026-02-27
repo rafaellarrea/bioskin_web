@@ -642,7 +642,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         if (!targetMesh) return;
 
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
-        const size = new THREE.Vector3(3, 3, 3);
+        const size = new THREE.Vector3(0.6, 0.6, 0.6);
         
         // DecalGeometry requiere una malla con geometría válida
         const decalGeo = new DecalGeometry(targetMesh, pos, euler, size);
