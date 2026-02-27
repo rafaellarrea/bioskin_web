@@ -219,15 +219,17 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      raycaster.setFromCamera(mouse, cameraRef.current);
-      const intersects = raycaster.intersectObject(faceMeshRef.current);
+      // Habilitar recursividad para detectar mallas dentro del grupo pivote
+      const intersects = raycaster.intersectObject(faceMeshRef.current, true);
 
       if (intersects.length > 0) {
         const intersect = intersects[0];
         const point = intersect.point;
         
+        // Calcular normal en coordenadas mundiales
         const n = intersect.face ? intersect.face.normal.clone() : new THREE.Vector3(0,1,0);
-        const nTransform = new THREE.Matrix3().getNormalMatrix(faceMeshRef.current.matrixWorld);
+        // Usar la matriz del objeto interceptado (la malla específica), no del grupo contenedor
+        const nTransform = new THREE.Matrix3().getNormalMatrix(intersect.object.matrixWorld);
         n.applyMatrix3(nTransform).normalize();
 
         const dummy = new THREE.Object3D();
@@ -377,12 +379,17 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
 
     const handleLoadError = (error: any) => {
       console.warn("Carga fallida:", error);
+      // Evitar propagar error si es un buffer inicial vacío
+      if (modelSource.type === 'buffer' && (!modelSource.data)) return;
       callbacks.current.onError("No se pudo cargar el modelo automáticamente por seguridad del entorno. Por favor, súbelo manualmente.");
     };
 
     try {
       if (modelSource.type === 'buffer') {
-        loader.parse(modelSource.data, '', handleLoadedModel, handleLoadError);
+        // Aseguramos que sea un ArrayBuffer válido antes de parsear
+        if (modelSource.data && (modelSource.data instanceof ArrayBuffer || typeof modelSource.data === 'string')) {
+             loader.parse(modelSource.data, '', handleLoadedModel, handleLoadError);
+        }
       } else if (modelSource.type === 'url') {
         // Evitar explícitamente fetch en entornos blob con URLs relativas
         const isBlobEnvironment = window.location.href.startsWith('blob:');
@@ -454,9 +461,26 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
         group.add(markerGroup);
 
       } else if (marker.type === 'Zonal' && faceMesh) {
+        
+        // Encontrar la malla objetivo real (ya que faceMesh puede ser un Grupo Pivote)
+        let targetMesh: THREE.Mesh | null = null;
+        if (faceMesh.type === 'Group' || faceMesh.type === 'Scene') {
+            faceMesh.traverse((child: any) => {
+                if (child.isMesh && !targetMesh) {
+                    targetMesh = child;
+                }
+            });
+        } else if ((faceMesh as any).isMesh) {
+            targetMesh = faceMesh as THREE.Mesh;
+        }
+
+        if (!targetMesh) return;
+
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
         const size = new THREE.Vector3(3, 3, 3);
-        const decalGeo = new DecalGeometry(faceMesh as THREE.Mesh, pos, euler, size);
+        
+        // DecalGeometry requiere una malla con geometría válida
+        const decalGeo = new DecalGeometry(targetMesh, pos, euler, size);
         
         const decalMat = new THREE.MeshPhysicalMaterial({
           color: color,
@@ -531,17 +555,31 @@ export default function Clinical3D() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // 1. Resetear estados inmediatamente para mostrar carga
       setModelError(false);
-      setModelLoaded(false); // Mostrar pantalla de carga
+      setModelLoaded(false); 
+      setNotification(null); // Limpiar notificaciones previas
+
       const reader = new FileReader();
+      
       reader.onload = (e) => {
         if (e.target?.result) {
-          setModelSource({ type: 'buffer', data: e.target.result });
-          showNotification('Modelo 3D cargado correctamente.', 'success');
+          // 2. Establecer fuente del modelo
+          const buffer = e.target.result;
+          setModelSource({ type: 'buffer', data: buffer });
+          showNotification('Procesando archivo...', 'info');
         }
       };
+      
+      reader.onerror = () => {
+        setModelError(true);
+        showNotification('Error al leer el archivo local.', 'error');
+      };
+
       reader.readAsArrayBuffer(file);
     }
+    // 3. Resetear input para permitir subir el mismo archivo si falla
+    event.target.value = '';
   };
 
   const handleMeshClick = (interactionData: any) => {
