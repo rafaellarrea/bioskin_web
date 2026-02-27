@@ -214,8 +214,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       // Reducimos un poco el factor de escala (0.8) para que no se salga tanto de los puntos
       const radius = avgDim * 0.8; 
       
-      if (onMeshClick) {
-        onMeshClick({
+      // USAR REF CALLBACKS PARA EVITAR STALE CLOSURES
+      if (callbacks.current && callbacks.current.onMeshClick) {
+        callbacks.current.onMeshClick({
             position: { x: center.x, y: center.y, z: center.z },
             rotation: [0, 0, 0],
             normal: { x: 0, y: 1, z: 0 },
@@ -225,7 +226,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       }
       
       if (clearPolygon) clearPolygon();
-  }, []); // Dependencias vacías para evitar re-creación constante, usamos refs dentro
+  }, [clearPolygon]); // Dependencia clearPolygon es estable (useCallback)
   const [interactionMode, setInteractionMode] = useState<'rotate' | 'pan'>('rotate');
   
   // Estado para funcionalidad de dibujo de zonas
