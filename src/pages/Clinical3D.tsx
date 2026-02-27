@@ -333,7 +333,26 @@ const ThreeScene = ({ modelSource, markers, onMeshClick, onLoaded, onError }: an
         
         faceMesh.scale.setScalar(scaleFactor);
 
-        // 5. ENFOQUE DE CÁMARA
+        // 5. CORRECCIÓN DE ORIENTACIÓN AUTOMÁTICA
+        // Detectar si el modelo está "tumbado" (Z-up vs Y-up) basándose en las dimensiones.
+        // Si la dimensión Z (profundidad) es mucho mayor que la Y (altura), probablemente esté acostado.
+        // O si el bounding box sugiere que es plano en Y.
+        
+        // Vamos a forzar una rotación inicial para levantar la cara
+        // Muchas mallas faciales vienen con Y como "arriba" en su sistema local, pero a veces vienen rotadas.
+        // Intentaremos detectar la orientación principal.
+        
+        // Heurística simple: Si es más profundo (Z) que alto (Y), rotarlo -90 grados en X
+        if (size.z > size.y * 1.2) {
+             faceMesh.rotation.x = -Math.PI / 2;
+             // Re-centrar después de rotar porque cambia el bounding box
+             faceMesh.updateMatrixWorld();
+             const newBox = new THREE.Box3().setFromObject(faceMesh);
+             const newCenter = newBox.getCenter(new THREE.Vector3());
+             faceMesh.position.sub(newCenter);
+        }
+
+        // 6. ENFOQUE DE CÁMARA
         // Resetear el target de los controles al origen (0,0,0) donde ahora está el modelo
         if (controlsRef.current) {
             controlsRef.current.target.set(0, 0, 0);
