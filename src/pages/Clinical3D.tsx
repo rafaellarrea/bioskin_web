@@ -60,6 +60,7 @@ interface Zone {
   name: string;
   center: { x: number, y: number, z: number };
   radius: number;
+  rotation?: number[]; // OPCIONAL: Guardar rotación personalizada
 }
 
 interface Marker {
@@ -992,29 +993,35 @@ export default function Clinical3D() {
     event.target.value = '';
   };
 
-  const handleMeshClick = (interactionData: any) => {
-    if (isZoneEditMode) {
-        setPendingZone({
-            position: interactionData.position,
-            radius: interactionData.radius, // Guardar radio calculado si existe
-        });
-        setNewZoneName("");
-    } else {
-        setPendingMarker({
-            ...interactionData,
-            pathologyId: selectedPathology,
-        });
-    }
-  };
+    const handleMeshClick = (interactionData: any) => {
+        if (isZoneEditMode) {
+            // AL CREAR ZONA (MODO REGISTRO): Guardamos posición y radio exactos del dibujo
+            setPendingZone({
+                position: interactionData.position,
+                radius: interactionData.radius, // Este ratio viene del cálculo del polígono
+                // IMPORTANTE: Guardar también la orientación para que se grafique igual
+                rotation: interactionData.rotation
+            });
+            setNewZoneName("");
+        } else {
+            setPendingMarker({
+                ...interactionData,
+                pathologyId: selectedPathology,
+            });
+        }
+    };
 
   const handleSaveZone = async () => {
     if (!pendingZone || !newZoneName.trim()) return;
     setIsSaving(true);
+    
     const newZone: Zone = {
         id: Date.now().toString(),
         name: newZoneName,
         center: pendingZone.position,
-        radius: pendingZone.radius || 0.4 // Reducido de 4 a 0.4 para evitar zonas gigantes por defecto
+        radius: pendingZone.radius || 0.4,
+        // NUEVO: Guardar rotación si existe (para polígonos orientados)
+        rotation: pendingZone.rotation 
     };
     
     await mockDB.saveZone(newZone);
@@ -1036,12 +1043,18 @@ export default function Clinical3D() {
         // Buscar si existe una zona registrada con este nombre
         const registeredZone = zones.find(z => z.name === zoneName);
         
-        if (registeredZone) {
-            // Si encontramos la zona registrada, usamos su radio para la visualización del decal
-            // Lo guardamos en el objeto marker para que al renderizar se use este tamaño
+        if (registeredZone) {s datos para replicar
+            // la visualización exacta que se definió al crearla.
             markerToSave = {
                 ...markerToSave,
-                radius: registeredZone.radius, // Usar el radio registrado
+                radius: registeredZone.radius, // Usar tamaño registrado
+                // CLAVE: Usar la posición central registrada y la rotación registrada
+                // Si no, el marcador se dibuja donde hicimos click (p.ej en el borde) en lugar del centro de la zona
+                position: registeredZone.center, 
+                // Usar rotación guardada si existe, sino recalcular (pero preferimos la guardada porque ya estaba bien orientada)
+                rotation: registeredZone.rotation || markerToSave.rotation,
+                
+                // Forzar normal de la zona si tuviéramos acceso, pero rotation ya encapsula la orientación
                 position: registeredZone.center // Opcional: Centrar exactamente en la zona registrada en lugar del click
             };
         } else {
