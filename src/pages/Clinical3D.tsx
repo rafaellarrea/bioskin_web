@@ -1112,9 +1112,9 @@ export default function Clinical3D() {
             // AL CREAR ZONA (MODO REGISTRO): Guardamos posición y radio exactos del dibujo
             setPendingZone({
                 rotation: interactionData.rotation,
-                scale: interactionData.scale // Guardar escala rectangular Este ratio viene del cálculo del polígono
+                scale: interactionData.scale, // Guardar escala rectangular Este ratio viene del cálculo del polígono
                 // IMPORTANTE: Guardar también la orientación para que se grafique igual
-                rotation: interactionData.rotation
+                // rotation: interactionData.rotation // Duplicated property removed
             });
             setNewZoneName("");
         } else {
