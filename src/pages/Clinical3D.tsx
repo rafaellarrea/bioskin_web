@@ -1152,9 +1152,9 @@ export default function Clinical3D() {
     setIsSaving(true);
     
     // Si la marcación es ZONAL, intentamos recuperar el radio registrad (fallback)
-                position: registeredZone.center, 
-                rotation: registeredZone.rotation || markerToSave.rotation,
-                scale: registeredZone.scale // IMPORTANTE: Usar la forma rectangular registrada
+    let markerToSave = { ...pendingMarker, type };
+    if (type === 'Zonal' && pendingMarker.zone) {
+        const zoneName = pendingMarker.zone;
         const registeredZone = zones.find(z => z.name === zoneName);
         
         if (registeredZone) {
@@ -1168,11 +1168,14 @@ export default function Clinical3D() {
                 position: registeredZone.center, 
                 // Usar rotación guardada si existe, sino recalcular (pero preferimos la guardada porque ya estaba bien orientada)
                 rotation: registeredZone.rotation || markerToSave.rotation,
+                scale: registeredZone.scale // IMPORTANTE: Usar la forma rectangular registrada
             };
         } else {
              // Si no hay zona registrada (es una zona autodetectada genérica), usamos un radio default
              // Ya hemos bajado el default a 0.6 en la visualización, pero podemos ser explícitos aquí
              markerToSave = { ...markerToSave, radius: 0.6 };
+        }
+    }
         }
     }
 
