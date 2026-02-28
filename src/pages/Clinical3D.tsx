@@ -653,7 +653,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         dummy.lookAt(point.clone().add(n));
 
         const zoneDetectedName = getFacialZone(point, callbacks.current.zones);
-        const registeredZone = callbacks.current.zones.find(z => z.name === zoneDetectedName);
+        const registeredZone = callbacks.current.zones.find((z: any) => z.name === zoneDetectedName);
         
         console.log("Zona detectada:", zoneDetectedName, "Registrada:", !!registeredZone);
 
