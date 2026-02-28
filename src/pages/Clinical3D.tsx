@@ -558,6 +558,48 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         }
     };
 
+
+    // Funciones para UI de controles (Zoom y Rotación) deben ser accesibles
+    const handleManualRotate = (direction: 'left' | 'right' | 'up' | 'down') => {
+      // @ts-ignore
+      const controls = window.clinical3d_controls;
+      if (!controls) return;
+
+      const camera = controls.object;
+      const r = camera.position.distanceTo(controls.target);
+      
+      let phi = Math.acos( (camera.position.y - controls.target.y) / r );
+      let theta = Math.atan2( camera.position.z - controls.target.z, camera.position.x - controls.target.x );
+      
+      const speed = 0.5; // Radianes
+      
+      if (direction === 'left') theta += speed;
+      if (direction === 'right') theta -= speed;
+      if (direction === 'up') phi = Math.max(0.1, phi - speed);
+      if (direction === 'down') phi = Math.min(Math.PI - 0.1, phi + speed);
+      
+      const newX = r * Math.sin(phi) * Math.cos(theta);
+      const newY = r * Math.cos(phi);
+      const newZ = r * Math.sin(phi) * Math.sin(theta); // Corregido cos -> sin para Z en esféricas estándar
+      
+      camera.position.set(newX + controls.target.x, newY + controls.target.y, newZ + controls.target.z);
+      controls.update();
+  };
+
+  const handleZoom = (zoomIn: boolean) => {
+      // @ts-ignore
+      const controls = window.clinical3d_controls;
+      if (!controls) return;
+      
+      const camera = controls.object;
+      const direction = new THREE.Vector3();
+      camera.getWorldDirection(direction);
+      
+      const distance = zoomIn ? 5 : -5;
+      camera.position.add(direction.multiplyScalar(distance));
+      controls.update();  
+  };
+    
     const onClick = (event: MouseEvent) => {
       // 0. Depuración básica
       console.log("Click en canvas", { isDragging, hasMesh: !!faceMeshRef.current, hasCam: !!cameraRef.current, editMode: callbacks.current.isZoneEditMode });
