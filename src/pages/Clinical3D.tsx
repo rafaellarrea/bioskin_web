@@ -1132,8 +1132,10 @@ export default function Clinical3D() {
     const newZone: Zone = {
         id: Date.now().toString(),
         name: newZoneName,
-        rotation: pendingZone.rotation,
-        scale: pendingZone.scale || { x: 0.6, y: 0.6 } // Guardar escala.4,
+        center: pendingZone.center,
+        radius: pendingZone.radius || 0.6,
+        // rotation: pendingZone.rotation, // Duplicated property removed
+        scale: pendingZone.scale || { x: 0.6, y: 0.6 }, // Guardar escala.4,
         // NUEVO: Guardar rotación si existe (para polígonos orientados)
         rotation: pendingZone.rotation 
     };
