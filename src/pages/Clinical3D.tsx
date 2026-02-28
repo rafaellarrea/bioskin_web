@@ -857,8 +857,18 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         // Encontrar la malla objetivo real (ya que faceMesh puede ser un Grupo Pivote)
         let targetMesh: THREE.Mesh | null = null;
         if (faceMesh.type === 'Group' || faceMesh.type === 'Scene') {
-           ACTUALIZACIÓN: Soporte para escala rectangular (width/height independientes)
-        
+          faceMesh.traverse((child) => {
+            if (child instanceof THREE.Mesh && !targetMesh) {
+              targetMesh = child;
+            }
+          });
+        } else if (faceMesh instanceof THREE.Mesh) {
+          targetMesh = faceMesh as THREE.Mesh;
+        }
+
+        if (!targetMesh) return;
+
+        // ACTUALIZACIÓN: Soporte para escala rectangular (width/height independientes)
         let width = 0.6;
         let height = 0.6;
         
@@ -870,23 +880,12 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             height = marker.radius;
         }
         
-        // CORRECCIÓN DE PROFUNDIDAD (Z-FIGHTING Y DISTORSIÓN)
-        // Solución v3: Aumentar DRASTICAMENTE la profundidad (User request: "aun no es suficiente el volumen")
-        // Aumentamos a 1.5x el tamaño para asegurar que atraviese la nariz completa o pómulos prominentes
-        const depth = width * 1.5; // Usar el ancho como referencia para la profundidad
-        if (!targetMesh) return;
-
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
-        // Usar el radio guardado en el marcador si existe, sino usar default 0.6
-        // Para visualización, el tamaño del Decal es un Vector3. Asumimos una geometría cuadrada/elipsoide
-        const scale = marker.radius ? marker.radius : 0.6; 
         
         // CORRECCIÓN DE PROFUNDIDAD (Z-FIGHTING Y DISTORSIÓN)
         // Solución v3: Aumentar DRASTICAMENTE la profundidad (User request: "aun no es suficiente el volumen")
-        const width = scale;
-        const height = scale;
         // Aumentamos a 1.5x el tamaño para asegurar que atraviese la nariz completa o pómulos prominentes
-        const depth = scale * 1.5; 
+        const depth = Math.max(width, height) * 1.5; 
         
         const size = new THREE.Vector3(width, height, depth);
         
