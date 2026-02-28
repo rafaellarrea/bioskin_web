@@ -64,7 +64,8 @@ interface Zone {
   center: { x: number, y: number, z: number };
   radius: number;
   rotation?: number[];
-  scale?: { x: number, y: number }; // NUEVO: Ancho y Alto independientes
+  scale?: { x: number, y: number };
+  points?: { x: number, y: number, z: number }[]; // NUEVO: Coordenadas del polígono irregular
 }
 
 interface Marker {
@@ -76,7 +77,8 @@ interface Marker {
   normal: { x: number; y: number; z: number };
   zone: string;
   radius?: number; // Para zonas
-  scale?: { x: number, y: number }; // NUEVO
+  scale?: { x: number, y: number };
+  points?: { x: number, y: number, z: number }[]; // NUEVO
 }
 
 // Base de datos asíncrona simulada
@@ -290,7 +292,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             zone: "Zona Poligonal",
             radius: radius,
             // NUEVO: Enviamos dimensiones específicas
-            scale: { x: realWidth, y: realHeight } 
+            scale: { x: realWidth, y: realHeight },
+            // NUEVO: Guardamos los puntos originales del polígono para reconstrucción visual
+            points: points.map(p => ({ x: p.x, y: p.y, z: p.z }))
         });
       }
       
@@ -889,6 +893,63 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         // DecalGeometry requiere una malla con geometría válida
         const decalGeo = new DecalGeometry(targetMesh, pos, euler, size);
         
+        // GENERACIÓN DE TEXTURA PARA POLÍGONOS IRREGULARES
+        let decalMap = null;
+        if (marker.points && marker.points.length > 2) {
+            // Crear canvas para dibujar el polígono
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            if (ctx) {
+                ctx.fillStyle = 'white'; // El color vendrá del material, esto es alpha map
+                // Como es alpha map: blanco = visible, transparente = invisible
+                // PERO: Si usamos map con transparent:true, necesitamos color + alpha.
+                // Mejor usar una textura blanca con forma y dejar que el material ponga el color.
+                
+                // 1. Proyectar puntos al espacio 2D del canvas (0-512)
+                // Necesitamos transformar los puntos mundiales al espacio local del decal
+                // El espacio local es -size/2 a +size/2.
+                
+                // Reconstruir matriz inversa
+                const dummy = new THREE.Object3D();
+                dummy.position.copy(pos);
+                dummy.rotation.set(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
+                dummy.updateMatrixWorld();
+                const inverseMatrix = dummy.matrixWorld.clone().invert();
+                
+                // Dibujar
+                ctx.beginPath();
+                marker.points.forEach((p, i) => {
+                    const vec = new THREE.Vector3(p.x, p.y, p.z);
+                    vec.applyMatrix4(inverseMatrix);
+                    
+                    // Transformar de local coords a canvas coords
+                    // local X range: [-width/2, width/2] -> [0, 512]
+                    // local Y range: [-height/2, height/2] -> [0, 512] (.y invertido en canvas)
+                    
+                    const u = (vec.x / width) + 0.5;
+                    const v = (vec.y / height) + 0.5;
+                    
+                    const px = u * 512;
+                    const py = (1 - v) * 512; // Invertir Y para canvas
+                    
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.closePath();
+                ctx.fill();
+                
+                // Difuminado suave en bordes (opcional)
+                ctx.shadowColor = "white";
+                ctx.shadowBlur = 20;
+                ctx.stroke(); // Stroke para suavizar borde
+
+                decalMap = new THREE.CanvasTexture(canvas);
+            }
+        }
+
         const decalMat = new THREE.MeshPhysicalMaterial({
           color: color,
           transparent: true,
@@ -896,7 +957,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           roughness: 0.2,
           clearcoat: 1,
           polygonOffset: true,
-          polygonOffsetFactor: -1
+          polygonOffsetFactor: -1,
+          // Si tenemos polígono, usamos alphaMap para recortar la forma
+          alphaMap: decalMap,
+          alphaTest: 0.05 // Recorte limpio
         });
         
         const decalMesh = new THREE.Mesh(decalGeo, decalMat);
