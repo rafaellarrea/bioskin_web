@@ -1176,8 +1176,6 @@ export default function Clinical3D() {
              markerToSave = { ...markerToSave, radius: 0.6 };
         }
     }
-        }
-    }
 
     const response = await mockDB.save(markerToSave);
     
