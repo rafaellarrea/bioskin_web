@@ -559,6 +559,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     };
 
     const onClick = (event: MouseEvent) => {
+      // 0. Depuración básica
+      console.log("Click en canvas", { isDragging, hasMesh: !!faceMeshRef.current, hasCam: !!cameraRef.current, editMode: callbacks.current.isZoneEditMode });
+
       // Si hubo arrastre de cámara, ignorar click
       if (isDragging || !faceMeshRef.current || !cameraRef.current) return;
       
@@ -568,7 +571,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
       // Actualizar raycaster
       raycaster.setFromCamera(mouse, cameraRef.current);
+      
+      // IMPORTANTE: recursive = true para que atraviese el Grupo Pivot y llegue a la Malla real
       const intersects = raycaster.intersectObject(faceMeshRef.current, true);
+      
+      console.log("Intersecciones:", intersects.length);
 
       // CASO ESPECIAL: MODO POLÍGONO (Agregar puntos)
       if (callbacks.current.isZoneEditMode && callbacks.current.zoneSelectionMode === 'polygon') {
@@ -580,7 +587,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       }
       
       // Si estamos en modo edición ZONA RECTÁNGULO, el click puntual se ignora (se usa drag)
-      if (callbacks.current.isZoneEditMode) return; 
+      if (callbacks.current.isZoneEditMode) {
+          console.log("Click ignorado por modo edición (esperando drag)");
+          return; 
+      }
       
       // Lógica estándar de click puntual (Marcadores Clínicos)
       
@@ -588,6 +598,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const intersect = intersects[0];
         const point = intersect.point;
         
+        console.log("Click válido en malla:", point);
+
         // Calcular normal en coordenadas mundiales
         const n = intersect.face ? intersect.face.normal.clone() : new THREE.Vector3(0,1,0);
         // Usar la matriz del objeto interceptado (la malla específica), no del grupo contenedor
@@ -601,6 +613,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const zoneDetectedName = getFacialZone(point, callbacks.current.zones);
         const registeredZone = callbacks.current.zones.find(z => z.name === zoneDetectedName);
         
+        console.log("Zona detectada:", zoneDetectedName, "Registrada:", !!registeredZone);
+
         let finalRadius = 0.6;
         let finalRotation = [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z];
         
@@ -609,6 +623,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             // @ts-ignore (Si scale no existe en la definición antigua, usar radius como cuadrado)
             const zoneScale = registeredZone.scale || { x: registeredZone.radius, y: registeredZone.radius };
             
+            console.log("Usando zona registrada:", registeredZone.name, zoneScale);
+
             callbacks.current.onMeshClick({
               position: { x: point.x, y: point.y, z: point.z },
               rotation: finalRotation,
@@ -621,6 +637,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             // Opcional: Si queremos que el preview ya se oriente como la zona final
             // finalRotation = registeredZone.rotation || finalRotation;
         }
+
+        console.log("Usando zona detectada (fallback)");
 
         callbacks.current.onMeshClick({
           position: { x: point.x, y: point.y, z: point.z },
