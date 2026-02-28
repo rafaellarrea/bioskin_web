@@ -1171,13 +1171,15 @@ export default function Clinical3D() {
         if (isZoneEditMode) {
             // AL CREAR ZONA (MODO REGISTRO): Guardamos posición y radio exactos del dibujo
             setPendingZone({
+                center: interactionData.position, // Mapear position -> center
+                radius: interactionData.radius,
                 rotation: interactionData.rotation,
                 scale: interactionData.scale, // Guardar escala rectangular Este ratio viene del cálculo del polígono
-                // IMPORTANTE: Guardar también la orientación para que se grafique igual
-                // rotation: interactionData.rotation // Duplicated property removed
+                points: interactionData.points // Guardar puntos del polígono irregular
             });
             setNewZoneName("");
         } else {
+            console.log("Setting pending marker:", interactionData);
             setPendingMarker({
                 ...interactionData,
                 pathologyId: selectedPathology,
