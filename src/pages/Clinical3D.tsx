@@ -63,7 +63,8 @@ interface Zone {
   name: string;
   center: { x: number, y: number, z: number };
   radius: number;
-  rotation?: number[]; // OPCIONAL: Guardar rotación personalizada
+  rotation?: number[];
+  scale?: { x: number, y: number }; // NUEVO: Ancho y Alto independientes
 }
 
 interface Marker {
@@ -75,6 +76,7 @@ interface Marker {
   normal: { x: number; y: number; z: number };
   zone: string;
   radius?: number; // Para zonas
+  scale?: { x: number, y: number }; // NUEVO
 }
 
 // Base de datos asíncrona simulada
@@ -251,30 +253,44 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       dummy.position.copy(center);
       dummy.lookAt(center.clone().add(normal));
       
-      // FIX: El cálculo del radio estaba siendo demasiado agresivo (usando maxDim completo).
-      // El "radius" en DecalGeometry se usa como [size.x, size.y, size.z].
-      // Si usamos maxDim como "radius", estamos dibujando un cuadrado del tamaño de la dimensión máxima.
-      // Pero si la zona es rectangular alargada, esto crea un cuadrado gigante.
-      // Además, el usuario reporta que sale "completamente diferente".
+      // FIX CRÍTICO: PRESERVAR RELACIÓN DE ASPECTO (RECTÁNGULOS VS CUADRADOS)
+      // El usuario quiere que si selecciona una zona rectangular (ej. nariz), se guarde rectangular.
       
-      // Vamos a calcular el radio proyectado promedio para tratar de ajustar mejor.
-      // Pero dado que nuestro sistema backend solo soporta (center, radius), 
-      // estamos limitados a formas "cuadradas/circulares". 
-      // La mejor aproximación es usar el promedio de las dimensiones X e Y (del plano cámara).
+      // Tenemos 'size' del bounding box global, pero necesitamos las dimensiones en el plano del decal.
+      // Vamos a proyectar todos los puntos al plano local del decal para encontrar el ancho/alto real relativo a la rotación.
       
-      const avgDim = (size.x + size.y) / 2;
+      let minLocalX = Infinity, maxLocalX = -Infinity;
+      let minLocalY = Infinity, maxLocalY = -Infinity;
       
-      // Reducimos un poco el factor de escala (0.8) para que no se salga tanto de los puntos
-      const radius = avgDim * 0.8; 
+      // Matriz inversa del decal para transformar puntos globales a locales
+      dummy.updateMatrixWorld();
+      const inverseMatrix = dummy.matrixWorld.clone().invert();
       
+      points.forEach(p => {
+          const localP = p.clone().applyMatrix4(inverseMatrix);
+          if (localP.x < minLocalX) minLocalX = localP.x;
+          if (localP.x > maxLocalX) maxLocalX = localP.x;
+          if (localP.y < minLocalY) minLocalY = localP.y;
+          if (localP.y > maxLocalY) maxLocalY = localP.y;
+      });
+      
+      const realWidth = maxLocalX - minLocalX;
+      const realHeight = maxLocalY - minLocalY;
+      
+      // Guardamos dimensiones explícitas en el objeto zone
+      // radius se mantiene como fallback o para cálculos de proximidad (usando la dimensión mayor)
+      const radius = Math.max(realWidth, realHeight) / 2; // Radio de detección
+
       // USAR REF CALLBACKS PARA EVITAR STALE CLOSURES
       if (callbacks.current && callbacks.current.onMeshClick) {
         callbacks.current.onMeshClick({
             position: { x: center.x, y: center.y, z: center.z },
-            rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z], // ROTACIÓN CORREGIDA
+            rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z],
             normal: { x: normal.x, y: normal.y, z: normal.z },
             zone: "Zona Poligonal",
-            radius: radius
+            radius: radius,
+            // NUEVO: Enviamos dimensiones específicas
+            scale: { x: realWidth, y: realHeight } 
         });
       }
       
@@ -585,8 +601,19 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         let finalRotation = [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z];
         
         if (registeredZone) {
-            // SI DETECTAMOS ZONA REGISTRADA: Usar sus parámetros visuales para el preview inmediato
-            finalRadius = registeredZone.radius;
+            // Usar escala rectangular guardada
+            // @ts-ignore (Si scale no existe en la definición antigua, usar radius como cuadrado)
+            const zoneScale = registeredZone.scale || { x: registeredZone.radius, y: registeredZone.radius };
+            
+            callbacks.current.onMeshClick({
+              position: { x: point.x, y: point.y, z: point.z },
+              rotation: finalRotation,
+              normal: { x: n.x, y: n.y, z: n.z },
+              zone: zoneDetectedName,
+              radius: finalRadius,
+              scale: zoneScale // Pasar escala al preview
+            });
+            return; // Salir temprano para no ejecutar el onMeshClick de abajo
             // Opcional: Si queremos que el preview ya se oriente como la zona final
             // finalRotation = registeredZone.rotation || finalRotation;
         }
@@ -826,15 +853,23 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         // Encontrar la malla objetivo real (ya que faceMesh puede ser un Grupo Pivote)
         let targetMesh: THREE.Mesh | null = null;
         if (faceMesh.type === 'Group' || faceMesh.type === 'Scene') {
-            faceMesh.traverse((child: any) => {
-                if (child.isMesh && !targetMesh) {
-                    targetMesh = child;
-                }
-            });
-        } else if ((faceMesh as any).isMesh) {
-            targetMesh = faceMesh as THREE.Mesh;
+           ACTUALIZACIÓN: Soporte para escala rectangular (width/height independientes)
+        
+        let width = 0.6;
+        let height = 0.6;
+        
+        if (marker.scale) {
+            width = marker.scale.x;
+            height = marker.scale.y;
+        } else if (marker.radius) {
+            width = marker.radius; // Fallback cuadrado
+            height = marker.radius;
         }
-
+        
+        // CORRECCIÓN DE PROFUNDIDAD (Z-FIGHTING Y DISTORSIÓN)
+        // Solución v3: Aumentar DRASTICAMENTE la profundidad (User request: "aun no es suficiente el volumen")
+        // Aumentamos a 1.5x el tamaño para asegurar que atraviese la nariz completa o pómulos prominentes
+        const depth = width * 1.5; // Usar el ancho como referencia para la profundidad
         if (!targetMesh) return;
 
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
@@ -1013,8 +1048,8 @@ export default function Clinical3D() {
         if (isZoneEditMode) {
             // AL CREAR ZONA (MODO REGISTRO): Guardamos posición y radio exactos del dibujo
             setPendingZone({
-                position: interactionData.position,
-                radius: interactionData.radius, // Este ratio viene del cálculo del polígono
+                rotation: interactionData.rotation,
+                scale: interactionData.scale // Guardar escala rectangular Este ratio viene del cálculo del polígono
                 // IMPORTANTE: Guardar también la orientación para que se grafique igual
                 rotation: interactionData.rotation
             });
@@ -1034,8 +1069,8 @@ export default function Clinical3D() {
     const newZone: Zone = {
         id: Date.now().toString(),
         name: newZoneName,
-        center: pendingZone.position,
-        radius: pendingZone.radius || 0.4,
+        rotation: pendingZone.rotation,
+        scale: pendingZone.scale || { x: 0.6, y: 0.6 } // Guardar escala.4,
         // NUEVO: Guardar rotación si existe (para polígonos orientados)
         rotation: pendingZone.rotation 
     };
@@ -1051,12 +1086,10 @@ export default function Clinical3D() {
     if (!pendingMarker) return;
     setIsSaving(true);
     
-    // Si la marcación es ZONAL, intentamos recuperar el radio registrado de esa zona específica
-    let markerToSave = { ...pendingMarker, type };
-    
-    if (type === 'Zonal') {
-        const zoneName = pendingMarker.zone;
-        // Buscar si existe una zona registrada con este nombre
+    // Si la marcación es ZONAL, intentamos recuperar el radio registrad (fallback)
+                position: registeredZone.center, 
+                rotation: registeredZone.rotation || markerToSave.rotation,
+                scale: registeredZone.scale // IMPORTANTE: Usar la forma rectangular registrada
         const registeredZone = zones.find(z => z.name === zoneName);
         
         if (registeredZone) {
