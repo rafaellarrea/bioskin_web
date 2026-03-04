@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Calendar, DollarSign, TrendingUp, TrendingDown, 
-  Trash2, Edit2, Check, X, FileText, PieChart, BarChart2 
+  Trash2, Edit2, Check, X, FileText, PieChart, BarChart2, Search, Filter 
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
@@ -29,12 +29,54 @@ const AdminFinance = () => {
   const [activeTab, setActiveTab] = useState<'Global' | 'Rafael' | 'Daniela'>('Global');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   
+  // New Filter & Selection State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'ingreso' | 'egreso'>('all');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<FinanceRecord>>({});
 
   useEffect(() => {
     fetchData();
   }, [activeTab, dateRange]);
+
+  // Derived State
+  const filteredRecords = records.filter(record => {
+    const searchLower = searchTerm.toLowerCase();
+    const searchMatch = 
+        record.entity.toLowerCase().includes(searchLower) ||
+        (record.description || '').toLowerCase().includes(searchLower) ||
+        (record.invoice_number || '').toLowerCase().includes(searchLower);
+        
+    const typeMatch = typeFilter === 'all' || record.type === typeFilter;
+    
+    return searchMatch && typeMatch;
+  });
+
+  const toggleSelection = (id: number) => {
+    setSelectedIds(prev => 
+        prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    if (selectedIds.length === filteredRecords.length) {
+        setSelectedIds([]);
+    } else {
+        setSelectedIds(filteredRecords.map(r => r.id));
+    }
+  };
+
+  const getSelectionMetrics = () => {
+    const selected = records.filter(r => selectedIds.includes(r.id));
+    return {
+        subtotal: selected.reduce((s, r) => s + parseFloat(String(r.subtotal || 0)), 0),
+        tax: selected.reduce((s, r) => s + parseFloat(String(r.tax || 0)), 0),
+        total: selected.reduce((s, r) => s + parseFloat(String(r.total || 0)), 0),
+        count: selected.length
+    };
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -73,18 +115,20 @@ const AdminFinance = () => {
   };
 
   const getMetrics = () => {
-    const totalIngresos = records
+    const sourceRecords = filteredRecords; // Usar registros filtrados para métricas dinámicas
+    
+    const totalIngresos = sourceRecords
       .filter(r => r.type === 'ingreso')
       .reduce((s, r) => s + parseFloat(String(r.total || 0)), 0);
       
-    const totalEgresos = records
+    const totalEgresos = sourceRecords
       .filter(r => r.type === 'egreso')
       .reduce((s, r) => s + parseFloat(String(r.total || 0)), 0);
 
-    const totalIVA = records
+    const totalIVA = sourceRecords
       .reduce((s, r) => s + parseFloat(String(r.tax || 0)), 0);
 
-    const totalSubtotal = records
+    const totalSubtotal = sourceRecords
       .reduce((s, r) => s + parseFloat(String(r.subtotal || 0)), 0);
 
     return { totalIngresos, totalEgresos, totalIVA, totalSubtotal };
@@ -177,22 +221,87 @@ const AdminFinance = () => {
         <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100 mb-6 flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2 text-gray-500">
             <Calendar size={18} />
-            <span className="font-medium">Rango de Fechas:</span>
+            <span className="font-medium text-sm">Fecha:</span>
           </div>
           <input 
             type="date" 
             value={dateRange.start}
             onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-            className="px-4 py-2 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
+            className="px-3 py-1.5 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
           />
           <span className="text-gray-300">→</span>
           <input 
             type="date" 
             value={dateRange.end}
             onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-            className="px-4 py-2 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
+            className="px-3 py-1.5 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
           />
+
+          <div className="h-6 w-px bg-gray-200 mx-2"></div>
+
+          <div className="flex items-center gap-2 text-gray-500">
+            <Filter size={18} />
+            <span className="font-medium text-sm">Tipo:</span>
+          </div>
+          <select 
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as any)}
+            className="px-3 py-1.5 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
+          >
+            <option value="all">Todos</option>
+            <option value="ingreso">Ingresos</option>
+            <option value="egreso">Egresos</option>
+          </select>
+
+          <div className="h-6 w-px bg-gray-200 mx-2"></div>
+
+          <div className="relative flex-1 min-w-[200px]">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Buscar por cliente, descripción, factura..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
+            />
+          </div>
         </div>
+
+        {/* Floating Summary Bar */}
+        {selectedIds.length > 0 && (
+          <motion.div 
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-4 rounded-full shadow-2xl z-50 flex items-center gap-8 border border-gray-700 backdrop-blur-md bg-opacity-95"
+          >
+            <div className="flex items-center gap-3 border-r border-gray-700 pr-6">
+              <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">{selectedIds.length}</span>
+              <span className="text-sm font-medium text-gray-300">Seleccionados</span>
+            </div>
+            
+            <div className="flex gap-6 text-sm">
+              <div>
+                <p className="text-gray-400 text-xs uppercase tracking-wider mb-0.5">Subtotal</p>
+                <p className="font-mono font-bold">${getSelectionMetrics().subtotal.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs uppercase tracking-wider mb-0.5">IVA</p>
+                <p className="font-mono font-bold text-yellow-400">${getSelectionMetrics().tax.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs uppercase tracking-wider mb-0.5">Total</p>
+                <p className="font-mono font-bold text-xl">${getSelectionMetrics().total.toFixed(2)}</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setSelectedIds([])}
+              className="ml-2 p-1.5 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <MetricCard 
@@ -272,6 +381,14 @@ const AdminFinance = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
+                  <th className="px-6 py-4 w-10">
+                    <input 
+                      type="checkbox" 
+                      onChange={selectAll}
+                      checked={selectedIds.length === filteredRecords.length && filteredRecords.length > 0}
+                      className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500 w-4 h-4 cursor-pointer"
+                    />
+                  </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Factura</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Entidad / Detalle</th>
@@ -285,20 +402,28 @@ const AdminFinance = () => {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                       <div className="animate-spin w-6 h-6 border-2 border-yellow-500 border-t-transparent rounded-full mx-auto mb-2"></div>
                       Cargando registros...
                     </td>
                   </tr>
-                ) : records.length === 0 ? (
+                ) : filteredRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                       No hay registros para este filtro.
                     </td>
                   </tr>
                 ) : (
-                  records.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50 transition-colors group">
+                  filteredRecords.map((record) => (
+                    <tr key={record.id} className={`hover:bg-gray-50 transition-colors group ${selectedIds.includes(record.id) ? 'bg-yellow-50/50' : ''}`}>
+                      <td className="px-6 py-4 text-center">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.includes(record.id)}
+                          onChange={() => toggleSelection(record.id)}
+                          className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500 w-4 h-4 cursor-pointer"
+                        />
+                      </td>
                       {editingId === record.id ? (
                         <EditRow 
                           data={editFormData} 
