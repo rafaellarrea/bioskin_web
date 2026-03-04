@@ -9,35 +9,14 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 
-import { taxRules } from '../data/taxRules';
+// Lógica de Tax exportada desde data/taxRules
+// Si prefieres mantenerla inline por simplicidad, puedes renombrarla o eliminar esta sección duplicada
+// pero para mantener coherencia con la nueva lógica avanzada en taxRules.ts, usaremos esa.
+import { deductibilityLogic } from '../data/taxRules';
 
-// Lógica de Tax integrada directamente en el componente para evitar problemas de importación
+// WRAPPER para usar la lógica importada en el componente
 const getDeductibility = (description: string = '', user: string = '') => {
-  // Lógica simple por defecto si no hay datos específicos
-  const lowerDesc = description.toLowerCase();
-  
-  // Reglas Rafael
-  if (user === 'Rafael') {
-      const business = ["repuesto", "herramienta", "cable", "equipo", "taller", "soldadura", "gasolina", "peaje", "internet"];
-      const personal = ["ropa", "cine", "restaurante", "supermaxi", "juguete"];
-      
-      if (business.some(k => lowerDesc.includes(k))) return { status: 'deductible', text: '✅ Deducible Negocio', color: 'text-emerald-700 bg-emerald-50' };
-      if (personal.some(k => lowerDesc.includes(k))) return { status: 'personal', text: '👤 Gasto Personal', color: 'text-blue-700 bg-blue-50' };
-  }
-  
-  // Reglas Daniela
-  if (user === 'Daniela') {
-      const business = ["insumo", "farmacia", "bata", "uniforme", "guante", "jeringa", "toxina", "consultorio", "alquiler"];
-      const personal = ["ropa", "cartera", "maquillaje", "restaurante", "colegio"];
-
-      if (business.some(k => lowerDesc.includes(k))) return { status: 'deductible', text: '✅ Deducible Negocio', color: 'text-emerald-700 bg-emerald-50' };
-      if (personal.some(k => lowerDesc.includes(k))) return { status: 'personal', text: '👤 Gasto Personal', color: 'text-blue-700 bg-blue-50' };
-  }
-
-  // Reglas Generales
-  if (lowerDesc.includes("comida") || lowerDesc.includes("restaurante")) return { status: 'warning', text: '⚠️ ¿Es reunión de negocios?', color: 'text-orange-700 bg-orange-50' };
-  
-  return null;
+  return deductibilityLogic(description, user);
 };
 
 interface FinanceRecord {
