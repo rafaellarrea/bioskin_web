@@ -70,12 +70,18 @@ const AdminFinance = () => {
 
   const getSelectionMetrics = () => {
     const selected = records.filter(r => selectedIds.includes(r.id));
-    return {
-        subtotal: selected.reduce((s, r) => s + parseFloat(String(r.subtotal || 0)), 0),
-        tax: selected.reduce((s, r) => s + parseFloat(String(r.tax || 0)), 0),
-        total: selected.reduce((s, r) => s + parseFloat(String(r.total || 0)), 0),
-        count: selected.length
-    };
+    
+    // Función auxiliar para sumar campos por tipo
+    const sum = (type: 'ingreso' | 'egreso', field: keyof FinanceRecord) => 
+        selected
+            .filter(r => r.type === type)
+            .reduce((s, r) => s + parseFloat(String(r[field] || 0)), 0);
+
+    const subtotal = sum('ingreso', 'subtotal') - sum('egreso', 'subtotal');
+    const tax = sum('ingreso', 'tax') - sum('egreso', 'tax');
+    const total = sum('ingreso', 'total') - sum('egreso', 'total');
+
+    return { subtotal, tax, total, count: selected.length };
   };
 
   const fetchData = async () => {
@@ -115,23 +121,23 @@ const AdminFinance = () => {
   };
 
   const getMetrics = () => {
-    const sourceRecords = filteredRecords; // Usar registros filtrados para métricas dinámicas
+    const sourceRecords = filteredRecords;
     
-    const totalIngresos = sourceRecords
-      .filter(r => r.type === 'ingreso')
-      .reduce((s, r) => s + parseFloat(String(r.total || 0)), 0);
-      
-    const totalEgresos = sourceRecords
-      .filter(r => r.type === 'egreso')
-      .reduce((s, r) => s + parseFloat(String(r.total || 0)), 0);
+    // Función auxiliar para sumar campos
+    const sum = (type: 'ingreso' | 'egreso', field: keyof FinanceRecord) => 
+      sourceRecords
+        .filter(r => r.type === type)
+        .reduce((s, r) => s + parseFloat(String(r[field] || 0)), 0);
 
-    const totalIVA = sourceRecords
-      .reduce((s, r) => s + parseFloat(String(r.tax || 0)), 0);
+    const totalIngresos = sum('ingreso', 'total');
+    const totalEgresos = sum('egreso', 'total');
+    
+    // Cálculo Neto: (Ingresos) - (Egresos)
+    const totalIVA = sum('ingreso', 'tax') - sum('egreso', 'tax');
+    const totalSubtotal = sum('ingreso', 'subtotal') - sum('egreso', 'subtotal');
+    const balanceTotal = totalIngresos - totalEgresos;
 
-    const totalSubtotal = sourceRecords
-      .reduce((s, r) => s + parseFloat(String(r.subtotal || 0)), 0);
-
-    return { totalIngresos, totalEgresos, totalIVA, totalSubtotal };
+    return { totalIngresos, totalEgresos, totalIVA, totalSubtotal, balanceTotal };
   };
 
   const metrics = getMetrics();
@@ -306,9 +312,9 @@ const AdminFinance = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <MetricCard 
             title="Balance Total" 
-            amount={metrics.totalIngresos - metrics.totalEgresos} 
+            amount={metrics.balanceTotal} 
             icon={DollarSign} 
-            color={metrics.totalIngresos >= metrics.totalEgresos ? "blue" : "red"} 
+            color={metrics.balanceTotal >= 0 ? "black" : "red"} 
           />
           <MetricCard 
             title="Ingresos" 
@@ -323,10 +329,10 @@ const AdminFinance = () => {
             color="red" 
           />
           <MetricCard 
-            title="Total IVA Agregado" 
+            title="Balance IVA" 
             amount={metrics.totalIVA} 
             icon={PieChart} 
-            color="orange" 
+            color={metrics.totalIVA >= 0 ? "orange" : "blue"} 
           />
         </div>
 
@@ -496,15 +502,16 @@ interface MetricCardProps {
   title: string;
   amount: number;
   icon: any;
-  color: 'blue' | 'green' | 'red' | 'orange';
+  color: 'blue' | 'green' | 'red' | 'orange' | 'black';
 }
 
 const MetricCard = ({ title, amount, icon: Icon, color }: MetricCardProps) => {
-  const colorStyles = {
+  const colorStyles: Record<string, string> = {
     blue: "text-blue-600 bg-blue-50 border-blue-100",
     green: "text-emerald-600 bg-emerald-50 border-emerald-100",
     red: "text-rose-600 bg-rose-50 border-rose-100",
-    orange: "text-orange-600 bg-orange-50 border-orange-100"
+    orange: "text-orange-600 bg-orange-50 border-orange-100",
+    black: "text-gray-800 bg-gray-50 border-gray-200"
   };
 
   return (
