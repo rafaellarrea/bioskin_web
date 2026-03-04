@@ -44,14 +44,17 @@ export const taxRules = {
   }
 };
 
-export const deductibilityLogic = (description, user) => {
+export const deductibilityLogic = (description: string, user: string) => {
   if (!user || user === 'Global') return { status: 'neutral', text: '' };
   
   // Normalizar nombre de usuario para match con reglas
   const userKey = user.includes('Rafael') ? 'Rafael' : (user.includes('Daniela') ? 'Daniela' : null);
-  if (!userKey || !taxRules.users[userKey]) return { status: 'neutral', text: '' };
+  
+  // Type assertion or check to ensure userKey is valid key of taxRules.users
+  // Since taxRules is inferred, we cast to any or just check existence safely
+  if (!userKey || !(taxRules.users as any)[userKey]) return { status: 'neutral', text: '' };
 
-  const rules = taxRules.users[userKey];
+  const rules = (taxRules.users as any)[userKey];
   const lowerDesc = description.toLowerCase();
   
   // 1. Check Deductible Keywords

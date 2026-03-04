@@ -141,9 +141,15 @@ const AdminFinance = () => {
     const totalIngresos = sum('ingreso', 'total');
     const totalEgresos = sum('egreso', 'total');
     
+    // Cálculo de valores específicos para SRI
+    const ivaIngresos = sum('ingreso', 'tax');
+    const ivaEgresos = sum('egreso', 'tax');
+    const subtotalIngresos = sum('ingreso', 'subtotal');
+    const subtotalEgresos = sum('egreso', 'subtotal');
+
     // Cálculo Neto: (Ingresos) - (Egresos)
-    const totalIVA = sum('ingreso', 'tax') - sum('egreso', 'tax');
-    const totalSubtotal = sum('ingreso', 'subtotal') - sum('egreso', 'subtotal');
+    const totalIVA = ivaIngresos - ivaEgresos;
+    const totalSubtotal = subtotalIngresos - subtotalEgresos;
     const balanceTotal = totalIngresos - totalEgresos;
 
     return { 
