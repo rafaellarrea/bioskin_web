@@ -3,12 +3,42 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Calendar, DollarSign, TrendingUp, TrendingDown, 
-  Trash2, Edit2, Check, X, FileText, PieChart, BarChart2, Search, Filter 
+  Trash2, Edit2, Check, X, FileText, PieChart, BarChart2, Search, Filter, Info 
 } from 'lucide-react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
-  PieChart as RechartsPieChart, Pie, Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer 
 } from 'recharts';
+
+import { taxRules } from '../data/taxRules';
+
+// Lógica de Tax integrada directamente en el componente para evitar problemas de importación
+const getDeductibility = (description: string = '', user: string = '') => {
+  // Lógica simple por defecto si no hay datos específicos
+  const lowerDesc = description.toLowerCase();
+  
+  // Reglas Rafael
+  if (user === 'Rafael') {
+      const business = ["repuesto", "herramienta", "cable", "equipo", "taller", "soldadura", "gasolina", "peaje", "internet"];
+      const personal = ["ropa", "cine", "restaurante", "supermaxi", "juguete"];
+      
+      if (business.some(k => lowerDesc.includes(k))) return { status: 'deductible', text: '✅ Deducible Negocio', color: 'text-emerald-700 bg-emerald-50' };
+      if (personal.some(k => lowerDesc.includes(k))) return { status: 'personal', text: '👤 Gasto Personal', color: 'text-blue-700 bg-blue-50' };
+  }
+  
+  // Reglas Daniela
+  if (user === 'Daniela') {
+      const business = ["insumo", "farmacia", "bata", "uniforme", "guante", "jeringa", "toxina", "consultorio", "alquiler"];
+      const personal = ["ropa", "cartera", "maquillaje", "restaurante", "colegio"];
+
+      if (business.some(k => lowerDesc.includes(k))) return { status: 'deductible', text: '✅ Deducible Negocio', color: 'text-emerald-700 bg-emerald-50' };
+      if (personal.some(k => lowerDesc.includes(k))) return { status: 'personal', text: '👤 Gasto Personal', color: 'text-blue-700 bg-blue-50' };
+  }
+
+  // Reglas Generales
+  if (lowerDesc.includes("comida") || lowerDesc.includes("restaurante")) return { status: 'warning', text: '⚠️ ¿Es reunión de negocios?', color: 'text-orange-700 bg-orange-50' };
+  
+  return null;
+};
 
 interface FinanceRecord {
   id: number;
@@ -479,9 +509,28 @@ const AdminFinance = () => {
                               {record.invoice_number || 'S/N'}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs group-hover:bg-white transition-colors relative">
                              <div className="font-semibold text-gray-800 truncate">{record.entity}</div>
                              <div className="text-xs text-gray-400 truncate">{record.description}</div>
+                             
+                             {/* AI Tax Advice Tooltip */}
+                             {record.type === 'egreso' && record.registered_by && (
+                                <div className="mt-1 flex items-center gap-1">
+                                  {(() => {
+                                      // Usar entidad y descripción para mejor match
+                                      const text = (record.entity + ' ' + (record.description || '')).toLowerCase();
+                                      const advice = getDeductibility(text, record.registered_by);
+                                      if (!advice) return null;
+                                      
+                                      return (
+                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border border-transparent ${advice.color}`}>
+                                          {advice.status === 'warning' && <Info size={10} className="mr-1"/>}
+                                          {advice.text}
+                                        </span>
+                                      );
+                                  })()}
+                                </div>
+                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
