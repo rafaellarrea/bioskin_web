@@ -137,7 +137,12 @@ const AdminFinance = () => {
     const totalSubtotal = sum('ingreso', 'subtotal') - sum('egreso', 'subtotal');
     const balanceTotal = totalIngresos - totalEgresos;
 
-    return { totalIngresos, totalEgresos, totalIVA, totalSubtotal, balanceTotal };
+    return { 
+        totalIngresos, totalEgresos, 
+        ivaIngresos, ivaEgresos, 
+        subtotalIngresos, subtotalEgresos,
+        balanceTotal, totalIVA 
+    };
   };
 
   const metrics = getMetrics();
@@ -147,10 +152,10 @@ const AdminFinance = () => {
     { name: 'Egresos', value: metrics.totalEgresos, fill: '#ef4444' }
   ];
 
-  const taxData = [
-    { name: 'Subtotal Net', value: metrics.totalSubtotal, fill: '#3b82f6' },
-    { name: 'Impuestos (IVA)', value: metrics.totalIVA, fill: '#f59e0b' }
-  ];
+  /* 
+   * REMOVED: Broken Pie Chart Visualization 
+   * REPLACED WITH: SRI Fiscal Analysis Card
+   */
 
   const startEdit = (record: FinanceRecord) => {
     setEditingId(record.id);
@@ -354,30 +359,56 @@ const AdminFinance = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Flag_of_Ecuador.svg/800px-Flag_of_Ecuador.svg.png" className="w-16 grayscale" alt="Ecuador" />
+            </div>
+            
             <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <PieChart size={20} className="text-gray-400" /> Composición Fiscal
+              <PieChart size={20} className="text-gray-400" /> Reporte Fiscal (SRI)
             </h3>
-            <div className="h-64 flex justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={taxData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {taxData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <Legend verticalAlign="bottom" height={36}/>
-                </RechartsPieChart>
-              </ResponsiveContainer>
+            
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">IVA Cobrado (Ventas)</p>
+                  <p className="text-xs text-gray-400">Débito Fiscal</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-800">${metrics.ivaIngresos.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">IVA Pagado (Compras)</p>
+                  <p className="text-xs text-gray-400">Crédito Tributario</p>
+                </div>
+                <div className="text-right">
+                   <p className="text-lg font-bold text-emerald-600">-${metrics.ivaEgresos.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className={`p-4 rounded-xl border ${metrics.totalIVA >= 0 ? 'bg-orange-50 border-orange-100' : 'bg-blue-50 border-blue-100'}`}>
+                <div className="flex justify-between items-center mb-1">
+                   <p className={`text-sm font-bold ${metrics.totalIVA >= 0 ? 'text-orange-700' : 'text-blue-700'}`}>
+                     {metrics.totalIVA >= 0 ? 'IMPUESTO A PAGAR' : 'CRÉDITO A FAVOR'}
+                   </p>
+                   <p className={`text-2xl font-bold ${metrics.totalIVA >= 0 ? 'text-orange-700' : 'text-blue-700'}`}>
+                     ${Math.abs(metrics.totalIVA).toFixed(2)}
+                   </p>
+                </div>
+                <p className="text-xs opacity-75 leading-tight">
+                  {metrics.totalIVA >= 0 
+                    ? 'Debes declarar y pagar este valor al SRI.' 
+                    : 'Saldo a favor para descontar de impuestos futuros.'}
+                </p>
+              </div>
+
+              <div className="text-[10px] text-gray-400 bg-gray-50 p-3 rounded-lg leading-relaxed">
+                ℹ️ <strong>Nota SRI (Ecuador):</strong> El crédito tributario aplica solo si las compras están vinculadas a ventas gravadas con tarifa 15%. 
+                Si tus ventas son 0% (servicios médicos puros), el IVA de compras debe registrarse como "Gasto Deducible" en lugar de crédito.
+              </div>
             </div>
           </div>
         </div>
