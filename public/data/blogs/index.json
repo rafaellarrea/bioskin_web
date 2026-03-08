@@ -1,0 +1,543 @@
+{
+  "lastUpdated": "2026-02-19T00:11:25.680Z",
+  "total": 17,
+  "organized": 17,
+  "legacy": 0,
+  "blogs": [
+    {
+      "id": "blog-1762468562214",
+      "title": "Luminosidad y Firmeza: El Poder del IPL y la Radiofrecuencia Bipolar",
+      "slug": "ipl-radiofrecuencia-bipolar-beneficios",
+      "category": "tecnologia-estetica",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2026-02-18T09:00:00.000Z",
+      "savedAt": "2026-02-19T00:11:25.679Z",
+      "readTime": 4,
+      "tags": [
+        "IPL",
+        "radiofrecuencia bipolar",
+        "lifting sin cirugía",
+        "facial glow"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/ipl-radiofrecuencia-bipolar-beneficios/index.json",
+        "images": "public/images/blog/rf-ipl/",
+        "metadata": "src/data/blogs/ipl-radiofrecuencia-bipolar-beneficios/metadata.json"
+      },
+      "images": [],
+      "status": "published"
+    },
+    {
+      "id": "blog-1762468562213",
+      "title": "Analizador Facial Inteligente: ¿Qué dice realmente tu piel?",
+      "slug": "analizador-facial-inteligente-diagnostico",
+      "category": "tecnologia-estetica",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2026-02-15T15:30:00.000Z",
+      "savedAt": "2026-02-19T00:05:05.518Z",
+      "readTime": 4,
+      "tags": [
+        "diagnóstico facial",
+        "inteligencia artificial",
+        "skincare científico",
+        "BIOSKIN"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/analizador-facial-inteligente-diagnostico/index.json",
+        "images": "public/images/blog/analizador-facial/",
+        "metadata": "src/data/blogs/analizador-facial-inteligente-diagnostico/metadata.json"
+      },
+      "images": [],
+      "status": "published"
+    },
+    {
+      "id": "blog-1762468562212",
+      "title": "Láser CO2 Fraccionado: El Estándar de Oro para Renovar tu Piel",
+      "slug": "laser-co2-fraccionado-bioskin",
+      "category": "tecnologia-estetica",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2026-02-10T10:00:00.000Z",
+      "savedAt": "2026-02-19T00:00:47.551Z",
+      "readTime": 5,
+      "tags": [
+        "láser CO2",
+        "rejuvenecimiento",
+        "cicatrices acné",
+        "tecnología BIOSKIN"
+      ],
+      "featured": true,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/laser-co2-fraccionado-bioskin/index.json",
+        "images": "public/images/blog/laser-co2/",
+        "metadata": "src/data/blogs/laser-co2-fraccionado-bioskin/metadata.json"
+      },
+      "images": [],
+      "status": "published"
+    },
+    {
+      "id": "blog-1764626204727",
+      "title": "Tratamientos Preventivos: La Clave para una Belleza Sostenible",
+      "slug": "tratamientos-1764626204685",
+      "category": "medico-estetico",
+      "author": "IA Local (BIOSKIN)",
+      "publishedAt": "2025-12-01T21:56:44.728Z",
+      "savedAt": "2025-12-01T21:56:44.728Z",
+      "readTime": 5,
+      "tags": [
+        "medico-estetico",
+        "bioskin"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/tratamientos-1764626204685/index.json",
+        "images": "public/images/blog/tratamientos-1764626204685/",
+        "metadata": "src/data/blogs/tratamientos-1764626204685/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762479081757",
+      "title": "Cuidado Personalizado: Cómo la Inteligencia Artificial Está Transformando los Tratamientos Estéticos",
+      "slug": "cuidado-1762479081670",
+      "category": "tecnico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-07T01:31:21.757Z",
+      "savedAt": "2025-11-07T01:31:21.757Z",
+      "readTime": 5,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tecnología médica",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/cuidado-1762479081670/index.json",
+        "images": "public/images/blog/cuidado-1762479081670/",
+        "metadata": "src/data/blogs/cuidado-1762479081670/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/cuidado-1762479081670/img-1762479081694.png",
+          "name": "6302de44-ee52-4c5b-aeb8-bbc5d2a3a924.png",
+          "id": 1762479081759,
+          "blogSlug": "cuidado-1762479081670",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762474307606",
+      "title": "Plasma Rico en Plaquetas (PRP): La Terapia Regenerativa que Transforma la Piel",
+      "slug": "plasma-1762474307525",
+      "category": "tecnico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-07T00:11:47.606Z",
+      "savedAt": "2025-11-07T00:11:47.606Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tecnología médica",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/plasma-1762474307525/index.json",
+        "images": "public/images/blog/plasma-1762474307525/",
+        "metadata": "src/data/blogs/plasma-1762474307525/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/plasma-1762474307525/img-1762474307572.png",
+          "name": "4993aea9-107f-471e-ab01-2d77ed3c2588.png",
+          "id": 1762474307609,
+          "blogSlug": "plasma-1762474307525",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762473538282",
+      "title": "Cuidado de la Piel Post-Tratamiento: Cómo Maximizar Resultados en BIOSKIN",
+      "slug": "cuidado-1762473538084",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T23:58:58.282Z",
+      "savedAt": "2025-11-06T23:58:58.282Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/cuidado-1762473538084/index.json",
+        "images": "public/images/blog/cuidado-1762473538084/",
+        "metadata": "src/data/blogs/cuidado-1762473538084/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/cuidado-1762473538084/img-1762473538250.png",
+          "name": "476be7ab-4b96-43c4-b604-d9d0c7e0de7d.png",
+          "id": 1762473538288,
+          "blogSlug": "cuidado-1762473538084",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762468562211",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-1762468562142",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:36:02.211Z",
+      "savedAt": "2025-11-06T22:36:02.211Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-1762468562142/index.json",
+        "images": "public/images/blog/hilos-1762468562142/",
+        "metadata": "src/data/blogs/hilos-1762468562142/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-1762468562142/img-1762468562186.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762468562213,
+          "blogSlug": "hilos-1762468562142",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762467899396",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-1762467899258",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:24:59.396Z",
+      "savedAt": "2025-11-06T22:24:59.396Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-1762467899258/index.json",
+        "images": "public/images/blog/hilos-1762467899258/",
+        "metadata": "src/data/blogs/hilos-1762467899258/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-1762467899258/img-1762467899333.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762467899397,
+          "blogSlug": "hilos-1762467899258",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762467046157",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-1762467045563",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:10:46.157Z",
+      "savedAt": "2025-11-06T22:10:46.157Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-tensores-la-1762467045563/index.json",
+        "images": "public/images/blog/hilos-tensores-la-1762467045563/",
+        "metadata": "src/data/blogs/hilos-tensores-la-1762467045563/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-tensores-la-1762467045563/img-1762467045993.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762467046158,
+          "blogSlug": "hilos-tensores-la-1762467045563",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762466476184",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-1762466476116",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T22:01:16.184Z",
+      "savedAt": "2025-11-06T22:01:16.184Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-tensores-la-1762466476116/index.json",
+        "images": "public/images/blog/hilos-tensores-la-1762466476116/",
+        "metadata": "src/data/blogs/hilos-tensores-la-1762466476116/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-tensores-la-1762466476116/2b7a349adece49e9b566be38b41dc445-1762466476161.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762466476186,
+          "blogSlug": "hilos-tensores-la-1762466476116",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762465864847",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-1762465853576",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T21:51:04.847Z",
+      "savedAt": "2025-11-06T21:51:04.847Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-tensores-la-1762465853576/index.json",
+        "images": "public/images/blog/hilos-tensores-la-1762465853576/",
+        "metadata": "src/data/blogs/hilos-tensores-la-1762465853576/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/hilos-tensores-la-1762465853576/2b7a349adece49e9b566be38b41dc445-1762465864834.png",
+          "name": "2b7a349a-dece-49e9-b566-be38b41dc445.png",
+          "id": 1762465864848,
+          "blogSlug": "hilos-tensores-la-1762465853576",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762465076471",
+      "title": "Hilos Tensores: La Solución Efectiva para la Flacidez Facial",
+      "slug": "hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T21:37:56.471Z",
+      "savedAt": "2025-11-06T21:37:56.471Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739/index.json",
+        "images": "public/images/blog/hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739/",
+        "metadata": "src/data/blogs/hilos-tensores-la-solucion-efectiva-para-la-flacidez-facial-1762465073739/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762464842315",
+      "title": "Hilos Tensores: La Revolución en el Rejuvenecimiento Facial",
+      "slug": "hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T21:34:02.315Z",
+      "savedAt": "2025-11-06T21:34:02.315Z",
+      "readTime": 4,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285/index.json",
+        "images": "public/images/blog/hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285/",
+        "metadata": "src/data/blogs/hilos-tensores-la-revolucion-en-el-rejuvenecimiento-facial-1762464837285/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1762462376264",
+      "title": "Radiofrecuencia Bipolar: Remodelación Facial de Alta Eficacia en BIOSKIN",
+      "slug": "radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702",
+      "category": "medico-estetico",
+      "author": "BIOSKIN IA",
+      "publishedAt": "2025-11-06T20:52:56.264Z",
+      "savedAt": "2025-11-06T20:52:56.264Z",
+      "readTime": 5,
+      "tags": [
+        "bioskin",
+        "medicina estética",
+        "tratamiento estético",
+        "innovación médica",
+        "cuidado de la piel"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702/index.json",
+        "images": "public/images/blog/radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702/",
+        "metadata": "src/data/blogs/radiofrecuencia-bipolar-remodelacion-facial-de-alta-eficacia-en-bioskin-1762462353702/metadata.json"
+      },
+      "images": [],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1761610703382",
+      "title": "Mesoterapia Facial: Un Tratamiento Estrella para una Piel Radiante",
+      "slug": "mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante",
+      "category": "medico-estetico",
+      "author": "BIOSKIN Médico",
+      "publishedAt": "2025-10-28T00:18:23.382Z",
+      "savedAt": "2025-10-28T00:35:37.379Z",
+      "readTime": 4,
+      "tags": [
+        "medicina estética",
+        "tratamientos",
+        "BIOSKIN",
+        "rejuvenecimiento",
+        "hialurónico",
+        "mesoterapia"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/index.json",
+        "images": "public/images/blog/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/",
+        "metadata": "src/data/blogs/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante/mesoterapia-1761611718209.png",
+          "name": "mesoterapia.png",
+          "id": 1761611718252,
+          "blogSlug": "mesoterapia-facial-un-tratamiento-estrella-para-una-piel-radiante",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "blog-1761606960968",
+      "title": "Peeling Químico vs Tratamientos Láser: ¿Cuál es la mejor opción para tu piel?",
+      "slug": "peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel",
+      "category": "medico-estetico",
+      "author": "BIOSKIN Médico",
+      "publishedAt": "2025-10-27T23:16:00.968Z",
+      "savedAt": "2025-10-27T23:17:19.049Z",
+      "readTime": 4,
+      "tags": [
+        "medicina estética",
+        "tratamientos",
+        "BIOSKIN",
+        "rejuvenecimiento",
+        "láser",
+        "peeling"
+      ],
+      "featured": false,
+      "source": "local-generator",
+      "structure": "organized",
+      "paths": {
+        "blog": "/data/blogs/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/index.json",
+        "images": "public/images/blog/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/",
+        "metadata": "src/data/blogs/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/metadata.json"
+      },
+      "images": [
+        {
+          "url": "/images/blog/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/laserpeeling-1761606983291.png",
+          "name": "laserPeeling.png",
+          "id": 1761606983467,
+          "blogSlug": "peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel",
+          "isOrganized": true
+        }
+      ],
+      "status": "draft"
+    }
+  ]
+}

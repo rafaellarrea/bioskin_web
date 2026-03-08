@@ -1,0 +1,36 @@
+{
+  "id": "blog-1761606960968",
+  "title": "Peeling Químico vs Tratamientos Láser: ¿Cuál es la mejor opción para tu piel?",
+  "slug": "peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel",
+  "category": "medico-estetico",
+  "author": "BIOSKIN Médico",
+  "publishedAt": "2025-10-27T23:16:00.968Z",
+  "savedAt": "2025-10-27T23:17:19.049Z",
+  "readTime": 4,
+  "tags": [
+    "medicina estética",
+    "tratamientos",
+    "BIOSKIN",
+    "rejuvenecimiento",
+    "láser",
+    "peeling"
+  ],
+  "featured": false,
+  "source": "local-generator",
+  "structure": "organized",
+  "paths": {
+    "blog": "src/data/blogs/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/index.json",
+    "images": "public/images/blog/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/",
+    "metadata": "src/data/blogs/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/metadata.json"
+  },
+  "images": [
+    {
+      "url": "/images/blog/peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel/laserpeeling-1761606983291.png",
+      "name": "laserPeeling.png",
+      "id": 1761606983467,
+      "blogSlug": "peeling-quimico-vs-tratamientos-laser-cual-es-la-mejor-opcion-para-tu-piel",
+      "isOrganized": true
+    }
+  ],
+  "status": "draft"
+}

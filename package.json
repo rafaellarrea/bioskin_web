@@ -27,6 +27,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.26",
+    "fs-extra": "^11.3.4",
     "googleapis": "^149.0.0",
     "lucide-react": "^0.344.0",
     "node-fetch": "^3.3.2",
