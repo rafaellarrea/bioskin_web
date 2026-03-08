@@ -254,6 +254,61 @@
       }
     }
 
+    async function downloadBackup(btn) {
+      if (!confirm('¿Desea generar y descargar una copia completa de la base de datos?')) return;
+
+      const originalText = btn.innerHTML;
+      btn.style.opacity = '0.7';
+      btn.style.cursor = 'wait';
+      
+      try {
+        if (!sessionToken) {
+          alert('No hay sesión activa');
+          return;
+        }
+
+        const response = await fetch('/api/backup', {
+          headers: {
+            'Authorization': `Bearer ${sessionToken}`
+          }
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'Error en la descarga');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Try to get filename
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'bioskin-backup.json';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+            if (filenameMatch.length === 2)
+                filename = filenameMatch[1];
+        }
+
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        alert('✅ Copia de seguridad descargada correctamente');
+
+      } catch (error) {
+        console.error('Download failed:', error);
+        alert('❌ Error al descargar copia de seguridad: ' + error.message);
+      } finally {
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      }
+    }
+
     async function logout() {
       try {
         await fetch(`${AUTH_API}?action=logout`, {
@@ -310,6 +365,14 @@
             Reportes detallados y análisis de rendimiento del sistema
           </div>
         </a>
+
+        <div class="card" onclick="downloadBackup(this)">
+            <div class="card-icon">💾</div>
+            <div class="card-title">Copia de Seguridad</div>
+            <div class="card-description">
+              Descargar base de datos completa (Fichas, Finanzas, Chatbot)
+            </div>
+        </div>
 
         <div class="card" onclick="openSystemHealth()">
             <div class="card-icon">🏥</div>
