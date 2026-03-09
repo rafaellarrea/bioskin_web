@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [downloadingBackup, setDownloadingBackup] = useState(false);
 
   // Health Check States
   const [showHealthModal, setShowHealthModal] = useState(false);
@@ -187,6 +188,57 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
+  const downloadBackup = async () => {
+    if (!window.confirm('¿Desea descargar una copia completa de la base de datos (Fichas, Finanzas, Chatbot)?')) return;
+    
+    setDownloadingBackup(true);
+    try {
+      const sessionToken = localStorage.getItem('adminSessionToken');
+      if (!sessionToken) {
+        alert('No hay sesión activa');
+        return;
+      }
+
+      const response = await fetch('/api/backup', {
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`
+        }
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Error en la descarga');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'bioskin-backup.json';
+      if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+          if (filenameMatch && filenameMatch.length === 2)
+              filename = filenameMatch[1];
+      }
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      alert('✅ Copia de seguridad descargada correctamente');
+
+    } catch (error: any) {
+      console.error('Download failed:', error);
+      alert('❌ Error al descargar copia de seguridad: ' + error.message);
+    } finally {
+      setDownloadingBackup(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -220,6 +272,8 @@ export default function AdminDashboard() {
       path: '/admin/appointment',
       color: 'from-orange-500 to-orange-600'
     },
+    // Monitor removed
+    /*
     {
       title: 'Monitor de Actividad',
       description: 'Visualiza estadísticas y webhooks en tiempo real',
@@ -227,6 +281,7 @@ export default function AdminDashboard() {
       path: '/admin/monitor',
       color: 'from-purple-500 to-purple-600'
     },
+    */
     {
       title: 'Estadísticas',
       description: 'Análisis detallado del rendimiento del chatbot',
@@ -447,6 +502,59 @@ export default function AdminDashboard() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-6">
                 <Activity className="w-8 h-8 text-white" />
               </div>
+
+              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                Estado del Sistema
+              </h3>
+              
+              <p className="text-gray-600 leading-relaxed">
+                Diagnóstico de API, Calendar y SMTP
+              </p>
+
+              <div className="mt-6 flex items-center text-emerald-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>Verificar</span>
+                <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          {/* Backup Card */}
+          <button
+            onClick={downloadBackup}
+            disabled={downloadingBackup}
+            className="group relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-10 transition-opacity" />
+            
+            <div className="relative p-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 mb-6">
+                {downloadingBackup ? (
+                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <ClipboardList className="w-8 h-8 text-white" />
+                )}
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                Gestión de Base de Datos
+              </h3>
+              
+              <p className="text-gray-600 leading-relaxed">
+                Descargar respaldo completo (Fichas, Finanzas, Chatbot)
+              </p>
+
+              <div className="mt-6 flex items-center text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>{downloadingBackup ? 'Descargando...' : 'Descargar'}</span>
+                <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
               
               <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#deb887] transition-colors">
                 Estado del Sistema
