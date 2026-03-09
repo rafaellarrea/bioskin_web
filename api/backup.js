@@ -39,10 +39,31 @@ export default async function handler(req, res) {
         try {
             const patientsRes = await pool.query('SELECT * FROM patients LIMIT 1000');
             const recordsRes = await pool.query('SELECT * FROM clinical_records LIMIT 5000');
+            
+            // Detailed Clinical Data
+            const medicalHistoryRes = await pool.query('SELECT * FROM medical_history LIMIT 5000');
+            const consultationInfoRes = await pool.query('SELECT * FROM consultation_info LIMIT 5000');
+            const consultationHistoryRes = await pool.query('SELECT * FROM consultation_history LIMIT 5000');
+            const physicalExamsRes = await pool.query('SELECT * FROM physical_exams LIMIT 5000');
+            const diagnosesRes = await pool.query('SELECT * FROM diagnoses LIMIT 5000');
+            const treatmentsRes = await pool.query('SELECT * FROM treatments LIMIT 5000');
+            const prescriptionsRes = await pool.query('SELECT * FROM prescriptions LIMIT 5000');
+            const consentFormsRes = await pool.query('SELECT * FROM consent_forms LIMIT 5000');
+
             backupData.modules.patients = {
                 count: patientsRes.rows.length,
                 data: patientsRes.rows,
-                records: recordsRes.rows
+                records: recordsRes.rows,
+                details: {
+                    medical_history: medicalHistoryRes.rows,
+                    consultation_info: consultationInfoRes.rows,
+                    consultation_history: consultationHistoryRes.rows,
+                    physical_exams: physicalExamsRes.rows,
+                    diagnoses: diagnosesRes.rows,
+                    treatments: treatmentsRes.rows,
+                    prescriptions: prescriptionsRes.rows,
+                    consent_forms: consentFormsRes.rows
+                }
             };
         } catch (e) {
             console.error('Error backing up patients:', e);
