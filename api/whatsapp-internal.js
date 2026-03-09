@@ -40,6 +40,7 @@ import {
 } from '../lib/appointment-state-machine.js';
 import { notifyNewConversation } from '../lib/admin-notifications.js';
 import { processInternalChatMessage } from '../lib/internal-chat-service.js';
+import { handleFinanceMessage } from '../lib/finance-bot-handler.js';
 
 // Flag para controlar si usar fallback
 // Comenzar intentando Neon, caer a fallback si hay timeout
@@ -351,6 +352,28 @@ async function processWhatsAppMessage(body) {
     const changes = entry?.changes?.[0];
     const value = changes?.value;
     const message = value?.messages?.[0];
+
+    // 💰 FINANCE BOT CHECK (Ing. Rafael & Dra. Daniela)
+    if (message) {
+      try {
+        const from = message.from;
+        const msgType = message.type;
+        const msgBody = message.text?.body || '';
+        
+        const financeResult = await handleFinanceMessage(from, msgBody, msgType, body);
+        
+        if (financeResult && financeResult.handled) {
+          console.log('💰 [FinanceBot] Mensaje manejado por el bot financiero');
+          if (financeResult.response) {
+            await sendWhatsAppMessage(from, financeResult.response);
+          }
+          return; // Detener procesamiento del bot normal
+        }
+      } catch (finErr) {
+        console.error('❌ Error en FinanceBot:', finErr);
+        // Continuar con flujo normal si falla
+      }
+    }
 
     // Ignorar webhooks de estado (sent, delivered, read)
     if (!message && value?.statuses) {
