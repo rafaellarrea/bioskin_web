@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     // 1. Patients & Clinical Records
     if (selectedModules.includes('patients')) {
         try {
-            const patientsRes = await sql`SELECT * FROM clinical_patients LIMIT 1000`;
+            const patientsRes = await sql`SELECT * FROM patients LIMIT 1000`;
             const recordsRes = await sql`SELECT * FROM clinical_records LIMIT 5000`;
             backupData.modules.patients = {
                 count: patientsRes.rows.length,
@@ -54,9 +54,11 @@ export default async function handler(req, res) {
     // 2. Finance
     if (selectedModules.includes('finance')) {
          try {
-            // Check if tables exist first or wrap in try/catch
-            // Fallback since table names might vary
-             backupData.modules.finance = { note: 'Finance tables backup requires explicit table mapping.' };
+            const financeRes = await sql`SELECT * FROM external_finance_records LIMIT 5000`;
+             backupData.modules.finance = {
+                count: financeRes.rows.length,
+                records: financeRes.rows
+            };
         } catch (e) {
              backupData.modules.finance = { note: 'Finance tables not found or accessible', details: e.message };
         }
