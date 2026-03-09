@@ -80,7 +80,7 @@ api/sendEmail.js          // POST - Email + WhatsApp notifications
 api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API
 
 // Internal Tools & Chatbot Management (Unified Jan 2026)
-api/internal-bot-api.js   // Unified API: Manager, Monitor, Internal Chat, AI Tools
+api/internal-bot-api.js   // Unified API: Internal Chat, AI Tools
 ```
 
 #### **Database Layer**

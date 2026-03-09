@@ -1,18 +1,12 @@
 
-import { sql } from '@vercel/postgres';
+import { getPool } from '../lib/neon-clinical-db.js';
 import adminAuth from './admin-auth.js';
 
 // Helper to verify session reuse from admin-auth
-// We'll reimplement basic verification since we can't easily import from the default export in admin-auth if it's not structured for it
-// But better: Let's reuse the admin-auth logic if possible or just check the token against the known secret/logic
 const verifyToken = async (req) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
     const token = authHeader.split(' ')[1];
-    
-    // Simple check: In a real app we'd verify JWT or DB session. 
-    // Assuming admin-auth handles login and issues a token. 
-    // For now, we trust the client knows the token. 
     return !!token; 
 };
 
@@ -27,6 +21,11 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    const pool = getPool();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection not configured' });
+    }
+
     const { modules } = req.query; // 'patients,finance,chat,inventory'
     const selectedModules = modules ? modules.split(',') : ['patients', 'finance', 'chat', 'inventory'];
 
@@ -38,8 +37,8 @@ export default async function handler(req, res) {
     // 1. Patients & Clinical Records
     if (selectedModules.includes('patients')) {
         try {
-            const patientsRes = await sql`SELECT * FROM patients LIMIT 1000`;
-            const recordsRes = await sql`SELECT * FROM clinical_records LIMIT 5000`;
+            const patientsRes = await pool.query('SELECT * FROM patients LIMIT 1000');
+            const recordsRes = await pool.query('SELECT * FROM clinical_records LIMIT 5000');
             backupData.modules.patients = {
                 count: patientsRes.rows.length,
                 data: patientsRes.rows,
@@ -54,7 +53,7 @@ export default async function handler(req, res) {
     // 2. Finance
     if (selectedModules.includes('finance')) {
          try {
-            const financeRes = await sql`SELECT * FROM external_finance_records LIMIT 5000`;
+            const financeRes = await pool.query('SELECT * FROM external_finance_records LIMIT 5000');
              backupData.modules.finance = {
                 count: financeRes.rows.length,
                 records: financeRes.rows
@@ -67,8 +66,8 @@ export default async function handler(req, res) {
     // 3. Chat History (Internal Bot)
     if (selectedModules.includes('chats')) {
         try {
-            const conversations = await sql`SELECT * FROM internal_bot_conversations LIMIT 500`;
-            const messages = await sql`SELECT * FROM internal_bot_messages ORDER BY created_at DESC LIMIT 2000`;
+            const conversations = await pool.query('SELECT * FROM internal_bot_conversations LIMIT 500');
+            const messages = await pool.query('SELECT * FROM internal_bot_messages ORDER BY created_at DESC LIMIT 2000');
             backupData.modules.chats = {
                 conversations: conversations.rows,
                 messages: messages.rows

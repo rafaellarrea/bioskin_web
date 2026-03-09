@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid } from 'lucide-react';
+import { BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 interface UpcomingAppointment {
@@ -264,13 +264,6 @@ export default function AdminDashboard() {
   }
 
   const menuItems = [
-    {
-      title: 'Gestión de Chats',
-      description: 'Responde y administra conversaciones de WhatsApp',
-      icon: MessageSquare,
-      path: '/admin/chats',
-      color: 'from-blue-500 to-blue-600'
-    },
     {
       title: 'Gestión de Agenda',
       description: 'Visualiza y administra citas del calendario',
