@@ -5,7 +5,7 @@
     { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
-    "api/whatsapp-chatbot.js": {
+    "api/whatsapp-internal.js": {
       "maxDuration": 60,
       "includeFiles": "lib/**"
     },
