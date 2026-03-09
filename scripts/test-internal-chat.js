@@ -44,17 +44,17 @@ async function testInternalChat() {
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
-      AND table_name IN ('chat_conversations', 'chat_messages');
+      AND table_name IN ('internal_bot_conversations', 'internal_bot_messages');
     `);
     
     const tables = res.rows.map(r => r.table_name);
     console.log('  Found tables:', tables);
 
-    if (!tables.includes('chat_conversations')) {
-      console.warn('  ⚠️ Table chat_conversations MISSING!');
+    if (!tables.includes('internal_bot_conversations')) {
+      console.warn('  ⚠️ Table internal_bot_conversations MISSING!');
     }
-    if (!tables.includes('chat_messages')) {
-      console.warn('  ⚠️ Table chat_messages MISSING!');
+    if (!tables.includes('internal_bot_messages')) {
+      console.warn('  ⚠️ Table internal_bot_messages MISSING!');
     }
 
     client.release();

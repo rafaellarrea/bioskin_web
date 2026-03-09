@@ -231,7 +231,7 @@ async function handleInternalChatEndpoints(req, res, action) {
         // List all internal conversations
         const result = await sql`
           SELECT session_id, last_message_at, total_messages, user_info
-          FROM chat_conversations 
+          FROM internal_bot_conversations 
           WHERE session_id LIKE 'internal_%'
           ORDER BY last_message_at DESC
           LIMIT 50
@@ -243,7 +243,7 @@ async function handleInternalChatEndpoints(req, res, action) {
         // Get messages for a specific session
         const result = await sql`
           SELECT role, content, timestamp
-          FROM chat_messages 
+          FROM internal_bot_messages 
           WHERE session_id = ${sessionId}
           ORDER BY timestamp ASC
         `;
@@ -263,7 +263,7 @@ async function handleInternalChatEndpoints(req, res, action) {
     if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
 
     try {
-      await sql`DELETE FROM chat_conversations WHERE session_id = ${sessionId}`;
+      await sql`DELETE FROM internal_bot_conversations WHERE session_id = ${sessionId}`;
       return res.status(200).json({ success: true });
     } catch (error) {
       console.error('DELETE Error:', error);

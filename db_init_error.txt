@@ -1,0 +1,7 @@
+ERROR: ❌ NEON_DATABASE_URL no está configurado en las variables de entorno
+Error: ❌ NEON_DATABASE_URL no está configurado en las variables de entorno
+    at initializeDatabase (file:///C:/Users/USUARIO/Documents/documentos_respaldo/BIO%20SKIN/BIOTECH/WEBSITE/3.0/scripts/init-internal-bot-db.js:18:13)
+    at file:///C:/Users/USUARIO/Documents/documentos_respaldo/BIO%20SKIN/BIOTECH/WEBSITE/3.0/scripts/init-internal-bot-db.js:41:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)

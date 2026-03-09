@@ -9,12 +9,12 @@ async function clearChatDatabase() {
   try {
     // 1. Eliminar mensajes
     console.log('🗑️ Eliminando mensajes...');
-    await sql`DELETE FROM chat_messages`;
+    await sql`DELETE FROM internal_bot_messages`;
     console.log('✅ Mensajes eliminados.');
 
     // 2. Eliminar conversaciones
     console.log('🗑️ Eliminando conversaciones...');
-    await sql`DELETE FROM chat_conversations`;
+    await sql`DELETE FROM internal_bot_conversations`;
     console.log('✅ Conversaciones eliminadas.');
 
     // 3. Eliminar tracking
