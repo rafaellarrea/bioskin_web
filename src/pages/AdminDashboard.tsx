@@ -20,6 +20,15 @@ export default function AdminDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  
+  // Database Management State
+  const [showBackupModal, setShowBackupModal] = useState(false);
+  const [backupModules, setBackupModules] = useState({
+    patients: true,
+    finance: true,
+    chats: false,
+    inventory: false
+  });
   const [downloadingBackup, setDownloadingBackup] = useState(false);
 
   // Health Check States
@@ -188,9 +197,7 @@ export default function AdminDashboard() {
     navigate('/admin/login');
   };
 
-  const downloadBackup = async () => {
-    if (!window.confirm('¿Desea descargar una copia completa de la base de datos (Fichas, Finanzas, Chatbot)?')) return;
-    
+  const handleDownloadBackup = async () => {
     setDownloadingBackup(true);
     try {
       const sessionToken = localStorage.getItem('adminSessionToken');
@@ -199,7 +206,19 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch('/api/backup', {
+      // Construct query based on selection
+      const selected = Object.entries(backupModules)
+        .filter(([_, enabled]) => enabled)
+        .map(([key]) => key)
+        .join(',');
+
+      if (!selected) {
+        alert('Por favor selecciona al menos un módulo para respaldar.');
+        setDownloadingBackup(false);
+        return;
+      }
+
+      const response = await fetch(`/api/backup?modules=${selected}`, {
         headers: {
           'Authorization': `Bearer ${sessionToken}`
         }
@@ -229,6 +248,7 @@ export default function AdminDashboard() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
+      setShowBackupModal(false); // Close modal on success
       alert('✅ Copia de seguridad descargada correctamente');
 
     } catch (error: any) {
@@ -522,19 +542,14 @@ export default function AdminDashboard() {
 
           {/* Backup Card */}
           <button
-            onClick={downloadBackup}
-            disabled={downloadingBackup}
+            onClick={() => setShowBackupModal(true)}
             className="group relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-10 transition-opacity" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-10 transition-opacity`} />
             
             <div className="relative p-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 mb-6">
-                {downloadingBackup ? (
-                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <ClipboardList className="w-8 h-8 text-white" />
-                )}
+                 <ClipboardList className="w-8 h-8 text-white" />
               </div>
 
               <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
@@ -546,7 +561,7 @@ export default function AdminDashboard() {
               </p>
 
               <div className="mt-6 flex items-center text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-                <span>{downloadingBackup ? 'Descargando...' : 'Descargar'}</span>
+                <span>Administrar</span>
                 <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -555,8 +570,100 @@ export default function AdminDashboard() {
           </button>
         </div>
       </div>
-              
 
+      {/* Backup Modal */}
+      {showBackupModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-auto overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <ClipboardList className="w-6 h-6 text-indigo-600" />
+                    Gestión de Respaldo
+                 </h3>
+                 <button onClick={() => setShowBackupModal(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-6 h-6" />
+                 </button>
+              </div>
+              
+              <div className="p-6">
+                 <p className="text-gray-600 mb-4 text-sm">Selecciona los módulos que deseas incluir en la copia de seguridad:</p>
+                 
+                 <div className="space-y-3 mb-6">
+                    <label className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                       <input 
+                         type="checkbox" 
+                         className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                         checked={backupModules.patients}
+                         onChange={(e) => setBackupModules(prev => ({...prev, patients: e.target.checked}))}
+                       />
+                       <div className="ml-3">
+                          <span className="block font-medium text-gray-900">Fichas Clínicas</span>
+                          <span className="block text-xs text-gray-500">Módulo de Pacientes y Expedientes</span>
+                       </div>
+                    </label>
+
+                    <label className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                       <input 
+                         type="checkbox" 
+                         className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                         checked={backupModules.finance}
+                         onChange={(e) => setBackupModules(prev => ({...prev, finance: e.target.checked}))}
+                       />
+                       <div className="ml-3">
+                          <span className="block font-medium text-gray-900">Finanzas</span>
+                          <span className="block text-xs text-gray-500">Registros de Ingresos y Egresos</span>
+                       </div>
+                    </label>
+
+                    <label className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                       <input 
+                         type="checkbox" 
+                         className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                         checked={backupModules.chats}
+                         onChange={(e) => setBackupModules(prev => ({...prev, chats: e.target.checked}))}
+                       />
+                       <div className="ml-3">
+                          <span className="block font-medium text-gray-900">Historial de Chatbot</span>
+                          <span className="block text-xs text-gray-500">Conversaciones y Logs del Bot (Neon DB)</span>
+                       </div>
+                    </label>
+
+                     <label className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors opacity-60">
+                       <input 
+                         type="checkbox" 
+                         className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                         checked={backupModules.inventory}
+                         disabled
+                         onChange={(e) => setBackupModules(prev => ({...prev, inventory: e.target.checked}))}
+                       />
+                       <div className="ml-3">
+                          <span className="block font-medium text-gray-900">Inventario (Próximamente)</span>
+                          <span className="block text-xs text-gray-500">Stock de productos y movimientos</span>
+                       </div>
+                    </label>
+                 </div>
+
+                 <button 
+                    onClick={handleDownloadBackup}
+                    disabled={downloadingBackup}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                 >
+                    {downloadingBackup ? (
+                       <>
+                          <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                          Generando Respaldo...
+                       </>
+                    ) : (
+                       <>
+                          <ClipboardList className="w-5 h-5" />
+                          Descargar Selección
+                       </>
+                    )}
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Health Check Modal */}
       {showHealthModal && (
