@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+- ✅ **Feb 20, 2026: Internal Bot Refactoring**
+- 🗑️ **Limpieza**: Eliminado "Monitor de Actividad" del dashboard admin.
+- 🔧 **Infraestructura**: Aisladas tablas de base de datos (`internal_bot_*`) para uso exclusivo interno.
+- ⚡ **Serverless**: Consolidada lógica de bot en `api/whatsapp-internal.js`, eliminado endpoint heredado.
+- 🐛 **Build**: Corregida configuración de Vercel y restaurado botón de respaldo en Dashboard.
+
 - ✅ **Feb 20, 2026: Medical Finance Upgrade**
 - 💰 **Finanzas**: Agregado campo "Método de Pago" (Efectivo/Transferencia/etc) en IA y BBDD.
 - 📊 **Reportes**: Nuevo desglose detallado de Honorarios Médicos y Formas de Pago en PDF.

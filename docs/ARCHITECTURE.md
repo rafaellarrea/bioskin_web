@@ -20,11 +20,12 @@ project2.0/
 │   ├── data/                     # Datos centralizados
 │   └── utils/                    # Utilidades helper
 ├── api/                          # Vercel Serverless Functions
-│   ├── internal-chat.js          # Asistente Interno + Cron Agenda Diaria
+│   ├── whatsapp-internal.js      # Endpoint Unificado Bot WhatsApp (Finance/Technical/Medical)
+│   ├── internal-bot-api.js       # API Gestión Bot Interno
 │   ├── clinical-records.js       # Endpoint Fichas Clínicas (Neon DB)
 │   ├── search.js                 # Endpoint búsqueda IA
-│   ├── getEvents.js             # Google Calendar API
-│   └── sendEmail.js             # Email/WhatsApp integration
+│   ├── getEvents.js              # Google Calendar API
+│   └── sendEmail.js              # Email/WhatsApp integration
 ├── lib/                          # Lógica de negocio
 │   ├── neon-clinical-db.js      # Neon PostgreSQL connection
 │   ├── database.js              # SQLite management
