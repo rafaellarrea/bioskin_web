@@ -15,6 +15,7 @@
 - 🔧 **Infraestructura**: Aisladas tablas de base de datos (`internal_bot_*`) para uso exclusivo interno.
 - ⚡ **Serverless**: Consolidada lógica de bot en `api/whatsapp-internal.js`, eliminado endpoint heredado.
 - 🐛 **Build**: Corregida configuración de Vercel y restaurado botón de respaldo en Dashboard.
+- 💾 **Feature**: Agregado módulo de "Gestión de Base de Datos" (Backup) en el Panel React.
 
 - ✅ **Feb 20, 2026: Medical Finance Upgrade**
 - 💰 **Finanzas**: Agregado campo "Método de Pago" (Efectivo/Transferencia/etc) en IA y BBDD.
