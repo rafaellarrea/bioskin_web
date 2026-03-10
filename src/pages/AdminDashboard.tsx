@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { BarChart3, TrendingUp, LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid } from 'lucide-react';
+import { LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 interface UpcomingAppointment {
@@ -284,23 +284,6 @@ export default function AdminDashboard() {
       icon: Clock,
       path: '/admin/appointment',
       color: 'from-orange-500 to-orange-600'
-    },
-    // Monitor removed
-    /*
-    {
-      title: 'Monitor de Actividad',
-      description: 'Visualiza estadísticas y webhooks en tiempo real',
-      icon: BarChart3,
-      path: '/admin/monitor',
-      color: 'from-purple-500 to-purple-600'
-    },
-    */
-    {
-      title: 'Estadísticas',
-      description: 'Análisis detallado del rendimiento del chatbot',
-      icon: TrendingUp,
-      path: '/admin/stats',
-      color: 'from-green-500 to-green-600'
     },
     {
       title: 'Diagnóstico IA',

@@ -23,8 +23,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminCalendarManager from './pages/AdminCalendarManager';
 import AdminBlockSchedule from './pages/AdminBlockSchedule';
 import AdminAppointment from './pages/AdminAppointment';
-// import AdminMonitor from './pages/AdminMonitor';
-import AdminStats from './pages/AdminStats';
 import AdminDiagnosis from './pages/AdminDiagnosis';
 import AdminProtocols from './pages/AdminProtocols';
 import AdminChatAssistant from './pages/AdminChatAssistant';
@@ -73,8 +71,6 @@ function App() {
               <Route path="/admin/calendar" element={<AdminCalendarManager />} />
               <Route path="/admin/block-schedule" element={<AdminBlockSchedule />} />
               <Route path="/admin/appointment" element={<AdminAppointment />} />
-              {/* <Route path="/admin/monitor" element={<AdminMonitor />} /> */}
-              <Route path="/admin/stats" element={<AdminStats />} />
               <Route path="/admin/diagnosis" element={<AdminDiagnosis />} />
               <Route path="/admin/protocols" element={<AdminProtocols />} />
               <Route path="/admin/chat-assistant" element={<AdminChatAssistant />} />
