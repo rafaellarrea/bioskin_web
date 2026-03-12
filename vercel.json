@@ -1,6 +1,7 @@
 
 {
   "rewrites": [
+    { "source": "/api/whatsapp-chatbot", "destination": "/api/whatsapp-internal" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
   ],
