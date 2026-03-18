@@ -1,0 +1,44 @@
+{
+  "procedure_type": "Tratamiento Combinado de Reducción de Papada no Quirúrgico (Enzimas Lipolíticas, HIFU y Crio-radiofrecuencia)",
+  "description": "Se realizará un protocolo integral para la reducción de tejido adiposo y tensado cutáneo en la zona submentoniana (papada) mediante:\n1. Aplicación de Enzimas Lipolíticas (Lipasa) y Hialuronidasa (4 sesiones): Infiltración de sustancias biológicas que degradan los triglicéridos dentro de los adipocitos y mejoran la permeabilidad del tejido para facilitar la eliminación de grasa y reducir la fibrosis.\n2. HIFU Facial (1 sesión): Ultrasonido focalizado de alta intensidad que actúa en las capas profundas de la dermis y el SMAS para generar puntos de coagulación térmica, promoviendo la retracción del tejido y la producción de nuevo colágeno.\n3. Crio-radiofrecuencia (4 sesiones): Aplicación de calor intradérmico controlado combinado con frío superficial para estimular la elastina y compactar la piel, mejorando el contorno mandibular.\nEste tratamiento busca mejorar el perfil facial de forma progresiva y no invasiva.",
+  "objectives": [
+    "Reducir el volumen de grasa localizada en la zona submentoniana.",
+    "Compactar y tensar la piel para evitar la flacidez post-reducción.",
+    "Definir el contorno de la línea mandibular.",
+    "Estimular la producción natural de colágeno y elastina (neocolagénesis).",
+    "Mejora de la apariencia estética general del cuello y tercio inferior del rostro."
+  ],
+  "risks": [
+    "Inflamación o edema moderado en la zona tratada (especialmente con enzimas).",
+    "Equimosis (moratones) o hematomas por la punción.",
+    "Eritema (enrojecimiento) y sensación de calor transitorio.",
+    "Sensibilidad al tacto o dolor leve en la zona mandibular durante los primeros días.",
+    "Parestesia transitoria (hormigueo o adormecimiento temporal).",
+    "Reacciones alérgicas a los componentes de las enzimas (poco frecuentes).",
+    "Nódulos temporales o irregularidades palpables que suelen resolverse espontáneamente.",
+    "Resultados variables según la respuesta metabólica y estilo de vida del paciente."
+  ],
+  "benefits": [
+    "Reducción notable de la papada sin necesidad de cirugía ni tiempo de recuperación prolongado.",
+    "Mejora de la elasticidad y firmeza de la piel.",
+    "Perfilado facial más definido y rejuvenecido.",
+    "Procedimiento ambulatorio con incorporación inmediata a las actividades diarias."
+  ],
+  "pre_care": [
+    "No consumir antiinflamatorios o aspirinas 48 horas antes para minimizar riesgo de hematomas.",
+    "Informar sobre antecedentes de alergias a proteínas de origen bovino o bacteriano.",
+    "Acudir con la piel limpia, sin maquillaje ni cremas en la zona del cuello.",
+    "Estar bien hidratado (el agua facilita el metabolismo de las enzimas).",
+    "Informar sobre la presencia de prótesis dentales metálicas o implantes en la zona (para RF y HIFU)."
+  ],
+  "post_care": [
+    "No realizar actividad física intensa durante las primeras 24-48 horas post-enzimas.",
+    "Evitar la exposición solar directa y usar protector solar en la zona tratada.",
+    "Evitar saunas, turcos o fuentes de calor extremo durante 3 días.",
+    "Realizar masajes suaves de drenaje si el profesional lo indica (a partir del tercer día).",
+    "Mantener una dieta baja en grasas y carbohidratos simples para potenciar el efecto lipolítico.",
+    "Aumentar la ingesta de agua para ayudar a la eliminación de detritos metabólicos.",
+    "Colocarse faja mentonera estrictamente después de cada sesión por 3-4 días",
+    "Asistir puntualmente a todas las sesiones programadas para garantizar la sinergia del tratamiento."
+  ]
+}

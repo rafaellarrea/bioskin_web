@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Mar 18, 2026: Consent Forms Update**
+- 📄 **Consentimiento**: Agregada plantilla para "Tratamiento Combinado de Reducción de Papada no Quirúrgico".
+
 - ✅ **Mar 09, 2026: Cleanup & Optimization**
 - 🗑️ **Limpieza**: Eliminada funcionalidad obsoleta de Estadísticas y Analytics.
 - 📉 **Frontend**: Removidos componentes de gráficos y métricas del Dashboard Admin.

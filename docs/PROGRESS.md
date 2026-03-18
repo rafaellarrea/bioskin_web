@@ -347,6 +347,18 @@ lib/internal-chat-service.js                # Prompt chatbot
 src/pages/Clinical3D.tsx                    # Lógica de Three.js y React Overlay
 \`\`\`
 
+### ✅ **Fase 15: Actualizaciones Marzo** (Marzo 2026)
+**Descripción**: Actualización de consentimientos y optimización del sistema.
+**Logros**:
+- ✅ Mar 18 - Agregado consentimiento informado para "Tratamiento Combinado de Reducción de Papada no Quirúrgico".
+- ✅ Mar 09 - Limpieza y optimización del dashboard y backend de analítica.
+
+**Archivos modificados**:
+```
+src/data/consent-templates/
+PROGRESS.md
+```
+
 ---
 
 ## 🔄 Próximas Fases Planificadas
