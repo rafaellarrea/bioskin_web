@@ -30,7 +30,16 @@ export default function TechnicalDocumentView() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 print:p-0 print:bg-white">
+    <div className="min-h-screen bg-gray-100 p-8 print:fixed print:inset-0 print:bg-white print:p-0 print:z-[9999] print:overflow-visible">
+      <style>{`
+        @media print {
+          @page { margin: 0.5cm; size: auto; }
+          body * { visibility: hidden; }
+          #technical-document, #technical-document * { visibility: visible; }
+          #technical-document { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0.5cm; }
+        }
+      `}</style>
+
       {/* Action Bar - Hidden on Print */}
       <div className="max-w-4xl mx-auto mb-8 flex justify-between print:hidden">
         <button onClick={() => navigate('/admin/technical')} className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
@@ -47,7 +56,7 @@ export default function TechnicalDocumentView() {
       </div>
 
       {/* A4 Format Document */}
-      <div className="max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none p-[2cm] min-h-[29.7cm] relative overflow-hidden">
+      <div id="technical-document" className="max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none p-[2cm] min-h-[29.7cm] relative overflow-hidden">
         
         {/* Background Watermark */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
@@ -58,11 +67,6 @@ export default function TechnicalDocumentView() {
         <div className="flex justify-between items-start border-b-2 border-[#b8860b] pb-6 mb-8 relative z-10">
           <div className="flex items-center gap-4">
             <img src="/images/logo/bioskin-tech-full.png" alt="Bioskin Tech Logo" className="h-20 object-contain" />
-            <div className="hidden"> {/* Ocultamos texto si el logo ya tiene el nombre */}
-              <h1 className="text-2xl font-serif text-[#b8860b] font-bold tracking-wider">BIOSKIN TECH</h1>
-              <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">Departamento Técnico Especializado</p>
-              <p className="text-xs text-gray-400">Quito, Ecuador | Tel: +593 999 999 999</p>
-            </div>
           </div>
           <div className="text-right">
              <h2 className="text-xl font-bold text-gray-800 uppercase split-words">{getDocTitle()}</h2>
@@ -128,9 +132,12 @@ export default function TechnicalDocumentView() {
                   <p className="text-gray-600">{data.equipment_data?.visual_condition || 'Normal, sin daños visibles adicionales.'}</p>
                </div>
             </div>
-
-            <div className="text-[10px] text-gray-500 text-justify mb-8 italic">
-              * La empresa no se responsabiliza por fallas preexistentes no detectables en la revisión inicial, ni por accesorios no declarados en este documento. El cliente acepta que el diagnóstico puede requerir la apertura del equipo. Equipos no retirados en 90 días serán considerados abandonados según la ley vigente.
+            
+            <div className="mb-8 border-t pt-4">
+              <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-1">Términos y Condiciones de Recepción:</h4>
+              <p className="text-[10px] text-gray-500 text-justify leading-tight italic">
+                1. El cliente autoriza la revisión técnica y diagnóstico del equipo detallado. 2. La empresa NO asume responsabilidad por: pérdida de información/datos (se recomienda respaldo previo), fallas ocultas preexistentes no detectables en la recepción visual, ni accesorios no declarados explícitamente en este documento. 3. Los equipos que no sean retirados en un plazo máximo de 90 días calendario serán considerados en abandono y la empresa dispondrá de ellos según la normativa legal vigente para cubrir gastos de bodegaje y gestión. 4. La garantía aplica únicamente sobre los repuestos cambiados y la mano de obra del servicio específico realizado.
+              </p>
             </div>
           </>
         )}

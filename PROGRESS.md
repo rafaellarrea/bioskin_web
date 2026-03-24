@@ -10,8 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
-### ✅ **Mar 23, 2026: UI Segmentation**
+### ✅ **Mar 23, 2026: UI Segmentation & Print Optimization**
 - 🔧 **Frontend**: Segmentado formulario técnico por tipo (Recepción/Informe/Proforma).
+- 🖨️ **Print**: Corregida vista de impresión (eliminados elementos web) y agregados términos legales para Ecuador.
 - 🖱️ **UX**: Campos dinámicos y checklists específicos por documento.
 
 ### ✅ **Mar 23, 2026: BioskinTech Technical Service**
