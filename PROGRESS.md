@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Mar 23, 2026: UI Segmentation**
+- 🔧 **Frontend**: Segmentado formulario técnico por tipo (Recepción/Informe/Proforma).
+- 🖱️ **UX**: Campos dinámicos y checklists específicos por documento.
+
 ### ✅ **Mar 23, 2026: BioskinTech Technical Service**
 - 🔧 **Backend**: Implementado módulo `api/technical-service.js` y tabla `technical_service_documents` en NeonDB.
 - 💻 **Frontend**: Agregado Dashboard de Servicio Técnico, formularios dinámicos y vista de impresión.
