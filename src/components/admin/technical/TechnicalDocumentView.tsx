@@ -47,13 +47,18 @@ export default function TechnicalDocumentView() {
       </div>
 
       {/* A4 Format Document */}
-      <div className="max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none p-[2cm] min-h-[29.7cm] relative">
+      <div className="max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none p-[2cm] min-h-[29.7cm] relative overflow-hidden">
         
+        {/* Background Watermark */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+          <img src="/images/logo/bioskin-tech-icon.png" alt="Watermark" className="w-[80%]" />
+        </div>
+
         {/* Header with Logo */}
-        <div className="flex justify-between items-start border-b-2 border-[#b8860b] pb-6 mb-8">
+        <div className="flex justify-between items-start border-b-2 border-[#b8860b] pb-6 mb-8 relative z-10">
           <div className="flex items-center gap-4">
-            <img src="/images/logo/logo.png" alt="Bioskin Logo" className="h-16 object-contain" />
-            <div>
+            <img src="/images/logo/bioskin-tech-full.png" alt="Bioskin Tech Logo" className="h-20 object-contain" />
+            <div className="hidden"> {/* Ocultamos texto si el logo ya tiene el nombre */}
               <h1 className="text-2xl font-serif text-[#b8860b] font-bold tracking-wider">BIOSKIN TECH</h1>
               <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">Departamento Técnico Especializado</p>
               <p className="text-xs text-gray-400">Quito, Ecuador | Tel: +593 999 999 999</p>
