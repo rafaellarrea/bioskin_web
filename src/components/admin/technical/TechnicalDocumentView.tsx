@@ -20,6 +20,15 @@ export default function TechnicalDocumentView() {
     window.print();
   };
 
+  const getDocTitle = () => {
+    switch(data.document_type) {
+      case 'reception': return 'ACTA DE RECEPCIÓN TÉCNICA';
+      case 'technical_report': return 'INFORME TÉCNICO';
+      case 'proforma': return 'PROFORMA DE SERVICIO';
+      default: return 'DOCUMENTO TÉCNICO';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-8 print:p-0 print:bg-white">
       {/* Action Bar - Hidden on Print */}
@@ -40,107 +49,195 @@ export default function TechnicalDocumentView() {
       {/* A4 Format Document */}
       <div className="max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none p-[2cm] min-h-[29.7cm] relative">
         
-        {/* Header */}
+        {/* Header with Logo */}
         <div className="flex justify-between items-start border-b-2 border-[#b8860b] pb-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-serif text-[#b8860b] font-bold">BIOSKIN TECH</h1>
-            <p className="text-sm text-gray-500 mt-1">Departamento Técnico Especializado</p>
-            <p className="text-sm text-gray-500">Quito, Ecuador | Tel: +593 999 999 999</p>
+          <div className="flex items-center gap-4">
+            <img src="/images/logo/logo.png" alt="Bioskin Logo" className="h-16 object-contain" />
+            <div>
+              <h1 className="text-2xl font-serif text-[#b8860b] font-bold tracking-wider">BIOSKIN TECH</h1>
+              <p className="text-xs text-gray-500 mt-1 uppercase tracking-wide">Departamento Técnico Especializado</p>
+              <p className="text-xs text-gray-400">Quito, Ecuador | Tel: +593 999 999 999</p>
+            </div>
           </div>
           <div className="text-right">
-             <h2 className="text-xl font-bold text-gray-800 uppercase split-words">{data.document_type.replace('_', ' ')}</h2>
-             <p className="text-gray-500 mt-1">Ticket #{data.ticket_number}</p>
-             <p className="text-sm text-gray-400 mt-1">{new Date(data.created_at).toLocaleDateString()}</p>
+             <h2 className="text-xl font-bold text-gray-800 uppercase split-words">{getDocTitle()}</h2>
+             <div className="bg-gray-100 px-3 py-1 rounded mt-2 inline-block">
+               <p className="text-sm font-mono font-bold text-gray-600">#{data.ticket_number}</p>
+             </div>
+             <p className="text-xs text-gray-400 mt-1">{new Date(data.created_at).toLocaleDateString()} {new Date(data.created_at).toLocaleTimeString()}</p>
           </div>
         </div>
 
-        {/* Client & Equipment Grid */}
-        <div className="grid grid-cols-2 gap-8 mb-8">
-          <div className="bg-gray-50 p-4 rounded border border-gray-100 print:border-none print:bg-transparent print:p-0">
-             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Información del Cliente</h3>
-             <div className="space-y-1 text-sm">
-                <p><span className="font-semibold">Cliente:</span> {data.client_name}</p>
-                <p><span className="font-semibold">Contacto:</span> {data.client_contact}</p>
-             </div>
+        {/* Common Info Grid */}
+        <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
+          <div className="space-y-2">
+             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Cliente</h3>
+             <p><span className="font-semibold text-gray-700">Razón Social:</span> {data.client_name}</p>
+             <p><span className="font-semibold text-gray-700">Contacto:</span> {data.client_contact}</p>
           </div>
-           <div className="bg-gray-50 p-4 rounded border border-gray-100 print:border-none print:bg-transparent print:p-0">
-             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Información del Equipo</h3>
-             <div className="space-y-1 text-sm">
-                <p><span className="font-semibold">Marca/Modelo:</span> {data.equipment_data?.brand} {data.equipment_data?.model}</p>
-                <p><span className="font-semibold">Serie:</span> {data.equipment_data?.serial}</p>
-             </div>
+           <div className="space-y-2">
+             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Equipo</h3>
+             <p><span className="font-semibold text-gray-700">Marca/Modelo:</span> {data.equipment_data?.brand} {data.equipment_data?.model}</p>
+             <p><span className="font-semibold text-gray-700">Serie/SN:</span> {data.equipment_data?.serial || 'N/A'}</p>
           </div>
         </div>
 
-        {/* Table / Checklist */}
-        {data.checklist_data?.checks?.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-gray-800 mb-3 border-b pb-2">Lista de Verificación</h3>
-            <table className="w-full text-sm">
-               <thead>
-                 <tr className="text-left text-gray-500 border-b">
-                   <th className="py-2">Punto</th>
-                   <th className="py-2 text-center">Estado</th>
-                   <th className="py-2">Observación</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y">
-                 {data.checklist_data.checks.map((item: any, i: number) => (
-                   <tr key={i}>
-                     <td className="py-2">{item.label}</td>
-                     <td className="py-2 text-center">
-                       {item.status === 'ok' ? '✅' : item.status === 'fail' ? '❌' : '-'}
-                     </td>
-                     <td className="py-2 text-gray-500 italic">{item.observation}</td>
+        {/* Specific Layouts based on Doc Type */}
+        
+        {/* RECEPTION LAYOUT */}
+        {data.document_type === 'reception' && (
+          <>
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-gray-800 mb-3 bg-gray-50 p-2 border-l-4 border-[#b8860b]">Estado de Recepción (Checklist)</h3>
+              <table className="w-full text-sm border-collapse">
+                 <thead>
+                   <tr className="bg-gray-50 text-left text-xs font-bold text-gray-500 uppercase">
+                     <th className="py-2 px-3 border border-gray-200">Componente</th>
+                     <th className="py-2 px-3 border border-gray-200 text-center w-24">Estado</th>
+                     <th className="py-2 px-3 border border-gray-200">Observación</th>
                    </tr>
-                 ))}
-               </tbody>
-            </table>
-          </div>
+                 </thead>
+                 <tbody>
+                   {data.checklist_data?.checks?.map((item: any, i: number) => (
+                     <tr key={i}>
+                       <td className="py-2 px-3 border border-gray-200">{item.label}</td>
+                       <td className={`py-2 px-3 border border-gray-200 text-center font-bold ${
+                         item.status === 'ok' ? 'text-green-600' : item.status === 'fail' ? 'text-red-500' : 'text-gray-400'
+                       }`}>
+                         {item.status === 'ok' ? 'OK' : item.status === 'fail' ? 'MALO' : 'N/A'}
+                       </td>
+                       <td className="py-2 px-3 border border-gray-200 text-gray-600 text-xs italic">{item.observation}</td>
+                     </tr>
+                   ))}
+                 </tbody>
+              </table>
+            </div>
+
+            <div className="grid grid-cols-2 gap-8 mb-8 text-xs">
+               <div className="border border-gray-200 p-4 rounded bg-gray-50">
+                  <h4 className="font-bold text-gray-700 mb-2">Accesorios Recibidos:</h4>
+                  <p className="text-gray-600">{data.equipment_data?.accessories || 'Ninguno declarado.'}</p>
+               </div>
+               <div className="border border-gray-200 p-4 rounded bg-gray-50">
+                  <h4 className="font-bold text-gray-700 mb-2">Condición Visual:</h4>
+                  <p className="text-gray-600">{data.equipment_data?.visual_condition || 'Normal, sin daños visibles adicionales.'}</p>
+               </div>
+            </div>
+
+            <div className="text-[10px] text-gray-500 text-justify mb-8 italic">
+              * La empresa no se responsabiliza por fallas preexistentes no detectables en la revisión inicial, ni por accesorios no declarados en este documento. El cliente acepta que el diagnóstico puede requerir la apertura del equipo. Equipos no retirados en 90 días serán considerados abandonados según la ley vigente.
+            </div>
+          </>
         )}
 
-        {/* Diagnosis & Recommendations */}
-        <div className="space-y-6 mb-8">
-           {data.diagnosis && (
-             <div>
-               <h3 className="text-sm font-bold text-gray-800 mb-2">Diagnóstico Técnico</h3>
-               <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{data.diagnosis}</p>
-             </div>
-           )}
-           {data.recommendations && (
-             <div>
-               <h3 className="text-sm font-bold text-gray-800 mb-2">Recomendaciones / Trabajos</h3>
-               <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{data.recommendations}</p>
-             </div>
-           )}
-        </div>
-
-         {/* Visual Condition & Accessories */}
-        <div className="grid grid-cols-2 gap-8 mb-8 text-xs text-gray-500 border-t pt-4">
-           <div>
-              <span className="font-semibold">Accesorios:</span> {data.equipment_data?.accessories || 'Ninguno'}
-           </div>
-           <div>
-              <span className="font-semibold">Condición Visual:</span> {data.equipment_data?.visual_condition || 'Normal'}
-           </div>
-        </div>
-
-        {/* Footer / Signatures */}
-        <div className="absolute bottom-8 left-0 right-0 px-[2cm]">
-            <div className="flex justify-between items-end pt-8">
-                <div className="text-center w-40">
-                    <div className="border-b border-gray-300 mb-2 h-16"></div>
-                    <p className="text-xs font-semibold">Técnico Responsable</p>
-                    <p className="text-[10px] text-gray-400">BIOSKIN TECH</p>
-                </div>
-                <div className="text-center w-40">
-                    <div className="border-b border-gray-300 mb-2 h-16"></div>
-                    <p className="text-xs font-semibold">Recibí Conforme</p>
-                    <p className="text-[10px] text-gray-400">Cliente</p>
-                </div>
+        {/* TECHNICAL REPORT LAYOUT */}
+        {data.document_type === 'technical_report' && (
+          <>
+            <div className="space-y-6 mb-8">
+               <div className="border-l-4 border-blue-500 pl-4 py-1">
+                 <h3 className="text-sm font-bold text-gray-800 mb-2">Diagnóstico Técnico</h3>
+                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.diagnosis}</p>
+               </div>
+               
+               <div className="border-l-4 border-green-500 pl-4 py-1">
+                 <h3 className="text-sm font-bold text-gray-800 mb-2">Trabajos Realizados / Recomendaciones</h3>
+                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.recommendations}</p>
+               </div>
             </div>
-            <div className="mt-8 text-[10px] text-center text-gray-400 border-t pt-2">
-                Documento generado electrónicamente el {new Date().toLocaleString()} | BioskinTech v3.0
+
+            {data.checklist_data?.checks?.length > 0 && (
+              <div className="mb-8 opacity-75">
+                <h3 className="text-xs font-bold text-gray-500 mb-2 uppercase">Pruebas de Funcionamiento Final</h3>
+                <div className="grid grid-cols-2 gap-2">
+                   {data.checklist_data.checks.map((item: any, i: number) => (
+                     <div key={i} className="flex justify-between items-center text-xs border-b border-gray-100 py-1">
+                        <span>{item.label}</span>
+                        <span className={item.status === 'ok' ? 'text-green-600 font-bold' : 'text-red-500'}>
+                          {item.status === 'ok' ? 'PASS' : 'FAIL'}
+                        </span>
+                     </div>
+                   ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+         {/* PROFORMA LAYOUT */}
+        {data.document_type === 'proforma' && (
+          <>
+            <div className="mb-8">
+               <h3 className="text-sm font-bold text-gray-800 mb-3 bg-gray-50 p-2">Detalle de Costos</h3>
+               <table className="w-full text-sm border-collapse">
+                 <thead>
+                   <tr className="bg-gray-800 text-white text-left text-xs uppercase">
+                     <th className="py-3 px-4 w-2/3">Descripción del Servicio / Repuesto</th>
+                     <th className="py-3 px-4 text-right">Valor</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                    <tr>
+                      <td className="py-4 px-4 border-b border-gray-100 align-top">
+                        <p className="font-bold text-gray-800 mb-1">Servicio Técnico Especializado</p>
+                        <p className="text-gray-600 text-xs whitespace-pre-wrap">{data.recommendations}</p>
+                        {data.diagnosis && <p className="text-gray-500 text-[10px] mt-2 italic">Ref. Diagnóstico: {data.diagnosis.substring(0, 100)}...</p>}
+                      </td>
+                      <td className="py-4 px-4 border-b border-gray-100 text-right font-mono">
+                        ${Number(data.total_cost).toFixed(2)}
+                      </td>
+                    </tr>
+                    {/* Add tax rows roughly or assume total includes tax based on simple model */}
+                    <tr className="bg-gray-50 font-bold text-gray-900">
+                      <td className="py-3 px-4 text-right text-xs uppercase">Total a Pagar</td>
+                      <td className="py-3 px-4 text-right font-mono text-lg border-t-2 border-gray-800">
+                         ${Number(data.total_cost).toFixed(2)}
+                      </td>
+                    </tr>
+                 </tbody>
+               </table>
+            </div>
+
+            <div className="bg-[#fcfbf7] border border-[#deb887]/30 p-4 rounded text-xs text-gray-600 mb-8">
+               <h4 className="font-bold text-[#b8860b] mb-2">Condiciones Comerciales:</h4>
+               <ul className="list-disc list-inside space-y-1">
+                 <li>Validez de la oferta: 15 días calendario.</li>
+                 <li>Tiempo de entrega: Sujeto a disponibilidad de repuestos (aprox. 3-5 días hábiles).</li>
+                 <li>Forma de pago: 50% anticipo, 50% contra entrega.</li>
+                 <li>Garantía: 3 meses sobre el trabajo realizado (no cubre partes eléctricas por mala manipulación).</li>
+               </ul>
+            </div>
+          </>
+        )}
+
+        {/* Footer / Signatures - Conditional per type */}
+        <div className="absolute bottom-12 left-0 right-0 px-[2cm]">
+            <div className="flex justify-between items-end pt-12">
+                <div className="text-center w-48">
+                    <div className="border-b border-gray-300 mb-2 h-16"></div>
+                    <p className="text-xs font-bold uppercase">Bioskin Tech</p>
+                    <p className="text-[10px] text-gray-400">Departamento Técnico</p>
+                </div>
+                
+                {data.document_type === 'reception' && (
+                  <div className="text-center w-48">
+                      <div className="border-b border-gray-300 mb-2 h-16"></div>
+                      <p className="text-xs font-bold uppercase">{data.client_name}</p>
+                      <p className="text-[10px] text-gray-400">Firma Cliente / Entregué Conforme</p>
+                  </div>
+                )}
+
+                {data.document_type === 'proforma' && (
+                  <div className="text-center w-48">
+                      <div className="border-b border-gray-300 mb-2 h-16"></div>
+                      <p className="text-xs font-bold uppercase">Aprobación</p>
+                      <p className="text-[10px] text-gray-400">Firma y Sello Cliente</p>
+                  </div>
+                )}
+            </div>
+            
+            <div className="mt-8 text-[10px] text-center text-gray-300 border-t border-gray-100 pt-2 flex justify-between">
+                <span>Bioskin - Medicina Estética & Tecnología</span>
+                <span>Generado: {new Date().toLocaleString()} | ID: {data.id}</span>
             </div>
         </div>
 
