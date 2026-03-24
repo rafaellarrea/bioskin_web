@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid } from 'lucide-react';
+import { LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap, ClipboardList, Bot, Package, Activity, Mail, DollarSign, Cuboid, Wrench } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 interface UpcomingAppointment {
@@ -264,6 +264,13 @@ export default function AdminDashboard() {
   }
 
   const menuItems = [
+    {
+      title: 'Servicio Técnico',
+      description: 'Gestión de reparaciones, informes y revisiones BioskinTech',
+      icon: Wrench,
+      path: '/admin/technical',
+      color: 'from-slate-700 to-slate-800' // Darker color for technical feel
+    },
     {
       title: 'Gestión de Agenda',
       description: 'Visualiza y administra citas del calendario',

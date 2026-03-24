@@ -81,6 +81,9 @@ api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API
 
 // Internal Tools & Chatbot Management (Unified Jan 2026)
 api/internal-bot-api.js   // Unified API: Internal Chat, AI Tools
+
+// Technical Service Module (March 2026)
+api/technical-service.js  // CRUD Technical Documents (Neon DB)
 ```
 
 #### **Database Layer**
@@ -98,6 +101,12 @@ Tables:
 
 // Inventory System (Neon PostgreSQL)
 Tables:
+- inventory_items (id, name, sku, stock, min_stock, category)
+- inventory_movements (id, item_id, type, quantity, reason)
+
+// Technical Service System (Neon PostgreSQL)
+Tables:
+- technical_service_documents (id, ticket_number, document_type, client_name, status, equipment_data, checklist_data)
 - inventory_items (id, sku, name, category, unit_of_measure)
 - inventory_batches (id, item_id, batch_number, expiration_date, quantity)
 - inventory_movements (id, batch_id, movement_type, quantity_change)

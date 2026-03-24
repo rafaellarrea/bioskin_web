@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Mar 23, 2026: BioskinTech Technical Service**
+- 🔧 **Backend**: Implementado módulo `api/technical-service.js` y tabla `technical_service_documents` en NeonDB.
+- 💻 **Frontend**: Agregado Dashboard de Servicio Técnico, formularios dinámicos y vista de impresión.
+- 🧪 **Testing**: Script de validación `scripts/test-technical-service.js`.
+
 ### ✅ **Mar 18, 2026: Consent Forms Update**
 - 📄 **Consentimiento**: Agregada plantilla para "Tratamiento Combinado de Reducción de Papada no Quirúrgico".
 

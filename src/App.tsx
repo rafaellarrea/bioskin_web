@@ -35,6 +35,9 @@ import ConsentSigning from './pages/ConsentSigning';
 import AdminFinance from './pages/AdminFinance';
 import ExternalMedicalFinance from './pages/ExternalMedicalFinance';
 import Clinical3D from './pages/Clinical3D';
+import TechnicalDashboard from './components/admin/technical/TechnicalDashboard';
+import TechnicalDocumentForm from './components/admin/technical/TechnicalDocumentForm';
+import TechnicalDocumentView from './components/admin/technical/TechnicalDocumentView';
 
 function App() {
   return (
@@ -83,6 +86,12 @@ function App() {
               <Route path="/admin/ficha-clinica/paciente/:patientId" element={<PatientDetail />} />
               <Route path="/admin/ficha-clinica/expediente/:recordId" element={<ClinicalRecordManager />} />
               
+              {/* RUTAS SERVICIO TÉCNICO */}
+              <Route path="/admin/technical" element={<TechnicalDashboard />} />
+              <Route path="/admin/technical/new" element={<TechnicalDocumentForm />} />
+              <Route path="/admin/technical/edit/:id" element={<TechnicalDocumentForm />} />
+              <Route path="/admin/technical/view/:id" element={<TechnicalDocumentView />} />
+
               {/* RUTA DE FIRMA REMOTA */}
               <Route path="/consent-signing/:token" element={<ConsentSigning />} />
 
