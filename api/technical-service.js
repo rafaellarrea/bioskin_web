@@ -59,9 +59,42 @@ export default async function handler(request, response) {
   const pool = new Pool({ connectionString });
   
   if (request.method === 'GET') {
-    const { id, type, status, search, client, limit = 50 } = request.query;
+    const { id, type, status, search, client, mode, limit = 50 } = request.query;
     
     try {
+      if (mode === 'clients') {
+        const parsedLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
+        const rawSearch = String(search || '').trim();
+        const like = `%${rawSearch}%`;
+        const digits = rawSearch.replace(/\D/g, '');
+
+        const result = await pool.query(
+          `SELECT
+             TRIM(client_name) AS client_name,
+             MAX(NULLIF(client_contact, '')) AS client_contact,
+             COUNT(*)::int AS documents_count,
+             MAX(COALESCE(updated_at, created_at)) AS last_activity
+           FROM technical_service_documents
+           WHERE client_name IS NOT NULL
+             AND TRIM(client_name) <> ''
+             AND (
+               $1 = ''
+               OR client_name ILIKE $2
+               OR COALESCE(client_contact, '') ILIKE $2
+               OR (
+                 $3 <> ''
+                 AND regexp_replace(COALESCE(client_contact, ''), '[^0-9]', '', 'g') LIKE '%' || $3 || '%'
+               )
+             )
+           GROUP BY TRIM(client_name)
+           ORDER BY MAX(COALESCE(updated_at, created_at)) DESC
+           LIMIT ${parsedLimit}`,
+          [rawSearch, like, digits]
+        );
+
+        return response.status(200).json(result.rows);
+      }
+
       if (id) {
          const result = await pool.query('SELECT * FROM technical_service_documents WHERE id = $1', [id]);
          if (result.rows.length === 0) return response.status(404).json({ error: 'Document not found' });
@@ -85,7 +118,7 @@ export default async function handler(request, response) {
       }
 
       if (search) {
-        query += ` AND (client_name ILIKE $${paramIndex} OR ticket_number ILIKE $${paramIndex})`;
+        query += ` AND (client_name ILIKE $${paramIndex} OR ticket_number ILIKE $${paramIndex} OR COALESCE(client_contact, '') ILIKE $${paramIndex})`;
         params.push(`%${search}%`);
         paramIndex++;
       }

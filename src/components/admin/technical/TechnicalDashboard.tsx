@@ -226,6 +226,19 @@ export default function TechnicalDashboard() {
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-gray-500 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const first = clientDocs[0];
+                        const params = new URLSearchParams({ client });
+                        if (first?.client_contact) params.append('contact', first.client_contact);
+                        navigate(`/admin/technical/new?${params.toString()}`);
+                      }}
+                      className="text-[#b8860b] hover:text-[#a0750a] font-medium"
+                    >
+                      Nuevo para este cliente
+                    </button>
                     <span>Últ. actualización: {new Date(lastUpdate).toLocaleDateString()}</span>
                     {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                   </div>

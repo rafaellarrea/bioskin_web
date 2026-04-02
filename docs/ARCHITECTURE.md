@@ -83,7 +83,7 @@ api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API
 api/internal-bot-api.js   // Unified API: Internal Chat, AI Tools
 
 // Technical Service Module (March 2026)
-api/technical-service.js  // CRUD + copy_from_id + draft workflow (Neon DB)
+api/technical-service.js  // CRUD + copy_from_id + draft workflow + mode=clients search (Neon DB)
 ```
 
 #### **Database Layer**
@@ -113,7 +113,7 @@ Tables:
 
 // Technical Admin UI (React)
 - src/components/admin/technical/TechnicalDashboard.tsx  // Vista por carpetas de cliente + copiar documentos
-- src/components/admin/technical/TechnicalDocumentForm.tsx // Borradores, edición diferida, plantillas y tipo delivery_receipt
+- src/components/admin/technical/TechnicalDocumentForm.tsx // Borradores, edición diferida, plantillas, tipo delivery_receipt y autocompletado de cliente
 - src/components/admin/technical/TechnicalDocumentView.tsx // Formatos imprimibles para recepción, informe, proforma y acta
 ```
 

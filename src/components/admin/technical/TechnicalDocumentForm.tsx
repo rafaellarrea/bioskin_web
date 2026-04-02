@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2, Box, FileText, CheckSquare, DollarSign, Copy, ClipboardCheck } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Box, FileText, CheckSquare, DollarSign, Copy, ClipboardCheck, Search, UserCheck } from 'lucide-react';
 
 interface CheckItem {
   id: string;
   label: string;
   status: 'ok' | 'fail' | 'na';
   observation: string;
+}
+
+interface ExistingClient {
+  client_name: string;
+  client_contact: string | null;
+  documents_count: number;
+  last_activity: string;
 }
 
 type DocumentType = 'reception' | 'technical_report' | 'proforma' | 'delivery_receipt';
@@ -95,12 +102,19 @@ export default function TechnicalDocumentForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const copyFrom = searchParams.get('copyFrom');
+  const presetClient = searchParams.get('client');
+  const presetContact = searchParams.get('contact');
   const [loading, setLoading] = useState(false);
   const [copyLoading, setCopyLoading] = useState(false);
   
   const [formData, setFormData] = useState<FormState>(defaultState());
 
   const [checkItems, setCheckItems] = useState<CheckItem[]>([]);
+  const [clientLookup, setClientLookup] = useState('');
+  const [clientSuggestions, setClientSuggestions] = useState<ExistingClient[]>([]);
+  const [clientLookupLoading, setClientLookupLoading] = useState(false);
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false);
+  const [selectedExistingClient, setSelectedExistingClient] = useState<ExistingClient | null>(null);
 
   useEffect(() => {
     if (!id && copyFrom) {
@@ -114,9 +128,16 @@ export default function TechnicalDocumentForm() {
     }
 
     const initial = defaultState('reception');
-    setFormData(initial);
+    setFormData({
+      ...initial,
+      client_name: presetClient?.trim() || '',
+      client_contact: presetContact?.trim() || ''
+    });
+    setClientLookup(presetClient?.trim() || '');
+    setSelectedExistingClient(null);
+    setClientSuggestions([]);
     setCheckItems([]);
-  }, [id, copyFrom]);
+  }, [id, copyFrom, presetClient, presetContact]);
 
   // Adjust checklist/defaults based on type ONLY when creating new
   useEffect(() => {
@@ -147,6 +168,17 @@ export default function TechnicalDocumentForm() {
         }
     }
   }, [formData.document_type, id, copyFrom]);
+
+  useEffect(() => {
+    if (id) return;
+
+    const term = clientLookup.trim();
+    const timeoutId = setTimeout(() => {
+      void fetchClientSuggestions(term);
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+  }, [clientLookup, id]);
 
   const fetchDocument = async (docId: string) => {
     setLoading(true);
@@ -197,6 +229,48 @@ export default function TechnicalDocumentForm() {
       recommendations: payload.recommendations.trim(),
       total_cost: Number.isFinite(payload.total_cost) ? payload.total_cost : 0
     };
+  };
+
+  const fetchClientSuggestions = async (term: string) => {
+    setClientLookupLoading(true);
+
+    try {
+      const params = new URLSearchParams();
+      params.append('mode', 'clients');
+      params.append('limit', '8');
+      if (term) params.append('search', term);
+
+      const res = await fetch(`/api/technical-service?${params.toString()}`);
+      if (!res.ok) {
+        setClientSuggestions([]);
+        return;
+      }
+
+      const data = await res.json();
+      setClientSuggestions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      setClientSuggestions([]);
+    } finally {
+      setClientLookupLoading(false);
+    }
+  };
+
+  const applyExistingClient = (client: ExistingClient) => {
+    setFormData((prev) => ({
+      ...prev,
+      client_name: client.client_name,
+      client_contact: client.client_contact || prev.client_contact
+    }));
+    setClientLookup(client.client_name);
+    setSelectedExistingClient(client);
+    setShowClientSuggestions(false);
+  };
+
+  const markAsNewClient = () => {
+    setSelectedExistingClient(null);
+    setShowClientSuggestions(false);
+    setFormData((prev) => ({ ...prev, client_name: clientLookup.trim() || prev.client_name }));
   };
 
   const handleSubmit = async (e?: React.FormEvent, forcedStatus?: string) => {
@@ -329,13 +403,102 @@ export default function TechnicalDocumentForm() {
             <span className="p-1 bg-[#b8860b]/10 rounded text-[#b8860b]"><Box size={18}/></span>
             Información del Cliente
           </h3>
+
+          {!id && (
+            <div className="mb-5 relative">
+              <label className="block text-sm text-gray-600 mb-1">Buscar cliente existente (nombre, cédula o teléfono)</label>
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  value={clientLookup}
+                  onFocus={() => {
+                    setShowClientSuggestions(true);
+                    if (clientSuggestions.length === 0) {
+                      void fetchClientSuggestions(clientLookup.trim());
+                    }
+                  }}
+                  onBlur={() => setTimeout(() => setShowClientSuggestions(false), 150)}
+                  onChange={(e) => {
+                    setClientLookup(e.target.value);
+                    setShowClientSuggestions(true);
+                    setSelectedExistingClient(null);
+                  }}
+                  className="w-full rounded-lg border-gray-200 pl-9"
+                  placeholder="Ej. Clínica Bella, 0991234567 o 1712345678"
+                />
+              </div>
+
+              {showClientSuggestions && (
+                <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                  {clientLookupLoading ? (
+                    <p className="px-4 py-3 text-sm text-gray-500">Buscando clientes...</p>
+                  ) : clientSuggestions.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      <p>No hay coincidencias.</p>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          markAsNewClient();
+                        }}
+                        className="mt-2 text-[#b8860b] font-medium hover:text-[#a0750a]"
+                      >
+                        Usar como cliente nuevo
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {clientSuggestions.map((client) => (
+                        <button
+                          key={`${client.client_name}-${client.client_contact || 'no-contact'}`}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            applyExistingClient(client);
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                        >
+                          <p className="font-medium text-gray-800">{client.client_name}</p>
+                          <p className="text-xs text-gray-500">
+                            {client.client_contact || 'Sin contacto'} · {client.documents_count} documento(s)
+                          </p>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          markAsNewClient();
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-[#b8860b] hover:bg-yellow-50"
+                      >
+                        Crear nuevo cliente con este nombre
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <p className="text-xs text-gray-500 mt-2">
+                Flujo recomendado: primero busca y selecciona cliente existente; si no aparece, créalo como nuevo.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-gray-600 mb-1">Nombre Cliente / Clínica</label>
               <input
                 type="text"
                 value={formData.client_name}
-                onChange={(e) => setFormData({...formData, client_name: e.target.value})}
+                onChange={(e) => {
+                  setFormData({ ...formData, client_name: e.target.value });
+                  setClientLookup(e.target.value);
+                  if (selectedExistingClient && e.target.value !== selectedExistingClient.client_name) {
+                    setSelectedExistingClient(null);
+                  }
+                }}
                 className="w-full rounded-lg border-gray-200"
                 placeholder="Ej. Clínica Estética..."
               />
@@ -351,6 +514,13 @@ export default function TechnicalDocumentForm() {
               />
             </div>
           </div>
+
+          {selectedExistingClient && (
+            <div className="mt-4 inline-flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 text-green-800 rounded-lg text-xs font-medium">
+              <UserCheck size={14} />
+              Cliente existente seleccionado: {selectedExistingClient.client_name}
+            </div>
+          )}
         </div>
 
         {/* --- SECTION: EQUIPMENT DATA (RECEPTION & REPORT) --- */}

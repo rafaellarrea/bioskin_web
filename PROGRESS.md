@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 2, 2026: Flujo Inteligente de Cliente en Servicio Técnico**
+- 🔎 **Búsqueda Cliente**: Implementado autocompletado por nombre, cédula o teléfono en creación de documentos técnicos.
+- 🧭 **UX Admin**: Agregado flujo recomendado de selección de cliente existente o creación de cliente nuevo.
+- ⚡ **Atajo**: Nuevo botón "Nuevo para este cliente" desde cada carpeta del dashboard técnico.
+
 ### ✅ **Mar 27, 2026: Servicio Técnico por Cliente y Borradores**
 - 📁 **Admin Técnico**: Implementada vista tipo carpetas por cliente con documentos agrupados.
 - 📝 **Documentos**: Agregado guardado en borrador, edición robusta y nuevo tipo "Acta Entrega/Recepción".
