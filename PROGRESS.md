@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 2, 2026: Consentimiento Xeomin 100UI**
+- 📄 **Consentimiento**: Agregada plantilla para "Rejuvenecimiento Facial con Toxina Botulínica Tipo A (XEOMIN 100UI)".
+
 ### ✅ **Apr 2, 2026: Flujo Inteligente de Cliente en Servicio Técnico**
 - 🔎 **Búsqueda Cliente**: Implementado autocompletado por nombre, cédula o teléfono en creación de documentos técnicos.
 - 🧭 **UX Admin**: Agregado flujo recomendado de selección de cliente existente o creación de cliente nuevo.

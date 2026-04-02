@@ -1,0 +1,46 @@
+{
+  "procedure_type": "Tratamiento de Rejuvenecimiento Facial con Toxina Botulínica Tipo A (XEOMIN 100UI)",
+  "description": "El procedimiento consiste en la infiltración intramuscular de toxina botulínica tipo A (Xeomin), una proteína pura de alta precisión, mediante agujas extrafinas en puntos estratégicos del rostro. El objetivo es relajar temporalmente los músculos responsables de las arrugas dinámicas (de expresión). El efecto comienza a ser visible entre el 3er y 5to día, alcanzando su máximo resultado a los 15 días. La duración del efecto varía según cada paciente, generalmente entre 3 y 4 meses.",
+  "objectives": [
+    "Atenuar o eliminar arrugas dinámicas en frente, entrecejo y patas de gallo.",
+    "Prevenir la formación de surcos profundos o arrugas estáticas.",
+    "Lograr una apariencia facial más descansada, joven y natural.",
+    "Corregir asimetrías leves en la mímica facial.",
+    "Aprovechar la pureza de Xeomin para minimizar el riesgo de inmunogenicidad (resistencia al producto)."
+  ],
+  "risks": [
+    "Cefalea leve transitoria (dolor de cabeza) tras la aplicación.",
+    "Equimosis (hematomas) o pequeños puntos de sangrado en los sitios de punción.",
+    "Edema (inflamación) local o eritema (enrojecimiento) temporal.",
+    "Ptosis palpebral o ciliar (caída leve de párpado o ceja) por difusión del producto (reversible).",
+    "Asimetría facial temporal que puede requerir retoque.",
+    "Diplopía (visión doble) o lagrimeo excesivo (extremadamente raros).",
+    "Reacciones de hipersensibilidad alérgica (muy infrecuentes).",
+    "Efecto insuficiente o duración menor a la esperada según la respuesta individual del músculo."
+  ],
+  "benefits": [
+    "Resultados naturales sin perder la expresividad facial.",
+    "Procedimiento mínimamente invasivo con reincorporación inmediata a la vida diaria.",
+    "Piel con textura más suave y poros visiblemente reducidos en las zonas tratadas.",
+    "Alta pureza del fármaco (Xeomin), ideal para pacientes que buscan tratamientos recurrentes sin generar tolerancia."
+  ],
+  "pre_care": [
+    "Evitar el consumo de alcohol 48 horas antes del procedimiento.",
+    "Suspender (bajo supervisión médica) antiinflamatorios, aspirina, vitamina E o suplementos de omega-3, 3 días antes para reducir riesgo de hematomas.",
+    "No haber tenido tratamientos con antibióticos previamente.",
+    "No haberse colocado vacunas en los últimos 15 días.",
+    "Informar sobre antecedentes de enfermedades neuromusculares (ej. Miastenia Gravis, Síndrome de Eaton-Lambert).",
+    "Informar sobre reacciones alérgicas a proteínas.",
+    "Informar sobre embarazo o periodo de lactancia (contraindicaciones absolutas).",
+    "Acudir con el rostro limpio, sin maquillaje ni cremas densas."
+  ],
+  "post_care": [
+    "Mantenerse en posición vertical (no acostarse ni agacharse) durante las siguientes 4 horas.",
+    "No masajear, frotar ni presionar las zonas tratadas durante las primeras 24 horas.",
+    "Evitar el ejercicio físico intenso, saunas, baños de vapor o exposición solar directa por 48 horas.",
+    "No aplicar maquillaje en las zonas de punción durante las primeras 6 a 12 horas.",
+    "No realizar tratamientos faciales adicionales (peelings, radiofrecuencia, limpiezas) durante los primeros 15 días.",
+    "En caso de cefalea, solo tomar acetaminofén 500 mg.",
+    "Asistir a la cita de revisión programada (generalmente a los 10-15 días) para evaluar la necesidad de retoque."
+  ]
+}

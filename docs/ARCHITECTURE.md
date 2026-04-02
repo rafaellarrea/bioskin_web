@@ -154,6 +154,8 @@ Features:
 - **Component State**: No external state management (React local state)
 - **Database Queries**: Prepared statements with better-sqlite3
 - **API Integration**: Custom hooks pattern
+- **Consent Templates**: Plantillas en `src/data/consent-templates/*.json` cargadas de forma dinámica con `import.meta.glob` en la pestaña de consentimientos
+  - Incluye consentimiento de "Rejuvenecimiento Facial con Toxina Botulínica Tipo A (XEOMIN 100UI)"
 
 ### **File Organization**
 - **Backup Pattern**: `*backup.tsx` files for version control
