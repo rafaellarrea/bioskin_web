@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Printer, ArrowLeft, Mail } from 'lucide-react';
 
@@ -23,6 +23,7 @@ export default function TechnicalDocumentView() {
   const getDocTitle = () => {
     switch(data.document_type) {
       case 'reception': return 'ACTA DE RECEPCIÓN TÉCNICA';
+      case 'delivery_receipt': return 'ACTA DE ENTREGA Y RECEPCIÓN';
       case 'technical_report': return 'INFORME TÉCNICO';
       case 'proforma': return 'PROFORMA DE SERVICIO';
       default: return 'DOCUMENTO TÉCNICO';
@@ -94,10 +95,12 @@ export default function TechnicalDocumentView() {
         {/* Specific Layouts based on Doc Type */}
         
         {/* RECEPTION LAYOUT */}
-        {data.document_type === 'reception' && (
+        {(data.document_type === 'reception' || data.document_type === 'delivery_receipt') && (
           <>
             <div className="mb-8">
-              <h3 className="text-sm font-bold text-gray-800 mb-3 bg-gray-50 p-2 border-l-4 border-[#b8860b]">Estado de Recepción (Checklist)</h3>
+              <h3 className="text-sm font-bold text-gray-800 mb-3 bg-gray-50 p-2 border-l-4 border-[#b8860b]">
+                {data.document_type === 'delivery_receipt' ? 'Checklist de Entrega' : 'Estado de Recepción (Checklist)'}
+              </h3>
               <table className="w-full text-sm border-collapse">
                  <thead>
                    <tr className="bg-gray-50 text-left text-xs font-bold text-gray-500 uppercase">
@@ -133,6 +136,15 @@ export default function TechnicalDocumentView() {
                </div>
             </div>
             
+            {data.document_type === 'delivery_receipt' && (
+              <div className="mb-8 border border-indigo-200 rounded-lg p-4 bg-indigo-50/40">
+                <h4 className="text-sm font-bold text-indigo-800 mb-2">Conformidad de Entrega</h4>
+                <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {data.recommendations || 'Equipo entregado sin observaciones adicionales.'}
+                </p>
+              </div>
+            )}
+
             <div className="mb-8 border-t pt-4">
               <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-1">Términos y Condiciones de Recepción:</h4>
               <p className="text-[10px] text-gray-500 text-justify leading-tight italic">
@@ -230,11 +242,13 @@ export default function TechnicalDocumentView() {
                     <p className="text-[10px] text-gray-400">Departamento Técnico</p>
                 </div>
                 
-                {data.document_type === 'reception' && (
+                {(data.document_type === 'reception' || data.document_type === 'delivery_receipt') && (
                   <div className="text-center w-48">
                       <div className="border-b border-gray-300 mb-2 h-16"></div>
                       <p className="text-xs font-bold uppercase">{data.client_name}</p>
-                      <p className="text-[10px] text-gray-400">Firma Cliente / Entregué Conforme</p>
+                      <p className="text-[10px] text-gray-400">
+                        {data.document_type === 'delivery_receipt' ? 'Firma Cliente / Recibí Conforme' : 'Firma Cliente / Entregué Conforme'}
+                      </p>
                   </div>
                 )}
 

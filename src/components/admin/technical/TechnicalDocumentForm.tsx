@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Printer, Plus, Trash2, Box, FileText, CheckSquare, DollarSign } from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Save, Plus, Trash2, Box, FileText, CheckSquare, DollarSign, Copy, ClipboardCheck } from 'lucide-react';
 
 interface CheckItem {
   id: string;
@@ -9,14 +9,50 @@ interface CheckItem {
   observation: string;
 }
 
-export default function TechnicalDocumentForm() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const [loading, setLoading] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    ticket_number: '',
-    document_type: 'reception',
+type DocumentType = 'reception' | 'technical_report' | 'proforma' | 'delivery_receipt';
+
+type FormState = {
+  ticket_number: string;
+  document_type: DocumentType;
+  client_name: string;
+  client_contact: string;
+  equipment_data: {
+    brand: string;
+    model: string;
+    serial: string;
+    accessories: string;
+    visual_condition: string;
+    reported_issue: string;
+  };
+  checklist_data: {
+    checks: CheckItem[];
+  };
+  diagnosis: string;
+  recommendations: string;
+  total_cost: number;
+  status: string;
+};
+
+const DOC_PREFIX: Record<DocumentType, string> = {
+  reception: 'REC',
+  technical_report: 'INF',
+  proforma: 'PRO',
+  delivery_receipt: 'ENT'
+};
+
+function generateTicket(type: DocumentType): string {
+  const now = new Date();
+  const y = now.getFullYear().toString().slice(-2);
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const rnd = Math.floor(Math.random() * 9000 + 1000);
+  return `${DOC_PREFIX[type]}-${y}${m}${d}-${rnd}`;
+}
+
+function defaultState(type: DocumentType = 'reception'): FormState {
+  return {
+    ticket_number: generateTicket(type),
+    document_type: type,
     client_name: '',
     client_contact: '',
     equipment_data: {
@@ -25,34 +61,66 @@ export default function TechnicalDocumentForm() {
       serial: '',
       accessories: '',
       visual_condition: '',
-      reported_issue: '' // New field for Reception
+      reported_issue: ''
     },
     checklist_data: {
-      checks: [] as CheckItem[]
+      checks: []
     },
     diagnosis: '',
     recommendations: '',
     total_cost: 0,
     status: 'pending'
-  });
+  };
+}
+
+function normalizeDocument(raw: any): FormState {
+  const type = (raw?.document_type || 'reception') as DocumentType;
+  return {
+    ...defaultState(type),
+    ...raw,
+    document_type: type,
+    equipment_data: {
+      ...defaultState(type).equipment_data,
+      ...(raw?.equipment_data || {})
+    },
+    checklist_data: {
+      checks: raw?.checklist_data?.checks || []
+    },
+    total_cost: Number(raw?.total_cost || 0)
+  };
+}
+
+export default function TechnicalDocumentForm() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const copyFrom = searchParams.get('copyFrom');
+  const [loading, setLoading] = useState(false);
+  const [copyLoading, setCopyLoading] = useState(false);
+  
+  const [formData, setFormData] = useState<FormState>(defaultState());
 
   const [checkItems, setCheckItems] = useState<CheckItem[]>([]);
 
   useEffect(() => {
+    if (!id && copyFrom) {
+      copyFromDocument(copyFrom);
+      return;
+    }
+
     if (id) {
       fetchDocument(id);
-    } else {
-      // Initialize with a default ticket number generator (could be improved)
-      setFormData(prev => ({
-        ...prev,
-        ticket_number: `TK-${Date.now().toString().slice(-6)}`
-      }));
+      return;
     }
-  }, [id]);
+
+    const initial = defaultState('reception');
+    setFormData(initial);
+    setCheckItems([]);
+  }, [id, copyFrom]);
 
   // Adjust checklist/defaults based on type ONLY when creating new
   useEffect(() => {
-    if (!id) {
+    if (!id && !copyFrom) {
         if (formData.document_type === 'reception') {
           setCheckItems([
             { id: '1', label: 'Enciende', status: 'na', observation: '' },
@@ -74,9 +142,11 @@ export default function TechnicalDocumentForm() {
            }
         } else if (formData.document_type === 'proforma') {
             setCheckItems([]); // Proformas usually don't need a checklist
+        } else if (formData.document_type === 'delivery_receipt') {
+            setCheckItems([]);
         }
     }
-  }, [formData.document_type, id]);
+  }, [formData.document_type, id, copyFrom]);
 
   const fetchDocument = async (docId: string) => {
     setLoading(true);
@@ -84,10 +154,9 @@ export default function TechnicalDocumentForm() {
       const res = await fetch(`/api/technical-service?id=${docId}`);
       if (res.ok) {
         const data = await res.json();
-        setFormData(data);
-        if (data.checklist_data?.checks) {
-          setCheckItems(data.checklist_data.checks);
-        }
+        const normalized = normalizeDocument(data);
+        setFormData(normalized);
+        setCheckItems(normalized.checklist_data.checks || []);
       }
     } catch (e) {
       console.error(e);
@@ -96,15 +165,56 @@ export default function TechnicalDocumentForm() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const copyFromDocument = async (sourceId: string) => {
+    setCopyLoading(true);
+    try {
+      const res = await fetch(`/api/technical-service?id=${sourceId}`);
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const normalized = normalizeDocument(data);
+      const nextTicket = generateTicket(normalized.document_type);
+
+      setFormData({
+        ...normalized,
+        ticket_number: nextTicket,
+        status: 'draft'
+      });
+      setCheckItems(normalized.checklist_data.checks || []);
+    } catch (error) {
+      console.error('Error copying document:', error);
+    } finally {
+      setCopyLoading(false);
+    }
+  };
+
+  const ensureFinalDefaults = (payload: FormState): FormState => {
+    return {
+      ...payload,
+      client_name: payload.client_name.trim(),
+      client_contact: payload.client_contact.trim(),
+      diagnosis: payload.diagnosis.trim(),
+      recommendations: payload.recommendations.trim(),
+      total_cost: Number.isFinite(payload.total_cost) ? payload.total_cost : 0
+    };
+  };
+
+  const handleSubmit = async (e?: React.FormEvent, forcedStatus?: string) => {
+    e?.preventDefault();
     setLoading(true);
     
     // Merge checklist into form data
-    const payload = {
+    const payload = ensureFinalDefaults({
       ...formData,
+      status: forcedStatus || formData.status,
       checklist_data: { checks: checkItems }
-    };
+    });
+
+    if (payload.status !== 'draft' && !payload.client_name) {
+      window.alert('Debes ingresar el nombre del cliente para guardar el documento final.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const method = id ? 'PUT' : 'POST';
@@ -127,6 +237,32 @@ export default function TechnicalDocumentForm() {
     }
   };
 
+  const applyTemplate = (template: 'report' | 'proforma' | 'delivery') => {
+    if (template === 'report') {
+      setFormData((prev) => ({
+        ...prev,
+        diagnosis: prev.diagnosis || '1) Pruebas iniciales de encendido y verificación de voltajes.\n2) Inspección de módulo principal y conexiones internas.\n3) Detección de componente con comportamiento irregular.',
+        recommendations: prev.recommendations || '1) Reemplazo de componente defectuoso.\n2) Limpieza técnica preventiva y recalibración.\n3) Prueba funcional completa y validación final con el cliente.'
+      }));
+      return;
+    }
+
+    if (template === 'proforma') {
+      setFormData((prev) => ({
+        ...prev,
+        recommendations: prev.recommendations || '1. Diagnóstico técnico especializado\n2. Repuesto principal\n3. Mano de obra técnica\n4. Pruebas de funcionamiento y cierre',
+        total_cost: prev.total_cost || 0
+      }));
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      recommendations: prev.recommendations || 'Equipo entregado en funcionamiento y con recomendaciones de uso preventivo.\nCliente recibe accesorios y equipo en conformidad.',
+      status: prev.status === 'draft' ? 'delivered' : prev.status
+    }));
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -138,7 +274,7 @@ export default function TechnicalDocumentForm() {
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-8">
+      <form onSubmit={(e) => handleSubmit(e)} className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-8">
         
         {/* Header Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -146,12 +282,20 @@ export default function TechnicalDocumentForm() {
             <label className="block text-sm font-bold text-gray-700 mb-1 uppercase tracking-wide">Tipo de Documento</label>
             <select
               value={formData.document_type}
-              onChange={(e) => setFormData({...formData, document_type: e.target.value})}
+              onChange={(e) => {
+                const nextType = e.target.value as DocumentType;
+                setFormData({
+                  ...formData,
+                  document_type: nextType,
+                  ticket_number: id ? formData.ticket_number : generateTicket(nextType)
+                });
+              }}
               className="w-full rounded-lg border-gray-300 focus:ring-[#b8860b] focus:border-[#b8860b] font-medium"
             >
               <option value="reception">Recepción de Equipo</option>
               <option value="technical_report">Informe Técnico</option>
               <option value="proforma">Proforma</option>
+              <option value="delivery_receipt">Acta Entrega/Recepción</option>
             </select>
           </div>
           <div>
@@ -170,6 +314,7 @@ export default function TechnicalDocumentForm() {
               onChange={(e) => setFormData({...formData, status: e.target.value})}
               className="w-full rounded-lg border-gray-300 focus:ring-[#b8860b] focus:border-[#b8860b]"
             >
+              <option value="draft">Borrador</option>
               <option value="pending">Pendiente</option>
               <option value="in_progress">En Revisión</option>
               <option value="completed">Finalizado</option>
@@ -188,7 +333,6 @@ export default function TechnicalDocumentForm() {
             <div>
               <label className="block text-sm text-gray-600 mb-1">Nombre Cliente / Clínica</label>
               <input
-                required
                 type="text"
                 value={formData.client_name}
                 onChange={(e) => setFormData({...formData, client_name: e.target.value})}
@@ -210,7 +354,7 @@ export default function TechnicalDocumentForm() {
         </div>
 
         {/* --- SECTION: EQUIPMENT DATA (RECEPTION & REPORT) --- */}
-        {(formData.document_type === 'reception' || formData.document_type === 'technical_report') && (
+        {(formData.document_type === 'reception' || formData.document_type === 'technical_report' || formData.document_type === 'delivery_receipt') && (
         <div className="border-b pb-6">
            <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
             <span className="p-1 bg-[#b8860b]/10 rounded text-[#b8860b]"><Box size={18}/></span>
@@ -246,16 +390,18 @@ export default function TechnicalDocumentForm() {
             </div>
              
              {/* Only Reception needs specific reception details prominent */}
-             {formData.document_type === 'reception' && (
+             {(formData.document_type === 'reception' || formData.document_type === 'delivery_receipt') && (
                 <>
                 <div className="col-span-3">
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Problema Reportado / Motivo de Ingreso</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">
+                  {formData.document_type === 'delivery_receipt' ? 'Observaciones de Entrega' : 'Problema Reportado / Motivo de Ingreso'}
+                </label>
                     <textarea
                         rows={2}
                         value={formData.equipment_data.reported_issue || ''}
                         onChange={(e) => setFormData({...formData, equipment_data: {...formData.equipment_data, reported_issue: e.target.value}})}
                         className="w-full rounded-lg border-gray-200 bg-red-50"
-                        placeholder="Descripción falla indicada por el cliente..."
+                  placeholder={formData.document_type === 'delivery_receipt' ? 'Notas de condición al entregar...' : 'Descripción falla indicada por el cliente...'}
                     />
                 </div>
                 <div className="col-span-3 md:col-span-1">
@@ -285,11 +431,11 @@ export default function TechnicalDocumentForm() {
         )}
 
         {/* --- SECTION: CHECKLIST (RECEPTION ONLY or OPTIONAL in OTHERS) --- */}
-        {formData.document_type === 'reception' && (
+        {(formData.document_type === 'reception' || formData.document_type === 'delivery_receipt') && (
             <div className="border border-gray-200 rounded-lg overflow-hidden mb-6">
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                        <CheckSquare size={18} className="text-[#b8860b]"/> Checklist de Ingreso
+                <CheckSquare size={18} className="text-[#b8860b]"/> {formData.document_type === 'delivery_receipt' ? 'Checklist de Entrega' : 'Checklist de Ingreso'}
                     </h3>
                     <button 
                         type="button" 
@@ -369,12 +515,41 @@ export default function TechnicalDocumentForm() {
         )}
 
         {/* --- SECTION: TECHNICAL DIAGNOSIS (REPORT & PROFORMA) --- */}
-        {(formData.document_type === 'technical_report' || formData.document_type === 'proforma') && (
+        {(formData.document_type === 'technical_report' || formData.document_type === 'proforma' || formData.document_type === 'delivery_receipt') && (
          <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
           <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
             <span className="p-1 bg-[#b8860b]/10 rounded text-[#b8860b]"><FileText size={18}/></span>
-            {formData.document_type === 'proforma' ? 'Detalle de la Oferta' : 'Análisis Técnico'}
+            {formData.document_type === 'proforma' ? 'Detalle de la Oferta' : formData.document_type === 'delivery_receipt' ? 'Detalle de Entrega y Cierre' : 'Análisis Técnico'}
           </h3>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {formData.document_type === 'technical_report' && (
+              <button
+                type="button"
+                onClick={() => applyTemplate('report')}
+                className="px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-xs font-medium"
+              >
+                Plantilla Informe
+              </button>
+            )}
+            {formData.document_type === 'proforma' && (
+              <button
+                type="button"
+                onClick={() => applyTemplate('proforma')}
+                className="px-3 py-1.5 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium"
+              >
+                Plantilla Proforma
+              </button>
+            )}
+            {formData.document_type === 'delivery_receipt' && (
+              <button
+                type="button"
+                onClick={() => applyTemplate('delivery')}
+                className="px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-medium"
+              >
+                Plantilla Acta
+              </button>
+            )}
+          </div>
           <div className="space-y-4">
             
             {formData.document_type === 'technical_report' && (
@@ -392,7 +567,7 @@ export default function TechnicalDocumentForm() {
 
             <div>
               <label className="block text-sm text-gray-600 mb-1">
-                  {formData.document_type === 'proforma' ? 'Servicios y Repuestos a COTIZAR' : 'Trabajos Realizados / Recomendaciones'}
+                    {formData.document_type === 'proforma' ? 'Servicios y Repuestos a COTIZAR' : formData.document_type === 'delivery_receipt' ? 'Detalle de Entrega / Recomendaciones' : 'Trabajos Realizados / Recomendaciones'}
               </label>
               <textarea
                 rows={6}
@@ -401,18 +576,18 @@ export default function TechnicalDocumentForm() {
                 className="w-full rounded-lg border-gray-200 font-mono text-sm"
                 placeholder={formData.document_type === 'proforma' 
                     ? "1. Repuesto X - $100\n2. Mano de Obra - $50" 
-                    : "Describa la solución aplicada..."}
+                    : formData.document_type === 'delivery_receipt' ? 'Checklist final, conformidad, observaciones...' : "Describa la solución aplicada..."}
               />
             </div>
              
              <div>
               <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1">
-                  <DollarSign size={16}/> Total ({formData.document_type === 'proforma' ? 'A Pagar' : 'Costo Reparación'})
+                  <DollarSign size={16}/> Total ({formData.document_type === 'proforma' ? 'A Pagar' : formData.document_type === 'delivery_receipt' ? 'Costo Final' : 'Costo Reparación'})
               </label>
               <input
                 type="number"
                 value={formData.total_cost}
-                onChange={(e) => setFormData({...formData, total_cost: parseFloat(e.target.value)})}
+                onChange={(e) => setFormData({...formData, total_cost: Number(e.target.value) || 0})}
                 className="w-48 rounded-lg border-gray-300 text-lg font-bold text-gray-800"
               />
             </div>
@@ -421,20 +596,31 @@ export default function TechnicalDocumentForm() {
         )}
 
         <div className="flex justify-end gap-4 pt-4 border-t border-gray-100">
+            {!id && (
+              <button
+                type="button"
+                onClick={() => handleSubmit(undefined, 'draft')}
+                className="px-6 py-2 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-2"
+                disabled={loading || copyLoading}
+              >
+                <Copy size={18} />
+                Guardar Borrador
+              </button>
+            )}
             <button
                 type="button"
                 onClick={() => navigate('/admin/technical')}
                 className="px-6 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                disabled={loading}
+                disabled={loading || copyLoading}
             >
                 Cancelar
             </button>
             <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || copyLoading}
                 className="bg-[#b8860b] text-white px-8 py-2 rounded-lg hover:bg-[#a0750a] transition-colors flex items-center gap-2 disabled:opacity-50"
             >
-                <Save size={20} />
+                {copyLoading ? <ClipboardCheck size={20} /> : <Save size={20} />}
                 {loading ? 'Guardando...' : 'Guardar Documento'}
             </button>
         </div>

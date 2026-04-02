@@ -1,6 +1,54 @@
 
 import { Pool } from '@neondatabase/serverless';
 
+const ALLOWED_UPDATE_FIELDS = [
+  'ticket_number',
+  'document_type',
+  'client_name',
+  'client_contact',
+  'equipment_data',
+  'checklist_data',
+  'diagnosis',
+  'recommendations',
+  'total_cost',
+  'status'
+];
+
+const DOC_PREFIX = {
+  reception: 'REC',
+  technical_report: 'INF',
+  proforma: 'PRO',
+  delivery_receipt: 'ENT'
+};
+
+function toDbCost(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function generateTicketBase(docType) {
+  const prefix = DOC_PREFIX[docType] || 'TEC';
+  const now = new Date();
+  const y = now.getFullYear().toString().slice(-2);
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const rnd = Math.floor(Math.random() * 9000 + 1000);
+  return `${prefix}-${y}${m}${d}-${rnd}`;
+}
+
+async function generateUniqueTicket(pool, docType) {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const candidate = generateTicketBase(docType);
+    const exists = await pool.query(
+      'SELECT 1 FROM technical_service_documents WHERE ticket_number = $1 LIMIT 1',
+      [candidate]
+    );
+    if (exists.rows.length === 0) return candidate;
+  }
+
+  return `${generateTicketBase(docType)}-${Date.now().toString().slice(-3)}`;
+}
+
 export default async function handler(request, response) {
   const connectionString = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
   
@@ -11,7 +59,7 @@ export default async function handler(request, response) {
   const pool = new Pool({ connectionString });
   
   if (request.method === 'GET') {
-    const { id, type, status, search, limit = 50 } = request.query;
+    const { id, type, status, search, client, limit = 50 } = request.query;
     
     try {
       if (id) {
@@ -42,7 +90,14 @@ export default async function handler(request, response) {
         paramIndex++;
       }
 
-      query += ' ORDER BY created_at DESC LIMIT 50'; // Safe limit
+      if (client) {
+        query += ` AND client_name ILIKE $${paramIndex}`;
+        params.push(`%${client}%`);
+        paramIndex++;
+      }
+
+      const parsedLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+      query += ` ORDER BY updated_at DESC, created_at DESC LIMIT ${parsedLimit}`;
 
       const result = await pool.query(query, params);
       return response.status(200).json(result.rows);
@@ -53,7 +108,10 @@ export default async function handler(request, response) {
     }
     
   } else if (request.method === 'POST') {
-    const { 
+    const {
+    copy_from_id,
+    target_client_name,
+    target_client_contact,
       ticket_number, 
       document_type, 
       client_name, 
@@ -67,12 +125,61 @@ export default async function handler(request, response) {
     } = request.body;
 
     try {
+      if (copy_from_id) {
+        const sourceResult = await pool.query(
+          'SELECT * FROM technical_service_documents WHERE id = $1',
+          [copy_from_id]
+        );
+
+        if (sourceResult.rows.length === 0) {
+          return response.status(404).json({ error: 'Source document not found' });
+        }
+
+        const source = sourceResult.rows[0];
+        const nextType = document_type || source.document_type;
+        const nextTicket = ticket_number || await generateUniqueTicket(pool, nextType);
+
+        const result = await pool.query(
+          `INSERT INTO technical_service_documents
+           (ticket_number, document_type, client_name, client_contact, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           RETURNING *`,
+          [
+            nextTicket,
+            nextType,
+            target_client_name || client_name || source.client_name,
+            target_client_contact || client_contact || source.client_contact,
+            equipment_data || source.equipment_data || {},
+            checklist_data || source.checklist_data || { checks: [] },
+            diagnosis ?? source.diagnosis ?? '',
+            recommendations ?? source.recommendations ?? '',
+            toDbCost(total_cost ?? source.total_cost),
+            status || 'draft'
+          ]
+        );
+
+        return response.status(201).json(result.rows[0]);
+      }
+
+      const finalTicket = ticket_number || await generateUniqueTicket(pool, document_type);
+
       const result = await pool.query(
         `INSERT INTO technical_service_documents 
          (ticket_number, document_type, client_name, client_contact, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
          RETURNING *`,
-        [ticket_number, document_type, client_name, client_contact, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status || 'pending']
+        [
+          finalTicket,
+          document_type,
+          client_name,
+          client_contact,
+          equipment_data || {},
+          checklist_data || { checks: [] },
+          diagnosis || '',
+          recommendations || '',
+          toDbCost(total_cost),
+          status || 'pending'
+        ]
       );
       return response.status(201).json(result.rows[0]);
     } catch (error) {
@@ -83,12 +190,16 @@ export default async function handler(request, response) {
       const { id, ...updates } = request.body;
       if(!id) return response.status(400).json({ error: 'Document ID required' });
 
-      // Construct dynamic update query
-      const fields = Object.keys(updates);
+      const normalizedUpdates = { ...updates };
+      if ('total_cost' in normalizedUpdates) {
+        normalizedUpdates.total_cost = toDbCost(normalizedUpdates.total_cost);
+      }
+
+      const fields = Object.keys(normalizedUpdates).filter((field) => ALLOWED_UPDATE_FIELDS.includes(field));
       if(fields.length === 0) return response.status(400).json({ error: 'No fields to update' });
 
       const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
-      const values = [id, ...Object.values(updates)];
+      const values = [id, ...fields.map((field) => normalizedUpdates[field])];
 
       try {
           const result = await pool.query(

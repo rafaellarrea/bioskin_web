@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Mar 27, 2026: Servicio Técnico por Cliente y Borradores**
+- 📁 **Admin Técnico**: Implementada vista tipo carpetas por cliente con documentos agrupados.
+- 📝 **Documentos**: Agregado guardado en borrador, edición robusta y nuevo tipo "Acta Entrega/Recepción".
+- 🔁 **Operación**: Habilitada copia de informes/proformas/actas entre clientes desde el dashboard.
+
 ### ✅ **Mar 23, 2026: UI Segmentation & Print Optimization**
 - 🔧 **Frontend**: Segmentado formulario técnico por tipo (Recepción/Informe/Proforma).
 - 🖨️ **Print**: Corregida vista de impresión (eliminados elementos web) y agregados términos legales para Ecuador.
