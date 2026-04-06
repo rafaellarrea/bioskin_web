@@ -14,6 +14,8 @@
 
 ```
 project2.0/
+├── .github/
+│   └── agents/                   # Agentes personalizados de Copilot
 ├── src/                          # Frontend React
 │   ├── pages/                    # Componentes de página
 │   ├── components/               # Componentes reutilizables
@@ -226,6 +228,9 @@ Responsive: Mobile-first approach
 // Custom Hooks
 - useBlogAdmin: State management for blog administration
 ```
+
+### **AI Workflow Customization**
+- `.github/agents/frontend-expert.agent.md`: agente personalizado para cambios de frontend con foco en React, TypeScript, Tailwind, accesibilidad, responsive design y buenas prácticas.
 
 ---
 

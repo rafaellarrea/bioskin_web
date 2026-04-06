@@ -10,6 +10,9 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 6, 2026: Agente Frontend Personalizado**
+- 🤖 **Copilot**: Creado `.github/agents/frontend-expert.agent.md` para tareas de React, Tailwind, UI/UX y buenas prácticas.
+
 ### ✅ **Apr 2, 2026: Consentimiento Xeomin 100UI**
 - 📄 **Consentimiento**: Agregada plantilla para "Rejuvenecimiento Facial con Toxina Botulínica Tipo A (XEOMIN 100UI)".
 
