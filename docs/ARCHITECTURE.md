@@ -15,7 +15,8 @@
 ```
 project2.0/
 ├── .github/
-│   └── agents/                   # Agentes personalizados de Copilot
+│   ├── agents/                   # Agentes personalizados de Copilot
+│   └── skills/                   # Skills reutilizables de Copilot
 ├── src/                          # Frontend React
 │   ├── pages/                    # Componentes de página
 │   ├── components/               # Componentes reutilizables
@@ -234,6 +235,11 @@ Responsive: Mobile-first approach
 - `.github/agents/security-guardian.agent.md`: agente personalizado para seguridad, protección de datos, manejo de contraseñas, secretos, archivos `api/*`, autenticación y hardening.
 - `.github/agents/backend-engineer.agent.md`: agente personalizado para backend, creación de endpoints, servicios, lógica de negocio, validaciones y colaboración con frontend/seguridad.
 - `.github/agents/code-auditor.agent.md`: agente personalizado para auditoría técnica, detección de errores, limpieza de código no usado/obsoleto, revisión de pruebas temporales y refactorización segura.
+- `.github/agents/devops-vercel.agent.md`: agente personalizado para despliegues, Vercel, logs, variables de entorno, rutas SPA y troubleshooting de producción.
+- `.github/agents/qa-testing.agent.md`: agente personalizado para QA, pruebas funcionales, smoke tests, regresión y verificación basada en evidencia.
+- `.github/skills/vercel-operations/SKILL.md`: skill para troubleshooting operativo y validación de despliegues en Vercel.
+- `.github/skills/testing-validation/SKILL.md`: skill para validación QA, reproducción de bugs y pruebas con evidencia.
+- `.github/skills/code-cleanup-audit/SKILL.md`: skill para auditoría técnica, limpieza de código obsoleto y refactorización segura.
 
 ---
 
