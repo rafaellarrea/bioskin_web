@@ -231,6 +231,8 @@ Responsive: Mobile-first approach
 ```
 
 ### **AI Workflow Customization**
+- `AGENTS.md`: orquestación global para elegir el agente correcto según frontend, backend, seguridad, auditoría, DevOps o QA.
+- `.github/instructions/security-qa-gate.instructions.md`: instrucción aplicada a `api/**` y `lib/**` para forzar revisión de seguridad y validación QA antes de cerrar cambios.
 - `.github/agents/frontend-expert.agent.md`: agente personalizado para cambios de frontend con foco en React, TypeScript, Tailwind, accesibilidad, responsive design y buenas prácticas.
 - `.github/agents/security-guardian.agent.md`: agente personalizado para seguridad, protección de datos, manejo de contraseñas, secretos, archivos `api/*`, autenticación y hardening.
 - `.github/agents/backend-engineer.agent.md`: agente personalizado para backend, creación de endpoints, servicios, lógica de negocio, validaciones y colaboración con frontend/seguridad.

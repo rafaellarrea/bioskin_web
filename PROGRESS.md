@@ -18,6 +18,7 @@
 - 🚀 **DevOps/Vercel**: Creado `.github/agents/devops-vercel.agent.md` para deploys, producción y troubleshooting operativo.
 - ✅ **QA/Testing**: Creado `.github/agents/qa-testing.agent.md` para validación, regresión, smoke tests y verificación con evidencia.
 - 🛠️ **Skills**: Agregadas `.github/skills/vercel-operations`, `.github/skills/testing-validation` y `.github/skills/code-cleanup-audit`.
+- 📘 **Orquestación**: Agregado `AGENTS.md` con reglas de selección de agentes y `.github/instructions/security-qa-gate.instructions.md` para revisión obligatoria de seguridad y QA en `api/**` y `lib/**`.
 
 ### ✅ **Apr 2, 2026: Consentimiento Xeomin 100UI**
 - 📄 **Consentimiento**: Agregada plantilla para "Rejuvenecimiento Facial con Toxina Botulínica Tipo A (XEOMIN 100UI)".
