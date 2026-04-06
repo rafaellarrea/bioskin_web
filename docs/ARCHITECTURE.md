@@ -232,6 +232,7 @@ Responsive: Mobile-first approach
 ### **AI Workflow Customization**
 - `.github/agents/frontend-expert.agent.md`: agente personalizado para cambios de frontend con foco en React, TypeScript, Tailwind, accesibilidad, responsive design y buenas prácticas.
 - `.github/agents/security-guardian.agent.md`: agente personalizado para seguridad, protección de datos, manejo de contraseñas, secretos, archivos `api/*`, autenticación y hardening.
+- `.github/agents/backend-engineer.agent.md`: agente personalizado para backend, creación de endpoints, servicios, lógica de negocio, validaciones y colaboración con frontend/seguridad.
 
 ---
 
