@@ -14,6 +14,7 @@
 - 🤖 **Frontend**: Creado `.github/agents/frontend-expert.agent.md` para React, Tailwind, UI/UX y buenas prácticas.
 - 🔐 **Seguridad**: Creado `.github/agents/security-guardian.agent.md` para credenciales, datos sensibles, endpoints y hardening.
 - ⚙️ **Backend**: Creado `.github/agents/backend-engineer.agent.md` para APIs, lógica server-side y buenas prácticas de backend.
+- 🧹 **Auditoría**: Creado `.github/agents/code-auditor.agent.md` para detectar errores, código obsoleto, pruebas temporales y mejoras de calidad.
 
 ### ✅ **Apr 2, 2026: Consentimiento Xeomin 100UI**
 - 📄 **Consentimiento**: Agregada plantilla para "Rejuvenecimiento Facial con Toxina Botulínica Tipo A (XEOMIN 100UI)".
