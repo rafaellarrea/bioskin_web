@@ -826,6 +826,16 @@ export default async function handler(req, res) {
 
       // --- INYECTABLES ---
 
+      case 'getInjectablesByRecord': {
+        const { record_id: injRecordId } = req.query;
+        if (!injRecordId) return res.status(400).json({ error: 'record_id required' });
+        const injByRecord = await pool.query(
+          'SELECT * FROM injectables WHERE record_id = $1 ORDER BY date DESC',
+          [injRecordId]
+        );
+        return res.status(200).json(injByRecord.rows);
+      }
+
       case 'getInjectablesByTreatment': {
         const { treatment_id: injTreatId } = req.query;
         if (!injTreatId) return res.status(400).json({ error: 'treatment_id required' });

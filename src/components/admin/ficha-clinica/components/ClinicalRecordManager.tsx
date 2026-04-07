@@ -10,7 +10,8 @@ import {
   FileSignature, 
   ArrowLeft,
   Save,
-  MessageSquare
+  MessageSquare,
+  Droplets
 } from 'lucide-react';
 import AdminLayout from '../../AdminLayout';
 import ConsultationTab from './tabs/ConsultationTab';
@@ -20,6 +21,7 @@ import DiagnosisTab from './tabs/DiagnosisTab';
 import TreatmentTab from './tabs/TreatmentTab';
 import PrescriptionTab from './tabs/PrescriptionTab';
 import ConsentimientosTab from './tabs/ConsentimientosTab';
+import InjectablesTab from './tabs/InjectablesTab';
 import { Skeleton } from '../../../ui/Skeleton';
 
 interface TabButtonProps {
@@ -229,6 +231,13 @@ export default function ClinicalRecordManager() {
               active={activeTab === 'consent'} 
               onClick={() => setActiveTab('consent')} 
             />
+            <TabButton 
+              id="injectables" 
+              label="Inyectables" 
+              icon={Droplets} 
+              active={activeTab === 'injectables'} 
+              onClick={() => setActiveTab('injectables')} 
+            />
           </div>
 
           {/* Tab Content */}
@@ -295,6 +304,14 @@ export default function ClinicalRecordManager() {
                     patientId={patient?.id}
                     recordId={parseInt(recordId!)}
                     patient={patient}
+                  />
+                )}
+                {activeTab === 'injectables' && (
+                  <InjectablesTab 
+                    recordId={recordData?.recordId}
+                    injectables={recordData?.injectables || []}
+                    patientName={patient ? `${patient.first_name} ${patient.last_name}` : ''}
+                    onSave={() => fetchData(false)}
                   />
                 )}
               </motion.div>

@@ -1,9 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Calendar, DollarSign, Clock, Save, Trash2, Copy, Sparkles, X, MessageSquare, Check, AlertCircle, FileText, Syringe } from 'lucide-react';
+import { Plus, Calendar, DollarSign, Clock, Save, Trash2, Copy, Sparkles, X, MessageSquare, Check, AlertCircle, FileText } from 'lucide-react';
 import treatmentOptions from '../../data/treatment_options.json';
 import { Tooltip } from '../../../../ui/Tooltip';
-import InjectablesSubPanel from './InjectablesSubPanel';
 
 interface Treatment {
   id?: number;
@@ -48,9 +47,6 @@ export default function TreatmentTab({ recordId, treatments, physicalExams = [],
   const [selectedExamId, setSelectedExamId] = useState<string>('');
   const [editableExamData, setEditableExamData] = useState('');
   const [generatingAI, setGeneratingAI] = useState(false);
-
-  // Injectable toggle
-  const [showInjectables, setShowInjectables] = useState(false);
 
   // Sort treatments by date descending for the history list
   const sortedTreatments = [...treatments].sort((a, b) => 
@@ -496,44 +492,6 @@ ${protocolText}`;
               placeholder="La sugerencia generada por IA aparecerá aquí..."
             />
           </div>
-
-          {/* Injectable Toggle Switch */}
-          <div className="flex items-center justify-between p-4 bg-violet-50/50 rounded-xl border border-violet-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-violet-100 rounded-lg">
-                <Syringe className="w-5 h-5 text-violet-600" />
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-gray-800">Registrar Inyectables</span>
-                <p className="text-xs text-gray-500">Toxina botulínica, ácido hialurónico y mapeo 3D</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowInjectables(!showInjectables)}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 ${
-                showInjectables ? 'bg-violet-500' : 'bg-gray-300'
-              }`}
-              role="switch"
-              aria-checked={showInjectables}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${
-                  showInjectables ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Injectables Sub-Panel */}
-          <AnimatePresence>
-            {showInjectables && (
-              <InjectablesSubPanel
-                recordId={recordId}
-                treatmentId={currentTreatment.id}
-                onMessage={setMessage}
-              />
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
