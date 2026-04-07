@@ -34,7 +34,8 @@ project2.0/
 │   ├── database.js              # SQLite management
 │   └── ai-service.js            # OpenAI integration
 ├── public/                       # Assets estáticos
-│   └── images/                   # Imágenes organizadas por feature
+│   ├── images/                   # Imágenes organizadas por feature
+│   └── models/clinical/          # Modelos 3D (male_head.glb)
 ├── data/                        # Base de datos SQLite
 ├── PROGRESS.md                   # Historial desarrollo proyecto
 └── ARCHITECTURE.md              # Documentación arquitectura técnica
@@ -55,6 +56,22 @@ project2.0/
 <Route path="/blogs" element={<Blogs />} />
 <Route path="/blogs/:slug" element={<BlogDetail />} />
 ```
+
+#### **Injectables System (Ficha Clínica)**
+```
+src/components/admin/ficha-clinica/
+├── components/
+│   ├── Clinical3DViewer.tsx       # Visor 3D reutilizable (Three.js + GLB)
+│   └── tabs/
+│       ├── TreatmentTab.tsx       # Toggle switch habilita inyectables
+│       └── InjectablesSubPanel.tsx # Panel de registro toxina/HA + mapeo 3D
+├── data/
+│   └── injectables.json           # Catálogo de marcas, técnicas y zonas
+public/models/clinical/
+│   └── male_head.glb              # Modelo facial 3D por defecto
+```
+- **DB**: Tabla `injectables` con `treatment_id`, `mapping_data` (JSONB) en Neon
+- **API**: `addInjectable`, `updateInjectable`, `deleteInjectable`, `getInjectablesByTreatment` en `api/records.js`
 
 #### **Product System**
 ```typescript

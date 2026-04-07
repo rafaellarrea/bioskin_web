@@ -824,6 +824,81 @@ export default async function handler(req, res) {
         await pool.query('DELETE FROM treatments WHERE id = $1', [delTreatId]);
         return res.status(200).json({ success: true });
 
+      // --- INYECTABLES ---
+
+      case 'getInjectablesByTreatment': {
+        const { treatment_id: injTreatId } = req.query;
+        if (!injTreatId) return res.status(400).json({ error: 'treatment_id required' });
+        const injList = await pool.query(
+          'SELECT * FROM injectables WHERE treatment_id = $1 ORDER BY date DESC',
+          [injTreatId]
+        );
+        return res.status(200).json(injList.rows);
+      }
+
+      case 'addInjectable': {
+        const { record_id: injRecId, treatment_id: injTid, ...injData } = body;
+        if (!injRecId) return res.status(400).json({ error: 'record_id required' });
+
+        // Sanitize fields
+        const allowedFields = [
+          'date', 'product_type', 'product_name', 'brand', 'lot_number',
+          'expiration_date', 'volume_used', 'units_used', 'areas_treated',
+          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes'
+        ];
+        const cleanData = {};
+        for (const key of allowedFields) {
+          if (injData[key] !== undefined) {
+            cleanData[key] = ['areas_treated', 'mapping_data'].includes(key) && typeof injData[key] === 'object'
+              ? JSON.stringify(injData[key])
+              : injData[key];
+          }
+        }
+
+        const fields = ['record_id', 'treatment_id', ...Object.keys(cleanData)];
+        const values = [injRecId, injTid || null, ...Object.values(cleanData)];
+        const params = fields.map((_, i) => `$${i + 1}`).join(', ');
+        const newInj = await pool.query(
+          `INSERT INTO injectables (${fields.join(', ')}) VALUES (${params}) RETURNING *`,
+          values
+        );
+        return res.status(201).json(newInj.rows[0]);
+      }
+
+      case 'updateInjectable': {
+        const { id: updInjId, ...updInjData } = body;
+        if (!updInjId) return res.status(400).json({ error: 'id required' });
+
+        const allowedFields = [
+          'date', 'product_type', 'product_name', 'brand', 'lot_number',
+          'expiration_date', 'volume_used', 'units_used', 'areas_treated',
+          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes'
+        ];
+        const cleanData = {};
+        for (const key of allowedFields) {
+          if (updInjData[key] !== undefined) {
+            cleanData[key] = ['areas_treated', 'mapping_data'].includes(key) && typeof updInjData[key] === 'object'
+              ? JSON.stringify(updInjData[key])
+              : updInjData[key];
+          }
+        }
+
+        const uFields = Object.keys(cleanData);
+        const uValues = Object.values(cleanData);
+        if (uFields.length === 0) return res.status(400).json({ error: 'No fields to update' });
+
+        const uSet = uFields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+        await pool.query(`UPDATE injectables SET ${uSet} WHERE id = $1`, [updInjId, ...uValues]);
+        return res.status(200).json({ success: true });
+      }
+
+      case 'deleteInjectable': {
+        const { id: delInjId } = req.query;
+        if (!delInjId) return res.status(400).json({ error: 'id required' });
+        await pool.query('DELETE FROM injectables WHERE id = $1', [delInjId]);
+        return res.status(200).json({ success: true });
+      }
+
       case 'listPrescriptions':
         const { record_id: presc_record_id } = req.query;
         const prescriptionsList = await pool.query('SELECT * FROM prescriptions WHERE record_id = $1 ORDER BY date DESC, id DESC', [presc_record_id]);

@@ -10,6 +10,14 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 6, 2026: Módulo de Inyectables + Mapeo 3D en Ficha Clínica**
+- 💉 **InjectablesSubPanel**: Nuevo componente para registro de inyectables (toxina/HA) con catálogo autocomplete.
+- 🔀 **Toggle Switch**: Switch en TreatmentTab para habilitar/deshabilitar el registro de inyectables por tratamiento.
+- 🧊 **Clinical3DViewer**: Componente 3D reutilizable extraído de Clinical3D para visor facial embebido.
+- 📦 **male_head.glb**: Modelo 3D por defecto servido desde `public/models/clinical/`.
+- 🗄️ **DB Migration**: Añadidos `treatment_id`, `product_type`, `units_used`, `injection_plane`, `needle_type`, `mapping_data` a tabla `injectables`.
+- 🔌 **API CRUD**: Endpoints `addInjectable`, `updateInjectable`, `deleteInjectable`, `getInjectablesByTreatment` en `api/records.js`.
+
 ### ✅ **Apr 6, 2026: Agentes y Skills de Copilot**
 - 🤖 **Frontend**: Creado `.github/agents/frontend-expert.agent.md` para React, Tailwind, UI/UX y buenas prácticas.
 - 🔐 **Seguridad**: Creado `.github/agents/security-guardian.agent.md` para credenciales, datos sensibles, endpoints y hardening.
