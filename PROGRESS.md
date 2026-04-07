@@ -10,6 +10,10 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 6, 2026: Auditoría Serverless — 12→11 funciones**
+- 🗑️ **Eliminada** `api/init-technical-db-vercel.js` — script de migración one-shot sin uso continuo (0 refs). Lógica preservada en `scripts/init-technical-service-db.js`.
+- 📊 **Conteo final**: 11/12 funciones serverless (1 slot libre).
+
 ### ✅ **Apr 6, 2026: Módulo de Inyectables + Mapeo 3D en Ficha Clínica**
 - 💉 **InjectablesSubPanel**: Nuevo componente para registro de inyectables (toxina/HA) con catálogo autocomplete.
 - 🔀 **Toggle Switch**: Switch en TreatmentTab para habilitar/deshabilitar el registro de inyectables por tratamiento.
