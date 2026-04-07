@@ -129,7 +129,7 @@ const ThreeEngine: React.FC<{
     scene.add(markersGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
-    camera.position.set(0, 0, 40);
+    camera.position.set(0, 0, 18);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -198,14 +198,12 @@ const ThreeEngine: React.FC<{
         dummy.position.copy(point);
         dummy.lookAt(point.clone().add(n));
 
-        const zoneDetectedName = getFacialZone(point, callbacks.current.zones);
-
         callbacks.current.onMeshClick({
           position: { x: point.x, y: point.y, z: point.z },
           rotation: [dummy.rotation.x, dummy.rotation.y, dummy.rotation.z],
           normal: { x: n.x, y: n.y, z: n.z },
-          zone: zoneDetectedName,
-          radius: 0.6,
+          zone: '',
+          radius: 0.3,
         });
       }
     };
@@ -298,7 +296,7 @@ const ThreeEngine: React.FC<{
       });
 
       const maxDim = Math.max(size.x, size.y, size.z);
-      const scaleFactor = 5 / (maxDim || 1);
+      const scaleFactor = 8 / (maxDim || 1);
       model.scale.setScalar(scaleFactor);
 
       if (controlsRef.current) {
@@ -357,11 +355,11 @@ const ThreeEngine: React.FC<{
       if (marker.type === 'Puntual') {
         const markerGroup = new THREE.Group();
         markerGroup.position.copy(pos);
-        const coreGeo = new THREE.SphereGeometry(0.2, 16, 16);
+        const coreGeo = new THREE.SphereGeometry(0.06, 12, 12);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
 
-        const outerGeo = new THREE.SphereGeometry(0.4, 32, 32);
+        const outerGeo = new THREE.SphereGeometry(0.12, 16, 16);
         const outerMat = new THREE.MeshPhysicalMaterial({
           color, emissive: color, emissiveIntensity: 1.5,
           transparent: true, opacity: 0.8, roughness: 0, transmission: 0.9, thickness: 0.5,
@@ -380,8 +378,8 @@ const ThreeEngine: React.FC<{
         }
         if (!targetMesh) return;
 
-        let width = marker.scale?.x || marker.radius || 0.6;
-        let height = marker.scale?.y || marker.radius || 0.6;
+        let width = marker.scale?.x || marker.radius || 0.3;
+        let height = marker.scale?.y || marker.radius || 0.3;
         const euler = new THREE.Euler(marker.rotation[0], marker.rotation[1], marker.rotation[2]);
         const depth = Math.max(width, height) * 1.5;
         const size = new THREE.Vector3(width, height, depth);
@@ -420,17 +418,20 @@ export default function Clinical3DViewer({
   const [modelLoaded, setModelLoaded] = useState(false);
   const [modelError, setModelError] = useState(false);
   const [pendingMarker, setPendingMarker] = useState<any>(null);
+  const [pendingZoneText, setPendingZoneText] = useState('');
 
   const handleMeshClick = (data: any) => {
     if (readOnly) return;
     setPendingMarker({ ...data, pathologyId: selectedPathology });
+    setPendingZoneText('');
   };
 
   const confirmMarker = (type: MarkerType) => {
     if (!pendingMarker) return;
-    const marker: Marker3D = { ...pendingMarker, type, id: Date.now().toString() };
+    const marker: Marker3D = { ...pendingMarker, type, zone: pendingZoneText.trim() || 'Sin especificar', id: Date.now().toString() };
     onMarkerPlaced?.(marker);
     setPendingMarker(null);
+    setPendingZoneText('');
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,9 +524,17 @@ export default function Clinical3DViewer({
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl p-4 w-72 shadow-xl">
             <h4 className="font-semibold text-gray-800 mb-1 text-sm">Confirmar Marcación</h4>
-            <p className="text-xs text-gray-500 mb-3">
-              Zona: <span className="font-medium text-[#deb887]">{pendingMarker.zone}</span>
-            </p>
+            <div className="mb-3">
+              <label className="block text-xs text-gray-500 mb-1">Zona (escribir):</label>
+              <input
+                type="text"
+                className="w-full p-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#deb887] outline-none bg-gray-50"
+                placeholder="Ej: Glabela, Frente, Labio superior..."
+                value={pendingZoneText}
+                onChange={e => setPendingZoneText(e.target.value)}
+                autoFocus
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => confirmMarker('Puntual')}
