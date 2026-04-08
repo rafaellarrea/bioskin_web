@@ -171,6 +171,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const remaining = totalVial - totalUsed;
   const unitLabel = current.product_type === 'toxina' ? 'UI' : 'ml';
 
+  // Validation: require product name + units before 3D marking
+  const hasUnits = current.product_type === 'toxina'
+    ? Number(current.units_used) > 0
+    : Number(current.volume_used) > 0;
+  const canMark = current.product_name.trim() !== '' && hasUnits;
+
   // Group points by tercio
   const pointsByTercio = injectionPoints.reduce((acc, p) => {
     const key = p.tercio || 'sin_tercio';
@@ -246,8 +252,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setCurrent({ ...inj });
   };
 
-  // 3D click → open dialog instead of direct add
+  // 3D click → validate then open dialog
   const handleMarkerPlaced = (marker: Marker3D) => {
+    if (!canMark) {
+      setMessage({ type: 'error', text: `Complete el nombre del producto y las ${unitLabel} antes de marcar puntos` });
+      return;
+    }
     setPendingPoint(marker);
     setDialogStep(1);
     setDialogTercio('');
@@ -823,7 +833,13 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       {/* 3D Mapping Section */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <button
-          onClick={() => setShow3D(!show3D)}
+          onClick={() => {
+            if (!canMark && !show3D) {
+              setMessage({ type: 'error', text: `Complete el nombre del producto y las ${unitLabel} antes de abrir el mapeo 3D` });
+              return;
+            }
+            setShow3D(!show3D);
+          }}
           className="w-full flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
         >
           <div className="flex items-center gap-3">
@@ -859,13 +875,17 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               className="border-t border-gray-100"
             >
               <div ref={viewerRef} className="p-4">
-                <div className="relative">
-                  <Clinical3DViewer
-                    markers={markers3D}
-                    selectedPathology={current.product_type === 'toxina' ? 'botox' : 'filler'}
-                    onMarkerPlaced={handleMarkerPlaced}
-                    height="400px"
-                  />
+                {/* Two-column layout: 3D viewer left, breakdown right */}
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Left: 3D Viewer */}
+                  <div className="flex-1 min-w-0">
+                    <div className="relative">
+                      <Clinical3DViewer
+                        markers={markers3D}
+                        selectedPathology={current.product_type === 'toxina' ? 'botox' : 'filler'}
+                        onMarkerPlaced={handleMarkerPlaced}
+                        height="400px"
+                      />
 
                   {/* Dialog Overlay — Step 1: Tercio */}
                   {dialogStep === 1 && (
@@ -1002,54 +1022,64 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                     </button>
                   </div>
                 )}
-              </div>
+                  </div>
 
-              {/* Points Breakdown by Tercio */}
-              {injectionPoints.length > 0 && (
-                <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
-                  {(['superior', 'medio', 'inferior'] as const).map(tercio => {
-                    const pts = pointsByTercio[tercio];
-                    if (!pts || pts.length === 0) return null;
-                    const colors = TERCIO_COLORS[tercio];
-                    const tercioTotal = pts.reduce((s, p) => s + p.units, 0);
-                    return (
-                      <div key={tercio} className={`rounded-xl border overflow-hidden ${colors.border}`}>
-                        <div className={`flex items-center justify-between px-3 py-2 ${colors.header}`}>
-                          <span className={`text-xs font-bold ${colors.text}`}>{TERCIO_LABELS[tercio]}</span>
-                          <span className={`text-[10px] font-semibold ${colors.text}`}>
-                            {pts.length} punto(s) · {tercioTotal} {unitLabel}
-                          </span>
-                        </div>
-                        <div className="divide-y divide-gray-100">
-                          {pts.map((p, i) => {
-                            const globalIndex = injectionPoints.indexOf(p);
-                            return (
-                              <div key={i} className="flex items-center justify-between px-3 py-2 text-xs hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-gray-400 font-mono w-5">{globalIndex + 1}</span>
-                                  <span className="font-medium text-gray-700">{p.label || '—'}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <span className="font-semibold text-gray-800">{p.units} {unitLabel}</span>
-                                  <span className="text-gray-400 w-8 text-right">{totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</span>
-                                  <button
-                                    onClick={() => handleRemovePoint(globalIndex)}
-                                    className="p-1 text-red-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                                    title="Eliminar punto"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
+                  {/* Right: Points Breakdown by Tercio */}
+                  <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
+                    {injectionPoints.length > 0 ? (
+                      <div className="space-y-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
+                        {(['superior', 'medio', 'inferior'] as const).map(tercio => {
+                          const pts = pointsByTercio[tercio];
+                          if (!pts || pts.length === 0) return null;
+                          const colors = TERCIO_COLORS[tercio];
+                          const tercioTotal = pts.reduce((s, p) => s + p.units, 0);
+                          return (
+                            <div key={tercio} className={`rounded-xl border overflow-hidden ${colors.border}`}>
+                              <div className={`flex items-center justify-between px-3 py-2 ${colors.header}`}>
+                                <span className={`text-xs font-bold ${colors.text}`}>{TERCIO_LABELS[tercio]}</span>
+                                <span className={`text-[10px] font-semibold ${colors.text}`}>
+                                  {pts.length} pto(s) · {tercioTotal} {unitLabel}
+                                </span>
                               </div>
-                            );
-                          })}
-                        </div>
+                              <div className="divide-y divide-gray-100">
+                                {pts.map((p, i) => {
+                                  const globalIndex = injectionPoints.indexOf(p);
+                                  return (
+                                    <div key={i} className="flex items-center justify-between px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className="text-gray-400 font-mono w-4 flex-shrink-0">{globalIndex + 1}</span>
+                                        <span className="font-medium text-gray-700 truncate">{p.label || '—'}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        <span className="font-semibold text-gray-800">{p.units} {unitLabel}</span>
+                                        <span className="text-gray-400 w-7 text-right">{totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</span>
+                                        <button
+                                          onClick={() => handleRemovePoint(globalIndex)}
+                                          className="p-0.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                          title="Eliminar punto"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
+                        <Crosshair className="w-8 h-8 text-gray-300 mb-2" />
+                        <p className="text-sm text-gray-400 font-medium">Sin marcaciones</p>
+                        <p className="text-xs text-gray-300 mt-1">Haz clic en el rostro 3D para registrar puntos</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
