@@ -865,8 +865,15 @@ export default async function handler(req, res) {
           }
         }
 
-        const fields = ['record_id', 'treatment_id', ...Object.keys(cleanData)];
-        const values = [injRecId, injTid || null, ...Object.values(cleanData)];
+        const fields = ['record_id', ...Object.keys(cleanData)];
+        const values = [injRecId, ...Object.values(cleanData)];
+
+        // Include treatment_id only if provided (column may not exist in older schemas)
+        if (injTid) {
+          fields.push('treatment_id');
+          values.push(injTid);
+        }
+
         const params = fields.map((_, i) => `$${i + 1}`).join(', ');
         const newInj = await pool.query(
           `INSERT INTO injectables (${fields.join(', ')}) VALUES (${params}) RETURNING *`,
