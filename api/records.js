@@ -881,12 +881,22 @@ export default async function handler(req, res) {
           'expiration_date', 'volume_used', 'units_used', 'areas_treated',
           'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes'
         ];
+        const dateFields = ['date', 'expiration_date'];
+        const numericFields = ['volume_used', 'units_used'];
         const cleanData = {};
         for (const key of allowedFields) {
           if (injData[key] !== undefined) {
-            cleanData[key] = ['areas_treated', 'mapping_data'].includes(key) && typeof injData[key] === 'object'
-              ? JSON.stringify(injData[key])
-              : injData[key];
+            let val = injData[key];
+            // Convert empty strings to null for date and numeric fields
+            if (typeof val === 'string' && val.trim() === '' && (dateFields.includes(key) || numericFields.includes(key))) {
+              val = null;
+            }
+            if (['areas_treated', 'mapping_data'].includes(key) && typeof val === 'object') {
+              val = JSON.stringify(val);
+            }
+            // Skip null/empty optional fields to avoid type errors
+            if (val === null && key !== 'date') continue;
+            cleanData[key] = val;
           }
         }
 
