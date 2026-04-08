@@ -884,6 +884,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         markers={markers3D}
                         selectedPathology={current.product_type === 'toxina' ? 'botox' : 'filler'}
                         onMarkerPlaced={handleMarkerPlaced}
+                        skipConfirmation
                         height="400px"
                       />
 

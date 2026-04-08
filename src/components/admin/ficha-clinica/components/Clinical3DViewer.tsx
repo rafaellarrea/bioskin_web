@@ -88,6 +88,8 @@ interface Clinical3DViewerProps {
   modelUrl?: string;
   /** Modo solo lectura (sin clicks) */
   readOnly?: boolean;
+  /** Saltar el diálogo interno de confirmación (el padre maneja su propio diálogo) */
+  skipConfirmation?: boolean;
 }
 
 // ==========================================
@@ -410,6 +412,7 @@ export default function Clinical3DViewer({
   height = '400px',
   modelUrl = '/models/clinical/male_head.glb',
   readOnly = false,
+  skipConfirmation = false,
 }: Clinical3DViewerProps) {
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({
     type: 'url',
@@ -422,6 +425,12 @@ export default function Clinical3DViewer({
 
   const handleMeshClick = (data: any) => {
     if (readOnly) return;
+    if (skipConfirmation) {
+      // Directly call onMarkerPlaced without internal dialog
+      const marker: Marker3D = { ...data, pathologyId: selectedPathology, type: 'Puntual' as MarkerType, zone: '', id: Date.now().toString() };
+      onMarkerPlaced?.(marker);
+      return;
+    }
     setPendingMarker({ ...data, pathologyId: selectedPathology });
     setPendingZoneText('');
   };
