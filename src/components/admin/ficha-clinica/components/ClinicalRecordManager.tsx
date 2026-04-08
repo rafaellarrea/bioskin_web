@@ -180,7 +180,7 @@ export default function ClinicalRecordManager() {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-[600px]">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-hidden overflow-y-visible min-h-[600px]">
           <div className="flex overflow-x-auto border-b border-gray-100 scrollbar-hide">
             <TabButton 
               id="history" 

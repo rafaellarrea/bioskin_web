@@ -530,7 +530,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col md:flex-row h-auto md:h-[650px] gap-6"
+      className="flex flex-col md:flex-row h-auto md:min-h-[650px] gap-6"
     >
       {/* ========== SIDEBAR — Historial de Inyectables ========== */}
       <div className="w-full md:w-72 border-r-0 md:border-r border-b md:border-b-0 border-gray-100 pr-0 md:pr-6 pb-4 md:pb-0 flex flex-col gap-4 shrink-0">
