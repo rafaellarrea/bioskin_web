@@ -516,120 +516,139 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   // ==========================================
 
   return (
-    <div className="space-y-6">
-      {/* Message Toast */}
-      <AnimatePresence>
-        {message && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium border ${
-              message.type === 'success'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-red-50 text-red-700 border-red-200'
-            }`}
-          >
-            {message.type === 'success' ? (
-              <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-              </div>
-            ) : (
-              <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12"/></svg>
-              </div>
-            )}
-            {message.text}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Header + Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-violet-100 to-cyan-50 rounded-xl shadow-sm">
-            <Droplets className="w-5 h-5 text-violet-600" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-800">Registro de Inyectables</h2>
-            <p className="text-xs text-gray-500">Toxina botulínica, ácido hialurónico y mapeo facial 3D</p>
-          </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col md:flex-row h-auto md:h-[650px] gap-6"
+    >
+      {/* ========== SIDEBAR — Historial de Inyectables ========== */}
+      <div className="w-full md:w-72 border-r-0 md:border-r border-b md:border-b-0 border-gray-100 pr-0 md:pr-6 pb-4 md:pb-0 flex flex-col gap-4 shrink-0">
+        <div className="font-bold text-gray-800 flex items-center gap-2">
+          <div className="w-1 h-5 bg-violet-500 rounded-full" />
+          Historial de Inyectables
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg border border-gray-200 transition-all"
-            title="Imprimir ficha"
-          >
-            <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">Imprimir</span>
-          </button>
-          <button
-            onClick={handleNew}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow transition-all"
-            title="Nuevo inyectable"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuevo</span>
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
-            title="Guardar"
-          >
-            <Save className="w-4 h-4" />
-            <span className="hidden sm:inline">{saving ? 'Guardando...' : 'Guardar'}</span>
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={!current.id}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-100 disabled:opacity-30 transition-all"
-            title="Eliminar"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Session History Chips */}
-      {injectables.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sesiones registradas ({injectables.length})</p>
-          <div className="flex flex-wrap gap-2">
-            {injectables.map((inj, idx) => {
+        <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
+          {injectables.length === 0 ? (
+            <div className="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
+              <Droplets className="w-8 h-8 opacity-20" />
+              No hay inyectables previos
+            </div>
+          ) : (
+            injectables.map((inj, index) => {
               const isActive = current.id === inj.id;
               const isToxina = inj.product_type === 'toxina';
+              const dateStr = inj.date ? new Date(toDateOnly(inj.date) + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: '2-digit' }) : '';
+              const areas = Array.isArray(inj.areas_treated) ? inj.areas_treated : [];
               return (
-                <motion.button
-                  key={inj.id || idx}
+                <motion.div
+                  key={inj.id || index}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelect(inj)}
-                  className={`group relative px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
+                  className={`p-4 rounded-xl cursor-pointer border transition-all shadow-sm ${
                     isActive
                       ? isToxina
-                        ? 'bg-cyan-50 border-cyan-300 text-cyan-800 shadow-sm ring-2 ring-cyan-200'
-                        : 'bg-violet-50 border-violet-300 text-violet-800 shadow-sm ring-2 ring-violet-200'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:shadow-sm'
+                        ? 'bg-cyan-500 text-white border-cyan-500 shadow-md'
+                        : 'bg-violet-500 text-white border-violet-500 shadow-md'
+                      : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-violet-200/50'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isToxina ? 'bg-cyan-400' : 'bg-violet-400'}`} />
-                    <span className="font-semibold">{inj.product_name || 'Sin nombre'}</span>
-                    <span className="text-[10px] opacity-60">
-                      {inj.date ? new Date(toDateOnly(inj.date) + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: '2-digit' }) : ''}
-                    </span>
+                  <div className="font-medium flex justify-between items-center">
+                    <span className="text-xs">{dateStr}</span>
+                    <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white/70' : isToxina ? 'bg-cyan-400' : 'bg-violet-400'}`} />
                   </div>
-                </motion.button>
+                  <div className="font-semibold truncate mt-1 text-sm">{inj.product_name || 'Sin nombre'}</div>
+                  <div className={`text-xs truncate mt-0.5 ${isActive ? 'opacity-80' : 'text-gray-500'}`}>
+                    {isToxina ? 'Toxina' : 'Relleno'}{areas.length > 0 ? ` · ${areas.slice(0, 2).join(', ')}` : ''}
+                  </div>
+                </motion.div>
               );
-            })}
+            })
+          )}
+        </div>
+
+        {/* Bottom action in sidebar */}
+        <button
+          onClick={handleNew}
+          className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-xl border border-violet-200 transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          Nuevo Inyectable
+        </button>
+      </div>
+
+      {/* ========== MAIN CONTENT ========== */}
+      <div className="flex-1 flex flex-col gap-4 relative overflow-y-auto md:overflow-y-auto custom-scrollbar pr-1">
+        {/* Message Toast */}
+        <AnimatePresence>
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium border ${
+                message.type === 'success'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-red-50 text-red-700 border-red-200'
+              }`}
+            >
+              {message.type === 'success' ? (
+                <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
+                </div>
+              ) : (
+                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+              )}
+              {message.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Toolbar */}
+        <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm sticky top-0 z-10">
+          <div className="flex gap-2 items-center">
+            <div className="p-2 bg-gradient-to-br from-violet-100 to-cyan-50 rounded-lg">
+              <Droplets className="w-4 h-4 text-violet-600" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-gray-800">
+                {current.id ? current.product_name || 'Inyectable sin nombre' : 'Nuevo Inyectable'}
+              </h2>
+              <p className="text-[10px] text-gray-400">
+                {current.id ? `ID: ${current.id}` : 'Toxina botulínica, ácido hialurónico y mapeo facial 3D'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg border border-gray-200 transition-all"
+              title="Imprimir ficha"
+            >
+              <Printer className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">{saving ? 'Guardando...' : 'Guardar'}</span>
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={!current.id}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-100 disabled:opacity-30 transition-all"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Main Form */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Main Form */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Type Toggle - Full Width Header */}
         <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-50/30 border-b border-gray-100">
           <div className="flex items-center gap-4">
@@ -1095,6 +1114,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           )}
         </AnimatePresence>
       </div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
