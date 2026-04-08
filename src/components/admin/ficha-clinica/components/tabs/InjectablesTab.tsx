@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check
+  FlaskConical, Crosshair, Gauge, X, Check, Info
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D } from '../Clinical3DViewer';
@@ -333,7 +333,15 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       if (!pts || pts.length === 0) continue;
       const totalT = pts.reduce((s, p) => s + p.units, 0);
       const css = tercioCSS[t];
-      tercioBreakdownHtml += `<div style="margin-bottom:12px;"><div style="background:${css.bg};border:1px solid ${css.border};border-radius:6px;padding:8px 12px;margin-bottom:4px;"><strong style="color:${css.text};font-size:12px;">${tercioNames[t]}</strong><span style="float:right;font-size:11px;color:${css.text};">${pts.length} punto(s) · ${totalT} ${unitLabel}</span></div><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#faf6f0;"><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:left;border-bottom:1px solid #e8dcc8;">#</th><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:left;border-bottom:1px solid #e8dcc8;">Zona</th><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:right;border-bottom:1px solid #e8dcc8;">${unitLabel}</th><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:right;border-bottom:1px solid #e8dcc8;">%</th></tr></thead><tbody>${pts.map((p, i) => `<tr><td style="font-size:11px;padding:4px 8px;border-bottom:1px solid #f0f0f0;">${i + 1}</td><td style="font-size:11px;padding:4px 8px;border-bottom:1px solid #f0f0f0;">${p.label || '—'}</td><td style="font-size:11px;padding:4px 8px;text-align:right;border-bottom:1px solid #f0f0f0;">${p.units}</td><td style="font-size:11px;padding:4px 8px;text-align:right;border-bottom:1px solid #f0f0f0;">${totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</td></tr>`).join('')}</tbody></table></div>`;
+      tercioBreakdownHtml += `<div style="margin-bottom:12px;"><div style="background:${css.bg};border:1px solid ${css.border};border-radius:6px;padding:8px 12px;margin-bottom:4px;"><strong style="color:${css.text};font-size:12px;">${tercioNames[t]}</strong><span style="float:right;font-size:11px;color:${css.text};">${pts.length} punto(s) · ${totalT} ${unitLabel}</span></div><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#faf6f0;"><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:left;border-bottom:1px solid #e8dcc8;">#</th><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:left;border-bottom:1px solid #e8dcc8;">Zona Anatómica</th><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:right;border-bottom:1px solid #e8dcc8;">${unitLabel} Aplicadas</th><th style="font-size:10px;text-transform:uppercase;color:#b8944d;padding:4px 8px;text-align:right;border-bottom:1px solid #e8dcc8;">% Dosis</th></tr></thead><tbody>${pts.map((p, i) => `<tr><td style="font-size:11px;padding:4px 8px;border-bottom:1px solid #f0f0f0;">${i + 1}</td><td style="font-size:11px;padding:4px 8px;border-bottom:1px solid #f0f0f0;">${p.label || '—'}</td><td style="font-size:11px;padding:4px 8px;text-align:right;border-bottom:1px solid #f0f0f0;">${p.units}</td><td style="font-size:11px;padding:4px 8px;text-align:right;border-bottom:1px solid #f0f0f0;">${totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    // Legend for percentage
+    if (tercioBreakdownHtml) {
+      tercioBreakdownHtml += `<div style="margin-top:4px;padding:6px 10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:10px;color:#6b7280;line-height:1.6;">
+        <strong style="color:#4b5563;">Leyenda:</strong>
+        <strong>% Dosis</strong> = porcentaje de unidades aplicadas en cada punto respecto al total de ${unitLabel} utilizadas (${totalUsed} ${unitLabel}).
+        <strong>Zona Anatómica</strong> = área facial específica donde se realizó la inyección, clasificada por tercio facial.
+      </div>`;
     }
 
     // Zone summary
@@ -465,6 +473,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   ${injectionPoints.length > 0 ? `
   <div class="section">
     <div class="section-title">Distribución del Vial</div>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:8px;">Resumen de la distribución del producto inyectado. <strong>Total Vial</strong>: cantidad disponible. <strong>Utilizadas</strong>: suma de unidades aplicadas. <strong>Restantes</strong>: sobrante en el vial. <strong>Puntos</strong>: sitios de inyección.</p>
     <div class="summary-bar">
       <div class="summary-card"><div class="sc-label">Total Vial</div><div class="sc-value">${totalVial} ${unitLabel}</div></div>
       <div class="summary-card"><div class="sc-label">Utilizadas</div><div class="sc-value">${totalUsed} ${unitLabel}</div></div>
@@ -473,7 +482,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     </div>
   </div>
   <div class="section">
-    <div class="section-title">Desglose por Tercio</div>
+    <div class="section-title">Desglose por Tercio Facial</div>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:8px;">Distribución detallada de los puntos de inyección clasificados por tercio facial (superior, medio e inferior). La columna <strong>% Dosis</strong> indica el porcentaje que representa cada punto respecto al total de ${unitLabel} aplicadas.</p>
     ${tercioBreakdownHtml}
     ${zoneSummaryHtml}
   </div>` : ''}
@@ -481,7 +491,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   ${canvasImage ? `
   <div class="section">
     <div class="section-title">Mapeo Facial 3D</div>
-    <img src="${canvasImage}" alt="Mapeo facial" class="mapping-img" />
+    <p style="font-size:11px;color:#6b7280;margin-bottom:8px;">Representación visual del rostro del paciente con los puntos de inyección marcados. Cada punto indica la ubicación exacta donde se realizó la aplicación del producto.</p>
+    <img src="${canvasImage}" alt="Mapeo facial 3D con puntos de inyección" class="mapping-img" />
   </div>` : ''}
 
   <div class="section">
@@ -839,22 +850,38 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
       {/* Vial Summary Bar */}
       {injectionPoints.length > 0 && (
-        <div className="grid grid-cols-4 gap-3">
-          <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Total Vial</p>
-            <p className="text-lg font-bold text-gray-800">{totalVial} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Distribución del Vial</p>
+            <div className="group relative">
+              <Info className="w-3.5 h-3.5 text-gray-300 hover:text-violet-400 cursor-help transition-colors" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2.5 bg-gray-800 text-white text-[11px] rounded-lg shadow-xl z-50 leading-relaxed">
+                <p className="font-semibold mb-1">¿Qué significa cada valor?</p>
+                <p><strong>Total Vial:</strong> Cantidad total de producto disponible en el vial.</p>
+                <p><strong>Utilizadas:</strong> Suma de unidades aplicadas en todos los puntos marcados.</p>
+                <p><strong>Restantes:</strong> Producto sobrante en el vial (Total − Utilizadas).</p>
+                <p><strong>Puntos:</strong> Cantidad de sitios de inyección registrados en el mapeo 3D.</p>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-gray-800" />
+              </div>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Utilizadas</p>
-            <p className="text-lg font-bold text-violet-600">{totalUsed} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
-          </div>
-          <div className={`rounded-xl p-3 text-center border shadow-sm ${remaining < 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'}`}>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Restantes</p>
-            <p className={`text-lg font-bold ${remaining < 0 ? 'text-red-600' : 'text-emerald-600'}`}>{remaining} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
-          </div>
-          <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Puntos</p>
-            <p className="text-lg font-bold text-gray-800">{injectionPoints.length}</p>
+          <div className="grid grid-cols-4 gap-3">
+            <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm" title="Cantidad total de producto en el vial">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Total Vial</p>
+              <p className="text-lg font-bold text-gray-800">{totalVial} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
+            </div>
+            <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm" title="Suma de unidades aplicadas en todos los puntos">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Utilizadas</p>
+              <p className="text-lg font-bold text-violet-600">{totalUsed} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
+            </div>
+            <div className={`rounded-xl p-3 text-center border shadow-sm ${remaining < 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'}`} title="Producto restante en el vial (Total − Utilizadas)">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Restantes</p>
+              <p className={`text-lg font-bold ${remaining < 0 ? 'text-red-600' : 'text-emerald-600'}`}>{remaining} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
+            </div>
+            <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm" title="Cantidad de sitios de inyección marcados">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Puntos</p>
+              <p className="text-lg font-bold text-gray-800">{injectionPoints.length}</p>
+            </div>
           </div>
         </div>
       )}
@@ -1058,7 +1085,20 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
                     {injectionPoints.length > 0 ? (
                       <div className="space-y-3">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
+                          <div className="group relative">
+                            <Info className="w-3.5 h-3.5 text-gray-300 hover:text-violet-400 cursor-help transition-colors" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2.5 bg-gray-800 text-white text-[11px] rounded-lg shadow-xl z-50 leading-relaxed">
+                              <p className="font-semibold mb-1">Desglose de puntos de inyección</p>
+                              <p>Cada punto de inyección se clasifica por <strong>tercio facial</strong> (superior, medio, inferior).</p>
+                              <p className="mt-1"><strong>Zona:</strong> Área anatómica del punto de inyección.</p>
+                              <p><strong>{unitLabel}:</strong> {current.product_type === 'toxina' ? 'Unidades internacionales' : 'Mililitros'} aplicadas en ese punto.</p>
+                              <p><strong>% Dosis:</strong> Porcentaje que representan las unidades de ese punto respecto al <em>total de unidades aplicadas</em> en todos los puntos.</p>
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-gray-800" />
+                            </div>
+                          </div>
+                        </div>
                         {(['superior', 'medio', 'inferior'] as const).map(tercio => {
                           const pts = pointsByTercio[tercio];
                           if (!pts || pts.length === 0) return null;
@@ -1083,7 +1123,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                                       </div>
                                       <div className="flex items-center gap-2 flex-shrink-0">
                                         <span className="font-semibold text-gray-800">{p.units} {unitLabel}</span>
-                                        <span className="text-gray-400 w-7 text-right">{totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</span>
+                                        <span className="text-gray-400 w-9 text-right cursor-help" title={`${totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}% del total de ${totalUsed} ${unitLabel} aplicadas`}>{totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</span>
                                         <button
                                           onClick={() => handleRemovePoint(globalIndex)}
                                           className="p-0.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
