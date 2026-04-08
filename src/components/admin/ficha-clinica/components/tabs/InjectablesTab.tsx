@@ -82,6 +82,12 @@ const TERCIO_LABELS: Record<string, string> = {
   inferior: 'Tercio Inferior',
 };
 
+/** Normalize ISO datetime or date string to YYYY-MM-DD for input[type="date"] */
+const toDateOnly = (d: string | null | undefined): string => {
+  if (!d) return '';
+  return d.includes('T') ? d.split('T')[0] : d;
+};
+
 const EMPTY_INJECTABLE: Injectable = {
   date: new Date().toISOString().split('T')[0],
   product_type: 'toxina',
@@ -249,7 +255,11 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   };
 
   const handleSelect = (inj: Injectable) => {
-    setCurrent({ ...inj });
+    setCurrent({
+      ...inj,
+      date: toDateOnly(inj.date),
+      expiration_date: toDateOnly(inj.expiration_date),
+    });
   };
 
   // 3D click → validate then open dialog
@@ -608,7 +618,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                     <div className={`w-2 h-2 rounded-full ${isToxina ? 'bg-cyan-400' : 'bg-violet-400'}`} />
                     <span className="font-semibold">{inj.product_name || 'Sin nombre'}</span>
                     <span className="text-[10px] opacity-60">
-                      {inj.date ? new Date(inj.date + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: '2-digit' }) : ''}
+                      {inj.date ? new Date(toDateOnly(inj.date) + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: '2-digit' }) : ''}
                     </span>
                   </div>
                 </motion.button>
