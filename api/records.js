@@ -7,6 +7,29 @@ console.log('✅ [API] records.js loaded');
 let dbInitialized = false;
 let poolInstance = null;
 
+// Lazy migration for injectables table (runs once per container)
+let injectablesMigrated = false;
+async function ensureInjectablesSchema(pool) {
+  if (injectablesMigrated) return;
+  try {
+    const migrations = [
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS product_type VARCHAR(20) DEFAULT 'toxina'",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS units_used DECIMAL(6, 2)",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS injection_plane VARCHAR(100)",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS needle_type VARCHAR(100)",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS mapping_data JSONB",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS treatment_id INTEGER REFERENCES treatments(id) ON DELETE SET NULL"
+    ];
+    for (const sql of migrations) {
+      try { await pool.query(sql); } catch(e) { /* column may already exist */ }
+    }
+    injectablesMigrated = true;
+    console.log('✅ Injectables schema verified');
+  } catch (e) {
+    console.error('⚠️ Injectables migration warning:', e.message);
+  }
+}
+
 function getPool() {
   if (poolInstance) return poolInstance;
   
@@ -827,6 +850,7 @@ export default async function handler(req, res) {
       // --- INYECTABLES ---
 
       case 'getInjectablesByRecord': {
+        await ensureInjectablesSchema(pool);
         const { record_id: injRecordId } = req.query;
         if (!injRecordId) return res.status(400).json({ error: 'record_id required' });
         const injByRecord = await pool.query(
@@ -847,6 +871,7 @@ export default async function handler(req, res) {
       }
 
       case 'addInjectable': {
+        await ensureInjectablesSchema(pool);
         const { record_id: injRecId, treatment_id: injTid, ...injData } = body;
         if (!injRecId) return res.status(400).json({ error: 'record_id required' });
 
