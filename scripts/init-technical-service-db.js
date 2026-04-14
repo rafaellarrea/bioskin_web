@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS technical_service_documents (
     document_type VARCHAR(50) NOT NULL, -- 'reception', 'technical_report', 'proforma'
     client_name VARCHAR(150) NOT NULL,
     client_contact VARCHAR(100),
+    client_cedula VARCHAR(20),
+    client_center VARCHAR(200),
     equipment_data JSONB, -- { brand, model, serial, accessories, visual_condition }
     checklist_data JSONB, -- { checks: [{ label, status, observation }] }
     diagnosis TEXT,

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Printer, ArrowLeft, Mail } from 'lucide-react';
+import { Printer, ArrowLeft, Mail, Download } from 'lucide-react';
 
 export default function TechnicalDocumentView() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
+  const [emptyMode, setEmptyMode] = useState(false);
 
   useEffect(() => {
     fetch(`/api/technical-service?id=${id}`)
@@ -18,6 +19,40 @@ export default function TechnicalDocumentView() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handlePrintEmpty = () => {
+    setEmptyMode(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => setEmptyMode(false), 500);
+    }, 100);
+  };
+
+  const renderAccessories = (accessories: any) => {
+    if (!accessories) return null;
+    if (Array.isArray(accessories) && accessories.length > 0) {
+      return (
+        <div className="space-y-1">
+          {accessories.map((acc: any, i: number) => (
+            <div key={i} className="flex justify-between items-center text-xs">
+              <span className="text-gray-700">{acc.name}</span>
+              <span className={`font-semibold px-2 py-0.5 rounded-full text-[10px] ${
+                acc.condition === 'bueno' ? 'bg-green-100 text-green-700' :
+                acc.condition === 'regular' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-red-100 text-red-700'
+              }`}>
+                {acc.condition === 'bueno' ? 'Bueno' : acc.condition === 'regular' ? 'Regular' : 'Malo'}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (typeof accessories === 'string' && accessories.trim()) {
+      return <p className="text-gray-600 text-xs">{accessories}</p>;
+    }
+    return <p className="text-gray-400 text-xs italic">Ninguno declarado.</p>;
   };
 
   const getDocTitle = () => {
@@ -47,6 +82,9 @@ export default function TechnicalDocumentView() {
           <ArrowLeft size={20} /> Volver
         </button>
         <div className="flex gap-4">
+          <button onClick={handlePrintEmpty} className="bg-white text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:shadow flex items-center gap-2 border border-gray-200">
+            <Download size={18} /> Formato Vacío
+          </button>
           <button onClick={() => window.alert('Función de envío por email pendiente')} className="bg-white text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:shadow flex items-center gap-2">
             <Mail size={18} /> Enviar por Email
           </button>
@@ -72,9 +110,9 @@ export default function TechnicalDocumentView() {
           <div className="text-right">
              <h2 className="text-xl font-bold text-gray-800 uppercase split-words">{getDocTitle()}</h2>
              <div className="bg-gray-100 px-3 py-1 rounded mt-2 inline-block">
-               <p className="text-sm font-mono font-bold text-gray-600">#{data.ticket_number}</p>
+               <p className="text-sm font-mono font-bold text-gray-600">{emptyMode ? '#_______________' : `#${data.ticket_number}`}</p>
              </div>
-             <p className="text-xs text-gray-400 mt-1">{new Date(data.created_at).toLocaleDateString()} {new Date(data.created_at).toLocaleTimeString()}</p>
+             <p className="text-xs text-gray-400 mt-1">{emptyMode ? 'Fecha: ___/___/______' : new Date(data.created_at).toLocaleDateString()}</p>
           </div>
         </div>
 
@@ -82,13 +120,35 @@ export default function TechnicalDocumentView() {
         <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
           <div className="space-y-2">
              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Cliente</h3>
-             <p><span className="font-semibold text-gray-700">Razón Social:</span> {data.client_name}</p>
-             <p><span className="font-semibold text-gray-700">Contacto:</span> {data.client_contact}</p>
+             {emptyMode ? (
+               <>
+                 <p><span className="font-semibold text-gray-700">Nombre:</span> ____________________________________</p>
+                 <p><span className="font-semibold text-gray-700">Cédula/RUC:</span> ____________________________________</p>
+                 <p><span className="font-semibold text-gray-700">Contacto:</span> ____________________________________</p>
+                 <p><span className="font-semibold text-gray-700">Centro:</span> ____________________________________</p>
+               </>
+             ) : (
+               <>
+                 <p><span className="font-semibold text-gray-700">Nombre:</span> {data.client_name}</p>
+                 {data.client_cedula && <p><span className="font-semibold text-gray-700">Cédula/RUC:</span> {data.client_cedula}</p>}
+                 <p><span className="font-semibold text-gray-700">Contacto:</span> {data.client_contact}</p>
+                 {data.client_center && <p><span className="font-semibold text-gray-700">Centro:</span> {data.client_center}</p>}
+               </>
+             )}
           </div>
            <div className="space-y-2">
              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Equipo</h3>
-             <p><span className="font-semibold text-gray-700">Marca/Modelo:</span> {data.equipment_data?.brand} {data.equipment_data?.model}</p>
-             <p><span className="font-semibold text-gray-700">Serie/SN:</span> {data.equipment_data?.serial || 'N/A'}</p>
+             {emptyMode ? (
+               <>
+                 <p><span className="font-semibold text-gray-700">Marca/Modelo:</span> ____________________________________</p>
+                 <p><span className="font-semibold text-gray-700">Serie/SN:</span> ____________________________________</p>
+               </>
+             ) : (
+               <>
+                 <p><span className="font-semibold text-gray-700">Marca/Modelo:</span> {data.equipment_data?.brand} {data.equipment_data?.model}</p>
+                 <p><span className="font-semibold text-gray-700">Serie/SN:</span> {data.equipment_data?.serial || 'N/A'}</p>
+               </>
+             )}
           </div>
         </div>
 
@@ -110,37 +170,73 @@ export default function TechnicalDocumentView() {
                    </tr>
                  </thead>
                  <tbody>
-                   {data.checklist_data?.checks?.map((item: any, i: number) => (
-                     <tr key={i}>
-                       <td className="py-2 px-3 border border-gray-200">{item.label}</td>
-                       <td className={`py-2 px-3 border border-gray-200 text-center font-bold ${
-                         item.status === 'ok' ? 'text-green-600' : item.status === 'fail' ? 'text-red-500' : 'text-gray-400'
-                       }`}>
-                         {item.status === 'ok' ? 'OK' : item.status === 'fail' ? 'MALO' : 'N/A'}
-                       </td>
-                       <td className="py-2 px-3 border border-gray-200 text-gray-600 text-xs italic">{item.observation}</td>
-                     </tr>
-                   ))}
+                   {emptyMode ? (
+                     <>  
+                       {['Enciende', 'Pantalla', 'Botones / Perillas', 'Cables / Conectores', 'Carcasa / Estructura', 'Funcionalidad Básica', '', '', ''].map((label, i) => (
+                         <tr key={i}>
+                           <td className="py-3 px-3 border border-gray-200 text-gray-500">{label || '\u00A0'}</td>
+                           <td className="py-3 px-3 border border-gray-200 text-center">
+                             <span className="text-gray-400 text-xs">\u25A1 OK &nbsp; \u25A1 MALO &nbsp; \u25A1 N/A</span>
+                           </td>
+                           <td className="py-3 px-3 border border-gray-200">\u00A0</td>
+                         </tr>
+                       ))}
+                     </>
+                   ) : (
+                     data.checklist_data?.checks?.map((item: any, i: number) => (
+                       <tr key={i}>
+                         <td className="py-2 px-3 border border-gray-200">{item.label}</td>
+                         <td className={`py-2 px-3 border border-gray-200 text-center font-bold ${
+                           item.status === 'ok' ? 'text-green-600' : item.status === 'fail' ? 'text-red-500' : 'text-gray-400'
+                         }`}>
+                           {item.status === 'ok' ? 'OK' : item.status === 'fail' ? 'MALO' : 'N/A'}
+                         </td>
+                         <td className="py-2 px-3 border border-gray-200 text-gray-600 text-xs italic">{item.observation}</td>
+                       </tr>
+                     ))
+                   )}
                  </tbody>
               </table>
             </div>
 
-            <div className="grid grid-cols-2 gap-8 mb-8 text-xs">
-               <div className="border border-gray-200 p-4 rounded bg-gray-50">
+            {emptyMode ? (
+              <div className="grid grid-cols-2 gap-8 mb-8 text-xs">
+                <div className="border border-gray-200 p-4 rounded bg-gray-50">
+                  <h4 className="font-bold text-gray-700 mb-3">Accesorios Recibidos:</h4>
+                  <div className="space-y-3">
+                    {['', '', '', '', ''].map((_, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <span className="border-b border-dashed border-gray-300 flex-1 mr-4">\u00A0</span>
+                        <span className="text-gray-400 text-[10px] whitespace-nowrap">\u25A1 Bueno &nbsp; \u25A1 Regular &nbsp; \u25A1 Malo</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="border border-gray-200 p-4 rounded bg-gray-50">
+                  <h4 className="font-bold text-gray-700 mb-2">Condición Visual:</h4>
+                  <div className="border-b border-dashed border-gray-300 h-6 mb-2"></div>
+                  <div className="border-b border-dashed border-gray-300 h-6 mb-2"></div>
+                  <div className="border-b border-dashed border-gray-300 h-6"></div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-8 mb-8 text-xs">
+                <div className="border border-gray-200 p-4 rounded bg-gray-50">
                   <h4 className="font-bold text-gray-700 mb-2">Accesorios Recibidos:</h4>
-                  <p className="text-gray-600">{data.equipment_data?.accessories || 'Ninguno declarado.'}</p>
-               </div>
-               <div className="border border-gray-200 p-4 rounded bg-gray-50">
+                  {renderAccessories(data.equipment_data?.accessories)}
+                </div>
+                <div className="border border-gray-200 p-4 rounded bg-gray-50">
                   <h4 className="font-bold text-gray-700 mb-2">Condición Visual:</h4>
                   <p className="text-gray-600">{data.equipment_data?.visual_condition || 'Normal, sin daños visibles adicionales.'}</p>
-               </div>
-            </div>
+                </div>
+              </div>
+            )}
             
             {data.document_type === 'delivery_receipt' && (
               <div className="mb-8 border border-indigo-200 rounded-lg p-4 bg-indigo-50/40">
                 <h4 className="text-sm font-bold text-indigo-800 mb-2">Conformidad de Entrega</h4>
                 <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {data.recommendations || 'Equipo entregado sin observaciones adicionales.'}
+                  {emptyMode ? '\u00A0' : (data.recommendations || 'Equipo entregado sin observaciones adicionales.')}
                 </p>
               </div>
             )}
@@ -148,7 +244,7 @@ export default function TechnicalDocumentView() {
             <div className="mb-8 border-t pt-4">
               <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-1">Términos y Condiciones de Recepción:</h4>
               <p className="text-[10px] text-gray-500 text-justify leading-tight italic">
-                1. El cliente autoriza la revisión técnica y diagnóstico del equipo detallado. 2. La empresa NO asume responsabilidad por: pérdida de información/datos (se recomienda respaldo previo), fallas ocultas preexistentes no detectables en la recepción visual, ni accesorios no declarados explícitamente en este documento. 3. Los equipos que no sean retirados en un plazo máximo de 90 días calendario serán considerados en abandono y la empresa dispondrá de ellos según la normativa legal vigente para cubrir gastos de bodegaje y gestión. 4. La garantía aplica únicamente sobre los repuestos cambiados y la mano de obra del servicio específico realizado.
+                1. El cliente autoriza la revisión técnica y diagnóstico del equipo detallado. 2. La empresa NO asume responsabilidad por: pérdida de información/datos (se recomienda respaldo previo), fallas ocultas preexistentes no detectables en la recepción visual, ni accesorios no declarados explícitamente en este documento. 3. La garantía aplica únicamente sobre los repuestos cambiados y la mano de obra del servicio específico realizado.
               </p>
             </div>
           </>
@@ -160,29 +256,51 @@ export default function TechnicalDocumentView() {
             <div className="space-y-6 mb-8">
                <div className="border-l-4 border-blue-500 pl-4 py-1">
                  <h3 className="text-sm font-bold text-gray-800 mb-2">Diagnóstico Técnico</h3>
-                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.diagnosis}</p>
+                 {emptyMode ? (
+                   <div className="space-y-3 mt-2">{[1,2,3,4].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-5"></div>)}</div>
+                 ) : (
+                   <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.diagnosis}</p>
+                 )}
                </div>
                
                <div className="border-l-4 border-green-500 pl-4 py-1">
                  <h3 className="text-sm font-bold text-gray-800 mb-2">Trabajos Realizados / Recomendaciones</h3>
-                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.recommendations}</p>
+                 {emptyMode ? (
+                   <div className="space-y-3 mt-2">{[1,2,3,4].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-5"></div>)}</div>
+                 ) : (
+                   <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.recommendations}</p>
+                 )}
                </div>
             </div>
 
-            {data.checklist_data?.checks?.length > 0 && (
+            {emptyMode ? (
               <div className="mb-8 opacity-75">
                 <h3 className="text-xs font-bold text-gray-500 mb-2 uppercase">Pruebas de Funcionamiento Final</h3>
                 <div className="grid grid-cols-2 gap-2">
-                   {data.checklist_data.checks.map((item: any, i: number) => (
-                     <div key={i} className="flex justify-between items-center text-xs border-b border-gray-100 py-1">
-                        <span>{item.label}</span>
-                        <span className={item.status === 'ok' ? 'text-green-600 font-bold' : 'text-red-500'}>
-                          {item.status === 'ok' ? 'PASS' : 'FAIL'}
-                        </span>
-                     </div>
-                   ))}
+                  {['Voltaje Entrada', 'Fuente Poder', 'Sistema Refrigeración', 'Emisión de Energía', '', ''].map((label, i) => (
+                    <div key={i} className="flex justify-between items-center text-xs border-b border-gray-100 py-2">
+                      <span className="text-gray-500">{label || '\u00A0'}</span>
+                      <span className="text-gray-400 text-[10px]">☐ PASS &nbsp; ☐ FAIL</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+            ) : (
+              data.checklist_data?.checks?.length > 0 && (
+                <div className="mb-8 opacity-75">
+                  <h3 className="text-xs font-bold text-gray-500 mb-2 uppercase">Pruebas de Funcionamiento Final</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                     {data.checklist_data.checks.map((item: any, i: number) => (
+                       <div key={i} className="flex justify-between items-center text-xs border-b border-gray-100 py-1">
+                          <span>{item.label}</span>
+                          <span className={item.status === 'ok' ? 'text-green-600 font-bold' : 'text-red-500'}>
+                            {item.status === 'ok' ? 'PASS' : 'FAIL'}
+                          </span>
+                       </div>
+                     ))}
+                  </div>
+                </div>
+              )
             )}
           </>
         )}
@@ -200,21 +318,31 @@ export default function TechnicalDocumentView() {
                    </tr>
                  </thead>
                  <tbody>
-                    <tr>
-                      <td className="py-4 px-4 border-b border-gray-100 align-top">
-                        <p className="font-bold text-gray-800 mb-1">Servicio Técnico Especializado</p>
-                        <p className="text-gray-600 text-xs whitespace-pre-wrap">{data.recommendations}</p>
-                        {data.diagnosis && <p className="text-gray-500 text-[10px] mt-2 italic">Ref. Diagnóstico: {data.diagnosis.substring(0, 100)}...</p>}
-                      </td>
-                      <td className="py-4 px-4 border-b border-gray-100 text-right font-mono">
-                        ${Number(data.total_cost).toFixed(2)}
-                      </td>
-                    </tr>
-                    {/* Add tax rows roughly or assume total includes tax based on simple model */}
+                    {emptyMode ? (
+                      <>
+                        {[1,2,3,4].map(i => (
+                          <tr key={i}>
+                            <td className="py-4 px-4 border-b border-gray-100">&nbsp;</td>
+                            <td className="py-4 px-4 border-b border-gray-100 text-right">$________</td>
+                          </tr>
+                        ))}
+                      </>
+                    ) : (
+                      <tr>
+                        <td className="py-4 px-4 border-b border-gray-100 align-top">
+                          <p className="font-bold text-gray-800 mb-1">Servicio Técnico Especializado</p>
+                          <p className="text-gray-600 text-xs whitespace-pre-wrap">{data.recommendations}</p>
+                          {data.diagnosis && <p className="text-gray-500 text-[10px] mt-2 italic">Ref. Diagnóstico: {data.diagnosis.substring(0, 100)}...</p>}
+                        </td>
+                        <td className="py-4 px-4 border-b border-gray-100 text-right font-mono">
+                          ${Number(data.total_cost).toFixed(2)}
+                        </td>
+                      </tr>
+                    )}
                     <tr className="bg-gray-50 font-bold text-gray-900">
                       <td className="py-3 px-4 text-right text-xs uppercase">Total a Pagar</td>
                       <td className="py-3 px-4 text-right font-mono text-lg border-t-2 border-gray-800">
-                         ${Number(data.total_cost).toFixed(2)}
+                         {emptyMode ? '$________' : `$${Number(data.total_cost).toFixed(2)}`}
                       </td>
                     </tr>
                  </tbody>
@@ -245,7 +373,17 @@ export default function TechnicalDocumentView() {
                 {(data.document_type === 'reception' || data.document_type === 'delivery_receipt') && (
                   <div className="text-center w-48">
                       <div className="border-b border-gray-300 mb-2 h-16"></div>
-                      <p className="text-xs font-bold uppercase">{data.client_name}</p>
+                      {emptyMode ? (
+                        <>
+                          <p className="text-xs font-bold uppercase border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
+                          <p className="text-xs border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs font-bold uppercase">{data.client_name}</p>
+                          {data.client_center && <p className="text-[10px] text-gray-500">{data.client_center}</p>}
+                        </>
+                      )}
                       <p className="text-[10px] text-gray-400">
                         {data.document_type === 'delivery_receipt' ? 'Firma Cliente / Recibí Conforme' : 'Firma Cliente / Entregué Conforme'}
                       </p>
@@ -263,7 +401,7 @@ export default function TechnicalDocumentView() {
             
             <div className="mt-8 text-[10px] text-center text-gray-300 border-t border-gray-100 pt-2 flex justify-between">
                 <span>Bioskin - Medicina Estética & Tecnología</span>
-                <span>Generado: {new Date().toLocaleString()} | ID: {data.id}</span>
+                <span>Generado: {new Date().toLocaleDateString()} | ID: {data.id}</span>
             </div>
         </div>
 

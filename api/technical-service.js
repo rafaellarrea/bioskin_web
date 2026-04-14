@@ -6,6 +6,8 @@ const ALLOWED_UPDATE_FIELDS = [
   'document_type',
   'client_name',
   'client_contact',
+  'client_cedula',
+  'client_center',
   'equipment_data',
   'checklist_data',
   'diagnosis',
@@ -72,6 +74,8 @@ export default async function handler(request, response) {
           `SELECT
              TRIM(client_name) AS client_name,
              MAX(NULLIF(client_contact, '')) AS client_contact,
+             MAX(NULLIF(client_cedula, '')) AS client_cedula,
+             MAX(NULLIF(client_center, '')) AS client_center,
              COUNT(*)::int AS documents_count,
              MAX(COALESCE(updated_at, created_at)) AS last_activity
            FROM technical_service_documents
@@ -148,7 +152,9 @@ export default async function handler(request, response) {
       ticket_number, 
       document_type, 
       client_name, 
-      client_contact, 
+      client_contact,
+      client_cedula,
+      client_center, 
       equipment_data, 
       checklist_data,
       diagnosis,
@@ -174,14 +180,16 @@ export default async function handler(request, response) {
 
         const result = await pool.query(
           `INSERT INTO technical_service_documents
-           (ticket_number, document_type, client_name, client_contact, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           (ticket_number, document_type, client_name, client_contact, client_cedula, client_center, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
            RETURNING *`,
           [
             nextTicket,
             nextType,
             target_client_name || client_name || source.client_name,
             target_client_contact || client_contact || source.client_contact,
+            client_cedula || source.client_cedula || '',
+            client_center || source.client_center || '',
             equipment_data || source.equipment_data || {},
             checklist_data || source.checklist_data || { checks: [] },
             diagnosis ?? source.diagnosis ?? '',
@@ -198,14 +206,16 @@ export default async function handler(request, response) {
 
       const result = await pool.query(
         `INSERT INTO technical_service_documents 
-         (ticket_number, document_type, client_name, client_contact, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+         (ticket_number, document_type, client_name, client_contact, client_cedula, client_center, equipment_data, checklist_data, diagnosis, recommendations, total_cost, status) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
          RETURNING *`,
         [
           finalTicket,
           document_type,
           client_name,
           client_contact,
+          client_cedula || '',
+          client_center || '',
           equipment_data || {},
           checklist_data || { checks: [] },
           diagnosis || '',

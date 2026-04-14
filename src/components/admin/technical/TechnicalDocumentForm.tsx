@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2, Box, FileText, CheckSquare, DollarSign, Copy, ClipboardCheck, Search, UserCheck } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Box, FileText, CheckSquare, DollarSign, Copy, ClipboardCheck, Search, UserCheck, X } from 'lucide-react';
 
 interface CheckItem {
   id: string;
@@ -9,9 +9,16 @@ interface CheckItem {
   observation: string;
 }
 
+interface AccessoryItem {
+  name: string;
+  condition: 'bueno' | 'regular' | 'malo';
+}
+
 interface ExistingClient {
   client_name: string;
   client_contact: string | null;
+  client_cedula?: string | null;
+  client_center?: string | null;
   documents_count: number;
   last_activity: string;
 }
@@ -23,11 +30,13 @@ type FormState = {
   document_type: DocumentType;
   client_name: string;
   client_contact: string;
+  client_cedula: string;
+  client_center: string;
   equipment_data: {
     brand: string;
     model: string;
     serial: string;
-    accessories: string;
+    accessories: AccessoryItem[];
     visual_condition: string;
     reported_issue: string;
   };
@@ -62,11 +71,13 @@ function defaultState(type: DocumentType = 'reception'): FormState {
     document_type: type,
     client_name: '',
     client_contact: '',
+    client_cedula: '',
+    client_center: '',
     equipment_data: {
       brand: '',
       model: '',
       serial: '',
-      accessories: '',
+      accessories: [],
       visual_condition: '',
       reported_issue: ''
     },
@@ -80,15 +91,28 @@ function defaultState(type: DocumentType = 'reception'): FormState {
   };
 }
 
+function normalizeAccessories(raw: any): AccessoryItem[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  // Retrocompatibilidad: si era string, convertir a items
+  if (typeof raw === 'string' && raw.trim()) {
+    return raw.split(',').map((s: string) => ({ name: s.trim(), condition: 'bueno' as const })).filter((a: AccessoryItem) => a.name);
+  }
+  return [];
+}
+
 function normalizeDocument(raw: any): FormState {
   const type = (raw?.document_type || 'reception') as DocumentType;
   return {
     ...defaultState(type),
     ...raw,
     document_type: type,
+    client_cedula: raw?.client_cedula || '',
+    client_center: raw?.client_center || '',
     equipment_data: {
       ...defaultState(type).equipment_data,
-      ...(raw?.equipment_data || {})
+      ...(raw?.equipment_data || {}),
+      accessories: normalizeAccessories(raw?.equipment_data?.accessories)
     },
     checklist_data: {
       checks: raw?.checklist_data?.checks || []
@@ -225,6 +249,8 @@ export default function TechnicalDocumentForm() {
       ...payload,
       client_name: payload.client_name.trim(),
       client_contact: payload.client_contact.trim(),
+      client_cedula: payload.client_cedula.trim(),
+      client_center: payload.client_center.trim(),
       diagnosis: payload.diagnosis.trim(),
       recommendations: payload.recommendations.trim(),
       total_cost: Number.isFinite(payload.total_cost) ? payload.total_cost : 0
@@ -260,7 +286,9 @@ export default function TechnicalDocumentForm() {
     setFormData((prev) => ({
       ...prev,
       client_name: client.client_name,
-      client_contact: client.client_contact || prev.client_contact
+      client_contact: client.client_contact || prev.client_contact,
+      client_cedula: client.client_cedula || prev.client_cedula,
+      client_center: client.client_center || prev.client_center
     }));
     setClientLookup(client.client_name);
     setSelectedExistingClient(client);
@@ -488,7 +516,7 @@ export default function TechnicalDocumentForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Nombre Cliente / Clínica</label>
+              <label className="block text-sm text-gray-600 mb-1">Nombre Responsable / Persona Encargada</label>
               <input
                 type="text"
                 value={formData.client_name}
@@ -500,7 +528,17 @@ export default function TechnicalDocumentForm() {
                   }
                 }}
                 className="w-full rounded-lg border-gray-200"
-                placeholder="Ej. Clínica Estética..."
+                placeholder="Ej. Dr. Juan Pérez..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Cédula / RUC</label>
+              <input
+                type="text"
+                value={formData.client_cedula}
+                onChange={(e) => setFormData({...formData, client_cedula: e.target.value})}
+                className="w-full rounded-lg border-gray-200"
+                placeholder="Ej. 1712345678"
               />
             </div>
             <div>
@@ -511,6 +549,16 @@ export default function TechnicalDocumentForm() {
                 onChange={(e) => setFormData({...formData, client_contact: e.target.value})}
                 className="w-full rounded-lg border-gray-200"
                 placeholder="Ej. 099..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Centro / Consultorio</label>
+              <input
+                type="text"
+                value={formData.client_center}
+                onChange={(e) => setFormData({...formData, client_center: e.target.value})}
+                className="w-full rounded-lg border-gray-200"
+                placeholder="Ej. Clínica Estética XYZ..."
               />
             </div>
           </div>
@@ -574,17 +622,114 @@ export default function TechnicalDocumentForm() {
                   placeholder={formData.document_type === 'delivery_receipt' ? 'Notas de condición al entregar...' : 'Descripción falla indicada por el cliente...'}
                     />
                 </div>
-                <div className="col-span-3 md:col-span-1">
-                    <label className="block text-sm text-gray-600 mb-1">Accesorios Recibidos</label>
-                    <input
+                <div className="col-span-3">
+                    <label className="block text-sm text-gray-600 mb-2">Accesorios Recibidos</label>
+                    
+                    {/* Quick-add chips */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {['Pedal', 'Cable de poder', 'Punta / Handpiece', 'Manual / Documentación', 'Adaptador / Conector', 'Control remoto', 'Funda / Estuche', 'Cartuchos'].map((opt) => {
+                        const alreadyAdded = formData.equipment_data.accessories.some((a) => a.name === opt);
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            disabled={alreadyAdded}
+                            onClick={() => {
+                              if (!alreadyAdded) {
+                                setFormData({...formData, equipment_data: {...formData.equipment_data, accessories: [...formData.equipment_data.accessories, { name: opt, condition: 'bueno' }]}});
+                              }
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                              alreadyAdded 
+                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                : 'bg-[#b8860b]/10 text-[#b8860b] border-[#b8860b]/30 hover:bg-[#b8860b]/20 cursor-pointer'
+                            }`}
+                          >
+                            + {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Manual add */}
+                    <div className="flex gap-2 mb-3">
+                      <input
                         type="text"
-                        placeholder="Pedal, cable poder..."
-                        value={formData.equipment_data.accessories}
-                        onChange={(e) => setFormData({...formData, equipment_data: {...formData.equipment_data, accessories: e.target.value}})}
-                        className="w-full rounded-lg border-gray-200"
-                    />
+                        id="accessory-manual-input"
+                        placeholder="Escribir accesorio personalizado..."
+                        className="flex-1 rounded-lg border-gray-200 text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.currentTarget;
+                            const val = input.value.trim();
+                            if (val && !formData.equipment_data.accessories.some((a) => a.name.toLowerCase() === val.toLowerCase())) {
+                              setFormData({...formData, equipment_data: {...formData.equipment_data, accessories: [...formData.equipment_data.accessories, { name: val, condition: 'bueno' }]}});
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById('accessory-manual-input') as HTMLInputElement;
+                          const val = input?.value.trim();
+                          if (val && !formData.equipment_data.accessories.some((a) => a.name.toLowerCase() === val.toLowerCase())) {
+                            setFormData({...formData, equipment_data: {...formData.equipment_data, accessories: [...formData.equipment_data.accessories, { name: val, condition: 'bueno' }]}});
+                            input.value = '';
+                          }
+                        }}
+                        className="px-4 py-2 bg-[#b8860b] text-white rounded-lg text-sm hover:bg-[#a0750a] flex items-center gap-1"
+                      >
+                        <Plus size={16} /> Añadir
+                      </button>
+                    </div>
+
+                    {/* Accessories list */}
+                    {formData.equipment_data.accessories.length > 0 && (
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        {formData.equipment_data.accessories.map((acc, idx) => (
+                          <div key={idx} className="flex items-center justify-between px-4 py-2 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                            <span className="text-sm text-gray-800 font-medium">{acc.name}</span>
+                            <div className="flex items-center gap-3">
+                              <select
+                                value={acc.condition}
+                                onChange={(e) => {
+                                  const updated = [...formData.equipment_data.accessories];
+                                  updated[idx] = { ...updated[idx], condition: e.target.value as 'bueno' | 'regular' | 'malo' };
+                                  setFormData({...formData, equipment_data: {...formData.equipment_data, accessories: updated}});
+                                }}
+                                className={`rounded-full text-xs font-semibold px-2 py-1 border-none focus:ring-0 cursor-pointer ${
+                                  acc.condition === 'bueno' ? 'bg-green-100 text-green-800' :
+                                  acc.condition === 'regular' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                <option value="bueno">Bueno</option>
+                                <option value="regular">Regular</option>
+                                <option value="malo">Malo</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = formData.equipment_data.accessories.filter((_, i) => i !== idx);
+                                  setFormData({...formData, equipment_data: {...formData.equipment_data, accessories: updated}});
+                                }}
+                                className="text-gray-400 hover:text-red-500"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {formData.equipment_data.accessories.length === 0 && (
+                      <p className="text-xs text-gray-400 italic">No se han agregado accesorios. Usa los botones de arriba o escribe uno manualmente.</p>
+                    )}
                 </div>
-                <div className="col-span-3 md:col-span-2">
+                <div className="col-span-3">
                     <label className="block text-sm text-gray-600 mb-1">Condición Visual</label>
                     <input
                         type="text"
