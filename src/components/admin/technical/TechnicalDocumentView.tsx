@@ -374,44 +374,41 @@ export default function TechnicalDocumentView() {
         {/* Footer / Signatures - Conditional per type */}
         <div className={`absolute bottom-8 left-0 right-0 ${emptyMode ? 'px-[1.2cm]' : 'px-[2cm]'}`}>
             <div className={`flex justify-between items-end ${emptyMode ? 'pt-4' : 'pt-12'}`}>
-                <div className="text-center w-44">
-                    <div className={`border-b border-gray-300 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
-                    <p className="text-xs font-bold uppercase">Bioskin Tech</p>
-                    <p className="text-[10px] text-gray-400">Departamento Técnico</p>
+                <div className="text-center w-48">
+                    <div className={`border-b border-gray-800 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
+                    <p className="text-xs font-bold">Ing. Rafael Larrea</p>
+                    <p className="text-[10px] font-bold uppercase">BIOSKINTECH</p>
                 </div>
                 
                 {(data.document_type === 'reception' || data.document_type === 'delivery_receipt') && (
-                  <div className="text-center w-44">
-                      <div className={`border-b border-gray-300 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
+                  <div className="text-center w-48">
+                      <div className={`border-b border-gray-800 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
                       {emptyMode ? (
-                        <>
-                          <p className="text-xs font-bold uppercase border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
-                          <p className="text-[10px] border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
-                        </>
+                        <div className="text-left space-y-1 mt-1">
+                          <p className="text-[10px] text-gray-500">Firma: ________________________</p>
+                          <p className="text-[10px] text-gray-500">Nombre: ______________________</p>
+                          <p className="text-[10px] text-gray-500">Cédula: _______________________</p>
+                        </div>
                       ) : (
                         <>
                           <p className="text-xs font-bold uppercase">{data.client_name}</p>
+                          {data.client_cedula && <p className="text-[10px] text-gray-500">C.I.: {data.client_cedula}</p>}
                           {data.client_center && <p className="text-[10px] text-gray-500">{data.client_center}</p>}
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            {data.document_type === 'delivery_receipt' ? 'Recibí Conforme' : 'Entregué Conforme'}
+                          </p>
                         </>
                       )}
-                      <p className="text-[10px] text-gray-400">
-                        {data.document_type === 'delivery_receipt' ? 'Firma Cliente / Recibí Conforme' : 'Firma Cliente / Entregué Conforme'}
-                      </p>
                   </div>
                 )}
 
                 {data.document_type === 'proforma' && (
-                  <div className="text-center w-44">
-                      <div className={`border-b border-gray-300 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
+                  <div className="text-center w-48">
+                      <div className={`border-b border-gray-800 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
                       <p className="text-xs font-bold uppercase">Aprobación</p>
                       <p className="text-[10px] text-gray-400">Firma y Sello Cliente</p>
                   </div>
                 )}
-            </div>
-            
-            <div className={`text-[10px] text-center text-gray-300 border-t border-gray-100 pt-1 flex justify-between ${emptyMode ? 'mt-3' : 'mt-8'}`}>
-                <span>Bioskin - Medicina Estética & Tecnología</span>
-                <span>Generado: {new Date().toLocaleDateString()} | ID: {data.id}</span>
             </div>
         </div>
 
