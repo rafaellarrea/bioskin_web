@@ -730,14 +730,99 @@ export default function TechnicalDocumentForm() {
                     )}
                 </div>
                 <div className="col-span-3">
-                    <label className="block text-sm text-gray-600 mb-1">Condición Visual</label>
-                    <input
+                    <label className="block text-sm text-gray-600 mb-2">Condición Visual</label>
+                    
+                    {/* Quick-add visual condition chips */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {['Sin daños visibles', 'Rayones leves', 'Rayones profundos', 'Golpes / Abolladuras', 'Manchas / Decoloración', 'Desgaste por uso', 'Partes faltantes', 'Pantalla rota / dañada', 'Cables deteriorados', 'Óxido / Corrosión'].map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => {
+                            const current = formData.equipment_data.visual_condition.trim();
+                            const items = current ? current.split(', ').map(s => s.trim()).filter(Boolean) : [];
+                            if (!items.includes(opt)) {
+                              const updated = [...items, opt].join(', ');
+                              setFormData({...formData, equipment_data: {...formData.equipment_data, visual_condition: updated}});
+                            }
+                          }}
+                          className={`px-2 py-1 rounded-full text-xs font-medium border transition-colors ${
+                            formData.equipment_data.visual_condition.includes(opt)
+                              ? 'bg-gray-100 text-gray-400 border-gray-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 cursor-pointer'
+                          }`}
+                        >
+                          + {opt}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <input
                         type="text"
-                        placeholder="Rayones, golpes, estado general..."
-                        value={formData.equipment_data.visual_condition}
-                        onChange={(e) => setFormData({...formData, equipment_data: {...formData.equipment_data, visual_condition: e.target.value}})}
-                        className="w-full rounded-lg border-gray-200"
-                    />
+                        id="visual-condition-input"
+                        placeholder="Escribir condición personalizada..."
+                        className="flex-1 rounded-lg border-gray-200 text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.currentTarget;
+                            const val = input.value.trim();
+                            if (val) {
+                              const current = formData.equipment_data.visual_condition.trim();
+                              const items = current ? current.split(', ').map(s => s.trim()).filter(Boolean) : [];
+                              if (!items.includes(val)) {
+                                const updated = [...items, val].join(', ');
+                                setFormData({...formData, equipment_data: {...formData.equipment_data, visual_condition: updated}});
+                              }
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById('visual-condition-input') as HTMLInputElement;
+                          const val = input?.value.trim();
+                          if (val) {
+                            const current = formData.equipment_data.visual_condition.trim();
+                            const items = current ? current.split(', ').map(s => s.trim()).filter(Boolean) : [];
+                            if (!items.includes(val)) {
+                              const updated = [...items, val].join(', ');
+                              setFormData({...formData, equipment_data: {...formData.equipment_data, visual_condition: updated}});
+                            }
+                            input.value = '';
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 flex items-center gap-1"
+                      >
+                        <Plus size={16} /> Añadir
+                      </button>
+                    </div>
+
+                    {formData.equipment_data.visual_condition.trim() && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {formData.equipment_data.visual_condition.split(', ').map((item, idx) => (
+                          item.trim() && (
+                            <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                              {item.trim()}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const items = formData.equipment_data.visual_condition.split(', ').map(s => s.trim()).filter(Boolean);
+                                  const updated = items.filter((_, i) => i !== idx).join(', ');
+                                  setFormData({...formData, equipment_data: {...formData.equipment_data, visual_condition: updated}});
+                                }}
+                                className="text-gray-400 hover:text-red-500"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          )
+                        ))}
+                      </div>
+                    )}
                 </div>
                 </>
              )}

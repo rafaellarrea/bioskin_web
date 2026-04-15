@@ -69,7 +69,7 @@ export default function TechnicalDocumentView() {
     <div className="min-h-screen bg-gray-100 p-8 print:fixed print:inset-0 print:bg-white print:p-0 print:z-[9999] print:overflow-visible">
       <style>{`
         @media print {
-          @page { margin: 0.5cm; size: auto; }
+          @page { margin: 0.5cm; size: A4; }
           body * { visibility: hidden; }
           #technical-document, #technical-document * { visibility: visible; }
           #technical-document { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0.5cm; }
@@ -95,7 +95,7 @@ export default function TechnicalDocumentView() {
       </div>
 
       {/* A4 Format Document */}
-      <div id="technical-document" className="max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none p-[2cm] min-h-[29.7cm] relative overflow-hidden">
+      <div id="technical-document" className={`max-w-[21cm] mx-auto bg-white shadow-lg print:shadow-none min-h-[29.7cm] relative overflow-hidden ${emptyMode ? 'p-[1.2cm]' : 'p-[2cm]'}`}>
         
         {/* Background Watermark */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
@@ -103,9 +103,9 @@ export default function TechnicalDocumentView() {
         </div>
 
         {/* Header with Logo */}
-        <div className="flex justify-between items-start border-b-2 border-[#b8860b] pb-6 mb-8 relative z-10">
+        <div className={`flex justify-between items-start border-b-2 border-[#b8860b] relative z-10 ${emptyMode ? 'pb-3 mb-4' : 'pb-6 mb-8'}`}>
           <div className="flex items-center gap-4">
-            <img src="/images/logo/bioskin-tech-full.png" alt="Bioskin Tech Logo" className="h-20 object-contain" />
+            <img src="/images/logo/bioskin-tech-full.png" alt="Bioskin Tech Logo" className={`object-contain ${emptyMode ? 'h-14' : 'h-20'}`} />
           </div>
           <div className="text-right">
              <h2 className="text-xl font-bold text-gray-800 uppercase split-words">{getDocTitle()}</h2>
@@ -117,15 +117,15 @@ export default function TechnicalDocumentView() {
         </div>
 
         {/* Common Info Grid */}
-        <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
-          <div className="space-y-2">
-             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Cliente</h3>
+        <div className={`grid grid-cols-2 gap-6 text-sm ${emptyMode ? 'mb-4' : 'mb-8'}`}>
+          <div className={`${emptyMode ? 'space-y-1' : 'space-y-2'}`}>
+             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 border-b pb-1">Cliente</h3>
              {emptyMode ? (
                <>
-                 <p><span className="font-semibold text-gray-700">Nombre:</span> ____________________________________</p>
-                 <p><span className="font-semibold text-gray-700">Cédula/RUC:</span> ____________________________________</p>
-                 <p><span className="font-semibold text-gray-700">Contacto:</span> ____________________________________</p>
-                 <p><span className="font-semibold text-gray-700">Centro:</span> ____________________________________</p>
+                 <p className="text-xs"><span className="font-semibold text-gray-700">Nombre:</span> ___________________________________</p>
+                 <p className="text-xs"><span className="font-semibold text-gray-700">Cédula/RUC:</span> ___________________________________</p>
+                 <p className="text-xs"><span className="font-semibold text-gray-700">Contacto:</span> ___________________________________</p>
+                 <p className="text-xs"><span className="font-semibold text-gray-700">Centro:</span> ___________________________________</p>
                </>
              ) : (
                <>
@@ -136,12 +136,15 @@ export default function TechnicalDocumentView() {
                </>
              )}
           </div>
-           <div className="space-y-2">
-             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Equipo</h3>
+           <div className={`${emptyMode ? 'space-y-1' : 'space-y-2'}`}>
+             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 border-b pb-1">Equipo</h3>
              {emptyMode ? (
                <>
-                 <p><span className="font-semibold text-gray-700">Marca/Modelo:</span> ____________________________________</p>
-                 <p><span className="font-semibold text-gray-700">Serie/SN:</span> ____________________________________</p>
+                 <p className="text-xs"><span className="font-semibold text-gray-700">Marca/Modelo:</span> ___________________________________</p>
+                 <p className="text-xs"><span className="font-semibold text-gray-700">Serie/SN:</span> ___________________________________</p>
+                 <p className="text-xs mt-2"><span className="font-semibold text-gray-700">Problema / Motivo:</span></p>
+                 <div className="border-b border-dashed border-gray-300 h-4"></div>
+                 <div className="border-b border-dashed border-gray-300 h-4"></div>
                </>
              ) : (
                <>
@@ -157,28 +160,28 @@ export default function TechnicalDocumentView() {
         {/* RECEPTION LAYOUT */}
         {(data.document_type === 'reception' || data.document_type === 'delivery_receipt') && (
           <>
-            <div className="mb-8">
-              <h3 className="text-sm font-bold text-gray-800 mb-3 bg-gray-50 p-2 border-l-4 border-[#b8860b]">
+            <div className={emptyMode ? 'mb-4' : 'mb-8'}>
+              <h3 className={`text-sm font-bold text-gray-800 bg-gray-50 p-2 border-l-4 border-[#b8860b] ${emptyMode ? 'mb-2 text-xs' : 'mb-3'}`}>
                 {data.document_type === 'delivery_receipt' ? 'Checklist de Entrega' : 'Estado de Recepción (Checklist)'}
               </h3>
               <table className="w-full text-sm border-collapse">
                  <thead>
                    <tr className="bg-gray-50 text-left text-xs font-bold text-gray-500 uppercase">
-                     <th className="py-2 px-3 border border-gray-200">Componente</th>
-                     <th className="py-2 px-3 border border-gray-200 text-center w-24">Estado</th>
-                     <th className="py-2 px-3 border border-gray-200">Observación</th>
+                     <th className={`px-2 border border-gray-200 ${emptyMode ? 'py-1' : 'py-2'}`}>Componente</th>
+                     <th className={`px-2 border border-gray-200 text-center ${emptyMode ? 'py-1 w-32' : 'py-2 w-24'}`}>Estado</th>
+                     <th className={`px-2 border border-gray-200 ${emptyMode ? 'py-1' : 'py-2'}`}>Observación</th>
                    </tr>
                  </thead>
                  <tbody>
                    {emptyMode ? (
                      <>  
-                       {['Enciende', 'Pantalla', 'Botones / Perillas', 'Cables / Conectores', 'Carcasa / Estructura', 'Funcionalidad Básica', '', '', ''].map((label, i) => (
+                       {['Enciende', 'Pantalla', 'Botones / Perillas', 'Cables / Conectores', 'Carcasa / Estructura', 'Funcionalidad Básica', '', ''].map((label, i) => (
                          <tr key={i}>
-                           <td className="py-3 px-3 border border-gray-200 text-gray-500">{label || '\u00A0'}</td>
-                           <td className="py-3 px-3 border border-gray-200 text-center">
-                             <span className="text-gray-400 text-xs">\u25A1 OK &nbsp; \u25A1 MALO &nbsp; \u25A1 N/A</span>
+                           <td className="py-1 px-2 border border-gray-200 text-xs text-gray-500">{label || ' '}</td>
+                           <td className="py-1 px-2 border border-gray-200 text-center">
+                             <span className="text-gray-400 text-[10px]">{'☐'} OK {'☐'} MALO {'☐'} N/A</span>
                            </td>
-                           <td className="py-3 px-3 border border-gray-200">\u00A0</td>
+                           <td className="py-1 px-2 border border-gray-200">{' '}</td>
                          </tr>
                        ))}
                      </>
@@ -200,23 +203,26 @@ export default function TechnicalDocumentView() {
             </div>
 
             {emptyMode ? (
-              <div className="grid grid-cols-2 gap-8 mb-8 text-xs">
-                <div className="border border-gray-200 p-4 rounded bg-gray-50">
-                  <h4 className="font-bold text-gray-700 mb-3">Accesorios Recibidos:</h4>
-                  <div className="space-y-3">
-                    {['', '', '', '', ''].map((_, i) => (
-                      <div key={i} className="flex justify-between items-center">
-                        <span className="border-b border-dashed border-gray-300 flex-1 mr-4">\u00A0</span>
-                        <span className="text-gray-400 text-[10px] whitespace-nowrap">\u25A1 Bueno &nbsp; \u25A1 Regular &nbsp; \u25A1 Malo</span>
+              <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+                <div className="border border-gray-200 p-3 rounded bg-gray-50">
+                  <h4 className="font-bold text-gray-700 mb-2 text-xs">Accesorios Recibidos:</h4>
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map((_, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="border-b border-dashed border-gray-300 flex-1">{'\u00A0'}</span>
+                        <span className="text-gray-400 text-[9px] whitespace-nowrap">{'☐'}B {'☐'}R {'☐'}M</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="border border-gray-200 p-4 rounded bg-gray-50">
-                  <h4 className="font-bold text-gray-700 mb-2">Condición Visual:</h4>
-                  <div className="border-b border-dashed border-gray-300 h-6 mb-2"></div>
-                  <div className="border-b border-dashed border-gray-300 h-6 mb-2"></div>
-                  <div className="border-b border-dashed border-gray-300 h-6"></div>
+                <div className="border border-gray-200 p-3 rounded bg-gray-50">
+                  <h4 className="font-bold text-gray-700 mb-2 text-xs">Condición Visual:</h4>
+                  <div className="space-y-2">
+                    {['Sin daños', 'Rayones', 'Golpes', 'Desgaste', 'Pantalla dañada', 'Cables deteriorados'].map((opt) => (
+                      <span key={opt} className="inline-flex items-center mr-2 text-[9px] text-gray-500">{'☐'} {opt}</span>
+                    ))}
+                  </div>
+                  <div className="mt-2 border-b border-dashed border-gray-300 h-4"></div>
                 </div>
               </div>
             ) : (
@@ -233,15 +239,19 @@ export default function TechnicalDocumentView() {
             )}
             
             {data.document_type === 'delivery_receipt' && (
-              <div className="mb-8 border border-indigo-200 rounded-lg p-4 bg-indigo-50/40">
-                <h4 className="text-sm font-bold text-indigo-800 mb-2">Conformidad de Entrega</h4>
-                <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
-                  {emptyMode ? '\u00A0' : (data.recommendations || 'Equipo entregado sin observaciones adicionales.')}
-                </p>
+              <div className={`border border-indigo-200 rounded-lg bg-indigo-50/40 ${emptyMode ? 'mb-3 p-2' : 'mb-8 p-4'}`}>
+                <h4 className={`font-bold text-indigo-800 ${emptyMode ? 'text-xs mb-1' : 'text-sm mb-2'}`}>Conformidad de Entrega</h4>
+                {emptyMode ? (
+                  <div className="space-y-2">{[1,2].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-4"></div>)}</div>
+                ) : (
+                  <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {data.recommendations || 'Equipo entregado sin observaciones adicionales.'}
+                  </p>
+                )}
               </div>
             )}
 
-            <div className="mb-8 border-t pt-4">
+            <div className={emptyMode ? 'mb-3 border-t pt-2' : 'mb-8 border-t pt-4'}>
               <h4 className="text-[10px] font-bold text-gray-500 uppercase mb-1">Términos y Condiciones de Recepción:</h4>
               <p className="text-[10px] text-gray-500 text-justify leading-tight italic">
                 1. El cliente autoriza la revisión técnica y diagnóstico del equipo detallado. 2. La empresa NO asume responsabilidad por: pérdida de información/datos (se recomienda respaldo previo), fallas ocultas preexistentes no detectables en la recepción visual, ni accesorios no declarados explícitamente en este documento. 3. La garantía aplica únicamente sobre los repuestos cambiados y la mano de obra del servicio específico realizado.
@@ -253,20 +263,20 @@ export default function TechnicalDocumentView() {
         {/* TECHNICAL REPORT LAYOUT */}
         {data.document_type === 'technical_report' && (
           <>
-            <div className="space-y-6 mb-8">
+            <div className={emptyMode ? 'space-y-3 mb-4' : 'space-y-6 mb-8'}>
                <div className="border-l-4 border-blue-500 pl-4 py-1">
-                 <h3 className="text-sm font-bold text-gray-800 mb-2">Diagnóstico Técnico</h3>
+                 <h3 className={`font-bold text-gray-800 ${emptyMode ? 'text-xs mb-1' : 'text-sm mb-2'}`}>Diagnóstico Técnico</h3>
                  {emptyMode ? (
-                   <div className="space-y-3 mt-2">{[1,2,3,4].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-5"></div>)}</div>
+                   <div className="space-y-2 mt-1">{[1,2,3].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-4"></div>)}</div>
                  ) : (
                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.diagnosis}</p>
                  )}
                </div>
                
                <div className="border-l-4 border-green-500 pl-4 py-1">
-                 <h3 className="text-sm font-bold text-gray-800 mb-2">Trabajos Realizados / Recomendaciones</h3>
+                 <h3 className={`font-bold text-gray-800 ${emptyMode ? 'text-xs mb-1' : 'text-sm mb-2'}`}>Trabajos Realizados / Recomendaciones</h3>
                  {emptyMode ? (
-                   <div className="space-y-3 mt-2">{[1,2,3,4].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-5"></div>)}</div>
+                   <div className="space-y-2 mt-1">{[1,2,3].map(i => <div key={i} className="border-b border-dashed border-gray-300 h-4"></div>)}</div>
                  ) : (
                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-light">{data.recommendations}</p>
                  )}
@@ -274,13 +284,13 @@ export default function TechnicalDocumentView() {
             </div>
 
             {emptyMode ? (
-              <div className="mb-8 opacity-75">
-                <h3 className="text-xs font-bold text-gray-500 mb-2 uppercase">Pruebas de Funcionamiento Final</h3>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="mb-4 opacity-75">
+                <h3 className="text-xs font-bold text-gray-500 mb-1 uppercase">Pruebas de Funcionamiento Final</h3>
+                <div className="grid grid-cols-2 gap-1">
                   {['Voltaje Entrada', 'Fuente Poder', 'Sistema Refrigeración', 'Emisión de Energía', '', ''].map((label, i) => (
-                    <div key={i} className="flex justify-between items-center text-xs border-b border-gray-100 py-2">
-                      <span className="text-gray-500">{label || '\u00A0'}</span>
-                      <span className="text-gray-400 text-[10px]">☐ PASS &nbsp; ☐ FAIL</span>
+                    <div key={i} className="flex justify-between items-center text-xs border-b border-gray-100 py-1">
+                      <span className="text-gray-500">{label || ' '}</span>
+                      <span className="text-gray-400 text-[10px]">{'☐'} PASS {'  ☐'} FAIL</span>
                     </div>
                   ))}
                 </div>
@@ -362,21 +372,21 @@ export default function TechnicalDocumentView() {
         )}
 
         {/* Footer / Signatures - Conditional per type */}
-        <div className="absolute bottom-12 left-0 right-0 px-[2cm]">
-            <div className="flex justify-between items-end pt-12">
-                <div className="text-center w-48">
-                    <div className="border-b border-gray-300 mb-2 h-16"></div>
+        <div className={`absolute bottom-8 left-0 right-0 ${emptyMode ? 'px-[1.2cm]' : 'px-[2cm]'}`}>
+            <div className={`flex justify-between items-end ${emptyMode ? 'pt-4' : 'pt-12'}`}>
+                <div className="text-center w-44">
+                    <div className={`border-b border-gray-300 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
                     <p className="text-xs font-bold uppercase">Bioskin Tech</p>
                     <p className="text-[10px] text-gray-400">Departamento Técnico</p>
                 </div>
                 
                 {(data.document_type === 'reception' || data.document_type === 'delivery_receipt') && (
-                  <div className="text-center w-48">
-                      <div className="border-b border-gray-300 mb-2 h-16"></div>
+                  <div className="text-center w-44">
+                      <div className={`border-b border-gray-300 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
                       {emptyMode ? (
                         <>
                           <p className="text-xs font-bold uppercase border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
-                          <p className="text-xs border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
+                          <p className="text-[10px] border-b border-dashed border-gray-300 mb-1">&nbsp;</p>
                         </>
                       ) : (
                         <>
@@ -391,15 +401,15 @@ export default function TechnicalDocumentView() {
                 )}
 
                 {data.document_type === 'proforma' && (
-                  <div className="text-center w-48">
-                      <div className="border-b border-gray-300 mb-2 h-16"></div>
+                  <div className="text-center w-44">
+                      <div className={`border-b border-gray-300 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
                       <p className="text-xs font-bold uppercase">Aprobación</p>
                       <p className="text-[10px] text-gray-400">Firma y Sello Cliente</p>
                   </div>
                 )}
             </div>
             
-            <div className="mt-8 text-[10px] text-center text-gray-300 border-t border-gray-100 pt-2 flex justify-between">
+            <div className={`text-[10px] text-center text-gray-300 border-t border-gray-100 pt-1 flex justify-between ${emptyMode ? 'mt-3' : 'mt-8'}`}>
                 <span>Bioskin - Medicina Estética & Tecnología</span>
                 <span>Generado: {new Date().toLocaleDateString()} | ID: {data.id}</span>
             </div>

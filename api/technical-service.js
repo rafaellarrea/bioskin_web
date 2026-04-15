@@ -51,6 +51,19 @@ async function generateUniqueTicket(pool, docType) {
   return `${generateTicketBase(docType)}-${Date.now().toString().slice(-3)}`;
 }
 
+let _migrated = false;
+
+async function ensureColumns(pool) {
+  if (_migrated) return;
+  try {
+    await pool.query('ALTER TABLE technical_service_documents ADD COLUMN IF NOT EXISTS client_cedula VARCHAR(20)');
+    await pool.query('ALTER TABLE technical_service_documents ADD COLUMN IF NOT EXISTS client_center VARCHAR(200)');
+    _migrated = true;
+  } catch (e) {
+    console.warn('Auto-migration warning:', e.message);
+  }
+}
+
 export default async function handler(request, response) {
   const connectionString = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL;
   
@@ -59,6 +72,8 @@ export default async function handler(request, response) {
   }
 
   const pool = new Pool({ connectionString });
+  
+  await ensureColumns(pool);
   
   if (request.method === 'GET') {
     const { id, type, status, search, client, mode, limit = 50 } = request.query;
