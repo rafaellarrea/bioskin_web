@@ -372,7 +372,7 @@ export default function TechnicalDocumentView() {
         )}
 
         {/* Footer / Signatures - Conditional per type */}
-        <div className={`absolute bottom-8 left-0 right-0 ${emptyMode ? 'px-[1.2cm]' : 'px-[2cm]'}`}>
+        <div className={`absolute bottom-14 left-0 right-0 ${emptyMode ? 'px-[1.2cm]' : 'px-[2cm]'}`}>
             <div className={`flex justify-between items-end ${emptyMode ? 'pt-4' : 'pt-12'}`}>
                 <div className="text-center w-48">
                     <div className={`border-b border-gray-800 mb-1 ${emptyMode ? 'h-10' : 'h-16'}`}></div>
