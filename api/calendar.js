@@ -382,6 +382,39 @@ async function blockSchedule(req, res, calendar, credentials) {
     });
   }
 
+  // Notificar al staff cuando se crean bloqueos manuales
+  try {
+    const mockReq = {
+      method: 'POST',
+      body: {
+        notificationType: 'admin_block_created',
+        date,
+        hours,
+        reason,
+        totalAffected: createdEvents.length,
+        totalRequested: hours.length,
+        errorCount: errors.length,
+        blockedBy: adminName,
+        actionDate: new Date().toISOString()
+      }
+    };
+
+    const mockRes = {
+      status: (code) => ({
+        json: (data) => {
+          console.log(`📧 SendEmail handler respondió con status ${code}:`, data);
+          return data;
+        }
+      }),
+      setHeader: () => {}
+    };
+
+    await sendEmailHandler(mockReq, mockRes);
+    console.log('📧 Notificación de bloqueo creado enviada al staff');
+  } catch (emailError) {
+    console.error('⚠️ Error enviando notificación de bloqueo creado:', emailError);
+  }
+
   return res.status(200).json({
     success: true,
     message: `${createdEvents.length} horario(s) bloqueado(s) exitosamente`,
@@ -492,22 +525,18 @@ async function deleteBlockedSchedule(req, res, calendar, credentials) {
   if (deletedEvents.length > 0) {
     try {
       console.log(`📧 Iniciando envío de notificación para ${deletedEvents.length} bloqueos eliminados`);
-      
+
       const emailBody = {
-        name: 'Sistema BIOSKIN - Bloqueos Eliminados',
-        email: 'admin@bioskin.com',
-        message: `NOTIFICACIÓN: BLOQUEOS DE HORARIO ELIMINADOS\n\n` +
-                `Se han eliminado ${deletedEvents.length} bloqueo(s) de horario desde el panel de administración.\n\n` +
-                `Fecha: ${date}\n` +
-                `Motivo: ${reason || 'No especificado'}\n` +
-                `IDs eliminados: ${deletedEvents.join(', ')}\n` +
-                `Eliminados: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
-                `Los bloqueos han sido removidos de Google Calendar y el horario está nuevamente disponible.\n\n` +
-                `${errors.length > 0 ? `Errores encontrados: ${errors.length}\n` : ''}` +
-                `Este es un mensaje automático del sistema de gestión BIOSKIN.`,
+        notificationType: 'admin_blocks_deleted',
+        date,
+        reason: reason || 'No especificado',
+        totalAffected: deletedEvents.length,
+        totalRequested: eventIds.length,
+        errorCount: errors.length,
+        actionDate: new Date().toISOString()
       };
-      
-      console.log(`📧 Enviando email con body:`, JSON.stringify(emailBody, null, 2));
+
+      console.log('📧 Enviando notificación de bloques eliminados al staff');
         
       // Crear objetos mock de request y response para llamar al sendEmail handler directamente
       const mockReq = {
@@ -592,45 +621,26 @@ async function deleteEvent(req, res, calendar, credentials) {
     
     console.log(`📧 Detalles del evento: ${eventTitle} - ${eventStart} to ${eventEnd}`);
     
-    // Formatear fechas para mostrar
-    const formatDate = (dateStr) => {
-      if (!dateStr) return 'No especificada';
-      try {
-        return new Date(dateStr).toLocaleString('es-ES', { 
-          timeZone: 'America/Guayaquil',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-      } catch {
-        return dateStr;
-      }
+    const notificationType = eventType === 'appointment'
+      ? 'admin_appointment_cancelled'
+      : 'admin_block_deleted';
+
+    const emailBody = {
+      notificationType,
+      eventTitle,
+      eventStart,
+      eventEnd,
+      eventLocation,
+      eventDescription,
+      eventId,
+      eventType,
+      reason: eventType === 'block'
+        ? eventTitle?.replace('🚫 BLOQUEADO: ', '') || 'No especificado'
+        : undefined,
+      actionDate: new Date().toISOString()
     };
 
-    const notificationType = eventType === 'appointment' ? 'CITA CANCELADA' : 'BLOQUEO ELIMINADO';
-    const actionText = eventType === 'appointment' ? 'cancelada' : 'eliminado';
-    
-    const emailBody = {
-      name: `Sistema BIOSKIN - ${notificationType}`,
-      email: 'admin@bioskin.com',
-      message: `NOTIFICACIÓN: ${notificationType}\n\n` +
-              `Un evento ha sido ${actionText} desde el panel de administración.\n\n` +
-              `DETALLES DEL EVENTO:\n` +
-              `Título: ${eventTitle}\n` +
-              `Inicio: ${formatDate(eventStart)}\n` +
-              `Fin: ${formatDate(eventEnd)}\n` +
-              `${eventLocation ? `Ubicación: ${eventLocation}\n` : ''}` +
-              `${eventDescription ? `Descripción: ${eventDescription}\n` : ''}` +
-              `ID del evento: ${eventId}\n` +
-              `Tipo: ${eventType}\n` +
-              `${actionText === 'cancelada' ? 'Cancelada' : 'Eliminado'}: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Guayaquil' })}\n\n` +
-              `El evento ha sido eliminado de Google Calendar.\n\n` +
-              `Este es un mensaje automático del sistema de gestión BIOSKIN.`,
-    };
-    
-    console.log(`📧 Enviando email con body:`, JSON.stringify(emailBody, null, 2));
+    console.log('📧 Enviando notificación de eliminación/cancelación al staff');
       
     // Crear objetos mock de request y response para llamar al sendEmail handler directamente
     const mockReq = {
@@ -650,10 +660,10 @@ async function deleteEvent(req, res, calendar, credentials) {
 
     // Llamar directamente al handler de sendEmail
     await sendEmailHandler(mockReq, mockRes);
-    console.log(`📧 Notificación de ${actionText} enviada exitosamente via handler directo`);
+    console.log('📧 Notificación enviada exitosamente via handler directo');
     
   } catch (emailError) {
-    console.error(`⚠️ Error enviando notificación de ${eventType === 'appointment' ? 'cancelación' : 'eliminación'}:`, emailError);
+    console.error(`⚠️ Error enviando notificación de ${eventType === 'appointment' ? 'cancelación' : 'eliminación de bloqueo'}:`, emailError);
     console.error(`⚠️ Stack trace:`, emailError.stack);
   }
 

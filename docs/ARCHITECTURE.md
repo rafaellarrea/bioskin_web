@@ -94,7 +94,8 @@ interface Product {
 ```javascript
 // Calendar & Email Integration
 api/getEvents.js          // GET  - Google Calendar events
-api/sendEmail.js          // POST - Email + WhatsApp notifications
+api/sendEmail.js          // POST - Email + WhatsApp notifications (plantillas staff tipadas para agenda/cancelaciones/bloqueos)
+api/calendar.js           // POST - Gestión calendario + disparo de notificaciones staff por bloqueo/cancelación
 
 // WhatsApp Chatbot with AI (Noviembre 2025)
 api/whatsapp-chatbot.js   // GET/POST - Webhook for WhatsApp Business API

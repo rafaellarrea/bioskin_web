@@ -10,6 +10,11 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 24, 2026: Corrección de correos de staff en agenda**
+- 📧 **Asuntos/Cuerpos**: Ajustadas plantillas para cita agendada, cita cancelada, bloqueo creado y bloqueos eliminados.
+- 🧭 **Consistencia**: Eliminado mismatch de asunto "cita agendada" en flujos de cancelación.
+- 🔔 **Notificación nueva**: Al bloquear horarios desde admin ahora también se envía correo al staff.
+
 ### ✅ **Apr 6, 2026: Auditoría Serverless — 12→11 funciones**
 - 🗑️ **Eliminada** `api/init-technical-db-vercel.js` — script de migración one-shot sin uso continuo (0 refs). Lógica preservada en `scripts/init-technical-service-db.js`.
 - 📊 **Conteo final**: 11/12 funciones serverless (1 slot libre).
