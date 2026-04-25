@@ -18,7 +18,9 @@ async function ensureInjectablesSchema(pool) {
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS injection_plane VARCHAR(100)",
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS needle_type VARCHAR(100)",
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS mapping_data JSONB",
-      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS treatment_id INTEGER REFERENCES treatments(id) ON DELETE SET NULL"
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS treatment_id INTEGER REFERENCES treatments(id) ON DELETE SET NULL",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS dilution_volume DECIMAL(5, 2)",
+      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS follow_up_date DATE"
     ];
     for (const sql of migrations) {
       try { await pool.query(sql); } catch(e) { /* column may already exist */ }
