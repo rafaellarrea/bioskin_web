@@ -879,10 +879,11 @@ export default async function handler(req, res) {
         const allowedFields = [
           'date', 'product_type', 'product_name', 'brand', 'lot_number',
           'expiration_date', 'volume_used', 'units_used', 'areas_treated',
-          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes'
+          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes',
+          'dilution_volume', 'follow_up_date'
         ];
-        const dateFields = ['date', 'expiration_date'];
-        const numericFields = ['volume_used', 'units_used'];
+        const dateFields = ['date', 'expiration_date', 'follow_up_date'];
+        const numericFields = ['volume_used', 'units_used', 'dilution_volume'];
         const cleanData = {};
         for (const key of allowedFields) {
           if (injData[key] !== undefined) {
@@ -924,7 +925,8 @@ export default async function handler(req, res) {
         const allowedFields = [
           'date', 'product_type', 'product_name', 'brand', 'lot_number',
           'expiration_date', 'volume_used', 'units_used', 'areas_treated',
-          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes'
+          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes',
+          'dilution_volume', 'follow_up_date'
         ];
         const cleanData = {};
         for (const key of allowedFields) {

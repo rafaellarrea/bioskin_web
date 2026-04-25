@@ -31,6 +31,8 @@ interface Injectable {
   needle_type: string;
   mapping_data: any;
   notes: string;
+  dilution_volume: number | string;
+  follow_up_date: string;
 }
 
 interface InjectionPoint extends Marker3D {
@@ -104,6 +106,8 @@ const EMPTY_INJECTABLE: Injectable = {
   needle_type: '',
   mapping_data: null,
   notes: '',
+  dilution_volume: '',
+  follow_up_date: '',
 };
 
 // ==========================================
@@ -264,6 +268,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       ...inj,
       date: toDateOnly(inj.date),
       expiration_date: toDateOnly(inj.expiration_date),
+      follow_up_date: toDateOnly(inj.follow_up_date),
     });
   };
 
@@ -446,6 +451,16 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         <div class="value">${current.product_type === 'toxina' ? (current.units_used || '—') : (current.volume_used || '—')}</div>
       </div>
     </div>
+    ${current.product_type === 'toxina' && current.dilution_volume ? `<div class="grid-2" style="margin-top:8px;">
+      <div class="field">
+        <div class="label">Dilución — Suero Fisiológico 0.9%</div>
+        <div class="value">${current.dilution_volume} ml</div>
+      </div>
+      <div class="field">
+        <div class="label">Concentración Resultante</div>
+        <div class="value">${(Number(current.units_used) / Number(current.dilution_volume)).toFixed(2)} UI/ml</div>
+      </div>
+    </div>` : ''}
   </div>
 
   <div class="section">
@@ -497,6 +512,16 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           </div>
         </div>
       `).join('')}
+    </div>
+  </div>` : ''}
+
+  ${current.follow_up_date ? `<div class="section">
+    <div class="section-title">Cita de Control</div>
+    <div class="grid-2">
+      <div class="field">
+        <div class="label">Fecha programada de revisión</div>
+        <div class="value" style="font-weight:600;color:#333;">${new Date(current.follow_up_date + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      </div>
     </div>
   </div>` : ''}
 
@@ -849,6 +874,46 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               <datalist id="inj-tab-needles">
                 {needles.map((n, i) => <option key={i} value={n} />)}
               </datalist>
+            </div>
+          </div>
+
+          {/* Row 4: Dilución (toxina only) + Fecha de control */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {current.product_type === 'toxina' && (
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  Dilución (ml SS 0.9%)
+                  <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case">— concentración resultante</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                    value={current.dilution_volume}
+                    onChange={e => setCurrent({ ...current, dilution_volume: e.target.value })}
+                    placeholder="Ej: 2.5"
+                  />
+                  {Number(current.dilution_volume) > 0 && Number(current.units_used) > 0 && (
+                    <span className="text-xs text-violet-600 font-semibold shrink-0 bg-violet-50 px-2.5 py-1.5 rounded-lg border border-violet-100">
+                      {(Number(current.units_used) / Number(current.dilution_volume)).toFixed(1)} UI/ml
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                Fecha de Control
+              </label>
+              <input
+                type="date"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                value={current.follow_up_date}
+                onChange={e => setCurrent({ ...current, follow_up_date: e.target.value })}
+              />
             </div>
           </div>
 
