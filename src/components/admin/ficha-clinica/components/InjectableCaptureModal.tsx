@@ -1,0 +1,356 @@
+import React, { useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Camera, X, Trash2, Check, Images, ZoomIn, ZoomOut,
+  RotateCcw, RotateCw, Info
+} from 'lucide-react';
+import Clinical3DViewer, { Marker3D } from './Clinical3DViewer';
+
+// ==========================================
+// TIPOS
+// ==========================================
+
+export interface CaptureImage {
+  id: string;
+  dataUrl: string;
+  label: string;
+}
+
+interface InjectableCaptureModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  markers: Marker3D[];
+  productType: 'toxina' | 'relleno';
+  /** Capturas existentes al abrir el modal */
+  initialCaptures?: CaptureImage[];
+  /** Callback con la lista final de capturas al confirmar */
+  onConfirm: (captures: CaptureImage[]) => void;
+}
+
+// ==========================================
+// COMPONENTE
+// ==========================================
+
+export default function InjectableCaptureModal({
+  isOpen,
+  onClose,
+  markers,
+  productType,
+  initialCaptures = [],
+  onConfirm,
+}: InjectableCaptureModalProps) {
+  const viewerContainerRef = useRef<HTMLDivElement>(null);
+  const [captures, setCaptures] = useState<CaptureImage[]>(initialCaptures);
+  const [pendingLabel, setPendingLabel] = useState('');
+  const [previewCapture, setPreviewCapture] = useState<CaptureImage | null>(null);
+  const [captureFlash, setCaptureFlash] = useState(false);
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
+  const [editingLabelValue, setEditingLabelValue] = useState('');
+
+  const handleCapture = useCallback(() => {
+    if (!viewerContainerRef.current) return;
+    const canvas = viewerContainerRef.current.querySelector('canvas');
+    if (!canvas) return;
+
+    let dataUrl = '';
+    try {
+      dataUrl = canvas.toDataURL('image/png');
+    } catch {
+      return;
+    }
+
+    const newCapture: CaptureImage = {
+      id: Date.now().toString(),
+      dataUrl,
+      label: pendingLabel.trim() || '',
+    };
+
+    setCaptures(prev => [...prev, newCapture]);
+    setPendingLabel('');
+
+    // Flash visual feedback
+    setCaptureFlash(true);
+    setTimeout(() => setCaptureFlash(false), 400);
+  }, [pendingLabel]);
+
+  const handleRemoveCapture = (id: string) => {
+    setCaptures(prev => prev.filter(c => c.id !== id));
+    if (previewCapture?.id === id) setPreviewCapture(null);
+  };
+
+  const handleStartEditLabel = (capture: CaptureImage) => {
+    setEditingLabelId(capture.id);
+    setEditingLabelValue(capture.label);
+  };
+
+  const handleSaveLabel = () => {
+    if (!editingLabelId) return;
+    setCaptures(prev =>
+      prev.map(c => c.id === editingLabelId ? { ...c, label: editingLabelValue.trim() } : c)
+    );
+    setEditingLabelId(null);
+  };
+
+  const handleConfirm = () => {
+    onConfirm(captures);
+    onClose();
+  };
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  const selectedPathology = productType === 'toxina' ? 'botox' : 'filler';
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={e => { if (e.target === e.currentTarget) handleClose(); }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden"
+          >
+            {/* ---- HEADER ---- */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-violet-50 to-cyan-50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-100 rounded-xl">
+                  <Images className="w-5 h-5 text-violet-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-800">Capturas del Mapeo 3D</h2>
+                  <p className="text-xs text-gray-500">Gira el modelo a la vista deseada y captura. Añade una etiqueta opcional a cada imagen.</p>
+                </div>
+              </div>
+              <button
+                onClick={handleClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* ---- BODY ---- */}
+            <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
+
+              {/* LEFT: 3D viewer */}
+              <div className="flex-1 flex flex-col min-w-0 p-4 gap-3">
+                <div className="flex items-center gap-2 text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>Usa el ratón para rotar, hacer zoom o mover el modelo. Cuando tengas la vista deseada, escribe una etiqueta y captura.</span>
+                </div>
+
+                {/* Viewer container with flash overlay */}
+                <div className="relative flex-1 min-h-[320px]" ref={viewerContainerRef}>
+                  <Clinical3DViewer
+                    markers={markers}
+                    selectedPathology={selectedPathology}
+                    readOnly
+                    height="100%"
+                  />
+                  {/* Flash animation on capture */}
+                  <AnimatePresence>
+                    {captureFlash && (
+                      <motion.div
+                        initial={{ opacity: 0.8 }}
+                        animate={{ opacity: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0 bg-white rounded-xl pointer-events-none z-10"
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Capture controls */}
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50 transition-all"
+                    placeholder="Etiqueta/zona (opcional, ej: Tercio superior, Vista lateral...)"
+                    value={pendingLabel}
+                    onChange={e => setPendingLabel(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleCapture(); }}
+                  />
+                  <button
+                    onClick={handleCapture}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all shrink-0"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Capturar
+                  </button>
+                </div>
+              </div>
+
+              {/* RIGHT: Gallery */}
+              <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-gray-100 flex flex-col min-h-0">
+                <div className="px-4 pt-4 pb-2 shrink-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+                      Capturas ({captures.length})
+                    </span>
+                    {captures.length > 0 && (
+                      <button
+                        onClick={() => { setCaptures([]); setPreviewCapture(null); }}
+                        className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                      >
+                        Limpiar todo
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gallery scroll */}
+                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3 min-h-0 custom-scrollbar">
+                  {captures.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center text-gray-300">
+                      <Camera className="w-10 h-10 mb-2 opacity-40" />
+                      <p className="text-xs font-medium">Aún no hay capturas</p>
+                      <p className="text-[10px] mt-1 opacity-70">Posiciona el modelo y presiona "Capturar"</p>
+                    </div>
+                  ) : (
+                    captures.map((capture, index) => (
+                      <div
+                        key={capture.id}
+                        className="group relative bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:border-violet-300 transition-all"
+                      >
+                        {/* Thumbnail */}
+                        <div
+                          className="relative cursor-pointer"
+                          onClick={() => setPreviewCapture(capture)}
+                        >
+                          <img
+                            src={capture.dataUrl}
+                            alt={capture.label || `Captura ${index + 1}`}
+                            className="w-full h-28 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <span className="absolute top-1.5 left-1.5 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            {index + 1}
+                          </span>
+                        </div>
+
+                        {/* Label row */}
+                        <div className="px-2.5 py-2 flex items-center gap-1.5">
+                          {editingLabelId === capture.id ? (
+                            <>
+                              <input
+                                autoFocus
+                                type="text"
+                                className="flex-1 text-xs px-2 py-1 border border-violet-300 rounded-lg focus:ring-1 focus:ring-violet-300 outline-none"
+                                value={editingLabelValue}
+                                onChange={e => setEditingLabelValue(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleSaveLabel();
+                                  if (e.key === 'Escape') setEditingLabelId(null);
+                                }}
+                              />
+                              <button onClick={handleSaveLabel} className="p-1 text-emerald-500 hover:text-emerald-700">
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className="flex-1 text-left text-xs text-gray-600 truncate hover:text-violet-600 transition-colors"
+                                onClick={() => handleStartEditLabel(capture)}
+                                title="Clic para editar etiqueta"
+                              >
+                                {capture.label || <span className="text-gray-300 italic">Sin etiqueta</span>}
+                              </button>
+                              <button
+                                onClick={() => handleRemoveCapture(capture.id)}
+                                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                                title="Eliminar captura"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ---- FOOTER ---- */}
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/70 shrink-0">
+              <p className="text-xs text-gray-400">
+                {captures.length === 0
+                  ? 'No hay capturas. Puedes confirmar y se omitirán imágenes en la impresión.'
+                  : `${captures.length} imagen${captures.length !== 1 ? 'es' : ''} lista${captures.length !== 1 ? 's' : ''} para incluir en el documento`}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 rounded-xl shadow-sm hover:shadow-md transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  Confirmar ({captures.length})
+                </button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Full-screen preview */}
+          <AnimatePresence>
+            {previewCapture && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-60 bg-black/90 flex items-center justify-center p-4"
+                onClick={() => setPreviewCapture(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.85 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0.85 }}
+                  className="relative max-w-2xl w-full"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <img
+                    src={previewCapture.dataUrl}
+                    alt={previewCapture.label}
+                    className="w-full rounded-xl border border-white/10"
+                  />
+                  {previewCapture.label && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-sm px-4 py-1.5 rounded-full backdrop-blur-sm">
+                      {previewCapture.label}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setPreviewCapture(null)}
+                    className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

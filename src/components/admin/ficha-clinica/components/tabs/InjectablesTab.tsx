@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info
+  FlaskConical, Crosshair, Gauge, X, Check, Info, Images
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D } from '../Clinical3DViewer';
+import InjectableCaptureModal, { CaptureImage } from '../InjectableCaptureModal';
 
 // ==========================================
 // TYPES
@@ -118,6 +119,10 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [injectionPoints, setInjectionPoints] = useState<InjectionPoint[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
+
+  // Capture panel states
+  const [captureModalOpen, setCaptureModalOpen] = useState(false);
+  const [capturedImages, setCapturedImages] = useState<CaptureImage[]>([]);
 
   // Dialog states
   const [pendingPoint, setPendingPoint] = useState<Marker3D | null>(null);
@@ -311,15 +316,6 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       return;
     }
 
-    // Try to capture the 3D canvas as image
-    let canvasImage = '';
-    if (show3D && viewerRef.current) {
-      const canvas = viewerRef.current.querySelector('canvas');
-      if (canvas) {
-        try { canvasImage = canvas.toDataURL('image/png'); } catch { /* CORS */ }
-      }
-    }
-
     // Build tercio breakdown for print
     const tercioCSS: Record<string, { bg: string; border: string; text: string }> = {
       superior: { bg: '#e0f7fa', border: '#00bcd4', text: '#006064' },
@@ -488,11 +484,20 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     ${zoneSummaryHtml}
   </div>` : ''}
 
-  ${canvasImage ? `
+  ${capturedImages.length > 0 ? `
   <div class="section">
-    <div class="section-title">Mapeo Facial 3D</div>
-    <p style="font-size:11px;color:#6b7280;margin-bottom:8px;">Representación visual del rostro del paciente con los puntos de inyección marcados. Cada punto indica la ubicación exacta donde se realizó la aplicación del producto.</p>
-    <img src="${canvasImage}" alt="Mapeo facial 3D con puntos de inyección" class="mapping-img" />
+    <div class="section-title">Mapeo Facial 3D — Vistas Capturadas (${capturedImages.length})</div>
+    <p style="font-size:11px;color:#6b7280;margin-bottom:12px;">Representaciones visuales del mapeo 3D desde distintos ángulos. Cada imagen corresponde a una captura manual realizada durante el registro del procedimiento.</p>
+    <div style="display:grid;grid-template-columns:repeat(${Math.min(capturedImages.length, 2)},1fr);gap:16px;">
+      ${capturedImages.map((cap, idx) => `
+        <div style="border:1px solid #e8dcc8;border-radius:8px;overflow:hidden;background:#faf6f0;">
+          <img src="${cap.dataUrl}" alt="${cap.label || `Vista ${idx + 1}`}" style="width:100%;display:block;" />
+          <div style="padding:6px 10px;font-size:11px;color:#b8944d;font-weight:600;text-align:center;border-top:1px solid #e8dcc8;">
+            ${cap.label ? cap.label : `Vista ${idx + 1}`}
+          </div>
+        </div>
+      `).join('')}
+    </div>
   </div>` : ''}
 
   <div class="section">
@@ -633,6 +638,19 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Capture management button */}
+            <button
+              onClick={() => setCaptureModalOpen(true)}
+              className="relative flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg border border-gray-200 transition-all"
+              title="Gestionar capturas del mapeo 3D para impresión"
+            >
+              <Images className="w-4 h-4" />
+              {capturedImages.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-violet-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {capturedImages.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg border border-gray-200 transition-all"
@@ -1155,6 +1173,16 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         </AnimatePresence>
       </div>
       </div>
+
+      {/* ========== CAPTURE MODAL ========== */}
+      <InjectableCaptureModal
+        isOpen={captureModalOpen}
+        onClose={() => setCaptureModalOpen(false)}
+        markers={markers3D}
+        productType={current.product_type}
+        initialCaptures={capturedImages}
+        onConfirm={(newCaptures) => setCapturedImages(newCaptures)}
+      />
     </motion.div>
   );
 }

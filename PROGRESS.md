@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Apr 24, 2026: Multi-Captura 3D en Inyectables — Impresión con Matriz de Imágenes**
+- 📸 **InjectableCaptureModal**: Nuevo modal interactivo con visor 3D (read-only) para capturar múltiples vistas del mapeo facial.
+- 🖼️ **Matriz de imágenes**: El documento de impresión/exportación ahora incluye una grilla con todas las imágenes capturadas, cada una con su etiqueta opcional de zona.
+- 🏷️ **Etiquetas editables**: Cada captura puede tener un nombre/zona personalizado (ej: "Tercio superior", "Vista lateral derecha").
+- 🔢 **Badge contador**: El botón de capturas en la toolbar muestra cuántas imágenes están listas para imprimir.
+- 🔍 **Vista previa**: Clic en miniatura para ver la captura a pantalla completa antes de confirmar.
+
 ### ✅ **Apr 24, 2026: Corrección de correos de staff en agenda**
 - 📧 **Asuntos/Cuerpos**: Ajustadas plantillas para cita agendada, cita cancelada, bloqueo creado y bloqueos eliminados.
 - 🧭 **Consistencia**: Eliminado mismatch de asunto "cita agendada" en flujos de cancelación.
