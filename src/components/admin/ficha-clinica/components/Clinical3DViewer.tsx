@@ -112,6 +112,8 @@ const ThreeEngine: React.FC<{
   const controlsRef = useRef<OrbitControls | null>(null);
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
+  // Increments each time the model finishes loading so the markers effect re-runs
+  const [modelVersion, setModelVersion] = useState(0);
 
   const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly });
   useEffect(() => {
@@ -306,6 +308,7 @@ const ThreeEngine: React.FC<{
         controlsRef.current.update();
       }
 
+      setModelVersion(v => v + 1);
       callbacks.current.onLoaded();
     };
 
@@ -395,7 +398,7 @@ const ThreeEngine: React.FC<{
         group.add(decalMesh);
       }
     });
-  }, [markers]);
+  }, [markers, modelVersion]);
 
   return <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-crosshair" />;
 };
