@@ -288,7 +288,7 @@ export default function ReferenceLinePanel({
                       type="range"
                       min="-2"
                       max="2"
-                      step="0.05"
+                      step="0.01"
                       value={line.offset}
                       onChange={e => onOffsetChange(line.id, parseFloat(e.target.value))}
                       className="w-full h-1 accent-cyan-500 cursor-pointer"
