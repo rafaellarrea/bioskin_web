@@ -7,7 +7,7 @@ import {
   Activity, Save, Layers, Crosshair, 
   CheckCircle2, AlertCircle, X, Loader2, Database, Upload,
   RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut, Maximize, Scan,
-  Eye, EyeOff
+  Eye, EyeOff, Upload
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReferenceLinePanel from '../components/admin/ficha-clinica/components/ReferenceLinePanel';
@@ -118,7 +118,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {} }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {} }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -129,6 +129,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const linesGroupRef = useRef<THREE.Group | null>(null);
   const twoPointStepRef = useRef<0 | 1>(0);
   const [modelVersion, setModelVersion] = useState(0);
+  // Tooltip de marcadores al hover
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
   
   // Ref para polígonos
   const polygonPointsRef = useRef<THREE.Vector3[]>([]);
@@ -355,11 +357,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   };
 
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved };
     
     // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
     if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
@@ -440,55 +442,119 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     let isDragging = false;
     let startPos = { x: 0, y: 0 };
     
+    // Estado local para drag de marcadores
+    let draggedMarkerId: string | null = null;
+    let draggedMarkerGroup: THREE.Group | null = null;
+
     // Variables locales para dibujo (además del estado React) para acceso síncrono en eventos
     let localIsDrawing = false;
     let drawingStartPos = { x: 0, y: 0 };
 
     const onPointerDown = (e: MouseEvent) => {
       if (callbacks.current.isZoneEditMode) {
-          // Si estamos en modo edición de zona, iniciamos el dibujo
-          if (controlsRef.current) controlsRef.current.enabled = false; // Desactivar rotación
-          
+          if (controlsRef.current) controlsRef.current.enabled = false;
           localIsDrawing = true;
-          // Usar coordenadas relativas al contenedor para el dibujo visual
           const rect = renderer.domElement.getBoundingClientRect();
           const relX = e.clientX - rect.left;
           const relY = e.clientY - rect.top;
-
           drawingStartPos = { x: relX, y: relY };
           setIsDrawing(true);
-          setSelectionBox({
-              start: { x: relX, y: relY },
-              end: { x: relX, y: relY }
-          });
+          setSelectionBox({ start: { x: relX, y: relY }, end: { x: relX, y: relY } });
       }
 
-      // Lógica estándar de click vs drag para rotación
+      // Intentar detectar clic sobre un marcador para iniciar drag
+      if (!callbacks.current.isZoneEditMode && !callbacks.current.lineDrawingMode && markersGroupRef.current) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        if (cameraRef.current) {
+          raycaster.setFromCamera(mouse, cameraRef.current);
+          const markerMeshes: THREE.Object3D[] = [];
+          markersGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) markerMeshes.push(c); }));
+          const hits = raycaster.intersectObjects(markerMeshes, false);
+          if (hits.length > 0) {
+            // Encontrar el grupo padre con isMarker
+            let obj: THREE.Object3D | null = hits[0].object;
+            while (obj && !obj.userData.isMarker) obj = obj.parent;
+            if (obj && obj.userData.isMarker) {
+              draggedMarkerId = obj.userData.markerId;
+              draggedMarkerGroup = obj as THREE.Group;
+              if (controlsRef.current) controlsRef.current.enabled = false; // Suspender órbita
+              isDragging = false; // No contar como drag de cámara
+              startPos = { x: e.clientX, y: e.clientY };
+              return; // No iniciar lógica de órbita
+            }
+          }
+        }
+      }
+
       isDragging = false;
       startPos = { x: e.clientX, y: e.clientY };
     };
 
     const onPointerMove = (e: MouseEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+
+      // ── Drag de marcador ──────────────────────────────────
+      if (draggedMarkerGroup && faceMeshRef.current && cameraRef.current) {
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const meshObjects: THREE.Object3D[] = [];
+        faceMeshRef.current.traverse(o => { if ((o as THREE.Mesh).isMesh) meshObjects.push(o); });
+        const hits = raycaster.intersectObjects(meshObjects, false);
+        if (hits.length > 0) {
+          draggedMarkerGroup.position.copy(hits[0].point);
+        }
+        setTooltip(null);
+        return;
+      }
+
       // 1. Lógica de Dibujo de Zona
       if (localIsDrawing && callbacks.current.isZoneEditMode) {
-          const rect = renderer.domElement.getBoundingClientRect();
           const relX = e.clientX - rect.left;
           const relY = e.clientY - rect.top;
-
-          setSelectionBox({
-              start: drawingStartPos,
-              end: { x: relX, y: relY }
-          });
+          setSelectionBox({ start: drawingStartPos, end: { x: relX, y: relY } });
           return;
       }
 
-      // 2. Lógica estándar de rotación
+      // 2. Detectar hover sobre marcadores (tooltip)
+      if (!callbacks.current.isZoneEditMode && !callbacks.current.lineDrawingMode && markersGroupRef.current && cameraRef.current) {
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const markerMeshes: THREE.Object3D[] = [];
+        markersGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) markerMeshes.push(c); }));
+        const hits = raycaster.intersectObjects(markerMeshes, false);
+        if (hits.length > 0) {
+          let obj: THREE.Object3D | null = hits[0].object;
+          while (obj && !obj.userData.isMarker) obj = obj.parent;
+          if (obj?.userData?.markerName) {
+            setTooltip({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10, text: obj.userData.markerName });
+          }
+        } else {
+          setTooltip(null);
+        }
+      }
+
+      // 3. Lógica estándar de rotación
       if (Math.abs(e.clientX - startPos.x) > 2 || Math.abs(e.clientY - startPos.y) > 2) {
         isDragging = true;
+        setTooltip(null); // Ocultar tooltip al rotar cámara
       }
     };
 
     const onPointerUp = (e: MouseEvent) => {
+        // ── Soltar marcador arrastrado ─────────────────────────────
+        if (draggedMarkerId && draggedMarkerGroup) {
+          const pos = draggedMarkerGroup.position;
+          callbacks.current.onMarkerMoved(draggedMarkerId, { x: pos.x, y: pos.y, z: pos.z });
+          draggedMarkerId = null;
+          draggedMarkerGroup = null;
+          if (controlsRef.current) controlsRef.current.enabled = true;
+          return;
+        }
+
         if (localIsDrawing && callbacks.current.isZoneEditMode) {
             // Finalizar dibujo
             localIsDrawing = false;
@@ -614,8 +680,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       // 0. Depuración básica
       console.log("Click en canvas", { isDragging, hasMesh: !!faceMeshRef.current, hasCam: !!cameraRef.current, editMode: callbacks.current.isZoneEditMode });
 
-      // Si hubo arrastre de cámara, ignorar click
-      if (isDragging || !faceMeshRef.current || !cameraRef.current) return;
+      // Si hubo arrastre de cámara o de marcador, ignorar click
+      if (isDragging || draggedMarkerId !== null || !faceMeshRef.current || !cameraRef.current) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -908,6 +974,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       if (marker.type === 'Puntual') {
         const markerGroup = new THREE.Group();
         markerGroup.position.copy(pos);
+        // Etiquetar para drag/hover
+        markerGroup.userData.markerId = marker.id;
+        markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
+        markerGroup.userData.isMarker = true;
 
         // Núcleo interno
         const coreGeo = new THREE.SphereGeometry(0.2, 16, 16);
@@ -1317,6 +1387,16 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             />
         )}
 
+        {/* ── TOOLTIP DE MARCADORES ── */}
+        {tooltip && (
+          <div
+            className="absolute z-30 pointer-events-none bg-slate-900/90 backdrop-blur-sm border border-slate-600/60 text-slate-200 text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap"
+            style={{ left: tooltip.x, top: tooltip.y }}
+          >
+            {tooltip.text}
+          </div>
+        )}
+
         {/* UI Flotante para Modo Polígono - MOVIDO ABAJO PARA EVITAR SOLAPAMIENTO */}
         {isZoneEditMode && zoneSelectionMode === 'polygon' && (
             <div className="absolute top-[160px] left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/90 border border-yellow-500/50 p-2 rounded-xl backdrop-blur-md shadow-xl z-50 pointer-events-auto">
@@ -1566,13 +1646,23 @@ export default function Clinical3D() {
 
   // === Handlers de Líneas de Referencia ===
   const handleSelectPreset = (preset: LinePreset) => {
+    if (preset.type === 'two-points') {
+      // Línea diagonal: requiere seleccionar dos puntos en el modelo
+      setActiveLineType('two-points');
+      setPendingLineMeta({ label: preset.label, color: preset.color });
+      setTwoPointStep(1);
+      setFirstLineAnchor(null);
+      showNotification('Haz clic en el primer punto de la línea diagonal', 'info');
+      return;
+    }
+    // Vertical/horizontal: creación inmediata con offset 0 (ajustable con el slider)
     const newLine: ReferenceLine = {
       id: `line-${Date.now()}`,
       type: preset.type,
       label: preset.label,
       color: preset.color,
       visible: true,
-      offset: preset.defaultOffset ?? 0,
+      offset: 0,
     };
     setReferenceLines(prev => [...prev, newLine]);
     setActiveLineType(null);
@@ -1653,6 +1743,41 @@ export default function Clinical3D() {
     setReferenceLines(prev => prev.map(l => l.id === id ? { ...l, label } : l));
   };
 
+  // === Mover marcador arrastrado ===
+  const handleMarkerMoved = (markerId: string, newPosition: { x: number; y: number; z: number }) => {
+    setMarkers(prev => prev.map(m => m.id === markerId ? { ...m, position: newPosition } : m));
+    mockDB.data = mockDB.data.map(m => m.id === markerId ? { ...m, position: newPosition } : m);
+  };
+
+  // === Importar JSON ===
+  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target?.result as string);
+        if (data.referenceLines) {
+          setReferenceLines(data.referenceLines.map((l: any) => ({ ...l, visible: l.visible ?? true })));
+        }
+        if (data.hairline) {
+          if (data.hairline.topY !== undefined) setHairlineTopY(data.hairline.topY);
+          if (data.hairline.bottomY !== undefined) setHairlineBottomY(data.hairline.bottomY);
+        }
+        if (data.markers && Array.isArray(data.markers)) {
+          setMarkers(data.markers);
+          mockDB.data = data.markers;
+        }
+        showNotification(`JSON importado: ${data.referenceLines?.length ?? 0} líneas, ${data.markers?.length ?? 0} marcadores`, 'success');
+      } catch {
+        showNotification('Error al parsear el JSON', 'error');
+      }
+    };
+    reader.readAsText(file);
+    // Resetear input para permitir reimportar el mismo archivo
+    e.target.value = '';
+  };
+
   const handleSaveJson = () => {
     const data = {
       version: '1.0',
@@ -1666,6 +1791,7 @@ export default function Clinical3D() {
         colorTop: '#ff6b9d',
         colorBottom: '#f97316',
       },
+      markers: markers.map((m: Marker) => ({ ...m })),
       referenceLines: referenceLines.map((l: ReferenceLine) => ({
         id: l.id,
         type: l.type,
@@ -1826,6 +1952,7 @@ export default function Clinical3D() {
                 referenceLines={referenceLines}
                 lineDrawingMode={activeLineType}
                 onLinePointAnchored={handleLinePointAnchored}
+                onMarkerMoved={handleMarkerMoved}
                 hairlineTopY={hairlineTopY}
                 hairlineBottomY={hairlineBottomY}
                 showHairline={showHairline}
@@ -2248,12 +2375,23 @@ export default function Clinical3D() {
               )}
               <button
                 onClick={handleSaveJson}
-                disabled={referenceLines.length === 0}
+                disabled={referenceLines.length === 0 && markers.length === 0}
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg"
               >
                 <Save className="w-4 h-4" />
                 Guardar JSON ({referenceLines.length} líneas · {intersectionPoints.length} pts)
               </button>
+              {/* Importar JSON */}
+              <label className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer border border-slate-600">
+                <Upload className="w-4 h-4" />
+                Importar JSON
+                <input
+                  type="file"
+                  accept=".json"
+                  className="hidden"
+                  onChange={handleImportJson}
+                />
+              </label>
             </div>
           </>
         )}
