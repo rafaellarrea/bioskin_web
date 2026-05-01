@@ -466,7 +466,7 @@ const ThreeEngine: React.FC<{
       fixedValue: number,
       otherMin: number,
       otherMax: number,
-      steps = 40
+      steps = 60
     ): THREE.Vector3[] => {
       const points: THREE.Vector3[] = [];
       for (let i = 0; i <= steps; i++) {
@@ -479,9 +479,17 @@ const ThreeEngine: React.FC<{
         sweepRaycaster.set(origin, dir);
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) {
-          // Offset mínimo para que la línea esté sobre la superficie
-          const pt = hits[0].point.clone();
-          pt.z += 0.04;
+          const hit = hits[0];
+          const pt = hit.point.clone();
+          // Offset a lo largo de la normal de la superficie → funciona en lados curvos también
+          if (hit.face) {
+            const obj = hit.object as THREE.Mesh;
+            const normalMatrix = new THREE.Matrix3().getNormalMatrix(obj.matrixWorld);
+            const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
+            pt.addScaledVector(worldNormal, 0.1);
+          } else {
+            pt.z += 0.1;
+          }
           points.push(pt);
         }
       }
@@ -520,12 +528,16 @@ const ThreeEngine: React.FC<{
      */
     const makeSurfaceTube = (pts: THREE.Vector3[], color: THREE.Color): THREE.Mesh => {
       const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-      const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 40), 0.03, 6, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 60), 0.07, 8, false);
       const tubeMat = new THREE.MeshBasicMaterial({
         color,
         depthTest: false,
-        polygonOffset: true,
-        polygonOffsetFactor: -1,
+        depthWrite: false,
+        // CLAVE: transparent:true lo mueve al transparent pass de Three.js,
+        // que se renderiza DESPUÉS del face mesh (transmission:0.05).
+        // Sin esto, el tubo (opaque pass) queda tapado por la cara.
+        transparent: true,
+        opacity: 1.0,
       });
       const mesh = new THREE.Mesh(tubeGeo, tubeMat);
       mesh.renderOrder = 999;
@@ -539,7 +551,7 @@ const ThreeEngine: React.FC<{
     const sweepDiagonal = (
       a: THREE.Vector3,
       b: THREE.Vector3,
-      steps = 40
+      steps = 50
     ): THREE.Vector3[] => {
       const points: THREE.Vector3[] = [];
       for (let i = 0; i <= steps; i++) {
@@ -550,8 +562,16 @@ const ThreeEngine: React.FC<{
         sweepRaycaster.set(origin, new THREE.Vector3(0, 0, -1));
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) {
-          const pt = hits[0].point.clone();
-          pt.z += 0.05;
+          const hit = hits[0];
+          const pt = hit.point.clone();
+          if (hit.face) {
+            const obj = hit.object as THREE.Mesh;
+            const normalMatrix = new THREE.Matrix3().getNormalMatrix(obj.matrixWorld);
+            const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
+            pt.addScaledVector(worldNormal, 0.1);
+          } else {
+            pt.z += 0.1;
+          }
           points.push(pt);
         }
       }
@@ -598,11 +618,17 @@ const ThreeEngine: React.FC<{
         group.add(makeLabel(line.label, midPos, line.color));
 
         // Esferas en los extremos (igual que los marcadores de inyección)
-        const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z + 0.05);
-        const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z + 0.05);
+        const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z + 0.1);
+        const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z + 0.1);
         [startPt, endPt].forEach(pt => {
-          const sphereGeo = new THREE.SphereGeometry(0.09, 10, 10);
-          const sphereMat = new THREE.MeshBasicMaterial({ color, depthTest: false });
+          const sphereGeo = new THREE.SphereGeometry(0.1, 10, 10);
+          const sphereMat = new THREE.MeshBasicMaterial({
+            color,
+            depthTest: false,
+            depthWrite: false,
+            transparent: true,
+            opacity: 1.0,
+          });
           const sphere = new THREE.Mesh(sphereGeo, sphereMat);
           sphere.position.copy(pt);
           sphere.renderOrder = 1000;
