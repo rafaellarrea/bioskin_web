@@ -9,6 +9,8 @@ import {
   RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut, Maximize, Scan
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ReferenceLinePanel from '../components/admin/ficha-clinica/components/ReferenceLinePanel';
+import type { ReferenceLine, LineType, LinePreset } from '../components/admin/ficha-clinica/components/ReferenceLinePanel';
 
 // ==========================================
 // CONFIGURACIÓN Y CONSTANTES
@@ -115,7 +117,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -123,6 +125,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const controlsRef = useRef<OrbitControls | null>(null);
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
+  const linesGroupRef = useRef<THREE.Group | null>(null);
+  const twoPointStepRef = useRef<0 | 1>(0);
+  const [modelVersion, setModelVersion] = useState(0);
   
   // Ref para polígonos
   const polygonPointsRef = useRef<THREE.Vector3[]>([]);
@@ -349,11 +354,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   };
 
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored };
     
     // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
     if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
@@ -376,6 +381,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const markersGroup = new THREE.Group();
     markersGroupRef.current = markersGroup;
     scene.add(markersGroup);
+
+    const linesGroup = new THREE.Group();
+    linesGroupRef.current = linesGroup;
+    scene.add(linesGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 40);
@@ -634,6 +643,13 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           return; 
       }
       
+      // Lógica de dibujo de líneas de referencia
+      if (callbacks.current.lineDrawingMode && callbacks.current.onLinePointAnchored && intersects.length > 0) {
+        const point = intersects[0].point;
+        callbacks.current.onLinePointAnchored(point);
+        return;
+      }
+
       // Lógica estándar de click puntual (Marcadores Clínicos)
       
       if (intersects.length > 0) {
@@ -819,6 +835,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             controlsRef.current.update();
         }
 
+        setModelVersion(v => v + 1);
         callbacks.current.onLoaded();
       } else {
 
@@ -1028,6 +1045,132 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     });
   }, [markers]);
 
+  // === Renderizado de Líneas de Referencia ===
+  useEffect(() => {
+    const linesGroup = linesGroupRef.current;
+    const faceMesh = faceMeshRef.current;
+    if (!linesGroup) return;
+
+    // Limpiar líneas previas
+    while (linesGroup.children.length > 0) {
+      const child = linesGroup.children[0] as THREE.Mesh;
+      if (child.geometry) child.geometry.dispose();
+      if ((child as THREE.Mesh).material) {
+        const mat = (child as THREE.Mesh).material as THREE.Material;
+        mat.dispose();
+      }
+      linesGroup.remove(child);
+    }
+
+    if (!faceMesh || !referenceLines || referenceLines.length === 0) return;
+
+    const raycaster = new THREE.Raycaster();
+    const meshObjects: THREE.Object3D[] = [];
+    faceMesh.traverse((o: THREE.Object3D) => {
+      if ((o as THREE.Mesh).isMesh) meshObjects.push(o);
+    });
+
+    const sweepSurface = (fixedVal: number, isVertical: boolean, steps = 80): THREE.Vector3[] => {
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const t = -1 + (i / steps) * 2;
+        const origin = isVertical
+          ? new THREE.Vector3(fixedVal, t * 15, 50)
+          : new THREE.Vector3(t * 15, fixedVal, 50);
+        raycaster.set(origin, new THREE.Vector3(0, 0, -1));
+        const hits = raycaster.intersectObjects(meshObjects, false);
+        if (hits.length > 0) pts.push(hits[0].point.clone());
+      }
+      return pts;
+    };
+
+    const sweepDiagonal = (
+      anchor1: { x: number; y: number; z: number },
+      anchor2: { x: number; y: number; z: number },
+      steps = 80
+    ): THREE.Vector3[] => {
+      const pts: THREE.Vector3[] = [];
+      const a1 = new THREE.Vector3(anchor1.x, anchor1.y, anchor1.z);
+      const a2 = new THREE.Vector3(anchor2.x, anchor2.y, anchor2.z);
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const interpolated = a1.clone().lerp(a2, t);
+        const origin = new THREE.Vector3(interpolated.x, interpolated.y, 50);
+        raycaster.set(origin, new THREE.Vector3(0, 0, -1));
+        const hits = raycaster.intersectObjects(meshObjects, false);
+        if (hits.length > 0) pts.push(hits[0].point.clone());
+      }
+      return pts;
+    };
+
+    const makeSurfaceTube = (pts: THREE.Vector3[], color: string) => {
+      if (pts.length < 2) return;
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const geo = new THREE.TubeGeometry(curve, pts.length * 2, 0.02, 8, false);
+      const mat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(color),
+        transparent: true,
+        opacity: 1.0,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const tube = new THREE.Mesh(geo, mat);
+      tube.renderOrder = 999;
+      linesGroup.add(tube);
+    };
+
+    const makeLabel = (text: string, color: string, position: THREE.Vector3) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 64;
+      const ctx = canvas.getContext('2d')!;
+      ctx.clearRect(0, 0, 256, 64);
+      ctx.fillStyle = color;
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 32);
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.position.copy(position);
+      sprite.scale.set(4, 1, 1);
+      sprite.renderOrder = 1000;
+      linesGroup.add(sprite);
+    };
+
+    referenceLines.forEach((line: ReferenceLine) => {
+      if (!line.visible) return;
+      if (line.type === 'vertical') {
+        const pts = sweepSurface(line.offset ?? 0, true);
+        makeSurfaceTube(pts, line.color);
+        if (pts.length > 0) {
+          const lp = pts[Math.floor(pts.length / 2)].clone();
+          lp.x -= 1.5;
+          makeLabel(line.label, line.color, lp);
+        }
+      } else if (line.type === 'horizontal') {
+        const pts = sweepSurface(line.offset ?? 0, false);
+        makeSurfaceTube(pts, line.color);
+        if (pts.length > 0) {
+          const lp = pts[Math.floor(pts.length / 2)].clone();
+          lp.x += 2;
+          makeLabel(line.label, line.color, lp);
+        }
+      } else if (line.type === 'two-points') {
+        const anchors = line.anchors;
+        if (anchors && anchors.length >= 2) {
+          const pts = sweepDiagonal(anchors[0], anchors[1]);
+          makeSurfaceTube(pts, line.color);
+          if (pts.length > 0) {
+            const lp = pts[Math.floor(pts.length / 2)].clone();
+            lp.x += 1.5;
+            makeLabel(line.label, line.color, lp);
+          }
+        }
+      }
+    });
+  }, [referenceLines, modelVersion]);
+
   return (
     <div className="relative w-full h-full">
         {/* Contenedor 3D: React nunca debe actualizar sus hijos para no borrar el Canvas */}
@@ -1117,6 +1260,14 @@ export default function Clinical3D() {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
+
+  // === Estados para Líneas de Referencia ===
+  const [referenceLines, setReferenceLines] = useState<ReferenceLine[]>([]);
+  const [activeLineType, setActiveLineType] = useState<LineType | null>(null);
+  const [pendingLineMeta, setPendingLineMeta] = useState<{ label: string; color: string; preset?: LinePreset } | null>(null);
+  const [firstLineAnchor, setFirstLineAnchor] = useState<{ x: number; y: number; z: number } | null>(null);
+  const [twoPointStep, setTwoPointStep] = useState<0 | 1 | 2>(0);
+  const [activeTab, setActiveTab] = useState<'lines' | 'marking'>('marking');
 
   const isLoading = !(dbLoaded && modelLoaded) && !modelError;
 
@@ -1290,6 +1441,107 @@ export default function Clinical3D() {
       controls.update();  
   };
 
+  // === Handlers de Líneas de Referencia ===
+  const handleSelectPreset = (preset: LinePreset) => {
+    const newLine: ReferenceLine = {
+      id: `line-${Date.now()}`,
+      type: preset.type,
+      label: preset.label,
+      color: preset.color,
+      visible: true,
+      offset: preset.defaultOffset ?? 0,
+    };
+    setReferenceLines(prev => [...prev, newLine]);
+    setActiveLineType(null);
+    setPendingLineMeta(null);
+  };
+
+  const handleStartManualLine = (type: LineType, label: string, color: string) => {
+    setActiveLineType(type);
+    setPendingLineMeta({ label, color });
+    setTwoPointStep(type === 'two-points' ? 1 : 0);
+    setFirstLineAnchor(null);
+    showNotification(type === 'two-points' ? 'Haz clic en el primer punto de la línea' : 'Haz clic en el modelo para anclar la línea', 'info');
+  };
+
+  const handleCancelLine = () => {
+    setActiveLineType(null);
+    setPendingLineMeta(null);
+    setFirstLineAnchor(null);
+    setTwoPointStep(0);
+  };
+
+  const handleLinePointAnchored = (point: { x: number; y: number; z: number }) => {
+    if (!activeLineType || !pendingLineMeta) return;
+
+    if (activeLineType === 'two-points') {
+      if (twoPointStep === 1) {
+        setFirstLineAnchor(point);
+        setTwoPointStep(2);
+        showNotification('Haz clic en el segundo punto de la línea', 'info');
+      } else if (twoPointStep === 2 && firstLineAnchor) {
+        const newLine: ReferenceLine = {
+          id: `line-${Date.now()}`,
+          type: 'two-points',
+          label: pendingLineMeta.label,
+          color: pendingLineMeta.color,
+          visible: true,
+          offset: 0,
+          anchors: [firstLineAnchor, point],
+        };
+        setReferenceLines(prev => [...prev, newLine]);
+        setActiveLineType(null);
+        setPendingLineMeta(null);
+        setFirstLineAnchor(null);
+        setTwoPointStep(0);
+        showNotification('Línea de referencia creada', 'success');
+      }
+    } else {
+      const offset = activeLineType === 'vertical' ? point.x : point.y;
+      const newLine: ReferenceLine = {
+        id: `line-${Date.now()}`,
+        type: activeLineType,
+        label: pendingLineMeta.label,
+        color: pendingLineMeta.color,
+        visible: true,
+        offset,
+      };
+      setReferenceLines(prev => [...prev, newLine]);
+      setActiveLineType(null);
+      setPendingLineMeta(null);
+      setTwoPointStep(0);
+      showNotification('Línea de referencia creada', 'success');
+    }
+  };
+
+  const handleToggleLineVisibility = (id: string) => {
+    setReferenceLines(prev => prev.map(l => l.id === id ? { ...l, visible: !l.visible } : l));
+  };
+
+  const handleLineOffsetChange = (id: string, offset: number) => {
+    setReferenceLines(prev => prev.map(l => l.id === id ? { ...l, offset } : l));
+  };
+
+  const handleRemoveLine = (id: string) => {
+    setReferenceLines(prev => prev.filter(l => l.id !== id));
+  };
+
+  const handleLineLabelChange = (id: string, label: string) => {
+    setReferenceLines(prev => prev.map(l => l.id === id ? { ...l, label } : l));
+  };
+
+  const handleSaveJson = () => {
+    const data = { referenceLines, generatedAt: new Date().toISOString(), model: 'clinical-3d' };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lineas-referencia-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotification('Archivo JSON descargado', 'success');
+  };
+
   return (
     <div className="w-full h-screen bg-slate-950 flex overflow-hidden font-sans text-slate-100 relative">
       
@@ -1413,6 +1665,9 @@ export default function Clinical3D() {
                 zones={zones} 
                 isZoneEditMode={isZoneEditMode}
                 zoneSelectionMode={zoneSelectionMode} // Pasar el modo de selección
+                referenceLines={referenceLines}
+                lineDrawingMode={activeLineType}
+                onLinePointAnchored={handleLinePointAnchored}
                 onMeshClick={handleMeshClick}
                 onLoaded={() => {
                   console.log("Modelo cargado correctamente");
@@ -1626,90 +1881,152 @@ export default function Clinical3D() {
           </label>
         </div>
 
-        {/* Sección de Herramientas */}
-        <div className="p-6 border-b border-slate-800">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Herramienta Activa</h2>
-          
-          <div className="space-y-3">
-            {PATHOLOGIES.map((pathology) => {
-              const isActive = selectedPathology === pathology.id;
-              return (
-                <button
-                  key={pathology.id}
-                  onClick={() => setSelectedPathology(pathology.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    isActive 
-                      ? 'bg-slate-800 border border-slate-600 shadow-md' 
-                      : 'hover:bg-slate-800/50 border border-transparent text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <div 
-                    className="w-3 h-3 rounded-full shadow-sm" 
-                    style={{ 
-                      backgroundColor: pathology.color,
-                      boxShadow: isActive ? `0 0 10px ${pathology.color}80` : 'none' 
-                    }} 
-                  />
-                  <span className={`text-sm font-medium ${isActive ? 'text-white' : ''}`}>
-                    {pathology.name}
-                  </span>
-                  {isActive && <CheckCircle2 className="w-4 h-4 ml-auto text-slate-400" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Sección de Historial / Datos */}
-        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Registros del Paciente</h2>
-            <div className="flex items-center gap-1 text-xs font-medium text-slate-400 bg-slate-800 px-2 py-1 rounded-md">
-              <Database className="w-3 h-3" />
-              {markers.length} mapeados
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {markers.length === 0 ? (
-              <div className="text-center p-6 border border-dashed border-slate-700 rounded-xl text-slate-500 text-sm">
-                No hay marcadores anatómicos registrados. Haz clic en el modelo 3D para comenzar.
-              </div>
-            ) : (
-              [...markers].reverse().map((marker) => {
-                const pathology = PATHOLOGIES.find(p => p.id === marker.pathologyId);
-                return (
-                  <div key={marker.id} className="bg-slate-800/40 border border-slate-700/50 p-3 rounded-xl flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className={`w-2 h-2 rounded-full ${marker.type === 'Puntual' ? 'opacity-100' : 'opacity-50'}`}
-                          style={{ backgroundColor: pathology?.color }}
-                        />
-                        <span className="text-sm font-medium">{pathology?.name}</span>
-                      </div>
-                      <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-sm">
-                        {marker.type}
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-400 flex items-center gap-1.5">
-                      <Layers className="w-3 h-3" />
-                      {marker.zone}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Acciones de pie de página */}
-        <div className="p-6 border-t border-slate-800 bg-slate-900">
-          <button className="w-full py-3 bg-white text-slate-900 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors shadow-lg">
-            <Save className="w-4 h-4" />
-            Guardar en Expediente
+        {/* Tab Bar */}
+        <div className="flex border-b border-slate-800">
+          <button
+            onClick={() => setActiveTab('marking')}
+            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-colors ${
+              activeTab === 'marking'
+                ? 'text-cyan-400 border-b-2 border-cyan-400 bg-slate-800/30'
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Marcación
+          </button>
+          <button
+            onClick={() => setActiveTab('lines')}
+            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-colors ${
+              activeTab === 'lines'
+                ? 'text-cyan-400 border-b-2 border-cyan-400 bg-slate-800/30'
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Líneas
           </button>
         </div>
+
+        {/* Tab: Marcación */}
+        {activeTab === 'marking' && (
+          <>
+            {/* Sección de Herramientas */}
+            <div className="p-6 border-b border-slate-800">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Herramienta Activa</h2>
+              
+              <div className="space-y-3">
+                {PATHOLOGIES.map((pathology) => {
+                  const isActive = selectedPathology === pathology.id;
+                  return (
+                    <button
+                      key={pathology.id}
+                      onClick={() => setSelectedPathology(pathology.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                        isActive 
+                          ? 'bg-slate-800 border border-slate-600 shadow-md' 
+                          : 'hover:bg-slate-800/50 border border-transparent text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <div 
+                        className="w-3 h-3 rounded-full shadow-sm" 
+                        style={{ 
+                          backgroundColor: pathology.color,
+                          boxShadow: isActive ? `0 0 10px ${pathology.color}80` : 'none' 
+                        }} 
+                      />
+                      <span className={`text-sm font-medium ${isActive ? 'text-white' : ''}`}>
+                        {pathology.name}
+                      </span>
+                      {isActive && <CheckCircle2 className="w-4 h-4 ml-auto text-slate-400" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sección de Historial / Datos */}
+            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Registros del Paciente</h2>
+                <div className="flex items-center gap-1 text-xs font-medium text-slate-400 bg-slate-800 px-2 py-1 rounded-md">
+                  <Database className="w-3 h-3" />
+                  {markers.length} mapeados
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {markers.length === 0 ? (
+                  <div className="text-center p-6 border border-dashed border-slate-700 rounded-xl text-slate-500 text-sm">
+                    No hay marcadores anatómicos registrados. Haz clic en el modelo 3D para comenzar.
+                  </div>
+                ) : (
+                  [...markers].reverse().map((marker) => {
+                    const pathology = PATHOLOGIES.find(p => p.id === marker.pathologyId);
+                    return (
+                      <div key={marker.id} className="bg-slate-800/40 border border-slate-700/50 p-3 rounded-xl flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className={`w-2 h-2 rounded-full ${marker.type === 'Puntual' ? 'opacity-100' : 'opacity-50'}`}
+                              style={{ backgroundColor: pathology?.color }}
+                            />
+                            <span className="text-sm font-medium">{pathology?.name}</span>
+                          </div>
+                          <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-sm">
+                            {marker.type}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                          <Layers className="w-3 h-3" />
+                          {marker.zone}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Acciones de pie de página - Marcación */}
+            <div className="p-6 border-t border-slate-800 bg-slate-900">
+              <button className="w-full py-3 bg-white text-slate-900 rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors shadow-lg">
+                <Save className="w-4 h-4" />
+                Guardar en Expediente
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Tab: Líneas de Referencia */}
+        {activeTab === 'lines' && (
+          <>
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <ReferenceLinePanel
+                lines={referenceLines}
+                activeType={activeLineType}
+                pendingTwoPointStep={twoPointStep as 0 | 1 | 2}
+                pendingLabel={pendingLineMeta?.label ?? ''}
+                onSelectPreset={handleSelectPreset}
+                onStartManual={handleStartManualLine}
+                onCancel={handleCancelLine}
+                onToggleVisibility={handleToggleLineVisibility}
+                onOffsetChange={handleLineOffsetChange}
+                onRemove={handleRemoveLine}
+                onLabelChange={handleLineLabelChange}
+              />
+            </div>
+
+            {/* Acciones de pie de página - Líneas */}
+            <div className="p-4 border-t border-slate-800 bg-slate-900 flex flex-col gap-2">
+              <button
+                onClick={handleSaveJson}
+                disabled={referenceLines.length === 0}
+                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg"
+              >
+                <Save className="w-4 h-4" />
+                Guardar JSON ({referenceLines.length} líneas)
+              </button>
+            </div>
+          </>
+        )}
 
       </div>
     </div>
