@@ -6,7 +6,8 @@ import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import { 
   Activity, Save, Layers, Crosshair, 
   CheckCircle2, AlertCircle, X, Loader2, Database, Upload,
-  RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut, Maximize, Scan
+  RotateCw, RotateCcw, Move, MousePointer2, ZoomIn, ZoomOut, Maximize, Scan,
+  Eye, EyeOff
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReferenceLinePanel from '../components/admin/ficha-clinica/components/ReferenceLinePanel';
@@ -117,7 +118,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineY = 4.8, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {} }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -1062,13 +1063,35 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       linesGroup.remove(child);
     }
 
-    if (!faceMesh || !referenceLines || referenceLines.length === 0) return;
+    if (!faceMesh) return;
 
     const raycaster = new THREE.Raycaster();
     const meshObjects: THREE.Object3D[] = [];
     faceMesh.traverse((o: THREE.Object3D) => {
       if ((o as THREE.Mesh).isMesh) meshObjects.push(o);
     });
+
+    // Raycast un punto en (x, y) sobre la superficie del modelo
+    const raycastPoint = (x: number, y: number): THREE.Vector3 | null => {
+      const origin = new THREE.Vector3(x, y, 50);
+      raycaster.set(origin, new THREE.Vector3(0, 0, -1));
+      const hits = raycaster.intersectObjects(meshObjects, false);
+      return hits.length > 0 ? hits[0].point.clone() : null;
+    };
+
+    // Sweep vertical LIMITADO al hairline (no sube más allá de hairlineY)
+    const sweepVerticalLimited = (fixedX: number, maxY: number, steps = 100): THREE.Vector3[] => {
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const y = -15 + (i / steps) * 30;
+        if (y > maxY) break; // No superar límite hairline
+        const origin = new THREE.Vector3(fixedX, y, 50);
+        raycaster.set(origin, new THREE.Vector3(0, 0, -1));
+        const hits = raycaster.intersectObjects(meshObjects, false);
+        if (hits.length > 0) pts.push(hits[0].point.clone());
+      }
+      return pts;
+    };
 
     const sweepSurface = (fixedVal: number, isVertical: boolean, steps = 80): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
@@ -1103,14 +1126,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       return pts;
     };
 
-    const makeSurfaceTube = (pts: THREE.Vector3[], color: string) => {
+    const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.02) => {
       if (pts.length < 2) return;
       const curve = new THREE.CatmullRomCurve3(pts);
-      const geo = new THREE.TubeGeometry(curve, pts.length * 2, 0.02, 8, false);
+      const geo = new THREE.TubeGeometry(curve, pts.length * 2, radius, 8, false);
       const mat = new THREE.MeshBasicMaterial({
         color: new THREE.Color(color),
         transparent: true,
-        opacity: 1.0,
+        opacity,
         depthTest: false,
         depthWrite: false,
       });
@@ -1138,10 +1161,29 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       linesGroup.add(sprite);
     };
 
+    // ── Hairline limit line (línea imaginaria de inicio del tercio superior) ──
+    if (showHairline) {
+      const hlPts = sweepSurface(hairlineY, false, 80); // horizontal sweep a Y=hairlineY
+      makeSurfaceTube(hlPts, '#ff6b9d', 0.7, 0.015); // rosa, semi-transparente
+      if (hlPts.length > 0) {
+        const lp = hlPts[hlPts.length - 1].clone();
+        lp.x += 1.8;
+        makeLabel('Hairline', '#ff6b9d', lp);
+      }
+    }
+
+    // ── Líneas de referencia ──
+    if (!referenceLines || referenceLines.length === 0) {
+      // Sin líneas, calcular intersecciones vacías y salir
+      onIntersectionsCalculated([]);
+      return;
+    }
+
     referenceLines.forEach((line: ReferenceLine) => {
       if (!line.visible) return;
       if (line.type === 'vertical') {
-        const pts = sweepSurface(line.offset ?? 0, true);
+        // Verticales limitadas por hairline
+        const pts = sweepVerticalLimited(line.offset ?? 0, hairlineY);
         makeSurfaceTube(pts, line.color);
         if (pts.length > 0) {
           const lp = pts[Math.floor(pts.length / 2)].clone();
@@ -1169,7 +1211,100 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         }
       }
     });
-  }, [referenceLines, modelVersion]);
+
+    // ── Cálculo de intersecciones ──
+    const visibleLines = referenceLines.filter((l: ReferenceLine) => l.visible);
+    const verticals = visibleLines.filter((l: ReferenceLine) => l.type === 'vertical');
+    const horizontals = visibleLines.filter((l: ReferenceLine) => l.type === 'horizontal');
+    const twoPointsLines = visibleLines.filter((l: ReferenceLine) => l.type === 'two-points');
+
+    const calcIntersections: { id: string; x: number; y: number; z: number; lineIds: string[] }[] = [];
+
+    // vertical × horizontal: el punto de intersección es (v.offset, h.offset) sobre la malla
+    verticals.forEach((v: ReferenceLine) => {
+      horizontals.forEach((h: ReferenceLine) => {
+        const vOff = v.offset ?? 0;
+        const hOff = h.offset ?? 0;
+        if (hOff > hairlineY) return; // debajo del hairline
+        const pt = raycastPoint(vOff, hOff);
+        if (pt) {
+          calcIntersections.push({
+            id: `int-${v.id}-${h.id}`,
+            x: pt.x, y: pt.y, z: pt.z,
+            lineIds: [v.id, h.id],
+          });
+        }
+      });
+    });
+
+    // vertical × two-points: interpolar en X para hallar Y en la línea diagonal
+    verticals.forEach((v: ReferenceLine) => {
+      twoPointsLines.forEach((tp: ReferenceLine) => {
+        if (!tp.anchors || tp.anchors.length < 2) return;
+        const x0 = tp.anchors[0].x, y0 = tp.anchors[0].y;
+        const x1 = tp.anchors[1].x, y1 = tp.anchors[1].y;
+        const vOff = v.offset ?? 0;
+        if (x0 === x1) return; // vertical, no intersection con vertical
+        const t = (vOff - x0) / (x1 - x0);
+        if (t < 0 || t > 1) return; // fuera del rango de la línea
+        const interpY = y0 + t * (y1 - y0);
+        if (interpY > hairlineY) return;
+        const pt = raycastPoint(vOff, interpY);
+        if (pt) {
+          calcIntersections.push({
+            id: `int-${v.id}-${tp.id}`,
+            x: pt.x, y: pt.y, z: pt.z,
+            lineIds: [v.id, tp.id],
+          });
+        }
+      });
+    });
+
+    // horizontal × two-points
+    horizontals.forEach((h: ReferenceLine) => {
+      twoPointsLines.forEach((tp: ReferenceLine) => {
+        if (!tp.anchors || tp.anchors.length < 2) return;
+        const x0 = tp.anchors[0].x, y0 = tp.anchors[0].y;
+        const x1 = tp.anchors[1].x, y1 = tp.anchors[1].y;
+        const hOff = h.offset ?? 0;
+        if (y0 === y1) return;
+        const t = (hOff - y0) / (y1 - y0);
+        if (t < 0 || t > 1) return;
+        const interpX = x0 + t * (x1 - x0);
+        if (hOff > hairlineY) return;
+        const pt = raycastPoint(interpX, hOff);
+        if (pt) {
+          calcIntersections.push({
+            id: `int-${h.id}-${tp.id}`,
+            x: pt.x, y: pt.y, z: pt.z,
+            lineIds: [h.id, tp.id],
+          });
+        }
+      });
+    });
+
+    // Renderizar esferas de intersección
+    if (showIntersections) {
+      calcIntersections.forEach((ipt) => {
+        const geo = new THREE.SphereGeometry(0.06, 10, 10);
+        const mat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          depthTest: false,
+          depthWrite: false,
+        });
+        const sphere = new THREE.Mesh(geo, mat);
+        sphere.position.set(ipt.x, ipt.y, ipt.z);
+        sphere.renderOrder = 1001;
+        linesGroup.add(sphere);
+      });
+    }
+
+    // Notificar al padre los puntos calculados
+    onIntersectionsCalculated(calcIntersections);
+
+  }, [referenceLines, modelVersion, showHairline, hairlineY, showIntersections]);
+
 
   return (
     <div className="relative w-full h-full">
@@ -1243,6 +1378,8 @@ export default function Clinical3D() {
     type: 'url', 
     data: '/models/clinical/male_head.glb'
   });
+  const [modelError, setModelError] = useState(false);
+  const [dbLoaded, setDbLoaded] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
@@ -1254,6 +1391,15 @@ export default function Clinical3D() {
   const [firstLineAnchor, setFirstLineAnchor] = useState<{ x: number; y: number; z: number } | null>(null);
   const [twoPointStep, setTwoPointStep] = useState<0 | 1 | 2>(0);
   const [activeTab, setActiveTab] = useState<'lines' | 'marking'>('marking');
+
+  // === Línea de límite (Hairline / Inicio tercio superior) ===
+  // Y = 4.8 en coordenadas del modelo male_head.glb (línea horizontal imaginaria)
+  const HAIRLINE_Y = 4.8;
+  const [showHairline, setShowHairline] = useState(true);
+
+  // === Puntos de intersección entre líneas ===
+  const [intersectionPoints, setIntersectionPoints] = useState<{ id: string; x: number; y: number; z: number; lineIds: string[] }[]>([]);
+  const [showIntersections, setShowIntersections] = useState(true);
 
   const isLoading = !(dbLoaded && modelLoaded) && !modelError;
 
@@ -1517,15 +1663,47 @@ export default function Clinical3D() {
   };
 
   const handleSaveJson = () => {
-    const data = { referenceLines, generatedAt: new Date().toISOString(), model: 'clinical-3d' };
+    const data = {
+      version: '1.0',
+      model: 'male_head',
+      generatedAt: new Date().toISOString(),
+      hairline: {
+        y: HAIRLINE_Y,
+        label: 'Hairline / Inicio Tercio Superior',
+        color: '#ff6b9d',
+      },
+      referenceLines: referenceLines.map((l: ReferenceLine) => ({
+        id: l.id,
+        type: l.type,
+        label: l.label,
+        color: l.color,
+        visible: l.visible,
+        offset: l.offset,
+        ...(l.anchors ? { anchors: l.anchors } : {}),
+      })),
+      intersectionPoints: intersectionPoints.map((pt) => ({
+        id: pt.id,
+        x: parseFloat(pt.x.toFixed(4)),
+        y: parseFloat(pt.y.toFixed(4)),
+        z: parseFloat(pt.z.toFixed(4)),
+        lineIds: pt.lineIds,
+      })),
+      summary: {
+        totalLines: referenceLines.length,
+        verticalLines: referenceLines.filter((l: ReferenceLine) => l.type === 'vertical').length,
+        horizontalLines: referenceLines.filter((l: ReferenceLine) => l.type === 'horizontal').length,
+        diagonalLines: referenceLines.filter((l: ReferenceLine) => l.type === 'two-points').length,
+        totalIntersections: intersectionPoints.length,
+      },
+    };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `lineas-referencia-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `trazado-referencia-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showNotification('Archivo JSON descargado', 'success');
+    showNotification(`JSON generado: ${referenceLines.length} líneas, ${intersectionPoints.length} intersecciones`, 'success');
   };
 
   return (
@@ -1654,6 +1832,10 @@ export default function Clinical3D() {
                 referenceLines={referenceLines}
                 lineDrawingMode={activeLineType}
                 onLinePointAnchored={handleLinePointAnchored}
+                hairlineY={HAIRLINE_Y}
+                showHairline={showHairline}
+                showIntersections={showIntersections}
+                onIntersectionsCalculated={setIntersectionPoints}
                 onMeshClick={handleMeshClick}
                 onLoaded={() => {
                   console.log("Modelo cargado correctamente");
@@ -1984,6 +2166,36 @@ export default function Clinical3D() {
         {/* Tab: Líneas de Referencia */}
         {activeTab === 'lines' && (
           <>
+            {/* Controles de Hairline e Intersecciones */}
+            <div className="px-4 py-3 border-b border-slate-800 bg-slate-800/30 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#ff6b9d' }} />
+                  <span className="text-xs text-slate-300 font-medium">Hairline (Y = {HAIRLINE_Y})</span>
+                </div>
+                <button
+                  onClick={() => setShowHairline(v => !v)}
+                  className={`p-1.5 rounded-lg transition-colors ${showHairline ? 'bg-pink-500/20 text-pink-400' : 'text-slate-600 hover:text-slate-400'}`}
+                >
+                  {showHairline ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                  <span className="text-xs text-slate-300 font-medium">
+                    Intersecciones ({intersectionPoints.length})
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowIntersections(v => !v)}
+                  className={`p-1.5 rounded-lg transition-colors ${showIntersections ? 'bg-white/20 text-white' : 'text-slate-600 hover:text-slate-400'}`}
+                >
+                  {showIntersections ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <ReferenceLinePanel
                 lines={referenceLines}
@@ -2002,17 +2214,23 @@ export default function Clinical3D() {
 
             {/* Acciones de pie de página - Líneas */}
             <div className="p-4 border-t border-slate-800 bg-slate-900 flex flex-col gap-2">
+              {intersectionPoints.length > 0 && (
+                <div className="text-xs text-slate-500 text-center pb-1">
+                  ✓ {intersectionPoints.length} puntos de intersección calculados
+                </div>
+              )}
               <button
                 onClick={handleSaveJson}
                 disabled={referenceLines.length === 0}
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg"
               >
                 <Save className="w-4 h-4" />
-                Guardar JSON ({referenceLines.length} líneas)
+                Guardar JSON ({referenceLines.length} líneas · {intersectionPoints.length} pts)
               </button>
             </div>
           </>
         )}
+
 
       </div>
     </div>
