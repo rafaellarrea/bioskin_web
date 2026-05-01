@@ -387,7 +387,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     scene.add(linesGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
-    camera.position.set(0, 0, 40);
+    camera.position.set(0, 0, 18);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -1241,22 +1241,8 @@ export default function Clinical3D() {
   // Estado para manejar el origen del modelo 3D
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({ 
     type: 'url', 
-    data: '' // Iniciamos vacío para que no intente cargar una URL externa que falle
+    data: '/models/clinical/male_head.glb'
   });
-  
-  // Al montar, forzamos error para pedir carga manual si no hay URL válida
-  useEffect(() => {
-     if (modelSource.type === 'url' && modelSource.data === '') {
-         // Pequeño timeout para que la UI se monte
-         setTimeout(() => {
-             setModelError(true);
-             // setModelLoaded(true); // Opcional: si queremos quitar el spinner, pero mejor dejar error visible
-         }, 500);
-     }
-  }, []);
-  const [modelError, setModelError] = useState(false);
-  
-  const [dbLoaded, setDbLoaded] = useState(false);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
