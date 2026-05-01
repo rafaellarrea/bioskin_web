@@ -513,61 +513,95 @@ const ThreeEngine: React.FC<{
       return sprite;
     };
 
+    /**
+     * Crea un tubo 3D (Mesh con TubeGeometry) que sigue los puntos de superficie.
+     * Al tener volumen real es visible desde cualquier ángulo, igual que las esferas
+     * de los marcadores de inyección.
+     */
+    const makeSurfaceTube = (pts: THREE.Vector3[], color: THREE.Color): THREE.Mesh => {
+      const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+      const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 40), 0.03, 6, false);
+      const tubeMat = new THREE.MeshBasicMaterial({
+        color,
+        depthTest: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+      });
+      const mesh = new THREE.Mesh(tubeGeo, tubeMat);
+      mesh.renderOrder = 999;
+      return mesh;
+    };
+
+    /**
+     * Sweep diagonal entre dos puntos sobre la superficie del mallado.
+     * Evita que la línea quede "dentro" de la malla al cruzar superficies curvas.
+     */
+    const sweepDiagonal = (
+      a: THREE.Vector3,
+      b: THREE.Vector3,
+      steps = 40
+    ): THREE.Vector3[] => {
+      const points: THREE.Vector3[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const x = a.x + t * (b.x - a.x);
+        const y = a.y + t * (b.y - a.y);
+        const origin = new THREE.Vector3(x, y, 50);
+        sweepRaycaster.set(origin, new THREE.Vector3(0, 0, -1));
+        const hits = sweepRaycaster.intersectObject(faceMesh, true);
+        if (hits.length > 0) {
+          const pt = hits[0].point.clone();
+          pt.z += 0.05;
+          points.push(pt);
+        }
+      }
+      return points;
+    };
+
     referenceLines.forEach(line => {
       if (!line.visible) return;
 
       const color = new THREE.Color(line.color);
 
       if (line.type === 'vertical') {
-        // Barrido en Y fijo en X = anchor.x + offset
         const xVal = line.anchor.x + line.offset;
         const pts = sweepSurface('x', xVal, -12, 8, 50);
         if (pts.length < 2) return;
-        const geo = new THREE.BufferGeometry().setFromPoints(pts);
-        const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false });
-        const lineObj = new THREE.Line(geo, mat);
-        lineObj.renderOrder = 999;
-        group.add(lineObj);
-        // Label en el punto superior
+        group.add(makeSurfaceTube(pts, color));
         const labelPos = pts[pts.length - 1].clone();
-        labelPos.z += 0.2;
+        labelPos.z += 0.3;
         labelPos.y += 0.3;
         group.add(makeLabel(line.label, labelPos, line.color));
 
       } else if (line.type === 'horizontal') {
-        // Barrido en X fijo en Y = anchor.y + offset
         const yVal = line.anchor.y + line.offset;
         const pts = sweepSurface('y', yVal, -5, 5, 50);
         if (pts.length < 2) return;
-        const geo = new THREE.BufferGeometry().setFromPoints(pts);
-        const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false });
-        const lineObj = new THREE.Line(geo, mat);
-        lineObj.renderOrder = 999;
-        group.add(lineObj);
-        // Label al extremo derecho
+        group.add(makeSurfaceTube(pts, color));
         const labelPos = pts[pts.length - 1].clone();
-        labelPos.z += 0.2;
+        labelPos.z += 0.3;
         labelPos.x += 0.4;
         group.add(makeLabel(line.label, labelPos, line.color));
 
       } else if (line.type === 'two-points' && line.anchors && line.anchors.length === 2) {
-        // Línea directa entre los dos puntos de superficie (con offset en Z)
-        const a = new THREE.Vector3(line.anchors[0].x, line.anchors[0].y, line.anchors[0].z + 0.04);
-        const b = new THREE.Vector3(line.anchors[1].x, line.anchors[1].y, line.anchors[1].z + 0.04);
-        const pts = [a, b];
-        const geo = new THREE.BufferGeometry().setFromPoints(pts);
-        const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false });
-        const lineObj = new THREE.Line(geo, mat);
-        lineObj.renderOrder = 999;
-        group.add(lineObj);
-        // Label en el punto medio
-        const midPos = a.clone().lerp(b, 0.5);
-        midPos.z += 0.2;
+        const a = new THREE.Vector3(line.anchors[0].x, line.anchors[0].y, line.anchors[0].z);
+        const b = new THREE.Vector3(line.anchors[1].x, line.anchors[1].y, line.anchors[1].z);
+        // Sweep sobre la superficie a lo largo de la diagonal (sigue la curvatura del mallado)
+        const pts = sweepDiagonal(a, b, 40);
+        if (pts.length >= 2) {
+          group.add(makeSurfaceTube(pts, color));
+        }
+        // Label en el punto medio del sweep
+        const midPts = pts.length >= 2 ? pts : [a, b];
+        const midPos = midPts[Math.floor(midPts.length / 2)].clone();
+        midPos.z += 0.3;
         group.add(makeLabel(line.label, midPos, line.color));
 
-        // Marcadores en los extremos
-        [a, b].forEach(pt => {
-          const sphereGeo = new THREE.SphereGeometry(0.07, 8, 8);
+        // Esferas en los extremos (igual que los marcadores de inyección)
+        const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z + 0.05);
+        const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z + 0.05);
+        [startPt, endPt].forEach(pt => {
+          const sphereGeo = new THREE.SphereGeometry(0.09, 10, 10);
           const sphereMat = new THREE.MeshBasicMaterial({ color, depthTest: false });
           const sphere = new THREE.Mesh(sphereGeo, sphereMat);
           sphere.position.copy(pt);
