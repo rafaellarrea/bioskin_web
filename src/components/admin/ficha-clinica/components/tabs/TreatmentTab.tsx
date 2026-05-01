@@ -39,6 +39,7 @@ const EMPTY_TREATMENT: Treatment = {
 export default function TreatmentTab({ recordId, treatments, physicalExams = [], patientName, patientAge, onSave }: TreatmentTabProps) {
   const [currentTreatment, setCurrentTreatment] = useState<Treatment>({ ...EMPTY_TREATMENT });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
   // AI Modal State
@@ -229,7 +230,7 @@ ${protocolText}`;
 
   const handleDelete = async () => {
     if (!currentTreatment.id || !confirm('¿Eliminar este tratamiento?')) return;
-    
+    setDeleting(true);
     try {
       const response = await fetch(`/api/records?action=deleteTreatment&id=${currentTreatment.id}`, { 
         method: 'DELETE' 
@@ -245,6 +246,8 @@ ${protocolText}`;
     } catch (error) {
       console.error('Error deleting:', error);
       setMessage({ type: 'error', text: 'Error al eliminar el tratamiento' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -289,7 +292,7 @@ ${protocolText}`;
                 }`}
               >
                 <div className="font-medium flex justify-between items-center">
-                  <span>{new Date(t.date).toLocaleDateString()}</span>
+                  <span>{new Date(t.date + 'T12:00:00').toLocaleDateString('es-EC')}</span>
                   <FileText className="w-4 h-4 opacity-70" />
                 </div>
                 <div className="font-semibold truncate mt-1">{t.procedure_name}</div>
@@ -322,9 +325,9 @@ ${protocolText}`;
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSave} 
                 disabled={saving} 
-                className="p-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] shadow-lg shadow-[#deb887]/20"
+                className="p-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] shadow-lg shadow-[#deb887]/20 disabled:opacity-70"
               >
-                <Save className="w-5 h-5" />
+                {saving ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" /> : <Save className="w-5 h-5" />}
               </motion.button>
             </Tooltip>
 
@@ -345,10 +348,10 @@ ${protocolText}`;
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleDelete} 
-                disabled={!currentTreatment.id}
+                disabled={!currentTreatment.id || deleting}
                 className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 disabled:opacity-50"
               >
-                <Trash2 className="w-5 h-5" />
+                {deleting ? <div className="animate-spin w-5 h-5 border-2 border-red-300 border-t-red-500 rounded-full" /> : <Trash2 className="w-5 h-5" />}
               </motion.button>
             </Tooltip>
           </div>

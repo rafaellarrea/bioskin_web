@@ -46,6 +46,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   const [currentDiagnosis, setCurrentDiagnosis] = useState<Diagnosis>({ ...EMPTY_DIAGNOSIS, record_id: recordId });
   const [saving, setSaving] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [selectedExamId, setSelectedExamId] = useState<number | string>('');
 
@@ -69,6 +70,13 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
     }
   }, [physicalExams]);
 
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   const handleNew = () => {
     setCurrentDiagnosis({ ...EMPTY_DIAGNOSIS, record_id: recordId });
     setMessage(null);
@@ -83,7 +91,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
 
   const handleDelete = async () => {
     if (!currentDiagnosis.id || !confirm('¿Eliminar este diagnóstico?')) return;
-    
+    setDeleting(true);
     try {
       const response = await fetch(`/api/records?action=deleteDiagnosis&id=${currentDiagnosis.id}`, {
         method: 'DELETE'
@@ -92,19 +100,21 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       if (response.ok) {
         onSave();
         handleNew();
-        alert('Diagnóstico eliminado correctamente');
+        setMessage({ type: 'success', text: 'Diagnóstico eliminado correctamente' });
       } else {
         throw new Error('Error al eliminar');
       }
     } catch (error) {
       console.error('Error deleting diagnosis:', error);
-      alert('Error al eliminar el diagnóstico');
+      setMessage({ type: 'error', text: 'Error al eliminar el diagnóstico' });
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleOpenAIModal = async () => {
     if (!physicalExams || physicalExams.length === 0) {
-      alert('No hay examen físico registrado para generar el diagnóstico. Por favor complete el examen físico primero.');
+      setMessage({ type: 'error', text: 'No hay examen físico registrado. Complete el examen físico primero.' });
       return;
     }
 
@@ -231,9 +241,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
+    setMessage({ type: 'success', text: 'Abriendo vista de impresión...' });
     const html = `
       <html>
         <head>
@@ -287,8 +295,10 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       </html>
     `;
 
-    printWindow.document.write(html);
-    printWindow.document.close();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   return (
@@ -319,7 +329,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
               <div className="font-medium truncate mb-1 text-gray-800">{diag.diagnosis_text}</div>
               <div className="text-xs opacity-90 flex items-center gap-2 text-gray-500">
                 <span className={`w-2 h-2 rounded-full ${diag.type === 'confirmed' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                {diag.date ? new Date(diag.date).toLocaleDateString() : 'Nuevo'}
+                {diag.date ? new Date(diag.date + 'T12:00:00').toLocaleDateString('es-EC') : 'Nuevo'}
               </div>
             </motion.div>
           ))}
@@ -375,9 +385,10 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleDelete} 
-                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 transition-colors"
+                disabled={deleting}
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 transition-colors disabled:opacity-50"
               >
-                <Trash2 size={18} />
+                {deleting ? <div className="animate-spin w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full" /> : <Trash2 size={18} />}
               </motion.button>
             </Tooltip>
 

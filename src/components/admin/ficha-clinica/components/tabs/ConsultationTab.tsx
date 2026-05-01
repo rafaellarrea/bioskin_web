@@ -33,6 +33,13 @@ export default function ConsultationTab({ recordId, initialData, historyData = [
     }
   }, [initialData, selectedHistoryId]);
 
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   const handleSelectHistory = (item: any) => {
     setSelectedHistoryId(item.id);
     setFormData({
@@ -88,9 +95,7 @@ export default function ConsultationTab({ recordId, initialData, historyData = [
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
+    setMessage({ type: 'success', text: 'Abriendo vista de impresión...' });
     const html = `
       <html>
         <head>
@@ -130,8 +135,10 @@ export default function ConsultationTab({ recordId, initialData, historyData = [
         </body>
       </html>
     `;
-    printWindow.document.write(html);
-    printWindow.document.close();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   const handleSave = async () => {

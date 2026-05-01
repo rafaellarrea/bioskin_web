@@ -171,6 +171,7 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
 export default function PhysicalExamTab({ recordId, physicalExams, patientName, onSave }: PhysicalExamTabProps) {
   const [currentExam, setCurrentExam] = useState<PhysicalExam>({ ...EMPTY_EXAM, record_id: recordId });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
   // Canvas State
@@ -190,6 +191,13 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
       resetExam();
     }
   }, [physicalExams, recordId]);
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const loadExam = (exam: PhysicalExam) => {
     setCurrentExam(exam);
@@ -239,7 +247,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
 
   const handleDelete = async () => {
     if (!currentExam.id || !confirm('¿Eliminar este examen físico?')) return;
-    
+    setDeleting(true);
     try {
       const response = await fetch(`/api/records?action=deletePhysicalExam&id=${currentExam.id}`, {
         method: 'DELETE'
@@ -248,13 +256,15 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
       if (response.ok) {
         onSave();
         handleNew();
-        alert('Examen eliminado correctamente');
+        setMessage({ type: 'success', text: 'Examen físico eliminado correctamente' });
       } else {
         throw new Error('Error al eliminar');
       }
     } catch (error) {
       console.error('Error deleting exam:', error);
-      alert('Error al eliminar el examen');
+      setMessage({ type: 'error', text: 'Error al eliminar el examen físico' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -303,6 +313,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   };
 
   const handlePrint = () => {
+    setMessage({ type: 'success', text: 'Imprimiendo página actual...' });
     window.print();
   };
 
@@ -434,10 +445,11 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleDelete} 
-                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 transition-colors"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 transition-colors disabled:opacity-50"
               >
-                <Trash2 size={18} />
+                {deleting ? <div className="animate-spin w-4 h-4 border-2 border-red-300 border-t-red-500 rounded-full" /> : <Trash2 size={18} />}
               </motion.button>
             </Tooltip>
 

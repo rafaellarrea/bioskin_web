@@ -52,6 +52,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
   });
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -59,6 +60,13 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
     loadPrescriptions();
     loadTemplates();
   }, [recordId]);
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const loadPrescriptions = async () => {
     try {
@@ -150,7 +158,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
 
   const handleDelete = async () => {
     if (!currentPrescription.id || !confirm('¿Eliminar esta receta?')) return;
-    
+    setDeleting(true);
     try {
       await fetch(`/api/records?action=deletePrescription&id=${currentPrescription.id}`, { method: 'DELETE' });
       await loadPrescriptions();
@@ -159,6 +167,8 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
     } catch (error) {
       console.error('Error deleting:', error);
       setMessage({ type: 'error', text: 'Error al eliminar la receta' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -230,9 +240,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
   };
 
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
+    setMessage({ type: 'success', text: 'Abriendo vista de impresión...' });
     const dateStr = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
     const logoUrl = `${window.location.origin}/images/logo/logo.png`;
 
@@ -361,8 +369,10 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       </html>
     `;
 
-    printWindow.document.write(html);
-    printWindow.document.close();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   return (
@@ -428,9 +438,9 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSave} 
                 disabled={loading} 
-                className="p-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] shadow-lg shadow-[#deb887]/20"
+                className="p-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] shadow-lg shadow-[#deb887]/20 disabled:opacity-70"
               >
-                <Save className="w-5 h-5" />
+                {loading ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" /> : <Save className="w-5 h-5" />}
               </motion.button>
             </Tooltip>
 
@@ -449,10 +459,11 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleDelete} 
-                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 disabled:opacity-50"
               >
-                <Trash2 className="w-5 h-5" />
+                {deleting ? <div className="animate-spin w-5 h-5 border-2 border-red-300 border-t-red-500 rounded-full" /> : <Trash2 className="w-5 h-5" />}
               </motion.button>
             </Tooltip>
 
