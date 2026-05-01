@@ -479,18 +479,10 @@ const ThreeEngine: React.FC<{
         sweepRaycaster.set(origin, dir);
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) {
-          const hit = hits[0];
-          const pt = hit.point.clone();
-          // Offset a lo largo de la normal de la superficie → funciona en lados curvos también
-          if (hit.face) {
-            const obj = hit.object as THREE.Mesh;
-            const normalMatrix = new THREE.Matrix3().getNormalMatrix(obj.matrixWorld);
-            const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
-            pt.addScaledVector(worldNormal, 0.1);
-          } else {
-            pt.z += 0.1;
-          }
-          points.push(pt);
+          // Offset = 0: el centro del tubo queda exactamente en la superficie.
+          // Con depthTest:false y renderOrder:999 el tubo siempre se dibuja encima,
+          // por lo que la mitad visible del tubo sobresale de la malla sin flotar.
+          points.push(hits[0].point.clone());
         }
       }
       return points;
@@ -528,7 +520,7 @@ const ThreeEngine: React.FC<{
      */
     const makeSurfaceTube = (pts: THREE.Vector3[], color: THREE.Color): THREE.Mesh => {
       const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-      const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 60), 0.07, 8, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 60), 0.02, 8, false);
       const tubeMat = new THREE.MeshBasicMaterial({
         color,
         depthTest: false,
@@ -562,17 +554,7 @@ const ThreeEngine: React.FC<{
         sweepRaycaster.set(origin, new THREE.Vector3(0, 0, -1));
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) {
-          const hit = hits[0];
-          const pt = hit.point.clone();
-          if (hit.face) {
-            const obj = hit.object as THREE.Mesh;
-            const normalMatrix = new THREE.Matrix3().getNormalMatrix(obj.matrixWorld);
-            const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
-            pt.addScaledVector(worldNormal, 0.1);
-          } else {
-            pt.z += 0.1;
-          }
-          points.push(pt);
+          points.push(hits[0].point.clone());
         }
       }
       return points;
@@ -618,10 +600,10 @@ const ThreeEngine: React.FC<{
         group.add(makeLabel(line.label, midPos, line.color));
 
         // Esferas en los extremos (igual que los marcadores de inyección)
-        const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z + 0.1);
-        const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z + 0.1);
+        const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z);
+        const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z);
         [startPt, endPt].forEach(pt => {
-          const sphereGeo = new THREE.SphereGeometry(0.1, 10, 10);
+          const sphereGeo = new THREE.SphereGeometry(0.05, 10, 10);
           const sphereMat = new THREE.MeshBasicMaterial({
             color,
             depthTest: false,
