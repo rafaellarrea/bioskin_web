@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info, Images
+  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D } from '../Clinical3DViewer';
+import type { ReferenceLine, LineType } from '../Clinical3DViewer';
 import InjectableCaptureModal, { CaptureImage } from '../InjectableCaptureModal';
+import ReferenceLinePanel from '../ReferenceLinePanel';
+import type { LinePreset } from '../ReferenceLinePanel';
 
 // ==========================================
 // TYPES
@@ -136,6 +139,16 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [dialogUnits, setDialogUnits] = useState('');
   const [zoneFilter, setZoneFilter] = useState('');
 
+  // ── Líneas de referencia ────────────────────────────────────────────────
+  const [viewMode, setViewMode] = useState<'lines' | 'marking'>('marking');
+  const [referenceLines, setReferenceLines] = useState<ReferenceLine[]>([]);
+  const [activeLineType, setActiveLineType] = useState<LineType | null>(null);
+  const [pendingLineMeta, setPendingLineMeta] = useState<{ label: string; color: string; preset?: LinePreset } | null>(null);
+  // Para two-points: guarda el primer punto mientras se espera el segundo
+  const [firstLineAnchor, setFirstLineAnchor] = useState<{ x: number; y: number; z: number } | null>(null);
+  // Paso del diálogo two-points: 0=inactivo 1=esperando 1er punto 2=esperando 2do punto
+  const [twoPointStep, setTwoPointStep] = useState<0 | 1 | 2>(0);
+
   // Sync from parent props
   useEffect(() => {
     const sorted = [...initialInjectables].sort(
@@ -151,24 +164,39 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         const parsed = typeof current.mapping_data === 'string'
           ? JSON.parse(current.mapping_data)
           : current.mapping_data;
+
+        // Formato nuevo: { injectionPoints: [...], referenceLines: [...] }
+        // Formato legacy: [...InjectionPoint[]]
+        let rawPoints: any[] = [];
+        let rawLines: any[] = [];
+
         if (Array.isArray(parsed)) {
-          const points: InjectionPoint[] = parsed.map((item: any) => ({
-            ...item,
-            tercio: item.tercio || '',
-            units: item.units || 0,
-            label: item.label || item.zone || '',
-          }));
-          setInjectionPoints(points);
-          setMarkers3D(parsed);
-          if (points.length > 0) setShow3D(true);
+          // Legacy: solo array de injection points
+          rawPoints = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          rawPoints = Array.isArray(parsed.injectionPoints) ? parsed.injectionPoints : [];
+          rawLines = Array.isArray(parsed.referenceLines) ? parsed.referenceLines : [];
         }
+
+        const points: InjectionPoint[] = rawPoints.map((item: any) => ({
+          ...item,
+          tercio: item.tercio || '',
+          units: item.units || 0,
+          label: item.label || item.zone || '',
+        }));
+        setInjectionPoints(points);
+        setMarkers3D(rawPoints);
+        setReferenceLines(rawLines);
+        if (points.length > 0 || rawLines.length > 0) setShow3D(true);
       } catch {
         setInjectionPoints([]);
         setMarkers3D([]);
+        setReferenceLines([]);
       }
     } else {
       setInjectionPoints([]);
       setMarkers3D([]);
+      setReferenceLines([]);
     }
   }, [current.id]);
 
@@ -213,11 +241,18 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     try {
       const action = current.id ? 'updateInjectable' : 'addInjectable';
       const derivedAreas = [...new Set(injectionPoints.map(p => p.label).filter(Boolean))];
+
+      // Nuevo formato de mapping_data: incluye referenceLines para persistencia
+      const hasData = injectionPoints.length > 0 || referenceLines.length > 0;
+      const mappingData = hasData
+        ? { injectionPoints, referenceLines }
+        : null;
+
       const payload = {
         ...current,
         record_id: recordId,
         treatment_id: current.treatment_id || null,
-        mapping_data: injectionPoints.length > 0 ? injectionPoints : null,
+        mapping_data: mappingData,
         areas_treated: derivedAreas.length > 0 ? derivedAreas : null,
       };
 
@@ -261,6 +296,95 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setCurrent({ ...EMPTY_INJECTABLE });
     setMarkers3D([]);
     setInjectionPoints([]);
+    setReferenceLines([]);
+    setActiveLineType(null);
+    setPendingLineMeta(null);
+    setFirstLineAnchor(null);
+    setTwoPointStep(0);
+  };
+
+  // ── HANDLERS: Líneas de referencia ──────────────────────────────────────
+
+  const handleSelectPreset = (preset: LinePreset) => {
+    setActiveLineType(preset.type);
+    setPendingLineMeta({ label: preset.label, color: preset.color, preset });
+    setFirstLineAnchor(null);
+    setTwoPointStep(preset.type === 'two-points' ? 1 : 0);
+  };
+
+  const handleStartManualLine = (type: LineType) => {
+    setActiveLineType(type);
+    setPendingLineMeta({ label: pendingLineMeta?.label || type, color: '#ffffff' });
+    setFirstLineAnchor(null);
+    setTwoPointStep(type === 'two-points' ? 1 : 0);
+  };
+
+  const handleCancelLine = () => {
+    setActiveLineType(null);
+    setPendingLineMeta(null);
+    setFirstLineAnchor(null);
+    setTwoPointStep(0);
+  };
+
+  /** Callback del motor 3D cuando el usuario hace clic en modo línea */
+  const handleLinePointAnchored = (point: { x: number; y: number; z: number }, step: 'first' | 'second') => {
+    if (!activeLineType || !pendingLineMeta) return;
+
+    if (activeLineType === 'vertical' || activeLineType === 'horizontal') {
+      // Un solo clic → crear línea inmediatamente
+      const newLine: ReferenceLine = {
+        id: Date.now().toString(),
+        type: activeLineType,
+        label: pendingLineMeta.label,
+        color: pendingLineMeta.color,
+        anchor: point,
+        offset: 0,
+        visible: true,
+      };
+      setReferenceLines(prev => [...prev, newLine]);
+      setActiveLineType(null);
+      setPendingLineMeta(null);
+      setTwoPointStep(0);
+
+    } else if (activeLineType === 'two-points') {
+      if (step === 'first') {
+        setFirstLineAnchor(point);
+        setTwoPointStep(2);
+      } else {
+        // Tenemos los dos puntos
+        const newLine: ReferenceLine = {
+          id: Date.now().toString(),
+          type: 'two-points',
+          label: pendingLineMeta.label,
+          color: pendingLineMeta.color,
+          anchor: firstLineAnchor || point,
+          offset: 0,
+          anchors: [firstLineAnchor || point, point],
+          visible: true,
+        };
+        setReferenceLines(prev => [...prev, newLine]);
+        setActiveLineType(null);
+        setPendingLineMeta(null);
+        setFirstLineAnchor(null);
+        setTwoPointStep(0);
+      }
+    }
+  };
+
+  const handleToggleLineVisibility = (id: string) => {
+    setReferenceLines(prev => prev.map(l => l.id === id ? { ...l, visible: !l.visible } : l));
+  };
+
+  const handleLineOffsetChange = (id: string, offset: number) => {
+    setReferenceLines(prev => prev.map(l => l.id === id ? { ...l, offset } : l));
+  };
+
+  const handleRemoveLine = (id: string) => {
+    setReferenceLines(prev => prev.filter(l => l.id !== id));
+  };
+
+  const handleLineLabelChange = (label: string) => {
+    setPendingLineMeta(prev => prev ? { ...prev, label } : { label, color: '#ffffff' });
   };
 
   const handleSelect = (inj: Injectable) => {
@@ -987,10 +1111,15 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
             </div>
             <div className="text-left">
               <span className="text-sm font-semibold text-gray-800">Mapeo Facial 3D</span>
-              <p className="text-xs text-gray-500">Haz clic en el rostro para registrar puntos de inyección</p>
+              <p className="text-xs text-gray-500">Líneas de referencia + marcación de puntos de inyección</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {referenceLines.length > 0 && (
+              <span className="bg-cyan-100 text-cyan-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                {referenceLines.length} línea{referenceLines.length !== 1 ? 's' : ''}
+              </span>
+            )}
             {injectionPoints.length > 0 && (
               <span className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-0.5 rounded-full">
                 {injectionPoints.length} punto{injectionPoints.length !== 1 ? 's' : ''}
@@ -1013,8 +1142,44 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="border-t border-gray-100"
             >
+              {/* ── TABS: Líneas de Referencia | Marcación ── */}
+              <div className="flex border-b border-gray-100 bg-gray-50/50">
+                <button
+                  onClick={() => setViewMode('lines')}
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
+                    viewMode === 'lines'
+                      ? 'border-cyan-500 text-cyan-700 bg-white'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Minus className="w-4 h-4 rotate-90" />
+                  Líneas de Referencia
+                  {referenceLines.length > 0 && (
+                    <span className="bg-cyan-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                      {referenceLines.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => { setViewMode('marking'); handleCancelLine(); }}
+                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
+                    viewMode === 'marking'
+                      ? 'border-violet-500 text-violet-700 bg-white'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Crosshair className="w-4 h-4" />
+                  Marcación
+                  {injectionPoints.length > 0 && (
+                    <span className="bg-violet-500 text-white text-[10px] font-bold px-1.5 h-4 rounded-full flex items-center justify-center">
+                      {injectionPoints.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
               <div ref={viewerRef} className="p-4">
-                {/* Two-column layout: 3D viewer left, breakdown right */}
+                {/* Two-column layout: 3D viewer left, panel right */}
                 <div className="flex flex-col lg:flex-row gap-4">
                   {/* Left: 3D Viewer */}
                   <div className="flex-1 min-w-0">
@@ -1023,8 +1188,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         markers={markers3D}
                         selectedPathology={current.product_type === 'toxina' ? 'botox' : 'filler'}
                         onMarkerPlaced={handleMarkerPlaced}
-                        skipConfirmation
-                        height="400px"
+                        skipConfirmation={viewMode === 'marking'}
+                        readOnly={viewMode === 'lines' && !activeLineType}
+                        referenceLines={referenceLines}
+                        lineDrawingMode={viewMode === 'lines' ? activeLineType : null}
+                        onLinePointAnchored={handleLinePointAnchored}
+                        height="420px"
                       />
 
                   {/* Dialog Overlay — Step 1: Tercio */}
@@ -1148,8 +1317,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   )}
                 </div>
 
-                {/* Bottom bar */}
-                {injectionPoints.length > 0 && (
+                {/* Bottom bar (solo en modo marcación) */}
+                {viewMode === 'marking' && injectionPoints.length > 0 && (
                   <div className="mt-3 flex items-center justify-between px-1">
                     <span className="text-xs text-gray-500">
                       {injectionPoints.length} punto(s) · {totalUsed} {unitLabel} aplicadas
@@ -1164,9 +1333,28 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 )}
                   </div>
 
-                  {/* Right: Points Breakdown by Tercio */}
-                  <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
-                    {injectionPoints.length > 0 ? (
+                  {/* Right Panel: condicional según modo */}
+                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0">
+                    {viewMode === 'lines' ? (
+                      /* ── Panel de Líneas de Referencia ── */
+                      <div className="bg-slate-800 rounded-xl p-3 h-full min-h-[280px]">
+                        <ReferenceLinePanel
+                          lines={referenceLines}
+                          activeType={activeLineType}
+                          pendingTwoPointStep={twoPointStep}
+                          pendingLabel={pendingLineMeta?.label || ''}
+                          onSelectPreset={handleSelectPreset}
+                          onStartManual={handleStartManualLine}
+                          onLabelChange={handleLineLabelChange}
+                          onCancel={handleCancelLine}
+                          onToggleVisibility={handleToggleLineVisibility}
+                          onOffsetChange={handleLineOffsetChange}
+                          onRemove={handleRemoveLine}
+                        />
+                      </div>
+                    ) : (
+                      /* ── Desglose de Puntos de Inyección ── */
+                      injectionPoints.length > 0 ? (
                       <div className="space-y-3">
                         <div className="flex items-center gap-1.5">
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
@@ -1229,6 +1417,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         <p className="text-sm text-gray-400 font-medium">Sin marcaciones</p>
                         <p className="text-xs text-gray-300 mt-1">Haz clic en el rostro 3D para registrar puntos</p>
                       </div>
+                    )
+                    /* end marking panel */
                     )}
                   </div>
                 </div>

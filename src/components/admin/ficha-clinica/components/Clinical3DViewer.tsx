@@ -7,6 +7,8 @@ import {
   Loader2, AlertCircle, Upload,
   RotateCw, RotateCcw
 } from 'lucide-react';
+import type { ReferenceLine, LineType } from './ReferenceLinePanel';
+export type { ReferenceLine, LineType };
 
 // ==========================================
 // TIPOS COMPARTIDOS
@@ -90,6 +92,13 @@ interface Clinical3DViewerProps {
   readOnly?: boolean;
   /** Saltar el diálogo interno de confirmación (el padre maneja su propio diálogo) */
   skipConfirmation?: boolean;
+  // ── Líneas de referencia ─────────────────────────────────────────────────
+  /** Líneas de referencia a renderizar sobre el modelo */
+  referenceLines?: ReferenceLine[];
+  /** Modo de dibujo de línea activo; si es null no se capturan clics para líneas */
+  lineDrawingMode?: LineType | null;
+  /** Callback al anclar un punto de superficie (para verticales/horizontales emite 1 punto; para two-points emite 'first' y 'second') */
+  onLinePointAnchored?: (point: { x: number; y: number; z: number }, step: 'first' | 'second') => void;
 }
 
 // ==========================================
@@ -104,7 +113,11 @@ const ThreeEngine: React.FC<{
   onLoaded: () => void;
   onError: (msg: string) => void;
   readOnly: boolean;
-}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly }) => {
+  // ── Líneas de referencia ──────────────────────────────────────────────
+  referenceLines?: ReferenceLine[];
+  lineDrawingMode?: LineType | null;
+  onLinePointAnchored?: (point: { x: number; y: number; z: number }, step: 'first' | 'second') => void;
+}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -112,12 +125,15 @@ const ThreeEngine: React.FC<{
   const controlsRef = useRef<OrbitControls | null>(null);
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
+  const linesGroupRef = useRef<THREE.Group | null>(null);
   // Increments each time the model finishes loading so the markers effect re-runs
   const [modelVersion, setModelVersion] = useState(0);
+  // Track two-point step inside engine for cursor feedback
+  const twoPointStepRef = useRef<0 | 1>(0);
 
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored });
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, readOnly };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored };
   });
 
   // 1. Initialize scene once
@@ -131,6 +147,10 @@ const ThreeEngine: React.FC<{
     const markersGroup = new THREE.Group();
     markersGroupRef.current = markersGroup;
     scene.add(markersGroup);
+
+    const linesGroup = new THREE.Group();
+    linesGroupRef.current = linesGroup;
+    scene.add(linesGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 18);
@@ -182,7 +202,7 @@ const ThreeEngine: React.FC<{
     };
 
     const onClick = (event: MouseEvent) => {
-      if (isDragging || !faceMeshRef.current || !cameraRef.current || callbacks.current.readOnly) return;
+      if (isDragging || !faceMeshRef.current || !cameraRef.current) return;
 
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -194,6 +214,23 @@ const ThreeEngine: React.FC<{
       if (intersects.length > 0) {
         const intersect = intersects[0];
         const point = intersect.point;
+
+        // ── Modo línea de referencia ─────────────────────────────────────
+        const lineMode = callbacks.current.lineDrawingMode;
+        if (lineMode) {
+          const anchorPt = { x: point.x, y: point.y, z: point.z };
+          if (lineMode === 'two-points') {
+            const step = twoPointStepRef.current === 0 ? 'first' : 'second';
+            callbacks.current.onLinePointAnchored?.(anchorPt, step);
+            twoPointStepRef.current = twoPointStepRef.current === 0 ? 1 : 0;
+          } else {
+            callbacks.current.onLinePointAnchored?.(anchorPt, 'first');
+          }
+          return; // No procesar como marcación
+        }
+
+        // ── Modo marcación normal ────────────────────────────────────────
+        if (callbacks.current.readOnly) return;
         const n = intersect.face ? intersect.face.normal.clone() : new THREE.Vector3(0, 1, 0);
         const nTransform = new THREE.Matrix3().getNormalMatrix(intersect.object.matrixWorld);
         n.applyMatrix3(nTransform).normalize();
@@ -400,6 +437,147 @@ const ThreeEngine: React.FC<{
     });
   }, [markers, modelVersion]);
 
+  // 4. Renderizar líneas de referencia sobre la superficie del modelo
+  useEffect(() => {
+    const group = linesGroupRef.current;
+    const faceMesh = faceMeshRef.current;
+    if (!group || !faceMesh) return;
+
+    // Limpiar líneas previas
+    while (group.children.length > 0) {
+      const child = group.children[0] as any;
+      group.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach((m: any) => m.dispose());
+        else child.material.dispose();
+      }
+    }
+
+    // Construir raycaster interno para muestreo de superficie
+    const sweepRaycaster = new THREE.Raycaster();
+
+    /**
+     * Obtiene los puntos de intersección de la malla al barrer en una dirección.
+     * origin se desplaza en pasos y se lanza rayo en -Z.
+     */
+    const sweepSurface = (
+      axisFixed: 'x' | 'y',
+      fixedValue: number,
+      otherMin: number,
+      otherMax: number,
+      steps = 40
+    ): THREE.Vector3[] => {
+      const points: THREE.Vector3[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const otherVal = otherMin + t * (otherMax - otherMin);
+        const origin = axisFixed === 'x'
+          ? new THREE.Vector3(fixedValue, otherVal, 50)
+          : new THREE.Vector3(otherVal, fixedValue, 50);
+        const dir = new THREE.Vector3(0, 0, -1);
+        sweepRaycaster.set(origin, dir);
+        const hits = sweepRaycaster.intersectObject(faceMesh, true);
+        if (hits.length > 0) {
+          // Offset mínimo para que la línea esté sobre la superficie
+          const pt = hits[0].point.clone();
+          pt.z += 0.04;
+          points.push(pt);
+        }
+      }
+      return points;
+    };
+
+    /**
+     * Crea un label sprite en 3D para la línea.
+     */
+    const makeLabel = (text: string, position: THREE.Vector3, color: string): THREE.Sprite => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 48;
+      const ctx = canvas.getContext('2d')!;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.roundRect(2, 2, canvas.width - 4, canvas.height - 4, 8);
+      ctx.fill();
+      ctx.font = 'bold 18px system-ui, sans-serif';
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      const tex = new THREE.CanvasTexture(canvas);
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+      const sprite = new THREE.Sprite(mat);
+      sprite.position.copy(position);
+      sprite.scale.set(2.5, 0.5, 1);
+      return sprite;
+    };
+
+    referenceLines.forEach(line => {
+      if (!line.visible) return;
+
+      const color = new THREE.Color(line.color);
+
+      if (line.type === 'vertical') {
+        // Barrido en Y fijo en X = anchor.x + offset
+        const xVal = line.anchor.x + line.offset;
+        const pts = sweepSurface('x', xVal, -12, 8, 50);
+        if (pts.length < 2) return;
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false });
+        const lineObj = new THREE.Line(geo, mat);
+        lineObj.renderOrder = 999;
+        group.add(lineObj);
+        // Label en el punto superior
+        const labelPos = pts[pts.length - 1].clone();
+        labelPos.z += 0.2;
+        labelPos.y += 0.3;
+        group.add(makeLabel(line.label, labelPos, line.color));
+
+      } else if (line.type === 'horizontal') {
+        // Barrido en X fijo en Y = anchor.y + offset
+        const yVal = line.anchor.y + line.offset;
+        const pts = sweepSurface('y', yVal, -5, 5, 50);
+        if (pts.length < 2) return;
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false });
+        const lineObj = new THREE.Line(geo, mat);
+        lineObj.renderOrder = 999;
+        group.add(lineObj);
+        // Label al extremo derecho
+        const labelPos = pts[pts.length - 1].clone();
+        labelPos.z += 0.2;
+        labelPos.x += 0.4;
+        group.add(makeLabel(line.label, labelPos, line.color));
+
+      } else if (line.type === 'two-points' && line.anchors && line.anchors.length === 2) {
+        // Línea directa entre los dos puntos de superficie (con offset en Z)
+        const a = new THREE.Vector3(line.anchors[0].x, line.anchors[0].y, line.anchors[0].z + 0.04);
+        const b = new THREE.Vector3(line.anchors[1].x, line.anchors[1].y, line.anchors[1].z + 0.04);
+        const pts = [a, b];
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false });
+        const lineObj = new THREE.Line(geo, mat);
+        lineObj.renderOrder = 999;
+        group.add(lineObj);
+        // Label en el punto medio
+        const midPos = a.clone().lerp(b, 0.5);
+        midPos.z += 0.2;
+        group.add(makeLabel(line.label, midPos, line.color));
+
+        // Marcadores en los extremos
+        [a, b].forEach(pt => {
+          const sphereGeo = new THREE.SphereGeometry(0.07, 8, 8);
+          const sphereMat = new THREE.MeshBasicMaterial({ color, depthTest: false });
+          const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+          sphere.position.copy(pt);
+          sphere.renderOrder = 1000;
+          group.add(sphere);
+        });
+      }
+    });
+  }, [referenceLines, modelVersion]);
+
   return <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-crosshair" />;
 };
 
@@ -416,6 +594,9 @@ export default function Clinical3DViewer({
   modelUrl = '/models/clinical/male_head.glb',
   readOnly = false,
   skipConfirmation = false,
+  referenceLines = [],
+  lineDrawingMode = null,
+  onLinePointAnchored,
 }: Clinical3DViewerProps) {
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({
     type: 'url',
@@ -494,6 +675,9 @@ export default function Clinical3DViewer({
             onMeshClick={handleMeshClick}
             onLoaded={() => { setModelLoaded(true); setModelError(false); }}
             onError={() => setModelError(true)}
+            referenceLines={referenceLines}
+            lineDrawingMode={lineDrawingMode}
+            onLinePointAnchored={onLinePointAnchored}
           />
         )}
       </div>
