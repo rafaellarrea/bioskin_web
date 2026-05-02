@@ -1408,8 +1408,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const denom = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3);
         if (Math.abs(denom) < 1e-6) continue; // paralelas
         const t = ((x0 - x2) * (y2 - y3) - (y0 - y2) * (x2 - x3)) / denom;
-        const u = -((x0 - x1) * (y0 - y2) - (y0 - y1) * (x0 - x2)) / denom;
-        if (t < 0 || t > 1 || u < 0 || u > 1) continue; // fuera del segmento
+        // No restringimos t/u al segmento [0,1]: las diagonales se extienden
+        // más allá de los anchors al hacer sweep; raycastPoint filtra si cae fuera de la cara
         const ix = x0 + t * (x1 - x0);
         const iy = y0 + t * (y1 - y0);
         const pt = raycastPoint(ix, iy);
@@ -1428,7 +1428,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const x1 = tp.anchors[1].x, y1 = tp.anchors[1].y;
         if (x0 === x1) return;
         const t = (vOff - x0) / (x1 - x0);
-        if (t < 0 || t > 1) return;
+        // No restringimos t a [0,1]: la diagonal se extiende más allá de los anchors
         const interpY = y0 + t * (y1 - y0);
         if (interpY > hairlineTopY || interpY < hairlineBottomY) return;
         const pt = raycastPoint(vOff, interpY);
@@ -1618,7 +1618,7 @@ export default function Clinical3D() {
   // === Estados para Líneas de Referencia ===
   const [referenceLines, setReferenceLines] = useState<ReferenceLine[]>([]);
   const [activeLineType, setActiveLineType] = useState<LineType | null>(null);
-  const [pendingLineMeta, setPendingLineMeta] = useState<{ label: string; color: string; preset?: LinePreset } | null>(null);
+  const [pendingLineMeta, setPendingLineMeta] = useState<{ label: string; color: string; dashed?: boolean; preset?: LinePreset } | null>(null);
   const [firstLineAnchor, setFirstLineAnchor] = useState<{ x: number; y: number; z: number } | null>(null);
   const [twoPointStep, setTwoPointStep] = useState<0 | 1 | 2>(0);
   const [activeTab, setActiveTab] = useState<'lines' | 'marking'>('marking');
@@ -1815,7 +1815,7 @@ export default function Clinical3D() {
     if (preset.type === 'two-points') {
       // Línea diagonal: requiere seleccionar dos puntos en el modelo
       setActiveLineType('two-points');
-      setPendingLineMeta({ label: preset.label, color: preset.color });
+      setPendingLineMeta({ label: preset.label, color: preset.color, dashed: preset.dashed });
       setTwoPointStep(1);
       setFirstLineAnchor(null);
       showNotification('Haz clic en el primer punto de la línea diagonal', 'info');
@@ -1827,6 +1827,7 @@ export default function Clinical3D() {
       type: preset.type,
       label: preset.label,
       color: preset.color,
+      dashed: preset.dashed,
       visible: true,
       offset: 0,
     };
@@ -1864,6 +1865,7 @@ export default function Clinical3D() {
           type: 'two-points',
           label: pendingLineMeta.label,
           color: pendingLineMeta.color,
+          dashed: pendingLineMeta.dashed,
           visible: true,
           offset: 0,
           anchors: [firstLineAnchor, point],
