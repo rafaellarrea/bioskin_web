@@ -1088,24 +1088,26 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Envoltura exterior brillante con efecto 3D (sin transmission para evitar conflicto con los tubes)
-        // emissive + roughness:0.05 da aspecto cristalino iluminado sin mezclar con la escena de fondo
-        const outerGeo = new THREE.SphereGeometry(0.22, 24, 24);
+        // Envoltura exterior: emissiveIntensity bajo para que los lights creen shading 3D real.
+        // transparent:true + depthTest:false garantiza que siempre se vea sobre el modelo y sobre los tubes (renderOrder 999).
+        const outerGeo = new THREE.SphereGeometry(0.18, 24, 24);
         const outerMat = new THREE.MeshPhysicalMaterial({
           color,
           emissive: color,
-          emissiveIntensity: 1.6,
-          roughness: 0.05,
+          emissiveIntensity: 0.5,  // Reducido: los lights generan highlight especular que da apariencia 3D
+          roughness: 0.05,         // Casi espejo: highlight especular nítido y brillante
           metalness: 0.1,
-          depthTest: false,
+          transparent: true,       // Cola de transparentes → se compone correctamente sobre el modelo
+          opacity: 0.92,
+          depthTest: false,        // Siempre visible, nunca ocluido por la malla
           depthWrite: false,
         });
         const outerMesh = new THREE.Mesh(outerGeo, outerMat);
         outerMesh.renderOrder = 1001;
         markerGroup.add(outerMesh);
 
-        // Núcleo blanco siempre encima — da el punto brillante interior 3D
-        const coreGeo = new THREE.SphereGeometry(0.09, 14, 14);
+        // Núcleo blanco — punto de brillo central que refuerza la apariencia esférica
+        const coreGeo = new THREE.SphereGeometry(0.07, 14, 14);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
         const coreMesh = new THREE.Mesh(coreGeo, coreMat);
         coreMesh.renderOrder = 1002;
@@ -1470,10 +1472,27 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           ptGroup.userData.epType = 'intersection';
           ptGroup.userData.pointName = 'Intersección';
           ptGroup.position.set(ipt.x, ipt.y, ipt.z);
-          const geo = new THREE.SphereGeometry(0.09, 14, 14);
-          const mat = new THREE.MeshBasicMaterial({ color: 0x00eeff, depthTest: false, depthWrite: false });
+          // Núcleo blanco — brillo central
+          const iCoreGeo = new THREE.SphereGeometry(0.04, 12, 12);
+          const iCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
+          const iCoreMesh = new THREE.Mesh(iCoreGeo, iCoreMat);
+          iCoreMesh.renderOrder = 1002;
+          ptGroup.add(iCoreMesh);
+          // Esfera exterior con sombreado 3D real
+          const geo = new THREE.SphereGeometry(0.09, 16, 16);
+          const mat = new THREE.MeshPhysicalMaterial({
+            color: new THREE.Color(0x00eeff),
+            emissive: new THREE.Color(0x00eeff),
+            emissiveIntensity: 0.5,
+            roughness: 0.05,
+            metalness: 0.1,
+            transparent: true,
+            opacity: 0.92,
+            depthTest: false,
+            depthWrite: false,
+          });
           const sphere = new THREE.Mesh(geo, mat);
-          sphere.renderOrder = 1002;
+          sphere.renderOrder = 1001;
           ptGroup.add(sphere);
           epGroup.add(ptGroup);
         });
@@ -1505,10 +1524,27 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       ptGroup.userData.epType = 'free';
       ptGroup.userData.pointName = pt.name || 'Punto libre';
       ptGroup.position.set(pt.x, pt.y, pt.z);
-      const geo = new THREE.SphereGeometry(0.09, 14, 14);
-      const mat = new THREE.MeshBasicMaterial({ color: 0xffdd00, depthTest: false, depthWrite: false });
+      // Núcleo blanco — brillo central
+      const fCoreGeo = new THREE.SphereGeometry(0.04, 12, 12);
+      const fCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
+      const fCoreMesh = new THREE.Mesh(fCoreGeo, fCoreMat);
+      fCoreMesh.renderOrder = 1002;
+      ptGroup.add(fCoreMesh);
+      // Esfera exterior con sombreado 3D real
+      const geo = new THREE.SphereGeometry(0.09, 16, 16);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(0xffdd00),
+        emissive: new THREE.Color(0xffdd00),
+        emissiveIntensity: 0.5,
+        roughness: 0.05,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.92,
+        depthTest: false,
+        depthWrite: false,
+      });
       const sphere = new THREE.Mesh(geo, mat);
-      sphere.renderOrder = 1002;
+      sphere.renderOrder = 1001;
       ptGroup.add(sphere);
       group.add(ptGroup);
     });
