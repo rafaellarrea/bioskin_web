@@ -329,7 +329,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
               <div className="font-medium truncate mb-1 text-gray-800">{diag.diagnosis_text}</div>
               <div className="text-xs opacity-90 flex items-center gap-2 text-gray-500">
                 <span className={`w-2 h-2 rounded-full ${diag.type === 'confirmed' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                {diag.date ? new Date(diag.date + 'T12:00:00').toLocaleDateString('es-EC') : 'Nuevo'}
+                {diag.date ? new Date(diag.date.includes('T') ? diag.date : diag.date + 'T12:00:00').toLocaleDateString('es-EC') : 'Nuevo'}
               </div>
             </motion.div>
           ))}

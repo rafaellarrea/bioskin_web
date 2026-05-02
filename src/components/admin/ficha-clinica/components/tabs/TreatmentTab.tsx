@@ -292,7 +292,7 @@ ${protocolText}`;
                 }`}
               >
                 <div className="font-medium flex justify-between items-center">
-                  <span>{new Date(t.date + 'T12:00:00').toLocaleDateString('es-EC')}</span>
+                  <span>{new Date(t.date.includes('T') ? t.date : t.date + 'T12:00:00').toLocaleDateString('es-EC')}</span>
                   <FileText className="w-4 h-4 opacity-70" />
                 </div>
                 <div className="font-semibold truncate mt-1">{t.procedure_name}</div>
