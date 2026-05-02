@@ -12,6 +12,8 @@ export interface ReferenceLine {
   type: LineType;
   label: string;
   color: string;
+  /** Línea entrecortada (imaginaria) */
+  dashed?: boolean;
   /** Punto de superficie donde se ancló la línea (primer clic) */
   anchor: { x: number; y: number; z: number };
   /** Offset de desplazamiento aplicado (eje X para vertical, eje Y para horizontal) */
@@ -31,6 +33,8 @@ export interface LinePreset {
   color: string;
   group: 'vertical' | 'horizontal' | 'diagonal';
   description: string;
+  /** Línea imaginaria — se renderiza entrecortada */
+  dashed?: boolean;
 }
 
 export const REFERENCE_LINE_PRESETS: LinePreset[] = [
@@ -42,8 +46,8 @@ export const REFERENCE_LINE_PRESETS: LinePreset[] = [
   { label: 'Canto Interno Der.', type: 'vertical', color: '#a3e635', group: 'vertical', description: 'Ángulo interno del ojo derecho' },
   { label: 'Canto Externo Izq.', type: 'vertical', color: '#fb923c', group: 'vertical', description: 'Ángulo externo del ojo izquierdo' },
   { label: 'Canto Externo Der.', type: 'vertical', color: '#fb923c', group: 'vertical', description: 'Ángulo externo del ojo derecho' },
-  { label: 'Borde Iris Int. Izq.', type: 'vertical', color: '#c4b5fd', group: 'vertical', description: 'Entre línea pupilar y canto interno izq.' },
-  { label: 'Borde Iris Int. Der.', type: 'vertical', color: '#c4b5fd', group: 'vertical', description: 'Entre línea pupilar y canto interno der.' },
+  { label: 'Borde Iris Int. Izq.', type: 'vertical', color: '#c4b5fd', group: 'vertical', dashed: true, description: 'Entre línea pupilar y canto interno izq.' },
+  { label: 'Borde Iris Int. Der.', type: 'vertical', color: '#c4b5fd', group: 'vertical', dashed: true, description: 'Entre línea pupilar y canto interno der.' },
   // Horizontales
   { label: '1ª Arruga Frontal', type: 'horizontal', color: '#f87171', group: 'horizontal', description: 'Primera arruga completa del tercio superior' },
   { label: 'Última Arruga Frontal', type: 'horizontal', color: '#f87171', group: 'horizontal', description: 'Última arruga completa del tercio superior' },
@@ -51,7 +55,7 @@ export const REFERENCE_LINE_PRESETS: LinePreset[] = [
   // Diagonales / Procerus-Corrugador
   { label: 'Diag. C.Int. Izq. → Ceja Der.', type: 'two-points', color: '#22d3ee', group: 'diagonal', description: 'Canto interno izquierdo a cabeza de ceja derecha' },
   { label: 'Diag. C.Int. Der. → Ceja Izq.', type: 'two-points', color: '#22d3ee', group: 'diagonal', description: 'Canto interno derecho a cabeza de ceja izquierda' },
-  { label: 'Cola Ceja Izq. → Cola Ceja Der.', type: 'two-points', color: '#38bdf8', group: 'diagonal', description: 'Proyección imaginaria entre colas de cejas' },
+  { label: 'Cola Ceja Izq. → Cola Ceja Der.', type: 'two-points', color: '#38bdf8', group: 'diagonal', dashed: true, description: 'Proyección imaginaria entre colas de cejas' },
 ];
 
 // ==========================================
@@ -195,8 +199,10 @@ export default function ReferenceLinePanel({
                         title={preset.description}
                       >
                         <span
-                          className="w-3 h-0.5 rounded-full shrink-0"
-                          style={{ background: preset.color, boxShadow: `0 0 4px ${preset.color}` }}
+                          className="w-3 h-0.5 shrink-0"
+                          style={preset.dashed
+                            ? { background: `repeating-linear-gradient(to right, ${preset.color} 0px, ${preset.color} 3px, transparent 3px, transparent 5px)`, boxShadow: `0 0 4px ${preset.color}` }
+                            : { background: preset.color, borderRadius: '9999px', boxShadow: `0 0 4px ${preset.color}` }}
                         />
                         <span className="text-xs font-medium truncate">{preset.label}</span>
                         <Plus className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-60 shrink-0" />
@@ -256,8 +262,10 @@ export default function ReferenceLinePanel({
                 {/* Header */}
                 <div className="flex items-center gap-2 px-2.5 py-1.5">
                   <span
-                    className="w-3 h-0.5 rounded-full shrink-0"
-                    style={{ background: line.color, boxShadow: `0 0 5px ${line.color}` }}
+                    className="w-3 h-0.5 shrink-0"
+                    style={(line as any).dashed
+                      ? { background: `repeating-linear-gradient(to right, ${line.color} 0px, ${line.color} 3px, transparent 3px, transparent 5px)`, boxShadow: `0 0 5px ${line.color}` }
+                      : { background: line.color, borderRadius: '9999px', boxShadow: `0 0 5px ${line.color}` }}
                   />
                   <span className="text-xs font-medium text-slate-200 truncate flex-1">{line.label}</span>
                   <span className="text-[9px] text-slate-500 shrink-0">{TYPE_LABELS[line.type]}</span>

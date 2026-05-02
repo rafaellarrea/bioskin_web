@@ -118,7 +118,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {} }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {}, editablePoints = [], onEditablePointMoved = (_id: string, _pos: any) => {}, onEditablePointDeleted = (_id: string) => {}, onEditablePointAdded = (_pos: any) => {}, pointMode = 'none' }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -127,6 +127,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
   const linesGroupRef = useRef<THREE.Group | null>(null);
+  const editablePointsGroupRef = useRef<THREE.Group | null>(null);
+  // Rutas barridas de cada línea (para constrain drag)
+  const linePathsRef = useRef<{ lineId: string; pts: THREE.Vector3[] }[]>([]);
   const twoPointStepRef = useRef<0 | 1>(0);
   const [modelVersion, setModelVersion] = useState(0);
   // Tooltip de marcadores al hover
@@ -357,11 +360,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   };
 
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, pointMode });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, pointMode };
     
     // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
     if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
@@ -388,6 +391,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const linesGroup = new THREE.Group();
     linesGroupRef.current = linesGroup;
     scene.add(linesGroup);
+
+    const editablePointsGroup = new THREE.Group();
+    editablePointsGroupRef.current = editablePointsGroup;
+    scene.add(editablePointsGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 18);
@@ -442,9 +449,13 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     let isDragging = false;
     let startPos = { x: 0, y: 0 };
     
-    // Estado local para drag de marcadores
+    // Estado local para drag de marcadores clínicos
     let draggedMarkerId: string | null = null;
     let draggedMarkerGroup: THREE.Group | null = null;
+    // Estado local para drag de puntos editables (interseccion + libre)
+    let draggedEditableId: string | null = null;
+    let draggedEditableGroup: THREE.Group | null = null;
+    let draggedEditableLineIds: string[] = [];
 
     // Variables locales para dibujo (además del estado React) para acceso síncrono en eventos
     let localIsDrawing = false;
@@ -460,6 +471,38 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           drawingStartPos = { x: relX, y: relY };
           setIsDrawing(true);
           setSelectionBox({ start: { x: relX, y: relY }, end: { x: relX, y: relY } });
+      }
+
+      // Intentar detectar clic sobre un punto editable
+      if (!callbacks.current.isZoneEditMode && !callbacks.current.lineDrawingMode && editablePointsGroupRef.current) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        if (cameraRef.current) {
+          raycaster.setFromCamera(mouse, cameraRef.current);
+          const epMeshes: THREE.Object3D[] = [];
+          editablePointsGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) epMeshes.push(c); }));
+          const hits = raycaster.intersectObjects(epMeshes, false);
+          if (hits.length > 0) {
+            let obj: THREE.Object3D | null = hits[0].object;
+            while (obj && !obj.userData.isEditablePoint) obj = obj.parent;
+            if (obj && obj.userData.isEditablePoint) {
+              if (callbacks.current.pointMode === 'delete') {
+                // Eliminar inmediatamente en delete mode
+                callbacks.current.onEditablePointDeleted(obj.userData.editableId);
+                return;
+              }
+              // Iniciar drag de punto editable
+              draggedEditableId = obj.userData.editableId;
+              draggedEditableGroup = obj as THREE.Group;
+              draggedEditableLineIds = obj.userData.lineIds || [];
+              if (controlsRef.current) controlsRef.current.enabled = false;
+              isDragging = false;
+              startPos = { x: e.clientX, y: e.clientY };
+              return;
+            }
+          }
+        }
       }
 
       // Intentar detectar clic sobre un marcador para iniciar drag
@@ -495,7 +538,38 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const onPointerMove = (e: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
 
-      // ── Drag de marcador ──────────────────────────────────
+      // ── Drag CONSTRAINED de punto editable (a lo largo de sus líneas) ──
+      if (draggedEditableGroup && faceMeshRef.current && cameraRef.current) {
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const meshObjects2: THREE.Object3D[] = [];
+        faceMeshRef.current.traverse(o => { if ((o as THREE.Mesh).isMesh) meshObjects2.push(o); });
+        const hits = raycaster.intersectObjects(meshObjects2, false);
+        if (hits.length > 0) {
+          const mouseWorld = hits[0].point;
+          // Buscar el punto más cercano sobre las rutas de las líneas que le corresponden
+          let bestPt: THREE.Vector3 | null = null;
+          let bestDist = Infinity;
+          const paths = linePathsRef.current.filter(lp => draggedEditableLineIds.includes(lp.lineId));
+          if (paths.length > 0) {
+            paths.forEach(lp => {
+              lp.pts.forEach(pt => {
+                const d = pt.distanceTo(mouseWorld);
+                if (d < bestDist) { bestDist = d; bestPt = pt.clone(); }
+              });
+            });
+            if (bestPt) draggedEditableGroup!.position.copy(bestPt);
+          } else {
+            // Sin restricción de línea (punto libre)
+            draggedEditableGroup.position.copy(mouseWorld);
+          }
+        }
+        setTooltip(null);
+        return;
+      }
+
+      // ── Drag de marcador clínico ──────────────────────────────────
       if (draggedMarkerGroup && faceMeshRef.current && cameraRef.current) {
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -518,33 +592,63 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           return;
       }
 
-      // 2. Detectar hover sobre marcadores (tooltip)
-      if (!callbacks.current.isZoneEditMode && !callbacks.current.lineDrawingMode && markersGroupRef.current && cameraRef.current) {
+      // 2. Detectar hover sobre puntos editables o marcadores (tooltip)
+      if (!callbacks.current.isZoneEditMode && !callbacks.current.lineDrawingMode && cameraRef.current) {
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, cameraRef.current);
-        const markerMeshes: THREE.Object3D[] = [];
-        markersGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) markerMeshes.push(c); }));
-        const hits = raycaster.intersectObjects(markerMeshes, false);
-        if (hits.length > 0) {
-          let obj: THREE.Object3D | null = hits[0].object;
-          while (obj && !obj.userData.isMarker) obj = obj.parent;
-          if (obj?.userData?.markerName) {
-            setTooltip({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10, text: obj.userData.markerName });
+
+        // Comprobar puntos editables primero
+        if (editablePointsGroupRef.current) {
+          const epMeshes: THREE.Object3D[] = [];
+          editablePointsGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) epMeshes.push(c); }));
+          const hits = raycaster.intersectObjects(epMeshes, false);
+          if (hits.length > 0) {
+            let obj: THREE.Object3D | null = hits[0].object;
+            while (obj && !obj.userData.isEditablePoint) obj = obj.parent;
+            if (obj?.userData?.pointName) {
+              setTooltip({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10, text: obj.userData.pointName });
+              return;
+            }
           }
-        } else {
-          setTooltip(null);
         }
+
+        // Hover sobre marcadores clínicos
+        if (markersGroupRef.current) {
+          const markerMeshes: THREE.Object3D[] = [];
+          markersGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) markerMeshes.push(c); }));
+          const hits = raycaster.intersectObjects(markerMeshes, false);
+          if (hits.length > 0) {
+            let obj: THREE.Object3D | null = hits[0].object;
+            while (obj && !obj.userData.isMarker) obj = obj.parent;
+            if (obj?.userData?.markerName) {
+              setTooltip({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10, text: obj.userData.markerName });
+              return;
+            }
+          }
+        }
+        setTooltip(null);
       }
 
       // 3. Lógica estándar de rotación
       if (Math.abs(e.clientX - startPos.x) > 2 || Math.abs(e.clientY - startPos.y) > 2) {
         isDragging = true;
-        setTooltip(null); // Ocultar tooltip al rotar cámara
+        setTooltip(null);
       }
     };
 
     const onPointerUp = (e: MouseEvent) => {
+        // ── Soltar punto editable ──────────────────────────────────
+        if (draggedEditableId && draggedEditableGroup) {
+          const pos = draggedEditableGroup.position;
+          callbacks.current.onEditablePointMoved(draggedEditableId, { x: pos.x, y: pos.y, z: pos.z });
+          draggedEditableId = null;
+          draggedEditableGroup = null;
+          draggedEditableLineIds = [];
+          if (controlsRef.current) controlsRef.current.enabled = true;
+          return;
+        }
+
         // ── Soltar marcador arrastrado ─────────────────────────────
         if (draggedMarkerId && draggedMarkerGroup) {
           const pos = draggedMarkerGroup.position;
@@ -681,7 +785,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       console.log("Click en canvas", { isDragging, hasMesh: !!faceMeshRef.current, hasCam: !!cameraRef.current, editMode: callbacks.current.isZoneEditMode });
 
       // Si hubo arrastre de cámara o de marcador, ignorar click
-      if (isDragging || draggedMarkerId !== null || !faceMeshRef.current || !cameraRef.current) return;
+      if (isDragging || draggedMarkerId !== null || draggedEditableId !== null || !faceMeshRef.current || !cameraRef.current) return;
       
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -714,6 +818,13 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       if (callbacks.current.lineDrawingMode && callbacks.current.onLinePointAnchored && intersects.length > 0) {
         const point = intersects[0].point;
         callbacks.current.onLinePointAnchored(point);
+        return;
+      }
+
+      // Modo "add-point": agregar punto libre en la superficie
+      if (callbacks.current.pointMode === 'add' && intersects.length > 0) {
+        const pt = intersects[0].point;
+        callbacks.current.onEditablePointAdded({ x: pt.x, y: pt.y, z: pt.z });
         return;
       }
 
@@ -1197,20 +1308,41 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       return pts;
     };
 
-    const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.02) => {
+    const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.02, dashed = false) => {
       if (pts.length < 2) return;
-      const curve = new THREE.CatmullRomCurve3(pts);
-      const geo = new THREE.TubeGeometry(curve, pts.length * 2, radius, 8, false);
-      const mat = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(color),
-        transparent: true,
-        opacity,
-        depthTest: false,
-        depthWrite: false,
-      });
-      const tube = new THREE.Mesh(geo, mat);
-      tube.renderOrder = 999;
-      linesGroup.add(tube);
+      if (dashed) {
+        // Línea entrecortada con LineDashedMaterial
+        const positions: number[] = [];
+        pts.forEach(p => positions.push(p.x, p.y, p.z));
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        const mat = new THREE.LineDashedMaterial({
+          color: new THREE.Color(color),
+          transparent: true,
+          opacity,
+          dashSize: 0.12,
+          gapSize: 0.08,
+          depthTest: false,
+          depthWrite: false,
+        });
+        const line = new THREE.Line(geo, mat);
+        line.computeLineDistances();
+        line.renderOrder = 999;
+        linesGroup.add(line);
+      } else {
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const geo = new THREE.TubeGeometry(curve, pts.length * 2, radius, 8, false);
+        const mat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(color),
+          transparent: true,
+          opacity,
+          depthTest: false,
+          depthWrite: false,
+        });
+        const tube = new THREE.Mesh(geo, mat);
+        tube.renderOrder = 999;
+        linesGroup.add(tube);
+      }
     };
 
     // ── Hairline limit lines ──
@@ -1226,97 +1358,85 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     // ── Líneas de referencia ──
     if (!referenceLines || referenceLines.length === 0) {
       onIntersectionsCalculated([]);
+      linePathsRef.current = [];
       return;
     }
+
+    const newLinePaths: { lineId: string; pts: THREE.Vector3[] }[] = [];
 
     referenceLines.forEach((line: ReferenceLine) => {
       if (!line.visible) return;
       if (line.type === 'vertical') {
-        // Verticales limitadas entre hairlineBottomY y hairlineTopY
         const pts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY);
-        makeSurfaceTube(pts, line.color);
+        makeSurfaceTube(pts, line.color, 1.0, 0.02, (line as any).dashed);
+        newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'horizontal') {
         const pts = sweepSurface(line.offset ?? 0, false);
-        makeSurfaceTube(pts, line.color);
+        makeSurfaceTube(pts, line.color, 1.0, 0.02, (line as any).dashed);
+        newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'two-points') {
         const anchors = line.anchors;
         if (anchors && anchors.length >= 2) {
           const pts = sweepDiagonal(anchors[0], anchors[1]);
-          makeSurfaceTube(pts, line.color);
+          makeSurfaceTube(pts, line.color, 1.0, 0.02, (line as any).dashed);
+          newLinePaths.push({ lineId: line.id, pts });
         }
       }
     });
 
+    linePathsRef.current = newLinePaths;
+
     // ── Cálculo de intersecciones ──
+    // REGLA: solo diagonales × diagonales  Y  diagonales × "Línea Media Nasal"
     const visibleLines = referenceLines.filter((l: ReferenceLine) => l.visible);
-    const verticals = visibleLines.filter((l: ReferenceLine) => l.type === 'vertical');
-    const horizontals = visibleLines.filter((l: ReferenceLine) => l.type === 'horizontal');
     const twoPointsLines = visibleLines.filter((l: ReferenceLine) => l.type === 'two-points');
+    // La línea media nasal es la vertical central
+    const lineaMediaNasal = visibleLines.find((l: ReferenceLine) => l.type === 'vertical' && l.label === 'Línea Media Nasal');
 
     const calcIntersections: { id: string; x: number; y: number; z: number; lineIds: string[] }[] = [];
 
-    // vertical × horizontal: el punto de intersección es (v.offset, h.offset) sobre la malla
-    verticals.forEach((v: ReferenceLine) => {
-      horizontals.forEach((h: ReferenceLine) => {
-        const vOff = v.offset ?? 0;
-        const hOff = h.offset ?? 0;
-        if (hOff > hairlineTopY || hOff < hairlineBottomY) return; // fuera de la zona
-        const pt = raycastPoint(vOff, hOff);
+    // diagonal × diagonal
+    for (let i = 0; i < twoPointsLines.length; i++) {
+      for (let j = i + 1; j < twoPointsLines.length; j++) {
+        const tp1 = twoPointsLines[i];
+        const tp2 = twoPointsLines[j];
+        if (!tp1.anchors || tp1.anchors.length < 2 || !tp2.anchors || tp2.anchors.length < 2) continue;
+        const x0 = tp1.anchors[0].x, y0 = tp1.anchors[0].y;
+        const x1 = tp1.anchors[1].x, y1 = tp1.anchors[1].y;
+        const x2 = tp2.anchors[0].x, y2 = tp2.anchors[0].y;
+        const x3 = tp2.anchors[1].x, y3 = tp2.anchors[1].y;
+        const denom = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3);
+        if (Math.abs(denom) < 1e-6) continue; // paralelas
+        const t = ((x0 - x2) * (y2 - y3) - (y0 - y2) * (x2 - x3)) / denom;
+        const u = -((x0 - x1) * (y0 - y2) - (y0 - y1) * (x0 - x2)) / denom;
+        if (t < 0 || t > 1 || u < 0 || u > 1) continue; // fuera del segmento
+        const ix = x0 + t * (x1 - x0);
+        const iy = y0 + t * (y1 - y0);
+        const pt = raycastPoint(ix, iy);
         if (pt) {
-          calcIntersections.push({
-            id: `int-${v.id}-${h.id}`,
-            x: pt.x, y: pt.y, z: pt.z,
-            lineIds: [v.id, h.id],
-          });
+          calcIntersections.push({ id: `int-${tp1.id}-${tp2.id}`, x: pt.x, y: pt.y, z: pt.z, lineIds: [tp1.id, tp2.id] });
         }
-      });
-    });
+      }
+    }
 
-    // vertical × two-points: interpolar en X para hallar Y en la línea diagonal
-    verticals.forEach((v: ReferenceLine) => {
+    // diagonal × Línea Media Nasal
+    if (lineaMediaNasal) {
+      const vOff = lineaMediaNasal.offset ?? 0;
       twoPointsLines.forEach((tp: ReferenceLine) => {
         if (!tp.anchors || tp.anchors.length < 2) return;
         const x0 = tp.anchors[0].x, y0 = tp.anchors[0].y;
         const x1 = tp.anchors[1].x, y1 = tp.anchors[1].y;
-        const vOff = v.offset ?? 0;
-        if (x0 === x1) return; // vertical, no intersection con vertical
+        if (x0 === x1) return;
         const t = (vOff - x0) / (x1 - x0);
-        if (t < 0 || t > 1) return; // fuera del rango de la línea
+        if (t < 0 || t > 1) return;
         const interpY = y0 + t * (y1 - y0);
         if (interpY > hairlineTopY || interpY < hairlineBottomY) return;
         const pt = raycastPoint(vOff, interpY);
         if (pt) {
-          calcIntersections.push({
-            id: `int-${v.id}-${tp.id}`,
-            x: pt.x, y: pt.y, z: pt.z,
-            lineIds: [v.id, tp.id],
-          });
+          calcIntersections.push({ id: `int-${lineaMediaNasal.id}-${tp.id}`, x: pt.x, y: pt.y, z: pt.z, lineIds: [lineaMediaNasal.id, tp.id] });
         }
       });
-    });
-
-    // horizontal × two-points
-    horizontals.forEach((h: ReferenceLine) => {
-      twoPointsLines.forEach((tp: ReferenceLine) => {
-        if (!tp.anchors || tp.anchors.length < 2) return;
-        const x0 = tp.anchors[0].x, y0 = tp.anchors[0].y;
-        const x1 = tp.anchors[1].x, y1 = tp.anchors[1].y;
-        const hOff = h.offset ?? 0;
-        if (y0 === y1) return;
-        const t = (hOff - y0) / (y1 - y0);
-        if (t < 0 || t > 1) return;
-        const interpX = x0 + t * (x1 - x0);
-        if (hOff > hairlineTopY || hOff < hairlineBottomY) return;
-        const pt = raycastPoint(interpX, hOff);
-        if (pt) {
-          calcIntersections.push({
-            id: `int-${h.id}-${tp.id}`,
-            x: pt.x, y: pt.y, z: pt.z,
-            lineIds: [h.id, tp.id],
-          });
-        }
-      });
-    });
+    }
 
     // Renderizar esferas de intersección
     if (showIntersections) {
@@ -1340,6 +1460,44 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
   }, [referenceLines, modelVersion, showHairline, hairlineTopY, hairlineBottomY, showIntersections]);
 
+  // ── useEffect: Puntos editables (intersecciones + libres) ──────────────────
+  useEffect(() => {
+    if (!editablePointsGroupRef.current) return;
+    const group = editablePointsGroupRef.current;
+    // Limpiar grupo anterior
+    while (group.children.length > 0) {
+      const child = group.children[0];
+      child.traverse((c: any) => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
+      group.remove(child);
+    }
+
+    editablePoints.forEach((pt: any) => {
+      const isIntersection = pt.type === 'intersection';
+      const ptGroup = new THREE.Group();
+      ptGroup.userData.isEditablePoint = true;
+      ptGroup.userData.editableId = pt.id;
+      ptGroup.userData.lineIds = pt.lineIds || [];
+      ptGroup.userData.epType = pt.type;
+      ptGroup.userData.pointName = pt.name || (isIntersection ? 'Intersección' : 'Punto libre');
+      ptGroup.position.set(pt.x, pt.y, pt.z);
+
+      // Esfera principal
+      const color = isIntersection ? 0x00eeff : 0xffdd00;
+      const radius = isIntersection ? 0.07 : 0.06;
+      const geo = new THREE.SphereGeometry(radius, 12, 12);
+      const mat = new THREE.MeshBasicMaterial({
+        color,
+        transparent: false,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const sphere = new THREE.Mesh(geo, mat);
+      sphere.renderOrder = 1002;
+      ptGroup.add(sphere);
+
+      group.add(ptGroup);
+    });
+  }, [editablePoints]);
 
   return (
     <div className="relative w-full h-full">
@@ -1363,7 +1521,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             )}
             {referenceLines.filter((l: ReferenceLine) => l.visible).map((line: ReferenceLine) => (
               <div key={line.id} className="flex items-center gap-1.5 bg-slate-900/70 backdrop-blur-sm rounded px-2 py-1 border border-slate-700/50">
-                <span className="w-4 h-0.5 rounded-full shrink-0" style={{ backgroundColor: line.color, boxShadow: `0 0 4px ${line.color}` }} />
+                <span className="w-4 h-0.5 shrink-0" style={
+                  (line as any).dashed
+                    ? { background: `repeating-linear-gradient(to right, ${line.color} 0px, ${line.color} 3px, transparent 3px, transparent 5px)`, boxShadow: `0 0 4px ${line.color}` }
+                    : { backgroundColor: line.color, borderRadius: '9999px', boxShadow: `0 0 4px ${line.color}` }
+                } />
                 <span className="text-[10px] text-slate-200 font-medium leading-none truncate max-w-[140px]">{line.label}</span>
               </div>
             ))}
@@ -1471,6 +1633,10 @@ export default function Clinical3D() {
   // === Puntos de intersección entre líneas ===
   const [intersectionPoints, setIntersectionPoints] = useState<{ id: string; x: number; y: number; z: number; lineIds: string[] }[]>([]);
   const [showIntersections, setShowIntersections] = useState(true);
+
+  // === Puntos editables (intersecciones + libres) ===
+  const [editablePoints, setEditablePoints] = useState<Array<{ id: string; x: number; y: number; z: number; lineIds: string[]; type: 'intersection' | 'free'; name?: string }>>([]);
+  const [pointMode, setPointMode] = useState<'none' | 'add' | 'delete'>('none');
 
   const isLoading = !(dbLoaded && modelLoaded) && !modelError;
 
@@ -1768,6 +1934,9 @@ export default function Clinical3D() {
           setMarkers(data.markers);
           mockDB.data = data.markers;
         }
+        if (data.editablePoints && Array.isArray(data.editablePoints)) {
+          setEditablePoints(data.editablePoints);
+        }
         showNotification(`JSON importado: ${data.referenceLines?.length ?? 0} líneas, ${data.markers?.length ?? 0} marcadores`, 'success');
       } catch {
         showNotification('Error al parsear el JSON', 'error');
@@ -1807,6 +1976,15 @@ export default function Clinical3D() {
         y: parseFloat(pt.y.toFixed(4)),
         z: parseFloat(pt.z.toFixed(4)),
         lineIds: pt.lineIds,
+      })),
+      editablePoints: editablePoints.map((pt: any) => ({
+        id: pt.id,
+        type: pt.type,
+        x: parseFloat(pt.x.toFixed(4)),
+        y: parseFloat(pt.y.toFixed(4)),
+        z: parseFloat(pt.z.toFixed(4)),
+        lineIds: pt.lineIds,
+        ...(pt.name ? { name: pt.name } : {}),
       })),
       summary: {
         totalLines: referenceLines.length,
@@ -1957,7 +2135,31 @@ export default function Clinical3D() {
                 hairlineBottomY={hairlineBottomY}
                 showHairline={showHairline}
                 showIntersections={showIntersections}
-                onIntersectionsCalculated={setIntersectionPoints}
+                editablePoints={editablePoints}
+                pointMode={pointMode}
+                onEditablePointMoved={(id: string, pos: any) => {
+                  setEditablePoints(prev => prev.map((p: any) => p.id === id ? { ...p, x: pos.x, y: pos.y, z: pos.z } : p));
+                }}
+                onEditablePointDeleted={(id: string) => {
+                  setEditablePoints(prev => prev.filter((p: any) => p.id !== id));
+                }}
+                onEditablePointAdded={(pos: any) => {
+                  const newPt = { id: `free-${Date.now()}`, x: pos.x, y: pos.y, z: pos.z, lineIds: [], type: 'free' as const, name: 'Punto libre' };
+                  setEditablePoints(prev => [...prev, newPt]);
+                }}
+                onIntersectionsCalculated={(pts: any[]) => {
+                  setIntersectionPoints(pts);
+                  // Actualizar editablePoints: preservar puntos libres y moved, fusionar nuevas intersecciones
+                  setEditablePoints(prev => {
+                    const freePoints = prev.filter((p: any) => p.type === 'free');
+                    // Para las intersecciones ya existentes, preservar su posición si fue movida
+                    const merged = pts.map((np: any) => {
+                      const existing = prev.find((p: any) => p.id === np.id && p.type === 'intersection');
+                      return existing ?? { ...np, type: 'intersection' as const };
+                    });
+                    return [...merged, ...freePoints];
+                  });
+                }}
                 onMeshClick={handleMeshClick}
                 onLoaded={() => {
                   console.log("Modelo cargado correctamente");
@@ -2348,6 +2550,28 @@ export default function Clinical3D() {
                   {showIntersections ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                 </button>
               </div>
+
+              {/* Modo de puntos editables */}
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                  Puntos ({editablePoints.length})
+                </p>
+                <div className="flex gap-1">
+                  {(['none', 'add', 'delete'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setPointMode(p => p === mode ? 'none' : mode)}
+                      className={`flex-1 py-1.5 text-[10px] rounded-lg font-medium transition-colors ${
+                        pointMode === mode
+                          ? mode === 'add' ? 'bg-cyan-600 text-white' : mode === 'delete' ? 'bg-red-600 text-white' : 'bg-slate-600 text-white'
+                          : 'bg-slate-700/60 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {mode === 'none' ? 'Selec.' : mode === 'add' ? '+ Punto' : '🗑 Borrar'}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -2368,9 +2592,9 @@ export default function Clinical3D() {
 
             {/* Acciones de pie de página - Líneas */}
             <div className="p-4 border-t border-slate-800 bg-slate-900 flex flex-col gap-2">
-              {intersectionPoints.length > 0 && (
+              {editablePoints.length > 0 && (
                 <div className="text-xs text-slate-500 text-center pb-1">
-                  ✓ {intersectionPoints.length} puntos de intersección calculados
+                  ✓ {editablePoints.filter((p: any) => p.type === 'intersection').length} intersecciones · {editablePoints.filter((p: any) => p.type === 'free').length} puntos libres
                 </div>
               )}
               <button
@@ -2379,7 +2603,7 @@ export default function Clinical3D() {
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg"
               >
                 <Save className="w-4 h-4" />
-                Guardar JSON ({referenceLines.length} líneas · {intersectionPoints.length} pts)
+                Guardar JSON ({referenceLines.length} líneas · {editablePoints.length} pts)
               </button>
               {/* Importar JSON */}
               <label className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer border border-slate-600">
