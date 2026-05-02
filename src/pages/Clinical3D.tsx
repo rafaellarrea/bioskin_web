@@ -1261,7 +1261,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     };
 
     // Sweep vertical LIMITADO entre hairlineBottomY y hairlineTopY
-    const sweepVerticalLimited = (fixedX: number, maxY: number, minY: number = -15, steps = 100): THREE.Vector3[] => {
+    const sweepVerticalLimited = (fixedX: number, maxY: number, minY: number = -15, steps = 120): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
       for (let i = 0; i <= steps; i++) {
         const y = -15 + (i / steps) * 30;
@@ -1292,7 +1292,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const sweepDiagonal = (
       anchor1: { x: number; y: number; z: number },
       anchor2: { x: number; y: number; z: number },
-      steps = 80
+      steps = 120
     ): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
       const a1 = new THREE.Vector3(anchor1.x, anchor1.y, anchor1.z);
@@ -1395,45 +1395,87 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     const calcIntersections: { id: string; x: number; y: number; z: number; lineIds: string[] }[] = [];
 
-    // diagonal × diagonal
+    // diagonal × diagonal: proximidad 3D entre paths barridos (más robusto que fórmula 2D)
     for (let i = 0; i < twoPointsLines.length; i++) {
       for (let j = i + 1; j < twoPointsLines.length; j++) {
         const tp1 = twoPointsLines[i];
         const tp2 = twoPointsLines[j];
-        if (!tp1.anchors || tp1.anchors.length < 2 || !tp2.anchors || tp2.anchors.length < 2) continue;
-        const x0 = tp1.anchors[0].x, y0 = tp1.anchors[0].y;
-        const x1 = tp1.anchors[1].x, y1 = tp1.anchors[1].y;
-        const x2 = tp2.anchors[0].x, y2 = tp2.anchors[0].y;
-        const x3 = tp2.anchors[1].x, y3 = tp2.anchors[1].y;
-        const denom = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3);
-        if (Math.abs(denom) < 1e-6) continue; // paralelas
-        const t = ((x0 - x2) * (y2 - y3) - (y0 - y2) * (x2 - x3)) / denom;
-        // No restringimos t/u al segmento [0,1]: las diagonales se extienden
-        // más allá de los anchors al hacer sweep; raycastPoint filtra si cae fuera de la cara
-        const ix = x0 + t * (x1 - x0);
-        const iy = y0 + t * (y1 - y0);
-        const pt = raycastPoint(ix, iy);
-        if (pt) {
-          calcIntersections.push({ id: `int-${tp1.id}-${tp2.id}`, x: pt.x, y: pt.y, z: pt.z, lineIds: [tp1.id, tp2.id] });
+
+        const path1 = newLinePaths.find(lp => lp.lineId === tp1.id)?.pts ?? [];
+        const path2 = newLinePaths.find(lp => lp.lineId === tp2.id)?.pts ?? [];
+        if (path1.length === 0 || path2.length === 0) continue;
+
+        // Encontrar el par de puntos (uno de cada path) con menor distancia 3D
+        let bestDist = Infinity;
+        let bestMid: THREE.Vector3 | null = null;
+
+        for (const p1 of path1) {
+          for (const p2 of path2) {
+            const d = p1.distanceTo(p2);
+            if (d < bestDist) {
+              bestDist = d;
+              bestMid = p1.clone().add(p2).multiplyScalar(0.5);
+            }
+          }
+        }
+
+        // Umbral: las líneas se consideran cruzadas si los paths pasan a menos de 0.4 unidades
+        if (bestMid && bestDist < 0.4) {
+          calcIntersections.push({
+            id: `int-${tp1.id}-${tp2.id}`,
+            x: bestMid.x, y: bestMid.y, z: bestMid.z,
+            lineIds: [tp1.id, tp2.id],
+          });
         }
       }
     }
 
-    // diagonal × Línea Media Nasal
+    // diagonal × Línea Media Nasal: buscar el punto del path diagonal con x más cercano a vOff
     if (lineaMediaNasal) {
       const vOff = lineaMediaNasal.offset ?? 0;
+      const vPath = newLinePaths.find(lp => lp.lineId === lineaMediaNasal.id)?.pts ?? [];
+
       twoPointsLines.forEach((tp: ReferenceLine) => {
-        if (!tp.anchors || tp.anchors.length < 2) return;
-        const x0 = tp.anchors[0].x, y0 = tp.anchors[0].y;
-        const x1 = tp.anchors[1].x, y1 = tp.anchors[1].y;
-        if (x0 === x1) return;
-        const t = (vOff - x0) / (x1 - x0);
-        // No restringimos t a [0,1]: la diagonal se extiende más allá de los anchors
-        const interpY = y0 + t * (y1 - y0);
-        if (interpY > hairlineTopY || interpY < hairlineBottomY) return;
-        const pt = raycastPoint(vOff, interpY);
-        if (pt) {
-          calcIntersections.push({ id: `int-${lineaMediaNasal.id}-${tp.id}`, x: pt.x, y: pt.y, z: pt.z, lineIds: [lineaMediaNasal.id, tp.id] });
+        const tpPath = newLinePaths.find(lp => lp.lineId === tp.id)?.pts ?? [];
+        if (tpPath.length === 0) return;
+
+        // Usar proximidad entre paths si hay path de la línea nasal,
+        // o buscar el punto del tpPath con x más cercano a vOff
+        if (vPath.length > 0) {
+          // Proximidad 3D entre ambos paths
+          let bestDist = Infinity;
+          let bestMid: THREE.Vector3 | null = null;
+          for (const p1 of vPath) {
+            for (const p2 of tpPath) {
+              const d = p1.distanceTo(p2);
+              if (d < bestDist) {
+                bestDist = d;
+                bestMid = p1.clone().add(p2).multiplyScalar(0.5);
+              }
+            }
+          }
+          if (bestMid && bestDist < 0.4) {
+            calcIntersections.push({
+              id: `int-${lineaMediaNasal.id}-${tp.id}`,
+              x: bestMid.x, y: bestMid.y, z: bestMid.z,
+              lineIds: [lineaMediaNasal.id, tp.id],
+            });
+          }
+        } else {
+          // Fallback: punto del path diagonal con x más cercano a vOff
+          let bestDist = Infinity;
+          let bestPt: THREE.Vector3 | null = null;
+          tpPath.forEach(p => {
+            const d = Math.abs(p.x - vOff);
+            if (d < bestDist) { bestDist = d; bestPt = p.clone(); }
+          });
+          if (bestPt && bestDist < 0.15) {
+            calcIntersections.push({
+              id: `int-${lineaMediaNasal.id}-${tp.id}`,
+              x: (bestPt as THREE.Vector3).x, y: (bestPt as THREE.Vector3).y, z: (bestPt as THREE.Vector3).z,
+              lineIds: [lineaMediaNasal.id, tp.id],
+            });
+          }
         }
       });
     }
