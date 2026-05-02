@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar, Check, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar, Check, AlertCircle, Pill } from 'lucide-react';
 import prescriptionOptions from '../../data/prescription_options.json';
 import { Tooltip } from '../../../../ui/Tooltip';
 
@@ -388,25 +388,52 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
           Historial de Recetas
         </div>
         <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
-          {prescriptions.map((p, index) => (
+          {prescriptions.map((p, index) => {
+            const rawDate = p.fecha || '';
+            const dateObj = rawDate ? new Date(rawDate.includes('T') ? rawDate : rawDate + 'T12:00:00') : null;
+            const dateFormatted = dateObj && !isNaN(dateObj.getTime())
+              ? dateObj.toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })
+              : rawDate;
+            const itemCount = Array.isArray(p.items) ? p.items.filter(i => i.medicamento || i.nombre_comercial).length : null;
+            const isSelected = currentPrescription.id === p.id;
+            return (
             <motion.div
               key={p.id || index}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => p.id && handleLoadPrescription(p.id)}
               className={`p-4 rounded-xl cursor-pointer border transition-all shadow-sm ${
-                currentPrescription.id === p.id 
-                  ? 'bg-[#deb887] text-white border-[#deb887] shadow-md' 
+                isSelected
+                  ? 'bg-[#deb887] text-white border-[#deb887] shadow-md'
                   : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-[#deb887]/30'
               }`}
             >
-              <div className="font-medium flex justify-between items-center">
-                <span>{p.fecha}</span>
-                <FileText className="w-4 h-4 opacity-70" />
+              {/* Fecha */}
+              <div className={`flex items-center gap-1.5 text-xs font-semibold mb-1.5 ${
+                isSelected ? 'text-white/80' : 'text-[#deb887]'
+              }`}>
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{dateFormatted}</span>
               </div>
-              <div className="text-xs opacity-90 truncate mt-1">{p.diagnostico || 'Sin diagnóstico'}</div>
+              {/* Diagnóstico */}
+              <div className={`font-semibold text-sm leading-tight truncate mb-2 ${
+                isSelected ? 'text-white' : 'text-gray-800'
+              }`}>
+                {p.diagnostico || <span className={`italic font-normal ${ isSelected ? 'text-white/60' : 'text-gray-400'}`}>Sin diagnóstico</span>}
+              </div>
+              {/* Footer */}
+              <div className={`flex items-center justify-between text-xs ${
+                isSelected ? 'text-white/70' : 'text-gray-400'
+              }`}>
+                <div className="flex items-center gap-1">
+                  <Pill className="w-3 h-3" />
+                  <span>{itemCount !== null ? `${itemCount} medicamento${itemCount !== 1 ? 's' : ''}` : 'Ver detalle'}</span>
+                </div>
+                <FileText className="w-3.5 h-3.5 opacity-60" />
+              </div>
             </motion.div>
-          ))}
+            );
+          })}
           {prescriptions.length === 0 && (
             <div className="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
               <AlertCircle className="w-8 h-8 opacity-20" />
