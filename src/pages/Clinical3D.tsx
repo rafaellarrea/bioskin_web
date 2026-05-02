@@ -1098,26 +1098,32 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Núcleo sólido blanco — depthTest:true (default): la mitad interna queda
-        // ocluida por el mallado del modelo, dejando visible solo la mitad que sobresale.
-        const coreGeo = new THREE.SphereGeometry(0.06, 12, 12);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
+        // Núcleo sólido blanco — depthTest:true: mitad interna ocluida por el modelo.
+        // renderOrder:1000 > tubes(999) → siempre encima de las líneas tubulares.
+        const coreGeo = new THREE.SphereGeometry(0.02, 12, 12);
+        const coreMesh = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        coreMesh.renderOrder = 1000;
+        markerGroup.add(coreMesh);
 
-        // Envolvente cristalina — idéntico a Clinical3DViewer (InjectablesTab).
-        // transmission:0.9 da el efecto de "media burbuja de vidrio" que sobresale del modelo.
-        const outerGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        // Envolvente cristalina de vidrio — transmission alta + ior para refracción real.
+        // renderOrder:1000 garantiza que se pinte después de los tubes (renderOrder:999).
+        const outerGeo = new THREE.SphereGeometry(0.04, 16, 16);
         const outerMat = new THREE.MeshPhysicalMaterial({
           color,
           emissive: color,
-          emissiveIntensity: 1.5,
+          emissiveIntensity: 0.6,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.35,
           roughness: 0,
-          transmission: 0.9,
-          thickness: 0.5,
+          transmission: 0.98,
+          thickness: 0.3,
+          ior: 1.5,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0,
         });
-        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
+        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        outerMesh.renderOrder = 1000;
+        markerGroup.add(outerMesh);
 
         group.add(markerGroup);
 
@@ -1339,7 +1345,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       return pts;
     };
 
-    const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.02, dashed = false) => {
+    const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.007, dashed = false) => {
       if (pts.length < 2) return;
       if (dashed) {
         // Segmentos de tubo alternos para simular trazos entrecortados que siguen la superficie
@@ -1379,10 +1385,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     if (showHairline) {
       // Línea superior (hairlineTopY)
       const hlTopPts = sweepSurface(hairlineTopY, false, 80);
-      makeSurfaceTube(hlTopPts, '#ff6b9d', 0.75, 0.015);
+      makeSurfaceTube(hlTopPts, '#ff6b9d', 0.75, 0.005);
       // Línea inferior (hairlineBottomY)
       const hlBotPts = sweepSurface(hairlineBottomY, false, 80);
-      makeSurfaceTube(hlBotPts, '#f97316', 0.75, 0.015);
+      makeSurfaceTube(hlBotPts, '#f97316', 0.75, 0.005);
     }
 
     // ── Líneas de referencia ──
@@ -1398,17 +1404,17 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       if (!line.visible) return;
       if (line.type === 'vertical') {
         const pts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY);
-        makeSurfaceTube(pts, line.color, 1.0, 0.02, (line as any).dashed);
+        makeSurfaceTube(pts, line.color, 1.0, 0.007, (line as any).dashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'horizontal') {
         const pts = sweepSurface(line.offset ?? 0, false);
-        makeSurfaceTube(pts, line.color, 1.0, 0.02, (line as any).dashed);
+        makeSurfaceTube(pts, line.color, 1.0, 0.007, (line as any).dashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'two-points') {
         const anchors = line.anchors;
         if (anchors && anchors.length >= 2) {
           const pts = sweepDiagonal(anchors[0], anchors[1]);
-          makeSurfaceTube(pts, line.color, 1.0, 0.02, (line as any).dashed);
+          makeSurfaceTube(pts, line.color, 1.0, 0.007, (line as any).dashed);
           newLinePaths.push({ lineId: line.id, pts });
         }
       }
@@ -1478,22 +1484,29 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           ptGroup.userData.epType = 'intersection';
           ptGroup.userData.pointName = 'Intersección';
           ptGroup.position.set(ipt.x, ipt.y, ipt.z);
-          // Núcleo sólido — depthTest:true → mitad interna ocluida por el modelo
-          const iCoreGeo = new THREE.SphereGeometry(0.06, 12, 12);
-          ptGroup.add(new THREE.Mesh(iCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff })));
-          // Envolvente cristal cian (mismo estilo que marcadores Puntual)
-          const geo = new THREE.SphereGeometry(0.12, 16, 16);
+          // Núcleo sólido — renderOrder:1000 → encima de los tubes (999)
+          const iCoreGeo = new THREE.SphereGeometry(0.02, 12, 12);
+          const iCoreMesh = new THREE.Mesh(iCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+          iCoreMesh.renderOrder = 1000;
+          ptGroup.add(iCoreMesh);
+          // Envolvente cristal cian
+          const geo = new THREE.SphereGeometry(0.04, 16, 16);
           const mat = new THREE.MeshPhysicalMaterial({
             color: new THREE.Color(0x00eeff),
             emissive: new THREE.Color(0x00eeff),
-            emissiveIntensity: 1.5,
+            emissiveIntensity: 0.6,
             transparent: true,
-            opacity: 0.8,
+            opacity: 0.35,
             roughness: 0,
-            transmission: 0.9,
-            thickness: 0.5,
+            transmission: 0.98,
+            thickness: 0.3,
+            ior: 1.5,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0,
           });
-          ptGroup.add(new THREE.Mesh(geo, mat));
+          const sphere = new THREE.Mesh(geo, mat);
+          sphere.renderOrder = 1000;
+          ptGroup.add(sphere);
           epGroup.add(ptGroup);
         });
       }
@@ -1524,22 +1537,29 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       ptGroup.userData.epType = 'free';
       ptGroup.userData.pointName = pt.name || 'Punto libre';
       ptGroup.position.set(pt.x, pt.y, pt.z);
-      // Núcleo sólido — depthTest:true → mitad interna ocluida por el modelo
-      const fCoreGeo = new THREE.SphereGeometry(0.06, 12, 12);
-      ptGroup.add(new THREE.Mesh(fCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff })));
-      // Envolvente cristal amarillo (mismo estilo que marcadores Puntual)
-      const geo = new THREE.SphereGeometry(0.12, 16, 16);
+      // Núcleo sólido — renderOrder:1000 → encima de los tubes (999)
+      const fCoreGeo = new THREE.SphereGeometry(0.02, 12, 12);
+      const fCoreMesh = new THREE.Mesh(fCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      fCoreMesh.renderOrder = 1000;
+      ptGroup.add(fCoreMesh);
+      // Envolvente cristal amarillo
+      const geo = new THREE.SphereGeometry(0.04, 16, 16);
       const mat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(0xffdd00),
         emissive: new THREE.Color(0xffdd00),
-        emissiveIntensity: 1.5,
+        emissiveIntensity: 0.6,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.35,
         roughness: 0,
-        transmission: 0.9,
-        thickness: 0.5,
+        transmission: 0.98,
+        thickness: 0.3,
+        ior: 1.5,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0,
       });
-      ptGroup.add(new THREE.Mesh(geo, mat));
+      const sphere = new THREE.Mesh(geo, mat);
+      sphere.renderOrder = 1000;
+      ptGroup.add(sphere);
       group.add(ptGroup);
     });
   }, [editablePoints]);
