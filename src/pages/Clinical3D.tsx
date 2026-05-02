@@ -1088,19 +1088,19 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Envoltura exterior de color
-        const outerGeo = new THREE.SphereGeometry(0.22, 20, 20);
-        const outerMat = new THREE.MeshPhysicalMaterial({
-          color, emissive: color, emissiveIntensity: 1.2,
-          transparent: true, opacity: 0.85, roughness: 0,
-          transmission: 0, thickness: 0,
-        });
-        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
-
-        // Núcleo blanco interior
-        const coreGeo = new THREE.SphereGeometry(0.09, 14, 14);
+        // Núcleo blanco — igual que en inyectables
+        const coreGeo = new THREE.SphereGeometry(0.10, 14, 14);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
+
+        // Envoltura cristalina de color — mismo material que Clinical3DViewer (inyectables)
+        const outerGeo = new THREE.SphereGeometry(0.22, 20, 20);
+        const outerMat = new THREE.MeshPhysicalMaterial({
+          color, emissive: color, emissiveIntensity: 1.5,
+          transparent: true, opacity: 0.8, roughness: 0,
+          transmission: 0.9, thickness: 0.5,
+        });
+        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
         
         group.add(markerGroup);
 
