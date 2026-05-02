@@ -994,9 +994,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
                   metalness: 0.05,
                   clearcoat: 0.15,
                   clearcoatRoughness: 0.3,
-                  transmission: 0.05,
-                  thickness: 1.5,
-                  side: THREE.DoubleSide
+                  side: THREE.FrontSide
                 });
              }
         });
@@ -1090,25 +1088,19 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Envoltura exterior de color del patología (opaco, igual que los puntos cyan que sí funcionan)
-        // IMPORTANTE: NO usar transparent:true — mete el objeto en el queue transparente con sort
-        // por distancia, lo que hace que desaparezcan según el ángulo con depthTest:false.
-        const outerGeo = new THREE.SphereGeometry(0.30, 24, 24);
-        const outerMat = new THREE.MeshBasicMaterial({
-          color: color,
-          depthTest: false,
-          depthWrite: false,
+        // Envoltura exterior de color
+        const outerGeo = new THREE.SphereGeometry(0.22, 20, 20);
+        const outerMat = new THREE.MeshPhysicalMaterial({
+          color, emissive: color, emissiveIntensity: 1.2,
+          transparent: true, opacity: 0.85, roughness: 0,
+          transmission: 0, thickness: 0,
         });
-        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
-        outerMesh.renderOrder = 1000;
-        markerGroup.add(outerMesh);
+        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
 
-        // Núcleo blanco interior (renderiza encima, mismo patrón que cyan dots)
-        const coreGeo = new THREE.SphereGeometry(0.13, 16, 16);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
-        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-        coreMesh.renderOrder = 1001;
-        markerGroup.add(coreMesh);
+        // Núcleo blanco interior
+        const coreGeo = new THREE.SphereGeometry(0.09, 14, 14);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
         
         group.add(markerGroup);
 
