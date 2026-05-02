@@ -1088,20 +1088,29 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Núcleo blanco — igual que en inyectables
-        const coreGeo = new THREE.SphereGeometry(0.10, 14, 14);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
-
-        // Envoltura cristalina de color — mismo material que Clinical3DViewer (inyectables)
-        const outerGeo = new THREE.SphereGeometry(0.22, 20, 20);
+        // Envoltura exterior brillante con efecto 3D (sin transmission para evitar conflicto con los tubes)
+        // emissive + roughness:0.05 da aspecto cristalino iluminado sin mezclar con la escena de fondo
+        const outerGeo = new THREE.SphereGeometry(0.22, 24, 24);
         const outerMat = new THREE.MeshPhysicalMaterial({
-          color, emissive: color, emissiveIntensity: 1.5,
-          transparent: true, opacity: 0.8, roughness: 0,
-          transmission: 0.9, thickness: 0.5,
+          color,
+          emissive: color,
+          emissiveIntensity: 1.6,
+          roughness: 0.05,
+          metalness: 0.1,
+          depthTest: false,
+          depthWrite: false,
         });
-        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
-        
+        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        outerMesh.renderOrder = 1001;
+        markerGroup.add(outerMesh);
+
+        // Núcleo blanco siempre encima — da el punto brillante interior 3D
+        const coreGeo = new THREE.SphereGeometry(0.09, 14, 14);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        coreMesh.renderOrder = 1002;
+        markerGroup.add(coreMesh);
+
         group.add(markerGroup);
 
       } else if (marker.type === 'Zonal' && faceMesh) {
