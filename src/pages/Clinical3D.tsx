@@ -548,20 +548,28 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const hits = raycaster.intersectObjects(meshObjects2, false);
         if (hits.length > 0) {
           const mouseWorld = hits[0].point;
-          // Buscar el punto más cercano sobre las rutas de las líneas que le corresponden
-          let bestPt: THREE.Vector3 | null = null;
-          let bestDist = Infinity;
+          // Proyección sobre el segmento más cercano de cada línea → movimiento continuo y fluido.
+          // El punto puede soltarse en cualquier posición de la línea, no solo en intersecciones.
           const paths = linePathsRef.current.filter(lp => draggedEditableLineIds.includes(lp.lineId));
           if (paths.length > 0) {
+            let bestPt: THREE.Vector3 | null = null;
+            let bestDist = Infinity;
             paths.forEach(lp => {
-              lp.pts.forEach(pt => {
-                const d = pt.distanceTo(mouseWorld);
-                if (d < bestDist) { bestDist = d; bestPt = pt.clone(); }
-              });
+              for (let i = 0; i < lp.pts.length - 1; i++) {
+                const a = lp.pts[i];
+                const b = lp.pts[i + 1];
+                const ab = b.clone().sub(a);
+                const lenSq = ab.dot(ab);
+                if (lenSq < 1e-10) continue;
+                const t = Math.max(0, Math.min(1, mouseWorld.clone().sub(a).dot(ab) / lenSq));
+                const proj = a.clone().addScaledVector(ab, t);
+                const d = proj.distanceTo(mouseWorld);
+                if (d < bestDist) { bestDist = d; bestPt = proj; }
+              }
             });
             if (bestPt) draggedEditableGroup!.position.copy(bestPt);
           } else {
-            // Sin restricción de línea (punto libre)
+            // Sin restricción de línea (punto libre): se mueve libremente por el modelo
             draggedEditableGroup.position.copy(mouseWorld);
           }
         }
@@ -987,14 +995,16 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
              if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
-                // Material Clínico
+                // DoubleSide: rellena el depth buffer desde ambas caras.
+                // Sin esto las esferas del frente son visibles al rotar 180° porque
+                // las caras traseras del modelo no escriben en el buffer de profundidad.
                 child.material = new THREE.MeshPhysicalMaterial({
                   color: 0xfae3db,
                   roughness: 0.45,
                   metalness: 0.05,
                   clearcoat: 0.15,
                   clearcoatRoughness: 0.3,
-                  side: THREE.FrontSide
+                  side: THREE.DoubleSide
                 });
              }
         });
@@ -1088,30 +1098,26 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Envoltura exterior: emissiveIntensity bajo para que los lights creen shading 3D real.
-        // transparent:true + depthTest:false garantiza que siempre se vea sobre el modelo y sobre los tubes (renderOrder 999).
-        const outerGeo = new THREE.SphereGeometry(0.18, 24, 24);
+        // Núcleo sólido blanco — depthTest:true (default): la mitad interna queda
+        // ocluida por el mallado del modelo, dejando visible solo la mitad que sobresale.
+        const coreGeo = new THREE.SphereGeometry(0.06, 12, 12);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
+
+        // Envolvente cristalina — idéntico a Clinical3DViewer (InjectablesTab).
+        // transmission:0.9 da el efecto de "media burbuja de vidrio" que sobresale del modelo.
+        const outerGeo = new THREE.SphereGeometry(0.12, 16, 16);
         const outerMat = new THREE.MeshPhysicalMaterial({
           color,
           emissive: color,
-          emissiveIntensity: 0.5,  // Reducido: los lights generan highlight especular que da apariencia 3D
-          roughness: 0.05,         // Casi espejo: highlight especular nítido y brillante
-          metalness: 0.1,
-          transparent: true,       // Cola de transparentes → se compone correctamente sobre el modelo
-          opacity: 0.92,
-          depthTest: false,        // Siempre visible, nunca ocluido por la malla
-          depthWrite: false,
+          emissiveIntensity: 1.5,
+          transparent: true,
+          opacity: 0.8,
+          roughness: 0,
+          transmission: 0.9,
+          thickness: 0.5,
         });
-        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
-        outerMesh.renderOrder = 1001;
-        markerGroup.add(outerMesh);
-
-        // Núcleo blanco — punto de brillo central que refuerza la apariencia esférica
-        const coreGeo = new THREE.SphereGeometry(0.07, 14, 14);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
-        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-        coreMesh.renderOrder = 1002;
-        markerGroup.add(coreMesh);
+        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
 
         group.add(markerGroup);
 
@@ -1472,28 +1478,22 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           ptGroup.userData.epType = 'intersection';
           ptGroup.userData.pointName = 'Intersección';
           ptGroup.position.set(ipt.x, ipt.y, ipt.z);
-          // Núcleo blanco — brillo central
-          const iCoreGeo = new THREE.SphereGeometry(0.04, 12, 12);
-          const iCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
-          const iCoreMesh = new THREE.Mesh(iCoreGeo, iCoreMat);
-          iCoreMesh.renderOrder = 1002;
-          ptGroup.add(iCoreMesh);
-          // Esfera exterior con sombreado 3D real
-          const geo = new THREE.SphereGeometry(0.09, 16, 16);
+          // Núcleo sólido — depthTest:true → mitad interna ocluida por el modelo
+          const iCoreGeo = new THREE.SphereGeometry(0.06, 12, 12);
+          ptGroup.add(new THREE.Mesh(iCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff })));
+          // Envolvente cristal cian (mismo estilo que marcadores Puntual)
+          const geo = new THREE.SphereGeometry(0.12, 16, 16);
           const mat = new THREE.MeshPhysicalMaterial({
             color: new THREE.Color(0x00eeff),
             emissive: new THREE.Color(0x00eeff),
-            emissiveIntensity: 0.5,
-            roughness: 0.05,
-            metalness: 0.1,
+            emissiveIntensity: 1.5,
             transparent: true,
-            opacity: 0.92,
-            depthTest: false,
-            depthWrite: false,
+            opacity: 0.8,
+            roughness: 0,
+            transmission: 0.9,
+            thickness: 0.5,
           });
-          const sphere = new THREE.Mesh(geo, mat);
-          sphere.renderOrder = 1001;
-          ptGroup.add(sphere);
+          ptGroup.add(new THREE.Mesh(geo, mat));
           epGroup.add(ptGroup);
         });
       }
@@ -1524,28 +1524,22 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       ptGroup.userData.epType = 'free';
       ptGroup.userData.pointName = pt.name || 'Punto libre';
       ptGroup.position.set(pt.x, pt.y, pt.z);
-      // Núcleo blanco — brillo central
-      const fCoreGeo = new THREE.SphereGeometry(0.04, 12, 12);
-      const fCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
-      const fCoreMesh = new THREE.Mesh(fCoreGeo, fCoreMat);
-      fCoreMesh.renderOrder = 1002;
-      ptGroup.add(fCoreMesh);
-      // Esfera exterior con sombreado 3D real
-      const geo = new THREE.SphereGeometry(0.09, 16, 16);
+      // Núcleo sólido — depthTest:true → mitad interna ocluida por el modelo
+      const fCoreGeo = new THREE.SphereGeometry(0.06, 12, 12);
+      ptGroup.add(new THREE.Mesh(fCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff })));
+      // Envolvente cristal amarillo (mismo estilo que marcadores Puntual)
+      const geo = new THREE.SphereGeometry(0.12, 16, 16);
       const mat = new THREE.MeshPhysicalMaterial({
         color: new THREE.Color(0xffdd00),
         emissive: new THREE.Color(0xffdd00),
-        emissiveIntensity: 0.5,
-        roughness: 0.05,
-        metalness: 0.1,
+        emissiveIntensity: 1.5,
         transparent: true,
-        opacity: 0.92,
-        depthTest: false,
-        depthWrite: false,
+        opacity: 0.8,
+        roughness: 0,
+        transmission: 0.9,
+        thickness: 0.5,
       });
-      const sphere = new THREE.Mesh(geo, mat);
-      sphere.renderOrder = 1001;
-      ptGroup.add(sphere);
+      ptGroup.add(new THREE.Mesh(geo, mat));
       group.add(ptGroup);
     });
   }, [editablePoints]);
