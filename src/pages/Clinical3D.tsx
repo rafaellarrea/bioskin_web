@@ -1090,24 +1090,19 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Núcleo interno (siempre visible, sin ser cortado por la malla del modelo)
-        const coreGeo = new THREE.SphereGeometry(0.2, 16, 16);
+        // Núcleo interno — siempre visible sobre el modelo (sin corte por depth buffer)
+        const coreGeo = new THREE.SphereGeometry(0.18, 16, 16);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
         const coreMesh = new THREE.Mesh(coreGeo, coreMat);
         coreMesh.renderOrder = 1001;
         markerGroup.add(coreMesh);
 
-        // Envoltura luminosa
-        const outerGeo = new THREE.SphereGeometry(0.4, 32, 32);
-        const outerMat = new THREE.MeshPhysicalMaterial({
+        // Envoltura de color — MeshBasicMaterial evita problemas de transmission con depthTest:false
+        const outerGeo = new THREE.SphereGeometry(0.38, 32, 32);
+        const outerMat = new THREE.MeshBasicMaterial({
           color: color,
-          emissive: color,
-          emissiveIntensity: 1.5,
           transparent: true,
-          opacity: 0.8,
-          roughness: 0,
-          transmission: 0.9,
-          thickness: 0.5,
+          opacity: 0.75,
           depthTest: false,
           depthWrite: false,
         });
@@ -1281,26 +1276,23 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       return pts;
     };
 
-    // Elimina hundimientos en paths horizontales (p.ej. socket del ojo) usando
-    // máximo Z local: si un punto cae más de `threshold` por debajo del máximo
-    // en su ventana vecina, se eleva al nivel del máximo vecino.
-    const removeDips = (pts: THREE.Vector3[], threshold = 0.35, windowHalf = 8): THREE.Vector3[] => {
-      if (pts.length < 3) return pts;
-      // Primera pasada: calcular envolvente de máximo Z con la ventana dada
-      const maxZEnv = pts.map((_, i) => {
-        const lo = Math.max(0, i - windowHalf);
-        const hi = Math.min(pts.length - 1, i + windowHalf);
-        let mx = -Infinity;
-        for (let j = lo; j <= hi; j++) mx = Math.max(mx, pts[j].z);
-        return mx;
-      });
-      // Segunda pasada: levantar puntos que caigan por debajo del umbral
-      return pts.map((pt, i) => {
-        if (maxZEnv[i] - pt.z > threshold) {
-          return new THREE.Vector3(pt.x, pt.y, maxZEnv[i]);
+    // Para líneas horizontales: corregir hundimientos en zonas cóncavas profundas (socket ocular ~2-3u).
+    // Threshold 1.2 solo captura caídas bruscas; la curvatura natural de la cara (<0.8u) no se toca.
+    // Múltiples pasadas: cada una cierra el dip un punto desde cada borde hasta bridgearlo por completo.
+    const bridgeConcavities = (pts: THREE.Vector3[], threshold = 1.2): THREE.Vector3[] => {
+      if (pts.length < 4) return pts;
+      const out = pts.map(p => p.clone());
+      for (let pass = 0; pass < 4; pass++) {
+        for (let i = 1; i < out.length - 1; i++) {
+          const prev = out[i - 1].z;
+          const next = out[i + 1].z;
+          const lo = Math.min(prev, next);
+          if (lo - out[i].z > threshold) {
+            out[i].z = (prev + next) / 2; // interpolar Z sobre la concavidad
+          }
         }
-        return pt;
-      });
+      }
+      return out;
     };
 
     const sweepSurface = (fixedVal: number, isVertical: boolean, steps = 80): THREE.Vector3[] => {
@@ -1314,8 +1306,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const hits = raycaster.intersectObjects(meshObjects, false);
         if (hits.length > 0) pts.push(hits[0].point.clone());
       }
-      // Para líneas horizontales, suavizar los hundimientos en zonas cóncavas (ojo, etc.)
-      if (!isVertical) return removeDips(pts);
+      // Solo para horizontales: corregir hundimientos en el socket ocular
+      if (!isVertical) return bridgeConcavities(pts);
       return pts;
     };
 
