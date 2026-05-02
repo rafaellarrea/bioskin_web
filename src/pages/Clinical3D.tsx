@@ -1261,7 +1261,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     };
 
     // Sweep vertical LIMITADO entre hairlineBottomY y hairlineTopY
-    const sweepVerticalLimited = (fixedX: number, maxY: number, minY: number = -15, steps = 120): THREE.Vector3[] => {
+    const sweepVerticalLimited = (fixedX: number, maxY: number, minY: number = -15, steps = 100): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
       for (let i = 0; i <= steps; i++) {
         const y = -15 + (i / steps) * 30;
@@ -1292,7 +1292,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const sweepDiagonal = (
       anchor1: { x: number; y: number; z: number },
       anchor2: { x: number; y: number; z: number },
-      steps = 120
+      steps = 80
     ): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
       const a1 = new THREE.Vector3(anchor1.x, anchor1.y, anchor1.z);
@@ -1311,38 +1311,37 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.02, dashed = false) => {
       if (pts.length < 2) return;
       if (dashed) {
-        // Línea entrecortada con LineDashedMaterial
-        const positions: number[] = [];
-        pts.forEach(p => positions.push(p.x, p.y, p.z));
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        const mat = new THREE.LineDashedMaterial({
-          color: new THREE.Color(color),
-          transparent: true,
-          opacity,
-          dashSize: 0.12,
-          gapSize: 0.08,
-          depthTest: false,
-          depthWrite: false,
-        });
-        const line = new THREE.Line(geo, mat);
-        line.computeLineDistances();
-        line.renderOrder = 999;
-        linesGroup.add(line);
-      } else {
-        const curve = new THREE.CatmullRomCurve3(pts);
-        const geo = new THREE.TubeGeometry(curve, pts.length * 2, radius, 8, false);
-        const mat = new THREE.MeshBasicMaterial({
-          color: new THREE.Color(color),
-          transparent: true,
-          opacity,
-          depthTest: false,
-          depthWrite: false,
-        });
-        const tube = new THREE.Mesh(geo, mat);
-        tube.renderOrder = 999;
-        linesGroup.add(tube);
+        // Segmentos de tubo alternos para simular trazos entrecortados que siguen la superficie
+        const dashLen = 5; // puntos por trazo
+        const gapLen = 3;  // puntos de hueco
+        let i = 0;
+        while (i < pts.length) {
+          const segPts = pts.slice(i, i + dashLen);
+          if (segPts.length >= 2) {
+            const curve = new THREE.CatmullRomCurve3(segPts);
+            const geo = new THREE.TubeGeometry(curve, segPts.length, radius * 0.8, 6, false);
+            const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity, depthTest: false, depthWrite: false });
+            const tube = new THREE.Mesh(geo, mat);
+            tube.renderOrder = 999;
+            linesGroup.add(tube);
+          }
+          i += dashLen + gapLen;
+        }
+        return;
       }
+      // Línea continua estándar
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const geo = new THREE.TubeGeometry(curve, pts.length * 2, radius, 8, false);
+      const mat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(color),
+        transparent: true,
+        opacity,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const tube = new THREE.Mesh(geo, mat);
+      tube.renderOrder = 999;
+      linesGroup.add(tube);
     };
 
     // ── Hairline limit lines ──
@@ -1386,157 +1385,108 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     linePathsRef.current = newLinePaths;
 
-    // ── Cálculo de intersecciones ──
-    // REGLA: solo diagonales × diagonales  Y  diagonales × "Línea Media Nasal"
+    // ── Cálculo de intersecciones: TODOS los tipos de líneas ──────────────────
     const visibleLines = referenceLines.filter((l: ReferenceLine) => l.visible);
-    const twoPointsLines = visibleLines.filter((l: ReferenceLine) => l.type === 'two-points');
-    // La línea media nasal es la vertical central
-    const lineaMediaNasal = visibleLines.find((l: ReferenceLine) => l.type === 'vertical' && l.label === 'Línea Media Nasal');
-
     const calcIntersections: { id: string; x: number; y: number; z: number; lineIds: string[] }[] = [];
 
-    // diagonal × diagonal: proximidad 3D entre paths barridos (más robusto que fórmula 2D)
-    for (let i = 0; i < twoPointsLines.length; i++) {
-      for (let j = i + 1; j < twoPointsLines.length; j++) {
-        const tp1 = twoPointsLines[i];
-        const tp2 = twoPointsLines[j];
-
-        const path1 = newLinePaths.find(lp => lp.lineId === tp1.id)?.pts ?? [];
-        const path2 = newLinePaths.find(lp => lp.lineId === tp2.id)?.pts ?? [];
-        if (path1.length === 0 || path2.length === 0) continue;
-
-        // Encontrar el par de puntos (uno de cada path) con menor distancia 3D
-        let bestDist = Infinity;
-        let bestMid: THREE.Vector3 | null = null;
-
-        for (const p1 of path1) {
-          for (const p2 of path2) {
-            const d = p1.distanceTo(p2);
-            if (d < bestDist) {
-              bestDist = d;
-              bestMid = p1.clone().add(p2).multiplyScalar(0.5);
-            }
+    // Helper: par de puntos más cercano entre dos paths
+    const findClosestPair = (pathA: THREE.Vector3[], pathB: THREE.Vector3[]) => {
+      let bestDist = Infinity;
+      let bestMid: THREE.Vector3 | null = null;
+      for (const p1 of pathA) {
+        for (const p2 of pathB) {
+          const d = p1.distanceTo(p2);
+          if (d < bestDist) {
+            bestDist = d;
+            bestMid = p1.clone().add(p2).multiplyScalar(0.5);
           }
         }
+      }
+      return { bestDist, bestMid };
+    };
 
-        // Umbral: las líneas se consideran cruzadas si los paths pasan a menos de 0.4 unidades
-        if (bestMid && bestDist < 0.4) {
+    const THRESHOLD = 0.40; // unidades 3D
+
+    for (let i = 0; i < visibleLines.length; i++) {
+      for (let j = i + 1; j < visibleLines.length; j++) {
+        const lineA = visibleLines[i];
+        const lineB = visibleLines[j];
+        // Omitir pares paralelos del mismo tipo que nunca se cruzan
+        if (lineA.type === lineB.type && (lineA.type === 'vertical' || lineA.type === 'horizontal')) continue;
+        const pathA = newLinePaths.find(lp => lp.lineId === lineA.id)?.pts ?? [];
+        const pathB = newLinePaths.find(lp => lp.lineId === lineB.id)?.pts ?? [];
+        if (pathA.length === 0 || pathB.length === 0) continue;
+        const { bestDist, bestMid } = findClosestPair(pathA, pathB);
+        if (bestMid && bestDist < THRESHOLD) {
           calcIntersections.push({
-            id: `int-${tp1.id}-${tp2.id}`,
+            id: `int-${lineA.id}-${lineB.id}`,
             x: bestMid.x, y: bestMid.y, z: bestMid.z,
-            lineIds: [tp1.id, tp2.id],
+            lineIds: [lineA.id, lineB.id],
           });
         }
       }
     }
 
-    // diagonal × Línea Media Nasal: buscar el punto del path diagonal con x más cercano a vOff
-    if (lineaMediaNasal) {
-      const vOff = lineaMediaNasal.offset ?? 0;
-      const vPath = newLinePaths.find(lp => lp.lineId === lineaMediaNasal.id)?.pts ?? [];
-
-      twoPointsLines.forEach((tp: ReferenceLine) => {
-        const tpPath = newLinePaths.find(lp => lp.lineId === tp.id)?.pts ?? [];
-        if (tpPath.length === 0) return;
-
-        // Usar proximidad entre paths si hay path de la línea nasal,
-        // o buscar el punto del tpPath con x más cercano a vOff
-        if (vPath.length > 0) {
-          // Proximidad 3D entre ambos paths
-          let bestDist = Infinity;
-          let bestMid: THREE.Vector3 | null = null;
-          for (const p1 of vPath) {
-            for (const p2 of tpPath) {
-              const d = p1.distanceTo(p2);
-              if (d < bestDist) {
-                bestDist = d;
-                bestMid = p1.clone().add(p2).multiplyScalar(0.5);
-              }
-            }
-          }
-          if (bestMid && bestDist < 0.4) {
-            calcIntersections.push({
-              id: `int-${lineaMediaNasal.id}-${tp.id}`,
-              x: bestMid.x, y: bestMid.y, z: bestMid.z,
-              lineIds: [lineaMediaNasal.id, tp.id],
-            });
-          }
-        } else {
-          // Fallback: punto del path diagonal con x más cercano a vOff
-          let bestDist = Infinity;
-          let bestPt: THREE.Vector3 | null = null;
-          tpPath.forEach(p => {
-            const d = Math.abs(p.x - vOff);
-            if (d < bestDist) { bestDist = d; bestPt = p.clone(); }
-          });
-          if (bestPt && bestDist < 0.15) {
-            calcIntersections.push({
-              id: `int-${lineaMediaNasal.id}-${tp.id}`,
-              x: (bestPt as THREE.Vector3).x, y: (bestPt as THREE.Vector3).y, z: (bestPt as THREE.Vector3).z,
-              lineIds: [lineaMediaNasal.id, tp.id],
-            });
-          }
-        }
+    // ── Renderizar esferas de intersección DIRECTAMENTE en editablePointsGroupRef ──
+    // (imperativo, sin pasar por el ciclo React de estado→prop→useEffect)
+    if (editablePointsGroupRef.current) {
+      const epGroup = editablePointsGroupRef.current;
+      // Eliminar solo las esferas de tipo 'intersection' (preservar puntos libres)
+      const toRemove = [...epGroup.children].filter(c => c.userData.epType === 'intersection');
+      toRemove.forEach(c => {
+        c.traverse((m: any) => { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); });
+        epGroup.remove(c);
       });
-    }
 
-    // Renderizar esferas de intersección
-    if (showIntersections) {
-      calcIntersections.forEach((ipt) => {
-        const geo = new THREE.SphereGeometry(0.06, 10, 10);
-        const mat = new THREE.MeshBasicMaterial({
-          color: 0xffffff,
-          transparent: true,
-          depthTest: false,
-          depthWrite: false,
+      if (showIntersections) {
+        calcIntersections.forEach(ipt => {
+          const ptGroup = new THREE.Group();
+          ptGroup.userData.isEditablePoint = true;
+          ptGroup.userData.editableId = ipt.id;
+          ptGroup.userData.lineIds = ipt.lineIds;
+          ptGroup.userData.epType = 'intersection';
+          ptGroup.userData.pointName = 'Intersección';
+          ptGroup.position.set(ipt.x, ipt.y, ipt.z);
+          const geo = new THREE.SphereGeometry(0.09, 14, 14);
+          const mat = new THREE.MeshBasicMaterial({ color: 0x00eeff, depthTest: false, depthWrite: false });
+          const sphere = new THREE.Mesh(geo, mat);
+          sphere.renderOrder = 1002;
+          ptGroup.add(sphere);
+          epGroup.add(ptGroup);
         });
-        const sphere = new THREE.Mesh(geo, mat);
-        sphere.position.set(ipt.x, ipt.y, ipt.z);
-        sphere.renderOrder = 1001;
-        linesGroup.add(sphere);
-      });
+      }
     }
 
-    // Notificar al padre los puntos calculados
+    // Notificar al padre los puntos calculados (para JSON export / React state)
     onIntersectionsCalculated(calcIntersections);
 
   }, [referenceLines, modelVersion, showHairline, hairlineTopY, hairlineBottomY, showIntersections]);
 
-  // ── useEffect: Puntos editables (intersecciones + libres) ──────────────────
+  // ── useEffect: solo PUNTOS LIBRES (los de intersección se renderizan directamente en el lines useEffect) ──
   useEffect(() => {
     if (!editablePointsGroupRef.current) return;
     const group = editablePointsGroupRef.current;
-    // Limpiar grupo anterior
-    while (group.children.length > 0) {
-      const child = group.children[0];
-      child.traverse((c: any) => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
-      group.remove(child);
-    }
+    // Eliminar solo puntos libres (preservar los de intersección que maneja el lines useEffect)
+    const toRemove = [...group.children].filter(c => c.userData.epType === 'free');
+    toRemove.forEach(c => {
+      c.traverse((m: any) => { if (m.geometry) m.geometry.dispose(); if (m.material) m.material.dispose(); });
+      group.remove(c);
+    });
 
-    editablePoints.forEach((pt: any) => {
-      const isIntersection = pt.type === 'intersection';
+    const freePoints = editablePoints.filter((pt: any) => pt.type === 'free');
+    freePoints.forEach((pt: any) => {
       const ptGroup = new THREE.Group();
       ptGroup.userData.isEditablePoint = true;
       ptGroup.userData.editableId = pt.id;
-      ptGroup.userData.lineIds = pt.lineIds || [];
-      ptGroup.userData.epType = pt.type;
-      ptGroup.userData.pointName = pt.name || (isIntersection ? 'Intersección' : 'Punto libre');
+      ptGroup.userData.lineIds = [];
+      ptGroup.userData.epType = 'free';
+      ptGroup.userData.pointName = pt.name || 'Punto libre';
       ptGroup.position.set(pt.x, pt.y, pt.z);
-
-      // Esfera principal
-      const color = isIntersection ? 0x00eeff : 0xffdd00;
-      const radius = isIntersection ? 0.07 : 0.06;
-      const geo = new THREE.SphereGeometry(radius, 12, 12);
-      const mat = new THREE.MeshBasicMaterial({
-        color,
-        transparent: false,
-        depthTest: false,
-        depthWrite: false,
-      });
+      const geo = new THREE.SphereGeometry(0.09, 14, 14);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xffdd00, depthTest: false, depthWrite: false });
       const sphere = new THREE.Mesh(geo, mat);
       sphere.renderOrder = 1002;
       ptGroup.add(sphere);
-
       group.add(ptGroup);
     });
   }, [editablePoints]);
