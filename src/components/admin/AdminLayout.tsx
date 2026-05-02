@@ -8,15 +8,24 @@ interface AdminLayoutProps {
   title: string;
   subtitle?: string;
   showBack?: boolean;
+  backPath?: string;
 }
 
-export default function AdminLayout({ children, title, subtitle, showBack = true }: AdminLayoutProps) {
+export default function AdminLayout({ children, title, subtitle, showBack = true, backPath }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { username, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
+  };
+
+  const handleBack = () => {
+    if (backPath) {
+      navigate(backPath);
+    } else {
+      navigate(-1);
+    }
   };
 
   return (
@@ -28,7 +37,7 @@ export default function AdminLayout({ children, title, subtitle, showBack = true
             <div className="flex items-center gap-4">
               {showBack && (
                 <button 
-                  onClick={() => navigate('/admin')}
+                  onClick={handleBack}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
