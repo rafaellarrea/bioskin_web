@@ -1090,10 +1090,12 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Núcleo interno
+        // Núcleo interno (siempre visible, sin ser cortado por la malla del modelo)
         const coreGeo = new THREE.SphereGeometry(0.2, 16, 16);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        coreMesh.renderOrder = 1001;
+        markerGroup.add(coreMesh);
 
         // Envoltura luminosa
         const outerGeo = new THREE.SphereGeometry(0.4, 32, 32);
@@ -1105,9 +1107,13 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           opacity: 0.8,
           roughness: 0,
           transmission: 0.9,
-          thickness: 0.5
+          thickness: 0.5,
+          depthTest: false,
+          depthWrite: false,
         });
-        markerGroup.add(new THREE.Mesh(outerGeo, outerMat));
+        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        outerMesh.renderOrder = 1000;
+        markerGroup.add(outerMesh);
         
         group.add(markerGroup);
 
@@ -1275,6 +1281,28 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       return pts;
     };
 
+    // Elimina hundimientos en paths horizontales (p.ej. socket del ojo) usando
+    // máximo Z local: si un punto cae más de `threshold` por debajo del máximo
+    // en su ventana vecina, se eleva al nivel del máximo vecino.
+    const removeDips = (pts: THREE.Vector3[], threshold = 0.35, windowHalf = 8): THREE.Vector3[] => {
+      if (pts.length < 3) return pts;
+      // Primera pasada: calcular envolvente de máximo Z con la ventana dada
+      const maxZEnv = pts.map((_, i) => {
+        const lo = Math.max(0, i - windowHalf);
+        const hi = Math.min(pts.length - 1, i + windowHalf);
+        let mx = -Infinity;
+        for (let j = lo; j <= hi; j++) mx = Math.max(mx, pts[j].z);
+        return mx;
+      });
+      // Segunda pasada: levantar puntos que caigan por debajo del umbral
+      return pts.map((pt, i) => {
+        if (maxZEnv[i] - pt.z > threshold) {
+          return new THREE.Vector3(pt.x, pt.y, maxZEnv[i]);
+        }
+        return pt;
+      });
+    };
+
     const sweepSurface = (fixedVal: number, isVertical: boolean, steps = 80): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
       for (let i = 0; i <= steps; i++) {
@@ -1286,6 +1314,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const hits = raycaster.intersectObjects(meshObjects, false);
         if (hits.length > 0) pts.push(hits[0].point.clone());
       }
+      // Para líneas horizontales, suavizar los hundimientos en zonas cóncavas (ojo, etc.)
+      if (!isVertical) return removeDips(pts);
       return pts;
     };
 
