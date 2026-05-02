@@ -1090,25 +1090,25 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         markerGroup.userData.markerName = `${pathology?.name ?? 'Punto'} · ${marker.zone || ''}`;
         markerGroup.userData.isMarker = true;
 
-        // Núcleo interno — siempre visible sobre el modelo (sin corte por depth buffer)
-        const coreGeo = new THREE.SphereGeometry(0.18, 16, 16);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
-        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-        coreMesh.renderOrder = 1001;
-        markerGroup.add(coreMesh);
-
-        // Envoltura de color — MeshBasicMaterial evita problemas de transmission con depthTest:false
-        const outerGeo = new THREE.SphereGeometry(0.38, 32, 32);
+        // Envoltura exterior de color del patología (opaco, igual que los puntos cyan que sí funcionan)
+        // IMPORTANTE: NO usar transparent:true — mete el objeto en el queue transparente con sort
+        // por distancia, lo que hace que desaparezcan según el ángulo con depthTest:false.
+        const outerGeo = new THREE.SphereGeometry(0.30, 24, 24);
         const outerMat = new THREE.MeshBasicMaterial({
           color: color,
-          transparent: true,
-          opacity: 0.75,
           depthTest: false,
           depthWrite: false,
         });
         const outerMesh = new THREE.Mesh(outerGeo, outerMat);
         outerMesh.renderOrder = 1000;
         markerGroup.add(outerMesh);
+
+        // Núcleo blanco interior (renderiza encima, mismo patrón que cyan dots)
+        const coreGeo = new THREE.SphereGeometry(0.13, 16, 16);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        coreMesh.renderOrder = 1001;
+        markerGroup.add(coreMesh);
         
         group.add(markerGroup);
 
