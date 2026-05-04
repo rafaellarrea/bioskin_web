@@ -488,6 +488,22 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.renderOrder = 1002;
+      // Orientar el aro perpendicular a la superficie: el eje Z del toro apunta
+      // a lo largo de la normal del polígono que hay debajo del punto.
+      if (faceMeshRef.current) {
+        const rc = new THREE.Raycaster();
+        const orig = new THREE.Vector3(group.position.x, group.position.y, 50);
+        rc.set(orig, new THREE.Vector3(0, 0, -1));
+        const meshes: THREE.Object3D[] = [];
+        faceMeshRef.current.traverse(o => { if ((o as THREE.Mesh).isMesh) meshes.push(o); });
+        const hits = rc.intersectObjects(meshes, false);
+        if (hits.length > 0 && hits[0].face) {
+          const n = hits[0].face.normal.clone()
+            .transformDirection(hits[0].object.matrixWorld)
+            .normalize();
+          ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+        }
+      }
       group.add(ring);
       selectionRingRef.mesh = ring;
     };
@@ -606,13 +622,36 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
                 if (d < bestDist) { bestDist = d; bestPt = proj; }
               }
             });
-            if (bestPt) draggedEditableGroup!.position.copy(bestPt);
+            if (bestPt) {
+              const bp = bestPt as THREE.Vector3; // TypeScript pierde narrowing en closures de forEach
+              // Snap a la superficie real en (bp.x, bp.y) para que el punto
+              // no se hunda en zonas cóncavas (el path interpolado puede pasar por dentro del mesh)
+              const snapOrig = new THREE.Vector3(bp.x, bp.y, 50);
+              raycaster.set(snapOrig, new THREE.Vector3(0, 0, -1));
+              const snapHits = raycaster.intersectObjects(meshObjects2, false);
+              if (snapHits.length > 0 && snapHits[0].face) {
+                const sn = snapHits[0].face.normal.clone()
+                  .transformDirection(snapHits[0].object.matrixWorld)
+                  .normalize();
+                draggedEditableGroup!.position.copy(snapHits[0].point).addScaledVector(sn, 0.02);
+                // Actualizar orientación del aro en tiempo real durante el drag
+                if (selectionRingRef.mesh && draggedEditableId === selectedEditableRef.id) {
+                  selectionRingRef.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), sn);
+                }
+              } else {
+                draggedEditableGroup!.position.copy(bp);
+              }
+            }
           } else {
             // Sin restricción de línea (punto libre): offset sobre la superficie para evitar enterrarse
             const hitFree = hits[0];
             if (hitFree.face) {
               const nFree = hitFree.face.normal.clone().transformDirection(hitFree.object.matrixWorld).normalize();
               draggedEditableGroup.position.copy(hitFree.point).addScaledVector(nFree, 0.03);
+              // Actualizar orientación del aro en tiempo real durante el drag
+              if (selectionRingRef.mesh && draggedEditableId === selectedEditableRef.id) {
+                selectionRingRef.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), nFree);
+              }
             } else {
               draggedEditableGroup.position.copy(mouseWorld);
             }
@@ -985,7 +1024,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     // ── Teclado: mover punto seleccionado con flechas, borrar, deshacer ──────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
-      // ── Ctrl+Z / Cmd+Z: deshacer última acción ─────────────────────────
+      // ── Ctrl+Z / Cmd+Z: deshacer última acción (funciona sin selección activa) ──
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         const action = undoStack.pop();
@@ -1010,46 +1049,53 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         return;
       }
 
-      if (!selectedEditableRef.id || !selectedEditableRef.group) return;
-
       // ── Escape: deseleccionar punto ────────────────────────────────────
       if (e.key === 'Escape') {
-        clearSelectionRing();
-        selectedEditableRef.id = null;
-        selectedEditableRef.group = null;
-        selectedEditableRef.lineIds = [];
-        setSelectedPointName(null);
+        e.preventDefault();
+        if (selectedEditableRef.id) {
+          clearSelectionRing();
+          selectedEditableRef.id = null;
+          selectedEditableRef.group = null;
+          selectedEditableRef.lineIds = [];
+          setSelectedPointName(null);
+        }
         return;
       }
 
       // ── Delete / Backspace: borrar punto seleccionado ──────────────────
+      // Se llama e.preventDefault() ANTES del guard para que el navegador no
+      // interprete Backspace como "volver atrás" aunque no haya punto seleccionado
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         const id = selectedEditableRef.id;
+        if (!id) return; // Nada seleccionado
         const grp = selectedEditableRef.group;
-        const pos = grp.position;
-        // Apilar acción de borrado para undo
+        const pos = grp ? grp.position : { x: 0, y: 0, z: 0 };
+        // Apilar acción de borrado para undo (guarda todos los datos del punto)
         undoStack.push({
           type: 'delete',
           point: {
             id,
             x: pos.x, y: pos.y, z: pos.z,
-            lineIds: grp.userData.lineIds || [],
-            type: grp.userData.epType || 'free',
-            name: grp.userData.pointName || 'Punto libre',
+            lineIds: grp ? (grp.userData.lineIds || []) : [],
+            type: (grp ? grp.userData.epType : null) || 'free',
+            name: (grp ? grp.userData.pointName : null) || 'Punto libre',
           }
         });
         if (undoStack.length > MAX_UNDO) undoStack.shift();
-        // Limpiar selección primero
+        // Limpiar selección en la malla 3D
         clearSelectionRing();
         selectedEditableRef.id = null;
         selectedEditableRef.group = null;
         selectedEditableRef.lineIds = [];
         setSelectedPointName(null);
+        // Notificar al padre para actualizar estado React
         callbacks.current.onEditablePointDeleted(id);
         return;
       }
 
+      // ── Arrow keys: mover punto (requieren selección con grupo válido) ──
+      if (!selectedEditableRef.id || !selectedEditableRef.group) return;
       if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
       e.preventDefault();
 
@@ -1107,7 +1153,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     renderer.domElement.addEventListener('pointerup', onPointerUp); // Agregar listener
     renderer.domElement.addEventListener('click', onClick);
-    document.addEventListener('keydown', onKeyDown);
+    // Usar capture:true para que el handler reciba las teclas ANTES que cualquier elemento hijo
+    // (evita que stopPropagation en inputs u otros componentes bloquee nuestro handler)
+    document.addEventListener('keydown', onKeyDown, true);
 
     // Bucle de Animación
     let animationFrameId: number;
@@ -1131,7 +1179,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     return () => {
       window.removeEventListener('resize', onResize);
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
       if (rendererRef.current && rendererRef.current.domElement) {
         const dom = rendererRef.current.domElement;
         dom.removeEventListener('pointerdown', onPointerDown);
@@ -1559,21 +1607,44 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.007, dashed = false) => {
       if (pts.length < 2) return;
       if (dashed) {
-        // Segmentos de tubo alternos para simular trazos entrecortados que siguen la superficie
-        const dashLen = 5; // puntos por trazo
-        const gapLen = 3;  // puntos de hueco
-        let i = 0;
-        while (i < pts.length) {
-          const segPts = pts.slice(i, i + dashLen);
-          if (segPts.length >= 2) {
-            const curve = new THREE.CatmullRomCurve3(segPts);
-            const geo = new THREE.TubeGeometry(curve, segPts.length, radius * 0.8, 6, false);
-            const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity, depthTest: false, depthWrite: false });
-            const tube = new THREE.Mesh(geo, mat);
-            tube.renderOrder = 999;
-            linesGroup.add(tube);
+        // Trazos entrecortados basados en DISTANCIA REAL 3D (no en conteo de puntos)
+        // Esto garantiza que los huecos sean visibles independientemente del espaciado del sweep
+        const DASH = 0.55;  // unidades 3D por trazo
+        const GAP  = 0.38;  // unidades 3D por hueco
+        let drawing = true;
+        let acc = 0;
+        let segStart = 0;
+        for (let k = 1; k < pts.length; k++) {
+          acc += pts[k].distanceTo(pts[k - 1]);
+          const limit = drawing ? DASH : GAP;
+          if (acc >= limit) {
+            if (drawing) {
+              const sp = pts.slice(segStart, k + 1);
+              if (sp.length >= 2) {
+                const curve = new THREE.CatmullRomCurve3(sp);
+                const geo = new THREE.TubeGeometry(curve, Math.max(2, sp.length - 1), radius, 6, false);
+                const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity, depthTest: false, depthWrite: false });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.renderOrder = 999;
+                linesGroup.add(mesh);
+              }
+            }
+            drawing = !drawing;
+            acc = 0;
+            segStart = k;
           }
-          i += dashLen + gapLen;
+        }
+        // Segmento final si terminamos dentro de un trazo
+        if (drawing && segStart < pts.length - 1) {
+          const sp = pts.slice(segStart);
+          if (sp.length >= 2) {
+            const curve = new THREE.CatmullRomCurve3(sp);
+            const geo = new THREE.TubeGeometry(curve, Math.max(2, sp.length - 1), radius, 6, false);
+            const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity, depthTest: false, depthWrite: false });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.renderOrder = 999;
+            linesGroup.add(mesh);
+          }
         }
         return;
       }
