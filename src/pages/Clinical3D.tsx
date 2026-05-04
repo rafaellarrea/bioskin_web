@@ -118,7 +118,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {}, editablePoints = [], onEditablePointMoved = (_id: string, _pos: any) => {}, onEditablePointDeleted = (_id: string) => {}, onEditablePointAdded = (_pos: any) => {}, pointMode = 'none' }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {}, editablePoints = [], onEditablePointMoved = (_id: string, _pos: any) => {}, onEditablePointDeleted = (_id: string) => {}, onEditablePointAdded = (_pos: any) => {}, onEditablePointRestored = (_pt: any) => {}, pointMode = 'none' }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -362,11 +362,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   };
 
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, pointMode });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, onEditablePointRestored, pointMode });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, pointMode };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, onEditablePointRestored, pointMode };
     
     // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
     if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
@@ -459,6 +459,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     let draggedEditableGroup: THREE.Group | null = null;
     let draggedEditableLineIds: string[] = [];
     let dragMoved = false; // ¿el drag actual tuvo movimiento real?
+    let dragStartEditablePos: { x: number; y: number; z: number } | null = null; // Posición antes del drag (para undo)
+
+    // ── Undo stack (máx 30 acciones) ──────────────────────────────────────
+    type UndoEntry =
+      | { type: 'move'; id: string; prevPos: { x: number; y: number; z: number } }
+      | { type: 'delete'; point: any };
+    const MAX_UNDO = 30;
+    const undoStack: UndoEntry[] = [];
 
     // Selección de punto editable para navegación por teclado
     const selectedEditableRef = { id: null as string | null, group: null as THREE.Group | null, lineIds: [] as string[] };
@@ -523,6 +531,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
               draggedEditableId = obj.userData.editableId;
               draggedEditableGroup = obj as THREE.Group;
               draggedEditableLineIds = obj.userData.lineIds || [];
+              // Capturar posición antes del drag → para undo
+              dragStartEditablePos = { x: (obj as THREE.Group).position.x, y: (obj as THREE.Group).position.y, z: (obj as THREE.Group).position.z };
               if (controlsRef.current) controlsRef.current.enabled = false;
               isDragging = false;
               dragMoved = false;
@@ -702,8 +712,13 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           isDragging = true; // Evitar que onClick dispare el modal de confirmación
 
           if (dragMoved) {
-            // Fue un arrastre real: guardar nueva posición
+            // Fue un arrastre real: guardar nueva posición + apilar undo
             const pos = relGroup.position;
+            if (dragStartEditablePos) {
+              undoStack.push({ type: 'move', id: relId, prevPos: dragStartEditablePos });
+              if (undoStack.length > MAX_UNDO) undoStack.shift();
+            }
+            dragStartEditablePos = null;
             callbacks.current.onEditablePointMoved(relId, { x: pos.x, y: pos.y, z: pos.z });
           } else {
             // Fue un clic sin movimiento: toggle selección del punto
@@ -968,16 +983,70 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       }
     };
 
-    // ── Teclado: mover punto seleccionado con flechas ──────────────────────
+    // ── Teclado: mover punto seleccionado con flechas, borrar, deshacer ──────────────────────
     const onKeyDown = (e: KeyboardEvent) => {
+      // ── Ctrl+Z / Cmd+Z: deshacer última acción ─────────────────────────
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        const action = undoStack.pop();
+        if (!action) return;
+        if (action.type === 'move') {
+          // Restaurar posición anterior del punto
+          callbacks.current.onEditablePointMoved(action.id, action.prevPos);
+          // También actualizar la malla 3D directamente para respuesta inmediata
+          const grp = editablePointsGroupRef.current?.children.find(
+            g => g.userData.editableId === action.id
+          ) as THREE.Group | undefined;
+          if (grp) grp.position.set(action.prevPos.x, action.prevPos.y, action.prevPos.z);
+          // Si el punto borrado era el seleccionado, actualizar anillo
+          if (selectedEditableRef.id === action.id && grp) {
+            clearSelectionRing();
+            addSelectionRing(grp);
+          }
+        } else if (action.type === 'delete') {
+          // Restaurar punto borrado
+          callbacks.current.onEditablePointRestored(action.point);
+        }
+        return;
+      }
+
       if (!selectedEditableRef.id || !selectedEditableRef.group) return;
 
+      // ── Escape: deseleccionar punto ────────────────────────────────────
       if (e.key === 'Escape') {
         clearSelectionRing();
         selectedEditableRef.id = null;
         selectedEditableRef.group = null;
         selectedEditableRef.lineIds = [];
         setSelectedPointName(null);
+        return;
+      }
+
+      // ── Delete / Backspace: borrar punto seleccionado ──────────────────
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        const id = selectedEditableRef.id;
+        const grp = selectedEditableRef.group;
+        const pos = grp.position;
+        // Apilar acción de borrado para undo
+        undoStack.push({
+          type: 'delete',
+          point: {
+            id,
+            x: pos.x, y: pos.y, z: pos.z,
+            lineIds: grp.userData.lineIds || [],
+            type: grp.userData.epType || 'free',
+            name: grp.userData.pointName || 'Punto libre',
+          }
+        });
+        if (undoStack.length > MAX_UNDO) undoStack.shift();
+        // Limpiar selección primero
+        clearSelectionRing();
+        selectedEditableRef.id = null;
+        selectedEditableRef.group = null;
+        selectedEditableRef.lineIds = [];
+        setSelectedPointName(null);
+        callbacks.current.onEditablePointDeleted(id);
         return;
       }
 
@@ -989,6 +1058,12 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
       const step = e.shiftKey ? 0.02 : 0.005;
       const group = selectedEditableRef.group;
+
+      // Capturar posición ANTES del movimiento para undo (solo si no se está repitiendo la tecla)
+      if (!e.repeat) {
+        undoStack.push({ type: 'move', id: selectedEditableRef.id, prevPos: { x: group.position.x, y: group.position.y, z: group.position.z } });
+        if (undoStack.length > MAX_UNDO) undoStack.shift();
+      }
 
       const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).normalize();
       const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).normalize();
@@ -1764,7 +1839,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         {selectedPointName && (
           <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-30 pointer-events-none bg-slate-900/92 backdrop-blur-sm border border-cyan-500/60 px-3 py-2 rounded-xl shadow-xl flex flex-col items-center gap-0.5">
             <span className="text-cyan-300 text-[11px] font-semibold">● {selectedPointName} seleccionado</span>
-            <span className="text-slate-400 text-[10px]">↑↓←→ mover · Shift+flecha = paso grande · Esc o clic para deseleccionar</span>
+            <span className="text-slate-400 text-[10px]">↑↓←→ mover · Shift+flecha = paso grande · Del = borrar · Ctrl+Z = deshacer · Esc o clic para deseleccionar</span>
           </div>
         )}
 
@@ -2179,6 +2254,7 @@ export default function Clinical3D() {
         color: l.color,
         visible: l.visible,
         offset: l.offset,
+        ...(l.dashed ? { dashed: l.dashed } : {}),
         ...(l.anchors ? { anchors: l.anchors } : {}),
       })),
       intersectionPoints: intersectionPoints.map((pt) => ({
@@ -2357,6 +2433,13 @@ export default function Clinical3D() {
                 onEditablePointAdded={(pos: any) => {
                   const newPt = { id: `free-${Date.now()}`, x: pos.x, y: pos.y, z: pos.z, lineIds: [], type: 'free' as const, name: 'Punto libre' };
                   setEditablePoints(prev => [...prev, newPt]);
+                }}
+                onEditablePointRestored={(pt: any) => {
+                  // Restaurar un punto borrado con todos sus datos (incluye id original, tipo, lineIds, nombre)
+                  setEditablePoints(prev => {
+                    const exists = prev.find((p: any) => p.id === pt.id);
+                    return exists ? prev : [...prev, pt];
+                  });
                 }}
                 onIntersectionsCalculated={(pts: any[]) => {
                   setIntersectionPoints(pts);
