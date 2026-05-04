@@ -53,8 +53,8 @@ export const REFERENCE_LINE_PRESETS: LinePreset[] = [
   { label: 'Última Arruga Frontal', type: 'horizontal', color: '#f87171', group: 'horizontal', description: 'Última arruga completa del tercio superior' },
   { label: 'Intermedio Arrugas', type: 'horizontal', color: '#fca5a5', group: 'horizontal', description: 'Punto medio entre primera y última arruga frontal' },
   // Diagonales / Procerus-Corrugador
-  { label: 'Diag. C.Int. Izq. → Ceja Der.', type: 'two-points', color: '#22d3ee', group: 'diagonal', description: 'Canto interno izquierdo a cabeza de ceja derecha' },
-  { label: 'Diag. C.Int. Der. → Ceja Izq.', type: 'two-points', color: '#22d3ee', group: 'diagonal', description: 'Canto interno derecho a cabeza de ceja izquierda' },
+  { label: 'Diag. C.Int. Izq. → Ceja Der.', type: 'two-points', color: '#22d3ee', group: 'diagonal', dashed: true, description: 'Canto interno izquierdo a cabeza de ceja derecha' },
+  { label: 'Diag. C.Int. Der. → Ceja Izq.', type: 'two-points', color: '#22d3ee', group: 'diagonal', dashed: true, description: 'Canto interno derecho a cabeza de ceja izquierda' },
   { label: 'Cola Ceja Izq. → Cola Ceja Der.', type: 'two-points', color: '#38bdf8', group: 'diagonal', dashed: true, description: 'Proyección imaginaria entre colas de cejas' },
 ];
 

@@ -134,6 +134,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   const [modelVersion, setModelVersion] = useState(0);
   // Tooltip de marcadores al hover
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
+  // Indicador de punto editable seleccionado (teclado)
+  const [selectedPointName, setSelectedPointName] = useState<string | null>(null);
   
   // Ref para polígonos
   const polygonPointsRef = useRef<THREE.Vector3[]>([]);
@@ -456,6 +458,31 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     let draggedEditableId: string | null = null;
     let draggedEditableGroup: THREE.Group | null = null;
     let draggedEditableLineIds: string[] = [];
+    let dragMoved = false; // ¿el drag actual tuvo movimiento real?
+
+    // Selección de punto editable para navegación por teclado
+    const selectedEditableRef = { id: null as string | null, group: null as THREE.Group | null, lineIds: [] as string[] };
+    const selectionRingRef = { mesh: null as THREE.Mesh | null };
+
+    const clearSelectionRing = () => {
+      if (selectionRingRef.mesh) {
+        const parent = selectionRingRef.mesh.parent;
+        if (parent) parent.remove(selectionRingRef.mesh);
+        selectionRingRef.mesh.geometry.dispose();
+        (selectionRingRef.mesh.material as THREE.Material).dispose();
+        selectionRingRef.mesh = null;
+      }
+    };
+
+    const addSelectionRing = (group: THREE.Group) => {
+      clearSelectionRing();
+      const ringGeo = new THREE.TorusGeometry(0.07, 0.008, 8, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.renderOrder = 1002;
+      group.add(ring);
+      selectionRingRef.mesh = ring;
+    };
 
     // Variables locales para dibujo (además del estado React) para acceso síncrono en eventos
     let localIsDrawing = false;
@@ -498,6 +525,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
               draggedEditableLineIds = obj.userData.lineIds || [];
               if (controlsRef.current) controlsRef.current.enabled = false;
               isDragging = false;
+              dragMoved = false;
               startPos = { x: e.clientX, y: e.clientY };
               return;
             }
@@ -524,6 +552,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
               draggedMarkerGroup = obj as THREE.Group;
               if (controlsRef.current) controlsRef.current.enabled = false; // Suspender órbita
               isDragging = false; // No contar como drag de cámara
+              dragMoved = false;
               startPos = { x: e.clientX, y: e.clientY };
               return; // No iniciar lógica de órbita
             }
@@ -569,9 +598,16 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             });
             if (bestPt) draggedEditableGroup!.position.copy(bestPt);
           } else {
-            // Sin restricción de línea (punto libre): se mueve libremente por el modelo
-            draggedEditableGroup.position.copy(mouseWorld);
+            // Sin restricción de línea (punto libre): offset sobre la superficie para evitar enterrarse
+            const hitFree = hits[0];
+            if (hitFree.face) {
+              const nFree = hitFree.face.normal.clone().transformDirection(hitFree.object.matrixWorld).normalize();
+              draggedEditableGroup.position.copy(hitFree.point).addScaledVector(nFree, 0.03);
+            } else {
+              draggedEditableGroup.position.copy(mouseWorld);
+            }
           }
+          dragMoved = true;
         }
         setTooltip(null);
         return;
@@ -586,7 +622,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         faceMeshRef.current.traverse(o => { if ((o as THREE.Mesh).isMesh) meshObjects.push(o); });
         const hits = raycaster.intersectObjects(meshObjects, false);
         if (hits.length > 0) {
-          draggedMarkerGroup.position.copy(hits[0].point);
+          const hitM = hits[0];
+          if (hitM.face) {
+            const nM = hitM.face.normal.clone().transformDirection(hitM.object.matrixWorld).normalize();
+            draggedMarkerGroup.position.copy(hitM.point).addScaledVector(nM, 0.03);
+          } else {
+            draggedMarkerGroup.position.copy(hitM.point);
+          }
+          dragMoved = true;
         }
         setTooltip(null);
         return;
@@ -647,13 +690,39 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     const onPointerUp = (e: MouseEvent) => {
         // ── Soltar punto editable ──────────────────────────────────
+        // ── Soltar punto editable ────────────────────────────────────
         if (draggedEditableId && draggedEditableGroup) {
-          const pos = draggedEditableGroup.position;
-          callbacks.current.onEditablePointMoved(draggedEditableId, { x: pos.x, y: pos.y, z: pos.z });
+          const relId = draggedEditableId;
+          const relGroup = draggedEditableGroup;
+          const relLineIds = [...draggedEditableLineIds];
           draggedEditableId = null;
           draggedEditableGroup = null;
           draggedEditableLineIds = [];
           if (controlsRef.current) controlsRef.current.enabled = true;
+          isDragging = true; // Evitar que onClick dispare el modal de confirmación
+
+          if (dragMoved) {
+            // Fue un arrastre real: guardar nueva posición
+            const pos = relGroup.position;
+            callbacks.current.onEditablePointMoved(relId, { x: pos.x, y: pos.y, z: pos.z });
+          } else {
+            // Fue un clic sin movimiento: toggle selección del punto
+            if (selectedEditableRef.id === relId) {
+              clearSelectionRing();
+              selectedEditableRef.id = null;
+              selectedEditableRef.group = null;
+              selectedEditableRef.lineIds = [];
+              setSelectedPointName(null);
+            } else {
+              clearSelectionRing();
+              selectedEditableRef.id = relId;
+              selectedEditableRef.group = relGroup;
+              selectedEditableRef.lineIds = relLineIds;
+              addSelectionRing(relGroup);
+              setSelectedPointName(relGroup.userData.pointName || 'Punto');
+            }
+          }
+          dragMoved = false;
           return;
         }
 
@@ -663,7 +732,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           callbacks.current.onMarkerMoved(draggedMarkerId, { x: pos.x, y: pos.y, z: pos.z });
           draggedMarkerId = null;
           draggedMarkerGroup = null;
+          dragMoved = false;
           if (controlsRef.current) controlsRef.current.enabled = true;
+          isDragging = true; // Evitar que onClick dispare el modal de confirmación
           return;
         }
 
@@ -831,7 +902,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
       // Modo "add-point": agregar punto libre en la superficie
       if (callbacks.current.pointMode === 'add' && intersects.length > 0) {
-        const pt = intersects[0].point;
+        const hitAdd = intersects[0];
+        const nAdd = hitAdd.face ? hitAdd.face.normal.clone().transformDirection(hitAdd.object.matrixWorld).normalize() : new THREE.Vector3(0, 1, 0);
+        const pt = hitAdd.point.clone().addScaledVector(nAdd, 0.03);
         callbacks.current.onEditablePointAdded({ x: pt.x, y: pt.y, z: pt.z });
         return;
       }
@@ -850,11 +923,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const nTransform = new THREE.Matrix3().getNormalMatrix(intersect.object.matrixWorld);
         n.applyMatrix3(nTransform).normalize();
 
-        const dummy = new THREE.Object3D();
-        dummy.position.copy(point);
-        dummy.lookAt(point.clone().add(n));
+        // Offset sobre la superficie para que las esferas no se entierren en zonas cóncavas (ojos, etc.)
+        const offsetPoint = point.clone().addScaledVector(n, 0.03);
 
-        const zoneDetectedName = getFacialZone(point, callbacks.current.zones);
+        const dummy = new THREE.Object3D();
+        dummy.position.copy(offsetPoint);
+        dummy.lookAt(offsetPoint.clone().add(n));
+
+        const zoneDetectedName = getFacialZone(offsetPoint, callbacks.current.zones);
         const registeredZone = callbacks.current.zones.find((z: any) => z.name === zoneDetectedName);
         
         console.log("Zona detectada:", zoneDetectedName, "Registrada:", !!registeredZone);
@@ -870,7 +946,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             console.log("Usando zona registrada:", registeredZone.name, zoneScale);
 
             callbacks.current.onMeshClick({
-              position: { x: point.x, y: point.y, z: point.z },
+              position: { x: offsetPoint.x, y: offsetPoint.y, z: offsetPoint.z },
               rotation: finalRotation,
               normal: { x: n.x, y: n.y, z: n.z },
               zone: zoneDetectedName,
@@ -878,14 +954,12 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
               scale: zoneScale // Pasar escala al preview
             });
             return; // Salir temprano para no ejecutar el onMeshClick de abajo
-            // Opcional: Si queremos que el preview ya se oriente como la zona final
-            // finalRotation = registeredZone.rotation || finalRotation;
         }
 
         console.log("Usando zona detectada (fallback)");
 
         callbacks.current.onMeshClick({
-          position: { x: point.x, y: point.y, z: point.z },
+          position: { x: offsetPoint.x, y: offsetPoint.y, z: offsetPoint.z },
           rotation: finalRotation,
           normal: { x: n.x, y: n.y, z: n.z },
           zone: zoneDetectedName,
@@ -894,10 +968,71 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       }
     };
 
+    // ── Teclado: mover punto seleccionado con flechas ──────────────────────
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!selectedEditableRef.id || !selectedEditableRef.group) return;
+
+      if (e.key === 'Escape') {
+        clearSelectionRing();
+        selectedEditableRef.id = null;
+        selectedEditableRef.group = null;
+        selectedEditableRef.lineIds = [];
+        setSelectedPointName(null);
+        return;
+      }
+
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      e.preventDefault();
+
+      const camera = cameraRef.current;
+      if (!camera) return;
+
+      const step = e.shiftKey ? 0.02 : 0.005;
+      const group = selectedEditableRef.group;
+
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+      const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1).normalize();
+
+      const delta = new THREE.Vector3();
+      if (e.key === 'ArrowLeft')  delta.copy(right).multiplyScalar(-step);
+      if (e.key === 'ArrowRight') delta.copy(right).multiplyScalar(step);
+      if (e.key === 'ArrowUp')    delta.copy(up).multiplyScalar(step);
+      if (e.key === 'ArrowDown')  delta.copy(up).multiplyScalar(-step);
+
+      const newPos = group.position.clone().add(delta);
+
+      // Restringir a líneas de referencia si el punto está asociado a ellas
+      const paths = linePathsRef.current.filter(lp => selectedEditableRef.lineIds.includes(lp.lineId));
+      if (paths.length > 0) {
+        let bestPt: THREE.Vector3 | null = null;
+        let bestDist = Infinity;
+        paths.forEach(lp => {
+          for (let i = 0; i < lp.pts.length - 1; i++) {
+            const a = lp.pts[i];
+            const b = lp.pts[i + 1];
+            const ab = b.clone().sub(a);
+            const lenSq = ab.dot(ab);
+            if (lenSq < 1e-10) continue;
+            const t = Math.max(0, Math.min(1, newPos.clone().sub(a).dot(ab) / lenSq));
+            const proj = a.clone().addScaledVector(ab, t);
+            const d = proj.distanceTo(newPos);
+            if (d < bestDist) { bestDist = d; bestPt = proj; }
+          }
+        });
+        if (bestPt) group.position.copy(bestPt);
+      } else {
+        group.position.copy(newPos);
+      }
+
+      const pos = group.position;
+      callbacks.current.onEditablePointMoved(selectedEditableRef.id, { x: pos.x, y: pos.y, z: pos.z });
+    };
+
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointermove', onPointerMove);
     renderer.domElement.addEventListener('pointerup', onPointerUp); // Agregar listener
     renderer.domElement.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKeyDown);
 
     // Bucle de Animación
     let animationFrameId: number;
@@ -921,6 +1056,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     return () => {
       window.removeEventListener('resize', onResize);
+      document.removeEventListener('keydown', onKeyDown);
       if (rendererRef.current && rendererRef.current.domElement) {
         const dom = rendererRef.current.domElement;
         dom.removeEventListener('pointerdown', onPointerDown);
@@ -1621,6 +1757,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             style={{ left: tooltip.x, top: tooltip.y }}
           >
             {tooltip.text}
+          </div>
+        )}
+
+        {/* ── INDICADOR DE PUNTO SELECCIONADO (navegación por teclado) ── */}
+        {selectedPointName && (
+          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-30 pointer-events-none bg-slate-900/92 backdrop-blur-sm border border-cyan-500/60 px-3 py-2 rounded-xl shadow-xl flex flex-col items-center gap-0.5">
+            <span className="text-cyan-300 text-[11px] font-semibold">● {selectedPointName} seleccionado</span>
+            <span className="text-slate-400 text-[10px]">↑↓←→ mover · Shift+flecha = paso grande · Esc o clic para deseleccionar</span>
           </div>
         )}
 
