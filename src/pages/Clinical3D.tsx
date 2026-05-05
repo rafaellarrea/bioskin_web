@@ -1607,52 +1607,32 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.007, dashed = false) => {
       if (pts.length < 2) return;
       if (dashed) {
-        // Trazos adaptados a la longitud REAL del path para que todas las líneas
-        // punteadas tengan la MISMA densidad visual que "Cola de ceja" (~15u → ~16 ciclos).
-        // Con paths cortos (ej. Borde Iris ~3-7u, donde la malla tiene huecos en el ojo)
-        // se fuerzan mínimo 5 ciclos visibles para que no parezcan líneas sólidas.
-        let totalLen = 0;
-        for (let k = 1; k < pts.length; k++) totalLen += pts[k].distanceTo(pts[k - 1]);
-        if (totalLen < 0.01) return;
-        // Cola de ceja usa ciclo ~0.93u (DASH=0.55 + GAP=0.38) y se ve correcto.
-        // Aplicamos la misma densidad a todas las líneas: mínimo 5 ciclos.
-        const cycles = Math.max(5, Math.round(totalLen / 0.93));
-        const DASH = (totalLen * 0.59) / cycles;
-        const GAP  = (totalLen * 0.41) / cycles;
-        let drawing = true;
+        // Modo PUNTOS: esferas equidistantes sobre la superficie (no segmentos de tubo).
+        // Esto da muchísimos más puntos visibles y funciona mejor en zonas cóncavas.
+        const DOT_R   = radius * 2.2;   // radio de cada esfera (ligeramente mayor que el tubo)
+        const SPACING = 0.10;            // distancia entre centros de punto en unidades 3D
+        const dotMat  = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), depthTest: false, depthWrite: false });
         let acc = 0;
-        let segStart = 0;
+        let nextDot = 0; // primer punto en posición 0
+        // Dot en el primer vértice
+        const first = new THREE.Mesh(new THREE.SphereGeometry(DOT_R, 6, 6), dotMat);
+        first.position.copy(pts[0]);
+        first.renderOrder = 999;
+        linesGroup.add(first);
+        nextDot = SPACING;
         for (let k = 1; k < pts.length; k++) {
-          acc += pts[k].distanceTo(pts[k - 1]);
-          const limit = drawing ? DASH : GAP;
-          if (acc >= limit) {
-            if (drawing) {
-              const sp = pts.slice(segStart, k + 1);
-              if (sp.length >= 2) {
-                const curve = new THREE.CatmullRomCurve3(sp);
-                const geo = new THREE.TubeGeometry(curve, Math.max(2, sp.length - 1), radius, 6, false);
-                const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity, depthTest: false, depthWrite: false });
-                const mesh = new THREE.Mesh(geo, mat);
-                mesh.renderOrder = 999;
-                linesGroup.add(mesh);
-              }
-            }
-            drawing = !drawing;
-            acc = 0;
-            segStart = k;
+          const segLen = pts[k].distanceTo(pts[k - 1]);
+          if (segLen < 1e-6) continue;
+          while (acc + segLen >= nextDot) {
+            const t = (nextDot - acc) / segLen;
+            const dotPos = pts[k - 1].clone().lerp(pts[k], Math.min(1, t));
+            const dot = new THREE.Mesh(new THREE.SphereGeometry(DOT_R, 6, 6), dotMat);
+            dot.position.copy(dotPos);
+            dot.renderOrder = 999;
+            linesGroup.add(dot);
+            nextDot += SPACING;
           }
-        }
-        // Segmento final si terminamos dentro de un trazo
-        if (drawing && segStart < pts.length - 1) {
-          const sp = pts.slice(segStart);
-          if (sp.length >= 2) {
-            const curve = new THREE.CatmullRomCurve3(sp);
-            const geo = new THREE.TubeGeometry(curve, Math.max(2, sp.length - 1), radius, 6, false);
-            const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, opacity, depthTest: false, depthWrite: false });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.renderOrder = 999;
-            linesGroup.add(mesh);
-          }
+          acc += segLen;
         }
         return;
       }
@@ -1697,7 +1677,9 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       const isDashed = !!(line as any).dashed;
       const extraSteps = isDashed ? 5 : 1;
       if (line.type === 'vertical') {
-        const pts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY, 100 * extraSteps);
+        const rawPts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY, 100 * extraSteps);
+        // Corregir hundimientos en el socket ocular (umbral 0.7 para verticales)
+        const pts = bridgeConcavities(rawPts, 0.7);
         makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'horizontal') {
