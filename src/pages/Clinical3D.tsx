@@ -1551,19 +1551,30 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     };
 
     // Para líneas horizontales: corregir hundimientos en zonas cóncavas profundas (socket ocular ~2-3u).
-    // Threshold captura caídas bruscas del socket ocular; la curvatura natural de la cara no se toca.
-    // 16 pasadas para sanar concavidades anchas (ojo) que necesitan propagación desde ambos bordes.
-    const bridgeConcavities = (pts: THREE.Vector3[], threshold = 1.2): THREE.Vector3[] => {
+    // Valley-bridge: detecta valles completos (como el socket ocular) con puntero doble.
+    // Un solo pase es suficiente para saltar concavidades de cualquier ancho.
+    // threshold: caída de Z desde el punto de entrada que se considera valle.
+    const bridgeConcavities = (pts: THREE.Vector3[], threshold = 0.30): THREE.Vector3[] => {
       if (pts.length < 4) return pts;
       const out = pts.map(p => p.clone());
-      for (let pass = 0; pass < 16; pass++) {
-        for (let i = 1; i < out.length - 1; i++) {
-          const prev = out[i - 1].z;
-          const next = out[i + 1].z;
-          const lo = Math.min(prev, next);
-          if (lo - out[i].z > threshold) {
-            out[i].z = (prev + next) / 2; // interpolar Z sobre la concavidad
+      let i = 1;
+      while (i < out.length) {
+        const zEntry = out[i - 1].z;
+        if (zEntry - out[i].z > threshold) {
+          // Buscar salida del valle: Z recupera a menos de threshold/2 por debajo de entrada
+          let j = i + 1;
+          while (j < out.length && out[j].z < zEntry - threshold * 0.5) j++;
+          const exitIdx = Math.min(j, out.length - 1);
+          const zExit  = out[exitIdx].z;
+          const span   = exitIdx - (i - 1);
+          // Interpolar linealmente Z a través de todo el valle
+          for (let k = i; k < exitIdx; k++) {
+            const t = (k - (i - 1)) / span;
+            out[k].z = zEntry + t * (zExit - zEntry);
           }
+          i = exitIdx + 1;
+        } else {
+          i++;
         }
       }
       return out;
@@ -1580,8 +1591,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         const hits = raycaster.intersectObjects(meshObjects, false);
         if (hits.length > 0) pts.push(hits[0].point.clone());
       }
-      // Solo para horizontales: corregir hundimientos en el socket ocular
-      if (!isVertical) return bridgeConcavities(pts);
+      // Horizontales: corregir hundimiento en socket ocular (valley-bridge, threshold 0.30)
+      if (!isVertical) return bridgeConcavities(pts, 0.30);
       return pts;
     };
 
@@ -1607,38 +1618,49 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.007, dashed = false) => {
       if (pts.length < 2) return;
       if (dashed) {
-        // Modo PUNTOS: esferas equidistantes sobre la superficie (no segmentos de tubo).
-        // Esto da muchísimos más puntos visibles y funciona mejor en zonas cóncavas.
-        const DOT_R   = radius * 1.5;   // radio de cada esfera (pequeño, similar al grosor de línea)
+        // Modo PUNTOS: esferas equidistantes + halo negro para visibilidad contra la malla.
+        const DOT_R   = radius * 1.5;   // radio esfera coloreada
+        const HALO_R  = radius * 3.0;   // radio halo negro (contorno)
         const SPACING = 0.040;           // distancia entre centros: ~25 puntos por unidad de path
         const dotMat  = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), depthTest: false, depthWrite: false });
+        const haloMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.55, depthTest: false, depthWrite: false });
+        const dotGeo  = new THREE.SphereGeometry(DOT_R,  6, 6);
+        const haloGeo = new THREE.SphereGeometry(HALO_R, 6, 6);
+        const placeDot = (pos: THREE.Vector3) => {
+          const halo = new THREE.Mesh(haloGeo, haloMat);
+          halo.position.copy(pos);
+          halo.renderOrder = 997;
+          linesGroup.add(halo);
+          const dot = new THREE.Mesh(dotGeo, dotMat);
+          dot.position.copy(pos);
+          dot.renderOrder = 999;
+          linesGroup.add(dot);
+        };
         let acc = 0;
-        let nextDot = 0; // primer punto en posición 0
-        // Dot en el primer vértice
-        const first = new THREE.Mesh(new THREE.SphereGeometry(DOT_R, 6, 6), dotMat);
-        first.position.copy(pts[0]);
-        first.renderOrder = 999;
-        linesGroup.add(first);
+        let nextDot = 0;
+        placeDot(pts[0]);
         nextDot = SPACING;
         for (let k = 1; k < pts.length; k++) {
           const segLen = pts[k].distanceTo(pts[k - 1]);
           if (segLen < 1e-6) continue;
           while (acc + segLen >= nextDot) {
             const t = (nextDot - acc) / segLen;
-            const dotPos = pts[k - 1].clone().lerp(pts[k], Math.min(1, t));
-            const dot = new THREE.Mesh(new THREE.SphereGeometry(DOT_R, 6, 6), dotMat);
-            dot.position.copy(dotPos);
-            dot.renderOrder = 999;
-            linesGroup.add(dot);
+            placeDot(pts[k - 1].clone().lerp(pts[k], Math.min(1, t)));
             nextDot += SPACING;
           }
           acc += segLen;
         }
         return;
       }
-      // Línea continua estándar
+      // Línea continua: tubo negro de contorno (realce) + tubo coloreado encima
       const curve = new THREE.CatmullRomCurve3(pts);
-      const geo = new THREE.TubeGeometry(curve, pts.length * 2, radius, 8, false);
+      const segs  = pts.length * 2;
+      const outlineGeo = new THREE.TubeGeometry(curve, segs, radius * 3.5, 8, false);
+      const outlineMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.45, depthTest: false, depthWrite: false });
+      const outlineTube = new THREE.Mesh(outlineGeo, outlineMat);
+      outlineTube.renderOrder = 997;
+      linesGroup.add(outlineTube);
+      const geo = new THREE.TubeGeometry(curve, segs, radius, 8, false);
       const mat = new THREE.MeshBasicMaterial({
         color: new THREE.Color(color),
         transparent: true,
@@ -1689,7 +1711,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       } else if (line.type === 'two-points') {
         const anchors = line.anchors;
         if (anchors && anchors.length >= 2) {
-          const pts = sweepDiagonal(anchors[0], anchors[1], 80 * extraSteps);
+          const rawPtsDiag = sweepDiagonal(anchors[0], anchors[1], 80 * extraSteps);
+          const pts = bridgeConcavities(rawPtsDiag, 0.30);
           makeSurfaceTube(pts, line.color, 1.0, 0.002, isDashed);
           newLinePaths.push({ lineId: line.id, pts });
         }
