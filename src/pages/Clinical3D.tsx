@@ -1043,8 +1043,43 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
             addSelectionRing(grp);
           }
         } else if (action.type === 'delete') {
-          // Restaurar punto borrado
+          // Restaurar punto borrado: actualizar React state Y recrear la esfera en el scene
           callbacks.current.onEditablePointRestored(action.point);
+          // Recrear el grupo Three.js directamente para respuesta inmediata
+          if (editablePointsGroupRef.current) {
+            const pt = action.point;
+            const ptGroup = new THREE.Group();
+            ptGroup.userData.isEditablePoint = true;
+            ptGroup.userData.editableId = pt.id;
+            ptGroup.userData.lineIds = pt.lineIds ?? [];
+            ptGroup.userData.epType = pt.type ?? 'free';
+            ptGroup.userData.pointName = pt.name ?? 'Punto libre';
+            ptGroup.position.set(pt.x, pt.y, pt.z);
+            const isIntersection = pt.type === 'intersection';
+            const sphereColor = isIntersection ? 0x00eeff : 0xffdd00;
+            const coreGeo  = new THREE.SphereGeometry(0.02, 12, 12);
+            const coreMesh = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            coreMesh.renderOrder = 1000;
+            ptGroup.add(coreMesh);
+            const outerGeo = new THREE.SphereGeometry(0.04, 16, 16);
+            const outerMat = new THREE.MeshPhysicalMaterial({
+              color: new THREE.Color(sphereColor),
+              emissive: new THREE.Color(sphereColor),
+              emissiveIntensity: 0.6,
+              transparent: true,
+              opacity: 0.35,
+              roughness: 0,
+              transmission: 0.98,
+              thickness: 0.3,
+              ior: 1.5,
+              clearcoat: 1.0,
+              clearcoatRoughness: 0,
+            });
+            const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+            outerMesh.renderOrder = 1000;
+            ptGroup.add(outerMesh);
+            editablePointsGroupRef.current.add(ptGroup);
+          }
         }
         return;
       }
@@ -1089,6 +1124,20 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         selectedEditableRef.group = null;
         selectedEditableRef.lineIds = [];
         setSelectedPointName(null);
+        // Eliminar el grupo Three.js del scene DIRECTAMENTE — sin esperar el ciclo
+        // React/useEffect (los puntos de intersección solo se limpian cuando las
+        // líneas se recalculan, por lo que sin esto la esfera queda flotando).
+        if (grp && editablePointsGroupRef.current) {
+          grp.traverse((m: any) => {
+            if ((m as THREE.Mesh).geometry) (m as THREE.Mesh).geometry.dispose();
+            if ((m as THREE.Mesh).material) {
+              const mat = (m as THREE.Mesh).material;
+              if (Array.isArray(mat)) mat.forEach(m2 => m2.dispose());
+              else (mat as THREE.Material).dispose();
+            }
+          });
+          editablePointsGroupRef.current.remove(grp);
+        }
         // Notificar al padre para actualizar estado React
         callbacks.current.onEditablePointDeleted(id);
         return;
