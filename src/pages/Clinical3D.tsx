@@ -1607,10 +1607,18 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     const makeSurfaceTube = (pts: THREE.Vector3[], color: string, opacity = 1.0, radius = 0.007, dashed = false) => {
       if (pts.length < 2) return;
       if (dashed) {
-        // Trazos entrecortados basados en DISTANCIA REAL 3D (no en conteo de puntos)
-        // Esto garantiza que los huecos sean visibles independientemente del espaciado del sweep
-        const DASH = 0.55;  // unidades 3D por trazo
-        const GAP  = 0.38;  // unidades 3D por hueco
+        // Trazos adaptados a la longitud REAL del path para que todas las líneas
+        // punteadas tengan la MISMA densidad visual que "Cola de ceja" (~15u → ~16 ciclos).
+        // Con paths cortos (ej. Borde Iris ~3-7u, donde la malla tiene huecos en el ojo)
+        // se fuerzan mínimo 5 ciclos visibles para que no parezcan líneas sólidas.
+        let totalLen = 0;
+        for (let k = 1; k < pts.length; k++) totalLen += pts[k].distanceTo(pts[k - 1]);
+        if (totalLen < 0.01) return;
+        // Cola de ceja usa ciclo ~0.93u (DASH=0.55 + GAP=0.38) y se ve correcto.
+        // Aplicamos la misma densidad a todas las líneas: mínimo 5 ciclos.
+        const cycles = Math.max(5, Math.round(totalLen / 0.93));
+        const DASH = (totalLen * 0.59) / cycles;
+        const GAP  = (totalLen * 0.41) / cycles;
         let drawing = true;
         let acc = 0;
         let segStart = 0;
