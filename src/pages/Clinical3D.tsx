@@ -1692,19 +1692,23 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     referenceLines.forEach((line: ReferenceLine) => {
       if (!line.visible) return;
+      // Las líneas punteadas usan 5× más pasos de muestreo para que los trazos
+      // sean densos y suaves (sin "huecos vacíos" entre puntos de la malla)
+      const isDashed = !!(line as any).dashed;
+      const extraSteps = isDashed ? 5 : 1;
       if (line.type === 'vertical') {
-        const pts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY);
-        makeSurfaceTube(pts, line.color, 1.0, 0.007, (line as any).dashed);
+        const pts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY, 100 * extraSteps);
+        makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'horizontal') {
-        const pts = sweepSurface(line.offset ?? 0, false);
-        makeSurfaceTube(pts, line.color, 1.0, 0.007, (line as any).dashed);
+        const pts = sweepSurface(line.offset ?? 0, false, 80 * extraSteps);
+        makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'two-points') {
         const anchors = line.anchors;
         if (anchors && anchors.length >= 2) {
-          const pts = sweepDiagonal(anchors[0], anchors[1]);
-          makeSurfaceTube(pts, line.color, 1.0, 0.007, (line as any).dashed);
+          const pts = sweepDiagonal(anchors[0], anchors[1], 80 * extraSteps);
+          makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
           newLinePaths.push({ lineId: line.id, pts });
         }
       }
