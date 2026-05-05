@@ -1551,12 +1551,12 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     };
 
     // Para líneas horizontales: corregir hundimientos en zonas cóncavas profundas (socket ocular ~2-3u).
-    // Threshold 1.2 solo captura caídas bruscas; la curvatura natural de la cara (<0.8u) no se toca.
-    // Múltiples pasadas: cada una cierra el dip un punto desde cada borde hasta bridgearlo por completo.
+    // Threshold captura caídas bruscas del socket ocular; la curvatura natural de la cara no se toca.
+    // 16 pasadas para sanar concavidades anchas (ojo) que necesitan propagación desde ambos bordes.
     const bridgeConcavities = (pts: THREE.Vector3[], threshold = 1.2): THREE.Vector3[] => {
       if (pts.length < 4) return pts;
       const out = pts.map(p => p.clone());
-      for (let pass = 0; pass < 4; pass++) {
+      for (let pass = 0; pass < 16; pass++) {
         for (let i = 1; i < out.length - 1; i++) {
           const prev = out[i - 1].z;
           const next = out[i + 1].z;
@@ -1609,8 +1609,8 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       if (dashed) {
         // Modo PUNTOS: esferas equidistantes sobre la superficie (no segmentos de tubo).
         // Esto da muchísimos más puntos visibles y funciona mejor en zonas cóncavas.
-        const DOT_R   = radius * 2.2;   // radio de cada esfera (ligeramente mayor que el tubo)
-        const SPACING = 0.10;            // distancia entre centros de punto en unidades 3D
+        const DOT_R   = radius * 1.5;   // radio de cada esfera (pequeño, similar al grosor de línea)
+        const SPACING = 0.040;           // distancia entre centros: ~25 puntos por unidad de path
         const dotMat  = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), depthTest: false, depthWrite: false });
         let acc = 0;
         let nextDot = 0; // primer punto en posición 0
@@ -1655,10 +1655,10 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     if (showHairline) {
       // Línea superior (hairlineTopY)
       const hlTopPts = sweepSurface(hairlineTopY, false, 80);
-      makeSurfaceTube(hlTopPts, '#ff6b9d', 0.75, 0.005);
+      makeSurfaceTube(hlTopPts, '#ff6b9d', 0.75, 0.002);
       // Línea inferior (hairlineBottomY)
       const hlBotPts = sweepSurface(hairlineBottomY, false, 80);
-      makeSurfaceTube(hlBotPts, '#f97316', 0.75, 0.005);
+      makeSurfaceTube(hlBotPts, '#f97316', 0.75, 0.002);
     }
 
     // ── Líneas de referencia ──
@@ -1678,19 +1678,19 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
       const extraSteps = isDashed ? 5 : 1;
       if (line.type === 'vertical') {
         const rawPts = sweepVerticalLimited(line.offset ?? 0, hairlineTopY, hairlineBottomY, 100 * extraSteps);
-        // Corregir hundimientos en el socket ocular (umbral 0.7 para verticales)
-        const pts = bridgeConcavities(rawPts, 0.7);
-        makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
+        // Corregir hundimientos en el socket ocular (umbral 0.30 para verticales, 16 pasadas)
+        const pts = bridgeConcavities(rawPts, 0.30);
+        makeSurfaceTube(pts, line.color, 1.0, 0.002, isDashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'horizontal') {
         const pts = sweepSurface(line.offset ?? 0, false, 80 * extraSteps);
-        makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
+        makeSurfaceTube(pts, line.color, 1.0, 0.002, isDashed);
         newLinePaths.push({ lineId: line.id, pts });
       } else if (line.type === 'two-points') {
         const anchors = line.anchors;
         if (anchors && anchors.length >= 2) {
           const pts = sweepDiagonal(anchors[0], anchors[1], 80 * extraSteps);
-          makeSurfaceTube(pts, line.color, 1.0, 0.007, isDashed);
+          makeSurfaceTube(pts, line.color, 1.0, 0.002, isDashed);
           newLinePaths.push({ lineId: line.id, pts });
         }
       }
