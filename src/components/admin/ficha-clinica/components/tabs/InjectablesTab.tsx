@@ -204,7 +204,11 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           label: item.label || item.zone || '',
         }));
         setInjectionPoints(points);
-        setMarkers3D(rawPoints);
+        // Solo cargar como markers3D los puntos "libres" (sin editablePointId).
+        // Los puntos de trazado (con editablePointId) ya se renderizan en editablePoints
+        // y NO deben aparecer como markers3D (son 3x más grandes y arruinan la visual).
+        const libreMarkers = rawPoints.filter((p: any) => !p.editablePointId);
+        setMarkers3D(libreMarkers);
         setReferenceLines(rawLines);
         // Restaurar puntos editables si existen en mapping_data
         const rawEditablePoints = Array.isArray((parsed as any)?.editablePoints) ? (parsed as any).editablePoints : [];
