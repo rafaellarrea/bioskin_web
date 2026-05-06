@@ -4,7 +4,8 @@ import {
   Camera, X, Trash2, Check, Images, ZoomIn, ZoomOut,
   RotateCcw, RotateCw, Info
 } from 'lucide-react';
-import Clinical3DViewer, { Marker3D } from './Clinical3DViewer';
+import Clinical3DViewer, { Marker3D, EditablePoint } from './Clinical3DViewer';
+import type { ReferenceLine } from './Clinical3DViewer';
 
 // ==========================================
 // TIPOS
@@ -21,6 +22,10 @@ interface InjectableCaptureModalProps {
   onClose: () => void;
   markers: Marker3D[];
   productType: 'toxina' | 'relleno';
+  /** Líneas de referencia del trazado */
+  referenceLines?: ReferenceLine[];
+  /** Puntos editables del trazado */
+  editablePoints?: EditablePoint[];
   /** Capturas existentes al abrir el modal */
   initialCaptures?: CaptureImage[];
   /** Callback con la lista final de capturas al confirmar */
@@ -36,6 +41,8 @@ export default function InjectableCaptureModal({
   onClose,
   markers,
   productType,
+  referenceLines = [],
+  editablePoints = [],
   initialCaptures = [],
   onConfirm,
 }: InjectableCaptureModalProps) {
@@ -157,6 +164,9 @@ export default function InjectableCaptureModal({
                     selectedPathology={selectedPathology}
                     readOnly
                     height="100%"
+                    referenceLines={referenceLines}
+                    editablePoints={editablePoints}
+                    showEditablePoints={editablePoints.length > 0}
                   />
                   {/* Flash animation on capture */}
                   <AnimatePresence>

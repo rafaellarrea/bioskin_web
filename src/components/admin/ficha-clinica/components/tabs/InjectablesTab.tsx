@@ -1773,6 +1773,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         onClose={() => setCaptureModalOpen(false)}
         markers={markers3D}
         productType={current.product_type}
+        referenceLines={referenceLines}
+        editablePoints={editablePoints}
         initialCaptures={capturedImages}
         onConfirm={(newCaptures) => setCapturedImages(newCaptures)}
       />
