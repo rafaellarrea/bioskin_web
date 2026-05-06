@@ -2427,13 +2427,17 @@ export default function Clinical3D() {
         ...(l.dashed ? { dashed: l.dashed } : {}),
         ...(l.anchors ? { anchors: l.anchors } : {}),
       })),
-      intersectionPoints: intersectionPoints.map((pt) => ({
-        id: pt.id,
-        x: parseFloat(pt.x.toFixed(4)),
-        y: parseFloat(pt.y.toFixed(4)),
-        z: parseFloat(pt.z.toFixed(4)),
-        lineIds: pt.lineIds,
-      })),
+      // Usar editablePoints filtrado como fuente de verdad — intersectionPoints puede estar
+      // desactualizado si el usuario borró puntos sin mover líneas (linesEffect no se re-ejecuta)
+      intersectionPoints: editablePoints
+        .filter((pt: any) => pt.type === 'intersection')
+        .map((pt: any) => ({
+          id: pt.id,
+          x: parseFloat(pt.x.toFixed(4)),
+          y: parseFloat(pt.y.toFixed(4)),
+          z: parseFloat(pt.z.toFixed(4)),
+          lineIds: pt.lineIds,
+        })),
       editablePoints: editablePoints.map((pt: any) => ({
         id: pt.id,
         type: pt.type,
@@ -2452,7 +2456,7 @@ export default function Clinical3D() {
         verticalLines: referenceLines.filter((l: ReferenceLine) => l.type === 'vertical').length,
         horizontalLines: referenceLines.filter((l: ReferenceLine) => l.type === 'horizontal').length,
         diagonalLines: referenceLines.filter((l: ReferenceLine) => l.type === 'two-points').length,
-        totalIntersections: intersectionPoints.length,
+        totalIntersections: editablePoints.filter((p: any) => p.type === 'intersection').length,
       },
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2462,7 +2466,8 @@ export default function Clinical3D() {
     a.download = `trazado-referencia-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showNotification(`JSON generado: ${referenceLines.length} líneas, ${intersectionPoints.length} intersecciones`, 'success');
+    const savedIntersCount = editablePoints.filter((p: any) => p.type === 'intersection').length;
+    showNotification(`JSON generado: ${referenceLines.length} líneas, ${savedIntersCount} intersecciones`, 'success');
   };
 
   return (
@@ -2609,6 +2614,8 @@ export default function Clinical3D() {
                   // Registrarlos para que no reaparezcan al recalcular líneas
                   if (id.startsWith('int-')) {
                     setDeletedIntersectionIds((prev: string[]) => prev.includes(id) ? prev : [...prev, id]);
+                    // Sincronizar intersectionPoints para que la UI y el JSON reflejen el conteo real
+                    setIntersectionPoints(prev => prev.filter(p => p.id !== id));
                   }
                   setEditablePoints((prev: any[]) => prev.filter((p: any) => p.id !== id));
                 }}
@@ -2620,6 +2627,11 @@ export default function Clinical3D() {
                   // Ctrl+Z: restaurar punto borrado — sacarlo del set de borrados si era intersección
                   if (pt.id?.startsWith('int-') || pt.type === 'intersection') {
                     setDeletedIntersectionIds((prev: string[]) => prev.filter((id: string) => id !== pt.id));
+                    // Sincronizar intersectionPoints al restaurar
+                    setIntersectionPoints(prev => {
+                      const exists = prev.find(p => p.id === pt.id);
+                      return exists ? prev : [...prev, { id: pt.id, x: pt.x, y: pt.y, z: pt.z, lineIds: pt.lineIds || [] }];
+                    });
                   }
                   setEditablePoints((prev: any[]) => {
                     const exists = prev.find((p: any) => p.id === pt.id);
@@ -3020,7 +3032,7 @@ export default function Clinical3D() {
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-white" />
                   <span className="text-xs text-slate-300 font-medium">
-                    Intersecciones ({intersectionPoints.length})
+                    Intersecciones ({editablePoints.filter((p: any) => p.type === 'intersection').length})
                   </span>
                 </div>
                 <button
