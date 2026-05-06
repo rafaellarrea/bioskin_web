@@ -296,6 +296,13 @@ const ThreeEngine: React.FC<{
         startPos = { x: e.clientX, y: e.clientY };
         return;
       }
+      // En readOnly (p.ej. modal de capturas), no iniciar drag de puntos:
+      // solo permitir orbitar/zoom a través de OrbitControls
+      if (callbacks.current.readOnly) {
+        isDragging = false;
+        startPos = { x: e.clientX, y: e.clientY };
+        return;
+      }
       // Detectar hit sobre punto editable
       if (editablePointsGroupRef.current && cameraRef.current) {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -777,9 +784,8 @@ const ThreeEngine: React.FC<{
           points.push(hits[0].point.clone());
         }
       }
-      // Horizontales: corregir hundimiento en cuencas oculares (valley-bridge)
-      if (axisFixed === 'y') return bridgeConcavities(points, 0.30);
-      return points;
+      // Corregir hundimiento en cuencas oculares en ambos ejes (valley-bridge)
+      return bridgeConcavities(points, 0.30);
     };
 
     /**
@@ -872,7 +878,8 @@ const ThreeEngine: React.FC<{
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) pts.push(hits[0].point.clone());
       }
-      return pts;
+      // Corregir hundimiento en zonas cóncavas (cuencas oculares) al igual que horizontales
+      return bridgeConcavities(pts, 0.30);
     };
 
     /**
@@ -896,7 +903,7 @@ const ThreeEngine: React.FC<{
           points.push(hits[0].point.clone());
         }
       }
-      return points;
+      return bridgeConcavities(points, 0.30);
     };
 
     referenceLines.forEach(line => {
