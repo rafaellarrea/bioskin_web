@@ -247,13 +247,13 @@ const ThreeEngine: React.FC<{
         if (grp) {
           grp.traverse((c: any) => {
             if (c.isMesh && c !== selectionRingMesh) {
-              if (c.userData.selBaseOpacity !== undefined) {
-                c.material.opacity = c.userData.selBaseOpacity;
-                delete c.userData.selBaseOpacity;
+              if (c.userData.selBaseEmissive !== undefined) {
+                c.material.emissive?.setHex(c.userData.selBaseEmissive);
+                delete c.userData.selBaseEmissive;
               }
-              if (c.userData.selBaseTrans !== undefined) {
-                c.material.transmission = c.userData.selBaseTrans;
-                delete c.userData.selBaseTrans;
+              if (c.userData.selBaseEmissiveInt !== undefined) {
+                c.material.emissiveIntensity = c.userData.selBaseEmissiveInt;
+                delete c.userData.selBaseEmissiveInt;
               }
               if (c.material?.needsUpdate !== undefined) c.material.needsUpdate = true;
             }
@@ -269,14 +269,14 @@ const ThreeEngine: React.FC<{
 
     const addSelectionRing = (group: THREE.Group) => {
       clearSelectionRing();
-      // Indicar selección solo mediante opacidad — sin cambio de tamaño
+      // Resalte neón: solo cambia el color/intensidad emissive del halo, sin tocar geometría ni opacidad
       group.traverse((c: any) => {
-        if (c.isMesh && c.material?.transmission !== undefined) {
-          // Es la esfera exterior (MeshPhysicalMaterial con transmission)
-          c.userData.selBaseOpacity = c.material.opacity;
-          c.userData.selBaseTrans = c.material.transmission;
-          c.material.opacity = 0.72;
-          c.material.transmission = 0.25;
+        if (c.isMesh && c.material?.emissive !== undefined && c.material?.transmission !== undefined) {
+          // Es la esfera exterior translúcida
+          c.userData.selBaseEmissive = c.material.emissive.getHex();
+          c.userData.selBaseEmissiveInt = c.material.emissiveIntensity;
+          c.material.emissive.setHex(0xffffff); // blanco neón
+          c.material.emissiveIntensity = 2.2;
           c.material.needsUpdate = true;
         }
       });
