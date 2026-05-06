@@ -276,7 +276,7 @@ const ThreeEngine: React.FC<{
           c.userData.selBaseEmissive = c.material.emissive.getHex();
           c.userData.selBaseEmissiveInt = c.material.emissiveIntensity;
           c.material.emissive.setHex(0xffffff); // blanco neón
-          c.material.emissiveIntensity = 2.2;
+          c.material.emissiveIntensity = 1.4;
           c.material.needsUpdate = true;
         }
       });

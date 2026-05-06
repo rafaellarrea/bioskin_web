@@ -565,16 +565,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       editablePointId: unitsModal.pointId,
     };
 
+    // Los puntos del trazado usan editablePoints para su visual, NO markers3D
+    // (markers3D es para marcadores de inyección libre — son 3x más grandes)
     if (existingIdx >= 0) {
       setInjectionPoints(prev => prev.map((ip, i) => i === existingIdx ? newPoint : ip));
-      setMarkers3D(prev => prev.map((m, i) => {
-        const ip = injectionPoints[i];
-        if (ip?.editablePointId === unitsModal.pointId) return { ...m, ...newPoint };
-        return m;
-      }));
     } else {
       setInjectionPoints(prev => [...prev, newPoint]);
-      setMarkers3D(prev => [...prev, newPoint]);
     }
 
     setUnitsModal(null);
