@@ -721,8 +721,40 @@ const ThreeEngine: React.FC<{
     const sweepRaycaster = new THREE.Raycaster();
 
     /**
+     * Valley-bridge: interpolación lineal de Z sobre concavidades profundas.
+     * Portado desde Clinical3D.tsx. Detecta cuando Z cae más de `threshold`
+     * respecto al punto anterior, busca la salida del valle y rellena
+     * el hueco con interpolación lineal. Evita el hundimiento en cuencas oculares.
+     */
+    const bridgeConcavities = (pts: THREE.Vector3[], threshold = 0.30): THREE.Vector3[] => {
+      if (pts.length < 4) return pts;
+      const out = pts.map(p => p.clone());
+      let i = 1;
+      while (i < out.length) {
+        const zEntry = out[i - 1].z;
+        if (zEntry - out[i].z > threshold) {
+          // Buscar salida del valle: Z recupera a menos de threshold/2 por debajo de entrada
+          let j = i + 1;
+          while (j < out.length && out[j].z < zEntry - threshold * 0.5) j++;
+          const exitIdx = Math.min(j, out.length - 1);
+          const zExit  = out[exitIdx].z;
+          const span   = exitIdx - (i - 1);
+          // Interpolar linealmente Z a través de todo el valle
+          for (let k = i; k < exitIdx; k++) {
+            const t = (k - (i - 1)) / span;
+            out[k].z = zEntry + t * (zExit - zEntry);
+          }
+          i = exitIdx + 1;
+        } else {
+          i++;
+        }
+      }
+      return out;
+    };
+
+    /**
      * Obtiene los puntos de intersección de la malla al barrer en una dirección.
-     * origin se desplaza en pasos y se lanza rayo en -Z.
+     * Para líneas horizontales aplica bridgeConcavities para saltar cuencas oculares.
      */
     const sweepSurface = (
       axisFixed: 'x' | 'y',
@@ -742,12 +774,11 @@ const ThreeEngine: React.FC<{
         sweepRaycaster.set(origin, dir);
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) {
-          // Offset = 0: el centro del tubo queda exactamente en la superficie.
-          // Con depthTest:false y renderOrder:999 el tubo siempre se dibuja encima,
-          // por lo que la mitad visible del tubo sobresale de la malla sin flotar.
           points.push(hits[0].point.clone());
         }
       }
+      // Horizontales: corregir hundimiento en cuencas oculares (valley-bridge)
+      if (axisFixed === 'y') return bridgeConcavities(points, 0.30);
       return points;
     };
 
