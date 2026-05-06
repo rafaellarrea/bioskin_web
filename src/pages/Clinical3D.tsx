@@ -1838,12 +1838,14 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
           // Saltar puntos que el usuario borró explícitamente
           if (callbacks.current.deletedIntersectionIds?.includes(ipt.id)) return;
 
-          // Usar la posición guardada en el estado si el usuario la desplazó
-          // (importante al recargar JSON: las esferas deben aparecer donde el usuario las dejó)
+          // Solo usar la posición guardada si el usuario ARRASTRÓ este punto manualmente (flag userMoved).
+          // Si no fue arrastrado, siempre se usa la posición geométrica recalculada para que
+          // los puntos sigan a las líneas cuando estas se desplazan.
           const storedPt = (callbacks.current.editablePoints as any[])?.find((ep: any) => ep.id === ipt.id);
-          const px = storedPt ? storedPt.x : ipt.x;
-          const py = storedPt ? storedPt.y : ipt.y;
-          const pz = storedPt ? storedPt.z : ipt.z;
+          const isUserMoved = storedPt?.userMoved === true;
+          const px = isUserMoved ? storedPt.x : ipt.x;
+          const py = isUserMoved ? storedPt.y : ipt.y;
+          const pz = isUserMoved ? storedPt.z : ipt.z;
           const pointName = storedPt?.name || 'Intersección';
 
           const ptGroup = new THREE.Group();
@@ -2440,6 +2442,8 @@ export default function Clinical3D() {
         z: parseFloat(pt.z.toFixed(4)),
         lineIds: pt.lineIds,
         ...(pt.name ? { name: pt.name } : {}),
+        // Persistir flag de desplazamiento manual para restaurar posición al importar
+        ...(pt.userMoved ? { userMoved: true } : {}),
       })),
       // IDs de intersecciones borradas — permite restaurar el estado exacto al importar
       deletedIntersectionIds,
@@ -2596,7 +2600,9 @@ export default function Clinical3D() {
                 pointMode={pointMode}
                 deletedIntersectionIds={deletedIntersectionIds}
                 onEditablePointMoved={(id: string, pos: any) => {
-                  setEditablePoints(prev => prev.map((p: any) => p.id === id ? { ...p, x: pos.x, y: pos.y, z: pos.z } : p));
+                  // Marcar el punto como desplazado manualmente para que su posición
+                  // se preserve incluso cuando las líneas se recalculan.
+                  setEditablePoints(prev => prev.map((p: any) => p.id === id ? { ...p, x: pos.x, y: pos.y, z: pos.z, userMoved: true } : p));
                 }}
                 onEditablePointDeleted={(id: string) => {
                   // Los IDs de intersecciones siempre empiezan con 'int-'
