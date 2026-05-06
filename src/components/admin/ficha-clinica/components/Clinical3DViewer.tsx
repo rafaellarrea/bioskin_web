@@ -682,51 +682,127 @@ const ThreeEngine: React.FC<{
     };
 
     /**
-     * Crea un label sprite en 3D para la línea.
+     * Crea un label sprite pequeño en 3D para la línea.
+     * Canvas compacto (160×22) con fuente 11px para que sea discreto.
      */
     const makeLabel = (text: string, position: THREE.Vector3, color: string): THREE.Sprite => {
       const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 48;
+      canvas.width = 160;
+      canvas.height = 22;
       const ctx = canvas.getContext('2d')!;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.roundRect(2, 2, canvas.width - 4, canvas.height - 4, 8);
+      ctx.fillStyle = 'rgba(0,0,0,0.60)';
+      ctx.roundRect(1, 1, canvas.width - 2, canvas.height - 2, 4);
       ctx.fill();
-      ctx.font = 'bold 18px system-ui, sans-serif';
+      ctx.font = 'bold 11px system-ui, sans-serif';
       ctx.fillStyle = color;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      // Truncar texto largo para evitar desbordamiento
+      const maxChars = 20;
+      const label = text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;
+      ctx.fillText(label, canvas.width / 2, canvas.height / 2);
       const tex = new THREE.CanvasTexture(canvas);
       const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
       const sprite = new THREE.Sprite(mat);
       sprite.position.copy(position);
-      sprite.scale.set(2.5, 0.5, 1);
+      // Escala reducida: ≈0.7u × 0.11u en espacio 3D (mucho más discreto)
+      sprite.scale.set(0.7, 0.11, 1);
+      sprite.renderOrder = 1001;
       return sprite;
     };
 
     /**
      * Crea un tubo 3D (Mesh con TubeGeometry) que sigue los puntos de superficie.
-     * Al tener volumen real es visible desde cualquier ángulo, igual que las esferas
-     * de los marcadores de inyección.
+     * Radio fino (0.003) para coincidir con el aspecto de la pestaña Clinical3D.
+     * Si dashed=true, renderiza como puntos esféricos a intervalos regulares.
      */
-    const makeSurfaceTube = (pts: THREE.Vector3[], color: THREE.Color): THREE.Mesh => {
-      const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-      const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 60), 0.02, 8, false);
-      const tubeMat = new THREE.MeshBasicMaterial({
-        color,
-        depthTest: false,
-        depthWrite: false,
-        // CLAVE: transparent:true lo mueve al transparent pass de Three.js,
-        // que se renderiza DESPUÉS del face mesh (transmission:0.05).
-        // Sin esto, el tubo (opaque pass) queda tapado por la cara.
-        transparent: true,
-        opacity: 1.0,
-      });
-      const mesh = new THREE.Mesh(tubeGeo, tubeMat);
-      mesh.renderOrder = 999;
-      return mesh;
+    const makeSurfaceTube = (
+      pts: THREE.Vector3[],
+      color: THREE.Color,
+      _opacity = 1.0,
+      radius = 0.003,
+      dashed = false
+    ): THREE.Group => {
+      const group3D = new THREE.Group();
+      group3D.renderOrder = 999;
+
+      if (dashed) {
+        // Modo punteado: esferas pequeñas a intervalos fijos (igual que Clinical3D)
+        const SPACING = 0.040;
+        const DOT_R = radius * 1.5;
+        const HALO_R = radius * 3;
+        let accumulated = 0;
+        for (let i = 1; i < pts.length; i++) {
+          const seg = pts[i].distanceTo(pts[i - 1]);
+          accumulated += seg;
+          if (accumulated >= SPACING) {
+            accumulated = 0;
+            // Esfera halo (ligeramente mayor, semi-transparente)
+            const haloGeo = new THREE.SphereGeometry(HALO_R, 6, 6);
+            const haloMat = new THREE.MeshBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0.35,
+              depthTest: false,
+              depthWrite: false,
+            });
+            const halo = new THREE.Mesh(haloGeo, haloMat);
+            halo.position.copy(pts[i]);
+            halo.renderOrder = 999;
+            group3D.add(halo);
+            // Esfera núcleo
+            const dotGeo = new THREE.SphereGeometry(DOT_R, 6, 6);
+            const dotMat = new THREE.MeshBasicMaterial({
+              color,
+              depthTest: false,
+              depthWrite: false,
+              transparent: true,
+              opacity: 1.0,
+            });
+            const dot = new THREE.Mesh(dotGeo, dotMat);
+            dot.position.copy(pts[i]);
+            dot.renderOrder = 1000;
+            group3D.add(dot);
+          }
+        }
+      } else {
+        const curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(pts.length * 2, 60), radius, 6, false);
+        const tubeMat = new THREE.MeshBasicMaterial({
+          color,
+          depthTest: false,
+          depthWrite: false,
+          transparent: true,
+          opacity: 1.0,
+        });
+        const mesh = new THREE.Mesh(tubeGeo, tubeMat);
+        mesh.renderOrder = 999;
+        group3D.add(mesh);
+      }
+
+      return group3D;
+    };
+
+    /**
+     * Sweep vertical limitado entre yMin e yMax (en unidades del modelo).
+     * Equivalente a sweepVerticalLimited de Clinical3D para respetar los límites de hairline.
+     */
+    const sweepVerticalLimited = (
+      fixedX: number,
+      yMin: number,
+      yMax: number,
+      steps = 80
+    ): THREE.Vector3[] => {
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i <= steps; i++) {
+        const y = yMin + (i / steps) * (yMax - yMin);
+        const origin = new THREE.Vector3(fixedX, y, 50);
+        sweepRaycaster.set(origin, new THREE.Vector3(0, 0, -1));
+        const hits = sweepRaycaster.intersectObject(faceMesh, true);
+        if (hits.length > 0) pts.push(hits[0].point.clone());
+      }
+      return pts;
     };
 
     /**
@@ -758,45 +834,54 @@ const ThreeEngine: React.FC<{
 
       const color = new THREE.Color(line.color);
 
+      const isDashed = line.dashed === true;
+
       if (line.type === 'vertical') {
         const xVal = line.anchor.x + line.offset;
-        const pts = sweepSurface('x', xVal, -12, 8, 50);
+        let pts: THREE.Vector3[];
+        if (line.yMin !== undefined && line.yMax !== undefined) {
+          // Limitar al rango hairline del trazado importado
+          pts = sweepVerticalLimited(xVal, line.yMin, line.yMax, 80);
+        } else {
+          pts = sweepSurface('x', xVal, -12, 8, 60);
+        }
         if (pts.length < 2) return;
-        group.add(makeSurfaceTube(pts, color));
+        group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
+        // Label pequeño al final de la línea (arriba)
         const labelPos = pts[pts.length - 1].clone();
-        labelPos.z += 0.3;
-        labelPos.y += 0.3;
+        labelPos.z += 0.15;
+        labelPos.y += 0.12;
         group.add(makeLabel(line.label, labelPos, line.color));
 
       } else if (line.type === 'horizontal') {
         const yVal = line.anchor.y + line.offset;
-        const pts = sweepSurface('y', yVal, -5, 5, 50);
+        const pts = sweepSurface('y', yVal, -8, 8, 80);
         if (pts.length < 2) return;
-        group.add(makeSurfaceTube(pts, color));
+        group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
+        // Label al extremo derecho de la línea
         const labelPos = pts[pts.length - 1].clone();
-        labelPos.z += 0.3;
-        labelPos.x += 0.4;
+        labelPos.z += 0.15;
+        labelPos.x += 0.2;
         group.add(makeLabel(line.label, labelPos, line.color));
 
       } else if (line.type === 'two-points' && line.anchors && line.anchors.length === 2) {
         const a = new THREE.Vector3(line.anchors[0].x, line.anchors[0].y, line.anchors[0].z);
         const b = new THREE.Vector3(line.anchors[1].x, line.anchors[1].y, line.anchors[1].z);
-        // Sweep sobre la superficie a lo largo de la diagonal (sigue la curvatura del mallado)
-        const pts = sweepDiagonal(a, b, 40);
+        const pts = sweepDiagonal(a, b, 60);
         if (pts.length >= 2) {
-          group.add(makeSurfaceTube(pts, color));
+          group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
         }
         // Label en el punto medio del sweep
         const midPts = pts.length >= 2 ? pts : [a, b];
         const midPos = midPts[Math.floor(midPts.length / 2)].clone();
-        midPos.z += 0.3;
+        midPos.z += 0.15;
         group.add(makeLabel(line.label, midPos, line.color));
 
-        // Esferas en los extremos (igual que los marcadores de inyección)
+        // Esferas en los extremos
         const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z);
         const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z);
         [startPt, endPt].forEach(pt => {
-          const sphereGeo = new THREE.SphereGeometry(0.05, 10, 10);
+          const sphereGeo = new THREE.SphereGeometry(0.025, 8, 8);
           const sphereMat = new THREE.MeshBasicMaterial({
             color,
             depthTest: false,

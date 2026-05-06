@@ -21,6 +21,10 @@ export interface ReferenceLine {
   /** Para two-points: los dos anchors de superficie */
   anchors?: { x: number; y: number; z: number }[];
   visible: boolean;
+  /** Para líneas verticales: límite superior del barrido (hairline topY escalado) */
+  yMax?: number;
+  /** Para líneas verticales: límite inferior del barrido (hairline bottomY escalado) */
+  yMin?: number;
 }
 
 // ==========================================

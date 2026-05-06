@@ -429,23 +429,44 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     console.log('[Trazado] JSON keys:', Object.keys(json));
     console.log('[Trazado] referenceLines count:', json.referenceLines?.length ?? 0);
     console.log('[Trazado] editablePoints count:', json.editablePoints?.length ?? 0);
+
+    // El JSON fue generado desde Clinical3D (targetSize=5).
+    // Clinical3DViewer usa targetSize=8 → escalar todas las coords por 8/5.
+    const COORD_SCALE = 8 / 5;
+
+    // Límites del hairline escalados al espacio de 8 unidades
+    const hairlineTopY  = (json.hairline?.topY  ?? 1.9) * COORD_SCALE;
+    const hairlineBottomY = (json.hairline?.bottomY ?? 0.6) * COORD_SCALE;
+
     const lines: ReferenceLine[] = (json.referenceLines || []).map((l: any) => {
       let anchor: { x: number; y: number; z: number };
       let lineType: LineType;
       let anchors: [{ x: number; y: number; z: number }, { x: number; y: number; z: number }] | undefined;
+      let yMin: number | undefined;
+      let yMax: number | undefined;
 
       if (l.type === 'vertical') {
-        anchor = { x: l.offset ?? 0, y: 0, z: 0 };
+        const xScaled = (l.offset ?? 0) * COORD_SCALE;
+        anchor = { x: xScaled, y: 0, z: 0 };
         lineType = 'vertical';
+        // Limitar el sweep al tercio superior (hairline)
+        yMin = hairlineBottomY;
+        yMax = hairlineTopY;
       } else if (l.type === 'horizontal') {
-        anchor = { x: 0, y: l.offset ?? 0, z: 0 };
+        const yScaled = (l.offset ?? 0) * COORD_SCALE;
+        anchor = { x: 0, y: yScaled, z: 0 };
         lineType = 'horizontal';
       } else {
         // two-points: los anchors vienen en l.anchors o l.points
+        // Escalar también los anchors de superficie
         const pts = l.anchors || l.points || [];
-        anchor = pts[0] ? { x: pts[0].x ?? 0, y: pts[0].y ?? 0, z: pts[0].z ?? 0 } : { x: 0, y: 0, z: 0 };
+        const sc = (v: number) => (v ?? 0) * COORD_SCALE;
+        anchor = pts[0] ? { x: sc(pts[0].x), y: sc(pts[0].y), z: sc(pts[0].z) } : { x: 0, y: 0, z: 0 };
         anchors = pts.length >= 2
-          ? [{ x: pts[0].x ?? 0, y: pts[0].y ?? 0, z: pts[0].z ?? 0 }, { x: pts[1].x ?? 0, y: pts[1].y ?? 0, z: pts[1].z ?? 0 }]
+          ? [
+              { x: sc(pts[0].x), y: sc(pts[0].y), z: sc(pts[0].z) },
+              { x: sc(pts[1].x), y: sc(pts[1].y), z: sc(pts[1].z) },
+            ]
           : undefined;
         lineType = 'two-points';
       }
@@ -455,19 +476,23 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         type: lineType,
         label: l.label || l.id || 'Línea',
         color: l.color || '#00eeff',
+        dashed: l.dashed === true,
         anchor,
         offset: 0,
         anchors,
         visible: true,
+        yMin,
+        yMax,
       } as ReferenceLine;
     });
 
+    const sc = (v: number) => (v ?? 0) * COORD_SCALE;
     const points: EditablePoint[] = (json.editablePoints || []).map((p: any) => ({
       id: p.id,
       type: p.type || 'intersection',
-      x: p.x ?? 0,
-      y: p.y ?? 0,
-      z: p.z ?? 0,
+      x: sc(p.x),
+      y: sc(p.y),
+      z: sc(p.z),
       lineIds: p.lineIds || [],
       name: p.name || p.id || 'Punto',
     }));
