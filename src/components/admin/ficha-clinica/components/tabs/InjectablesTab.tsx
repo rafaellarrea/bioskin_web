@@ -155,6 +155,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   // ── Puntos editables (trazado de referencia) ──────────────────────────
   const [editablePoints, setEditablePoints] = useState<EditablePoint[]>([]);
   const [showEditablePoints, setShowEditablePoints] = useState(true);
+  const [showLines, setShowLines] = useState(true);
   const [refJsonLoaded, setRefJsonLoaded] = useState(false);
   const [pointMode, setPointMode] = useState<'none' | 'add' | 'delete'>('none');
   // Modal de unidades para puntos del trazado
@@ -1429,6 +1430,24 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
                   {/* Separador + botón para abrir panel de líneas */}
                   <div className="ml-auto flex items-center gap-2">
+                    {/* Botón ocultar/mostrar todo (líneas + puntos) */}
+                    {(referenceLines.length > 0 || editablePoints.length > 0) && (
+                      <button
+                        onClick={() => {
+                          const newVal = !(showLines && showEditablePoints);
+                          setShowLines(newVal);
+                          setShowEditablePoints(newVal);
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                          showLines && showEditablePoints
+                            ? 'bg-slate-600/50 text-slate-300 border-slate-500 hover:bg-slate-600'
+                            : 'bg-slate-700/50 text-slate-500 border-slate-700 hover:bg-slate-700'
+                        }`}
+                        title={showLines && showEditablePoints ? 'Ocultar líneas y puntos' : 'Mostrar líneas y puntos'}
+                      >
+                        {showLines && showEditablePoints ? '👁 Ocultar todo' : '👁 Mostrar todo'}
+                      </button>
+                    )}
                     {referenceLines.length > 0 && (
                       <span className="text-[10px] text-slate-400">{referenceLines.length} línea(s)</span>
                     )}
@@ -1458,7 +1477,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         onMarkerPlaced={handleMarkerPlaced}
                         skipConfirmation={true}
                         readOnly={false}
-                        referenceLines={referenceLines}
+                        referenceLines={showLines ? referenceLines : []}
                         lineDrawingMode={showLinePanel ? activeLineType : null}
                         onLinePointAnchored={handleLinePointAnchored}
                         height="420px"
@@ -1780,6 +1799,17 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </div>
 
               <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    handleEditablePointDeleted(unitsModal.pointId);
+                    setUnitsModal(null);
+                    setUnitsModalInput('');
+                  }}
+                  className="px-3 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
+                  title="Eliminar punto"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => { setUnitsModal(null); setUnitsModalInput(''); }}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"

@@ -215,10 +215,16 @@ const ThreeEngine: React.FC<{
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
     keyLight.position.set(15, 20, 15);
     keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.bias = -0.0001;
     scene.add(keyLight);
     const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.9);
     fillLight.position.set(-15, 5, 10);
     scene.add(fillLight);
+    const rimLight = new THREE.SpotLight(0xe0e7ff, 1.5, 0, 0.8, 1);
+    rimLight.position.set(0, -5, -20);
+    scene.add(rimLight);
 
     // Raycasting
     const raycaster = new THREE.Raycaster();
@@ -237,8 +243,16 @@ const ThreeEngine: React.FC<{
 
     const clearSelectionRing = () => {
       if (selectionRingMesh) {
-        const parent = selectionRingMesh.parent;
-        if (parent) parent.remove(selectionRingMesh);
+        // Restaurar materiales originales del grupo padre
+        const grp = selectionRingMesh.parent;
+        if (grp) {
+          grp.traverse((c: any) => {
+            if (c.isMesh && c !== selectionRingMesh && c.material?.emissiveIntensity !== undefined) {
+              c.material.emissiveIntensity = c.userData.baseEmissive ?? 0.7;
+            }
+          });
+          grp.remove(selectionRingMesh);
+        }
         selectionRingMesh.geometry.dispose();
         (selectionRingMesh.material as THREE.Material).dispose();
         selectionRingMesh = null;
@@ -248,16 +262,31 @@ const ThreeEngine: React.FC<{
 
     const addSelectionRing = (group: THREE.Group) => {
       clearSelectionRing();
-      const ringGeo = new THREE.TorusGeometry(0.07, 0.008, 8, 32);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.renderOrder = 1002;
-      group.add(ring);
-      selectionRingMesh = ring;
+      // Glow sutil: aumentar emissiveIntensity del halo del punto
+      group.traverse((c: any) => {
+        if (c.isMesh && c.material?.emissiveIntensity !== undefined) {
+          if (c.userData.baseEmissive === undefined) {
+            c.userData.baseEmissive = c.material.emissiveIntensity;
+          }
+          c.material.emissiveIntensity = 3.0;
+        }
+      });
+      // Marcador invisible solo para rastrear el grupo seleccionado
+      const dummyGeo = new THREE.SphereGeometry(0.001, 3, 3);
+      const dummyMat = new THREE.MeshBasicMaterial({ visible: false });
+      const dummy = new THREE.Mesh(dummyGeo, dummyMat);
+      group.add(dummy);
+      selectionRingMesh = dummy;
       selectedEditableId = group.userData.editableId ?? null;
     };
 
     const onPointerDown = (e: MouseEvent) => {
+      // En modo 'add', el clic siempre va al modelo (no interactúa con puntos)
+      if (callbacks.current.pointMode === 'add') {
+        isDragging = false;
+        startPos = { x: e.clientX, y: e.clientY };
+        return;
+      }
       // Detectar hit sobre punto editable
       if (editablePointsGroupRef.current && cameraRef.current) {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -487,8 +516,6 @@ const ThreeEngine: React.FC<{
             metalness: 0.05,
             clearcoat: 0.15,
             clearcoatRoughness: 0.3,
-            transmission: 0.05,
-            thickness: 1.5,
             side: THREE.DoubleSide,
           });
         }
@@ -628,21 +655,21 @@ const ThreeEngine: React.FC<{
       const sphereColor = isIntersection ? new THREE.Color(0x00eeff) : new THREE.Color(0xffdd00);
 
       // Núcleo sólido blanco
-      const coreGeo = new THREE.SphereGeometry(0.025, 12, 12);
+      const coreGeo = new THREE.SphereGeometry(0.02, 12, 12);
       const coreMesh = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }));
       coreMesh.renderOrder = 1001;
       ptGroup.add(coreMesh);
 
-      // Halo exterior translúcido
-      const outerGeo = new THREE.SphereGeometry(0.05, 16, 16);
+      // Halo exterior translúcido (igual que Clinical3D.tsx)
+      const outerGeo = new THREE.SphereGeometry(0.04, 16, 16);
       const outerMat = new THREE.MeshPhysicalMaterial({
         color: sphereColor,
         emissive: sphereColor,
         emissiveIntensity: 0.7,
         transparent: true,
-        opacity: 0.45,
+        opacity: 0.35,
         roughness: 0,
-        transmission: 0.9,
+        transmission: 0.98,
         thickness: 0.3,
         ior: 1.5,
         clearcoat: 1.0,
@@ -865,23 +892,7 @@ const ThreeEngine: React.FC<{
           group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
         }
 
-        // Esferas en los extremos
-        const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z);
-        const endPt = pts.length > 1 ? pts[pts.length - 1] : new THREE.Vector3(b.x, b.y, b.z);
-        [startPt, endPt].forEach(pt => {
-          const sphereGeo = new THREE.SphereGeometry(0.025, 8, 8);
-          const sphereMat = new THREE.MeshBasicMaterial({
-            color,
-            depthTest: false,
-            depthWrite: false,
-            transparent: true,
-            opacity: 1.0,
-          });
-          const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-          sphere.position.copy(pt);
-          sphere.renderOrder = 1000;
-          group.add(sphere);
-        });
+        // No dibujar esferas en los extremos — solo la línea es visible
       }
     });
   }, [referenceLines, modelVersion]);
