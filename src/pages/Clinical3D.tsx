@@ -362,11 +362,11 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
   };
 
   // Ref para callbacks que permite acceder a las funciones más recientes dentro del closure de Three.js
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, onEditablePointRestored, pointMode, deletedIntersectionIds });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, onEditablePointRestored, pointMode, deletedIntersectionIds, editablePoints });
   
   // Actualizar refs de callbacks en cada render
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, onEditablePointRestored, pointMode, deletedIntersectionIds };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, isZoneEditMode, zoneSelectionMode, addPolygonPoint, finishPolygon, lineDrawingMode, onLinePointAnchored, onMarkerMoved, onEditablePointMoved, onEditablePointDeleted, onEditablePointAdded, onEditablePointRestored, pointMode, deletedIntersectionIds, editablePoints };
     
     // Limpiar polígono si salimos del modo edición o cambiamos de herramienta
     if (!isZoneEditMode || zoneSelectionMode !== 'polygon') {
@@ -1837,13 +1837,22 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
         calcIntersections.forEach(ipt => {
           // Saltar puntos que el usuario borró explícitamente
           if (callbacks.current.deletedIntersectionIds?.includes(ipt.id)) return;
+
+          // Usar la posición guardada en el estado si el usuario la desplazó
+          // (importante al recargar JSON: las esferas deben aparecer donde el usuario las dejó)
+          const storedPt = (callbacks.current.editablePoints as any[])?.find((ep: any) => ep.id === ipt.id);
+          const px = storedPt ? storedPt.x : ipt.x;
+          const py = storedPt ? storedPt.y : ipt.y;
+          const pz = storedPt ? storedPt.z : ipt.z;
+          const pointName = storedPt?.name || 'Intersección';
+
           const ptGroup = new THREE.Group();
           ptGroup.userData.isEditablePoint = true;
           ptGroup.userData.editableId = ipt.id;
           ptGroup.userData.lineIds = ipt.lineIds;
           ptGroup.userData.epType = 'intersection';
-          ptGroup.userData.pointName = 'Intersección';
-          ptGroup.position.set(ipt.x, ipt.y, ipt.z);
+          ptGroup.userData.pointName = pointName;
+          ptGroup.position.set(px, py, pz);
           // Núcleo sólido — renderOrder:1000 → encima de los tubes (999)
           const iCoreGeo = new THREE.SphereGeometry(0.02, 12, 12);
           const iCoreMesh = new THREE.Mesh(iCoreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
@@ -2590,26 +2599,23 @@ export default function Clinical3D() {
                   setEditablePoints(prev => prev.map((p: any) => p.id === id ? { ...p, x: pos.x, y: pos.y, z: pos.z } : p));
                 }}
                 onEditablePointDeleted={(id: string) => {
-                  // Si es punto de intersección, registrarlo como borrado para que
-                  // no reaparezca al recalcular líneas (incluso tras guardar/cargar JSON)
-                  setEditablePoints(prev => {
-                    const pt = prev.find((p: any) => p.id === id);
-                    if (pt?.type === 'intersection') {
-                      setDeletedIntersectionIds(prevDel => prevDel.includes(id) ? prevDel : [...prevDel, id]);
-                    }
-                    return prev.filter((p: any) => p.id !== id);
-                  });
+                  // Los IDs de intersecciones siempre empiezan con 'int-'
+                  // Registrarlos para que no reaparezcan al recalcular líneas
+                  if (id.startsWith('int-')) {
+                    setDeletedIntersectionIds((prev: string[]) => prev.includes(id) ? prev : [...prev, id]);
+                  }
+                  setEditablePoints((prev: any[]) => prev.filter((p: any) => p.id !== id));
                 }}
                 onEditablePointAdded={(pos: any) => {
                   const newPt = { id: `free-${Date.now()}`, x: pos.x, y: pos.y, z: pos.z, lineIds: [], type: 'free' as const, name: 'Punto libre' };
                   setEditablePoints(prev => [...prev, newPt]);
                 }}
                 onEditablePointRestored={(pt: any) => {
-                  // Restaurar punto borrado — si era intersección, sacarlo del set de borrados (Ctrl+Z)
-                  if (pt.type === 'intersection') {
-                    setDeletedIntersectionIds(prev => prev.filter((id: string) => id !== pt.id));
+                  // Ctrl+Z: restaurar punto borrado — sacarlo del set de borrados si era intersección
+                  if (pt.id?.startsWith('int-') || pt.type === 'intersection') {
+                    setDeletedIntersectionIds((prev: string[]) => prev.filter((id: string) => id !== pt.id));
                   }
-                  setEditablePoints(prev => {
+                  setEditablePoints((prev: any[]) => {
                     const exists = prev.find((p: any) => p.id === pt.id);
                     return exists ? prev : [...prev, pt];
                   });
