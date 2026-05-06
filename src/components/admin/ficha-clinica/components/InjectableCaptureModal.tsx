@@ -5,7 +5,7 @@ import {
   RotateCcw, RotateCw, Info, Eye, EyeOff
 } from 'lucide-react';
 import Clinical3DViewer, { Marker3D, EditablePoint } from './Clinical3DViewer';
-import type { ReferenceLine } from './Clinical3DViewer';
+import type { ReferenceLine, ProjectedPosition } from './Clinical3DViewer';
 
 // ==========================================
 // TIPOS
@@ -15,6 +15,13 @@ export interface CaptureImage {
   id: string;
   dataUrl: string;
   label: string;
+}
+
+/** Punto de inyección mínimo para mostrar números de UI */
+export interface UnitPoint {
+  id?: string;
+  editablePointId?: string;
+  units: number;
 }
 
 interface InjectableCaptureModalProps {
@@ -34,6 +41,10 @@ interface InjectableCaptureModalProps {
   initialShowLines?: boolean;
   /** Visibilidad inicial de puntos del trazado (hereda del estado de la vista principal) */
   initialShowEditablePoints?: boolean;
+  /** Puntos de inyección con unidades para overlay de números */
+  injectionPoints?: UnitPoint[];
+  /** Visibilidad inicial de números de unidades */
+  initialShowUnitNumbers?: boolean;
 }
 
 // ==========================================
@@ -51,17 +62,30 @@ export default function InjectableCaptureModal({
   onConfirm,
   initialShowLines = true,
   initialShowEditablePoints = true,
+  injectionPoints = [],
+  initialShowUnitNumbers = true,
 }: InjectableCaptureModalProps) {
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const [captures, setCaptures] = useState<CaptureImage[]>(initialCaptures);
   const [showLines, setShowLines] = useState(initialShowLines);
   const [showEditablePoints, setShowEditablePoints] = useState(initialShowEditablePoints);
   const [showMarkers, setShowMarkers] = useState(true);
+  const [showUnitNumbers, setShowUnitNumbers] = useState(initialShowUnitNumbers);
+  const unitOverlayRef = useRef<HTMLDivElement>(null);
   const [pendingLabel, setPendingLabel] = useState('');
   const [previewCapture, setPreviewCapture] = useState<CaptureImage | null>(null);
   const [captureFlash, setCaptureFlash] = useState(false);
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
   const [editingLabelValue, setEditingLabelValue] = useState('');
+
+  const handleProjectedPositions = useCallback((positions: ProjectedPosition[]) => {
+    const overlay = unitOverlayRef.current;
+    if (!overlay) return;
+    positions.forEach(({ id, x, y }) => {
+      const el = overlay.querySelector(`[data-pid="${id}"]`) as HTMLElement | null;
+      if (el) el.style.transform = `translate(${Math.round(x + 5)}px, ${Math.round(y - 12)}px)`;
+    });
+  }, []);
 
   const handleCapture = useCallback(() => {
     if (!viewerContainerRef.current) return;
@@ -211,6 +235,20 @@ export default function InjectableCaptureModal({
                         Marcadores
                       </button>
                     )}
+                    {injectionPoints.some(ip => ip.units > 0) && (
+                      <button
+                        onMouseDown={() => setShowUnitNumbers(v => !v)}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-all ${
+                          showUnitNumbers
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            : 'bg-gray-100 border-gray-200 text-gray-400'
+                        }`}
+                        title={showUnitNumbers ? 'Ocultar números UI' : 'Mostrar números UI'}
+                      >
+                        {showUnitNumbers ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        Números
+                      </button>
+                    )}
                   </div>
 
                   {/* Input etiqueta + botón Capturar */}
@@ -244,7 +282,29 @@ export default function InjectableCaptureModal({
                     referenceLines={showLines ? referenceLines : []}
                     editablePoints={editablePoints}
                     showEditablePoints={showEditablePoints && editablePoints.length > 0}
+                    onProjectedPositions={handleProjectedPositions}
                   />
+                  {/* Unit numbers overlay */}
+                  <div
+                    ref={unitOverlayRef}
+                    className="absolute inset-0 pointer-events-none overflow-hidden"
+                    style={{ display: showUnitNumbers ? 'block' : 'none' }}
+                  >
+                    {injectionPoints.filter(ip => ip.units > 0).map(ip => {
+                      const pid = ip.editablePointId || ip.id;
+                      if (!pid) return null;
+                      return (
+                        <span
+                          key={pid}
+                          data-pid={pid}
+                          className="absolute top-0 left-0 text-[7px] font-bold text-white leading-none bg-black/50 rounded-full px-[3px] py-[1.5px] pointer-events-none"
+                          style={{ transform: 'translate(0px,0px)' }}
+                        >
+                          {ip.units}
+                        </span>
+                      );
+                    })}
+                  </div>
                   {/* Flash animation on capture */}
                   <AnimatePresence>
                     {captureFlash && (

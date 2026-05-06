@@ -58,6 +58,13 @@ export interface EditablePoint {
   name?: string;
 }
 
+/** Posición 2D proyectada de un punto (para overlay de números) */
+export interface ProjectedPosition {
+  id: string;
+  x: number;
+  y: number;
+}
+
 export const getFacialZone = (point: THREE.Vector3, registeredZones: Zone[] = []) => {
   if (registeredZones.length > 0) {
     let closestZone = null;
@@ -123,6 +130,8 @@ interface Clinical3DViewerProps {
   onEditablePointDeleted?: (id: string) => void;
   /** Callback cuando se hace clic en un punto editable (sin drag) */
   onEditablePointClicked?: (id: string) => void;
+  /** Callback por frame con posiciones 2D proyectadas de cada punto (editable e injection marker) */
+  onProjectedPositions?: (positions: ProjectedPosition[]) => void;
 }
 
 // ==========================================
@@ -148,7 +157,8 @@ const ThreeEngine: React.FC<{
   onEditablePointMoved?: (id: string, pos: { x: number; y: number; z: number }) => void;
   onEditablePointDeleted?: (id: string) => void;
   onEditablePointClicked?: (id: string) => void;
-}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked }) => {
+  onProjectedPositions?: (positions: ProjectedPosition[]) => void;
+}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -163,9 +173,9 @@ const ThreeEngine: React.FC<{
   // Track two-point step inside engine for cursor feedback
   const twoPointStepRef = useRef<0 | 1>(0);
 
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored, pointMode, onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored, pointMode, onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions });
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored, pointMode, onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored, pointMode, onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions };
   });
 
   // 1. Initialize scene once
@@ -461,6 +471,29 @@ const ThreeEngine: React.FC<{
       if (controlsRef.current) controlsRef.current.update();
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
         rendererRef.current.render(sceneRef.current, cameraRef.current);
+        // Project point positions to 2D for unit-number overlay
+        if (callbacks.current.onProjectedPositions) {
+          const projected: ProjectedPosition[] = [];
+          const cam = cameraRef.current;
+          const canvas = rendererRef.current.domElement;
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          const projectGroup = (group: THREE.Object3D, id: string) => {
+            const wp = new THREE.Vector3();
+            group.getWorldPosition(wp);
+            const ndc = wp.clone().project(cam);
+            projected.push({ id, x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h });
+          };
+          markersGroupRef.current?.children.forEach(c => {
+            const id = (c as THREE.Group).userData.markerId;
+            if (id) projectGroup(c, id);
+          });
+          editablePointsGroupRef.current?.children.forEach(c => {
+            const id = (c as THREE.Group).userData.editableId;
+            if (id) projectGroup(c, id);
+          });
+          callbacks.current.onProjectedPositions(projected);
+        }
       }
     };
     animate();
@@ -609,6 +642,7 @@ const ThreeEngine: React.FC<{
       if (marker.type === 'Puntual') {
         const markerGroup = new THREE.Group();
         markerGroup.position.copy(pos);
+        markerGroup.userData.markerId = marker.id ?? `m-${Date.now()}`;
         const coreGeo = new THREE.SphereGeometry(0.06, 12, 12);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         markerGroup.add(new THREE.Mesh(coreGeo, coreMat));
@@ -978,6 +1012,7 @@ export default function Clinical3DViewer({
   onEditablePointMoved,
   onEditablePointDeleted,
   onEditablePointClicked,
+  onProjectedPositions,
 }: Clinical3DViewerProps) {
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({
     type: 'url',
@@ -1065,6 +1100,7 @@ export default function Clinical3DViewer({
             onEditablePointMoved={onEditablePointMoved}
             onEditablePointDeleted={onEditablePointDeleted}
             onEditablePointClicked={onEditablePointClicked}
+            onProjectedPositions={onProjectedPositions}
           />
         )}
       </div>

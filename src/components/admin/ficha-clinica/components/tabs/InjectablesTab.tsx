@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer,
@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D, EditablePoint } from '../Clinical3DViewer';
-import type { ReferenceLine, LineType } from '../Clinical3DViewer';
+import type { ReferenceLine, LineType, ProjectedPosition } from '../Clinical3DViewer';
 import InjectableCaptureModal, { CaptureImage } from '../InjectableCaptureModal';
 import ReferenceLinePanel from '../ReferenceLinePanel';
 import type { LinePreset } from '../ReferenceLinePanel';
@@ -176,6 +176,23 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [unitsModalPlane, setUnitsModalPlane] = useState('');
   // Injection plane for free-click dialog
   const [dialogPlane, setDialogPlane] = useState('');
+  // Unit numbers overlay
+  const [showUnitNumbers, setShowUnitNumbers] = useState(true);
+  const showUnitNumbersRef = useRef(true);
+  const unitOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Keep ref in sync with state to avoid closure issues in the RAF callback
+  useEffect(() => { showUnitNumbersRef.current = showUnitNumbers; }, [showUnitNumbers]);
+
+  // Projected positions callback — uses direct DOM manipulation for 60fps perf
+  const handleProjectedPositions = useCallback((positions: ProjectedPosition[]) => {
+    const overlay = unitOverlayRef.current;
+    if (!overlay) return;
+    positions.forEach(({ id, x, y }) => {
+      const el = overlay.querySelector(`[data-pid="${id}"]`) as HTMLElement | null;
+      if (el) el.style.transform = `translate(${Math.round(x + 5)}px, ${Math.round(y - 12)}px)`;
+    });
+  }, []);
 
   // Sync from parent props
   useEffect(() => {
@@ -1450,7 +1467,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   {/* Separador + botón para abrir panel de líneas */}
                   <div className="ml-auto flex items-center gap-2">
                     {/* Dropdown visibilidad */}
-                    {(referenceLines.length > 0 || editablePoints.length > 0) && (
+                    {(referenceLines.length > 0 || editablePoints.length > 0 || injectionPoints.some(ip => ip.units > 0)) && (
                       <div className="relative">
                         <button
                           onClick={() => setShowVisibilityDropdown(v => !v)}
@@ -1463,7 +1480,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                           <ChevronDown className="w-3 h-3 opacity-60" />
                         </button>
                         {showVisibilityDropdown && (
-                          <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl overflow-hidden">
+                          <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl overflow-hidden">
                             <button
                               onMouseDown={() => { setShowLines(v => !v); }}
                               className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors"
@@ -1478,6 +1495,15 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                               <span>Puntos del trazado</span>
                               {showEditablePoints ? <Eye className="w-3.5 h-3.5 text-yellow-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
                             </button>
+                            {injectionPoints.some(ip => ip.units > 0) && (
+                              <button
+                                onMouseDown={() => { setShowUnitNumbers(v => !v); }}
+                                className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                              >
+                                <span>Números de UI</span>
+                                {showUnitNumbers ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
+                              </button>
+                            )}
                             <button
                               onMouseDown={() => {
                                 const newVal = !(showLines && showEditablePoints);
@@ -1532,7 +1558,30 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         onEditablePointMoved={handleEditablePointMoved}
                         onEditablePointDeleted={handleEditablePointDeleted}
                         onEditablePointClicked={handleEditablePointClicked}
+                        onProjectedPositions={handleProjectedPositions}
                       />
+
+                      {/* Unit numbers overlay */}
+                      <div
+                        ref={unitOverlayRef}
+                        className="absolute inset-0 pointer-events-none overflow-hidden"
+                        style={{ display: showUnitNumbers ? 'block' : 'none' }}
+                      >
+                        {injectionPoints.filter(ip => ip.units > 0).map(ip => {
+                          const pid = ip.editablePointId || ip.id;
+                          if (!pid) return null;
+                          return (
+                            <span
+                              key={pid}
+                              data-pid={pid}
+                              className="absolute top-0 left-0 text-[7px] font-bold text-white leading-none bg-black/50 rounded-full px-[3px] py-[1.5px] pointer-events-none"
+                              style={{ transform: 'translate(0px,0px)' }}
+                            >
+                              {ip.units}
+                            </span>
+                          );
+                        })}
+                      </div>
 
                   {/* Dialog Overlay — Step 1: Tercio */}
                   {dialogStep === 1 && (
@@ -1844,6 +1893,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         initialCaptures={capturedImages}
         initialShowLines={showLines}
         initialShowEditablePoints={showEditablePoints}
+        injectionPoints={injectionPoints.map(ip => ({ id: ip.id, editablePointId: ip.editablePointId, units: ip.units }))}
+        initialShowUnitNumbers={showUnitNumbers}
         onConfirm={(newCaptures) => setCapturedImages(newCaptures)}
       />
 
