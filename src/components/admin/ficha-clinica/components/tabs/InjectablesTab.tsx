@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus
+  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D, EditablePoint } from '../Clinical3DViewer';
@@ -156,6 +156,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [editablePoints, setEditablePoints] = useState<EditablePoint[]>([]);
   const [showEditablePoints, setShowEditablePoints] = useState(true);
   const [showLines, setShowLines] = useState(true);
+  const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
   const [refJsonLoaded, setRefJsonLoaded] = useState(false);
   const [pointMode, setPointMode] = useState<'none' | 'add' | 'delete'>('none');
   // Modal de unidades para puntos del trazado
@@ -591,12 +592,15 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
   // 3D click → validate then open dialog
   const handleMarkerPlaced = (marker: Marker3D) => {
-    if (!canMark) {
+    // En modo añadir libre (isAddPointMode), saltamos el check canMark —
+    // el diálogo de 3 pasos captura zona + unidades directamente.
+    const isAddMode = (marker as any).isAddPointMode;
+    if (!isAddMode && !canMark) {
       setMessage({ type: 'error', text: `Complete el nombre del producto y las ${unitLabel} antes de marcar puntos` });
       return;
     }
 
-    // Todos los clics (puntos libres y normales) abren el diálogo de 3 pasos
+    // Todos los clics abren el diálogo de 3 pasos
     setPendingPoint(marker);
     setDialogStep(1);
     setDialogTercio('');
@@ -1430,23 +1434,49 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
                   {/* Separador + botón para abrir panel de líneas */}
                   <div className="ml-auto flex items-center gap-2">
-                    {/* Botón ocultar/mostrar todo (líneas + puntos) */}
+                    {/* Dropdown visibilidad */}
                     {(referenceLines.length > 0 || editablePoints.length > 0) && (
-                      <button
-                        onClick={() => {
-                          const newVal = !(showLines && showEditablePoints);
-                          setShowLines(newVal);
-                          setShowEditablePoints(newVal);
-                        }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                          showLines && showEditablePoints
-                            ? 'bg-slate-600/50 text-slate-300 border-slate-500 hover:bg-slate-600'
-                            : 'bg-slate-700/50 text-slate-500 border-slate-700 hover:bg-slate-700'
-                        }`}
-                        title={showLines && showEditablePoints ? 'Ocultar líneas y puntos' : 'Mostrar líneas y puntos'}
-                      >
-                        {showLines && showEditablePoints ? '👁 Ocultar todo' : '👁 Mostrar todo'}
-                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowVisibilityDropdown(v => !v)}
+                          onBlur={() => setTimeout(() => setShowVisibilityDropdown(false), 150)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all bg-slate-700/50 text-slate-300 border-slate-600 hover:bg-slate-600"
+                          title="Visibilidad del trazado"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Visibilidad
+                          <ChevronDown className="w-3 h-3 opacity-60" />
+                        </button>
+                        {showVisibilityDropdown && (
+                          <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl overflow-hidden">
+                            <button
+                              onMouseDown={() => { setShowLines(v => !v); }}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors"
+                            >
+                              <span>Líneas de ref.</span>
+                              {showLines ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
+                            </button>
+                            <button
+                              onMouseDown={() => { setShowEditablePoints(v => !v); }}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                            >
+                              <span>Puntos del trazado</span>
+                              {showEditablePoints ? <Eye className="w-3.5 h-3.5 text-yellow-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
+                            </button>
+                            <button
+                              onMouseDown={() => {
+                                const newVal = !(showLines && showEditablePoints);
+                                setShowLines(newVal);
+                                setShowEditablePoints(newVal);
+                              }}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                            >
+                              <span className="font-semibold">{showLines && showEditablePoints ? 'Ocultar todo' : 'Mostrar todo'}</span>
+                              {showLines && showEditablePoints ? <EyeOff className="w-3.5 h-3.5 text-slate-400" /> : <Eye className="w-3.5 h-3.5 text-emerald-400" />}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
                     {referenceLines.length > 0 && (
                       <span className="text-[10px] text-slate-400">{referenceLines.length} línea(s)</span>

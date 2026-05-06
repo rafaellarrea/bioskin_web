@@ -243,12 +243,19 @@ const ThreeEngine: React.FC<{
 
     const clearSelectionRing = () => {
       if (selectionRingMesh) {
-        // Restaurar materiales originales del grupo padre
         const grp = selectionRingMesh.parent;
         if (grp) {
           grp.traverse((c: any) => {
-            if (c.isMesh && c !== selectionRingMesh && c.material?.emissiveIntensity !== undefined) {
-              c.material.emissiveIntensity = c.userData.baseEmissive ?? 0.7;
+            if (c.isMesh && c !== selectionRingMesh) {
+              if (c.userData.selBaseOpacity !== undefined) {
+                c.material.opacity = c.userData.selBaseOpacity;
+                delete c.userData.selBaseOpacity;
+              }
+              if (c.userData.selBaseTrans !== undefined) {
+                c.material.transmission = c.userData.selBaseTrans;
+                delete c.userData.selBaseTrans;
+              }
+              if (c.material?.needsUpdate !== undefined) c.material.needsUpdate = true;
             }
           });
           grp.remove(selectionRingMesh);
@@ -262,16 +269,18 @@ const ThreeEngine: React.FC<{
 
     const addSelectionRing = (group: THREE.Group) => {
       clearSelectionRing();
-      // Glow sutil: aumentar emissiveIntensity del halo del punto
+      // Indicar selección solo mediante opacidad — sin cambio de tamaño
       group.traverse((c: any) => {
-        if (c.isMesh && c.material?.emissiveIntensity !== undefined) {
-          if (c.userData.baseEmissive === undefined) {
-            c.userData.baseEmissive = c.material.emissiveIntensity;
-          }
-          c.material.emissiveIntensity = 3.0;
+        if (c.isMesh && c.material?.transmission !== undefined) {
+          // Es la esfera exterior (MeshPhysicalMaterial con transmission)
+          c.userData.selBaseOpacity = c.material.opacity;
+          c.userData.selBaseTrans = c.material.transmission;
+          c.material.opacity = 0.72;
+          c.material.transmission = 0.25;
+          c.material.needsUpdate = true;
         }
       });
-      // Marcador invisible solo para rastrear el grupo seleccionado
+      // Marcador invisible para rastrear grupo seleccionado
       const dummyGeo = new THREE.SphereGeometry(0.001, 3, 3);
       const dummyMat = new THREE.MeshBasicMaterial({ visible: false });
       const dummy = new THREE.Mesh(dummyGeo, dummyMat);
@@ -342,7 +351,7 @@ const ThreeEngine: React.FC<{
         }
         return;
       }
-      if (Math.abs(e.clientX - startPos.x) > 2 || Math.abs(e.clientY - startPos.y) > 2) {
+      if (Math.abs(e.clientX - startPos.x) > 6 || Math.abs(e.clientY - startPos.y) > 6) {
         isDragging = true;
       }
     };
