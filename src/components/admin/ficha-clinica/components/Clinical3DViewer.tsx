@@ -721,24 +721,6 @@ const ThreeEngine: React.FC<{
     const sweepRaycaster = new THREE.Raycaster();
 
     /**
-     * Post-procesa los puntos del sweep aplicando Z máximo en ventana deslizante.
-     * Evita que las líneas "se hundan" en zonas cóncavas (cuencas oculares, etc.):
-     * cada punto toma el Z más alto de su vecindario, haciendo que la línea
-     * "salte por encima" de las concavidades en lugar de seguirlas.
-     */
-    const smoothFrontZ = (pts: THREE.Vector3[], window = 15): THREE.Vector3[] => {
-      if (pts.length < 3) return pts;
-      const half = Math.floor(window / 2);
-      return pts.map((pt, i) => {
-        let maxZ = pt.z;
-        for (let j = Math.max(0, i - half); j <= Math.min(pts.length - 1, i + half); j++) {
-          if (pts[j].z > maxZ) maxZ = pts[j].z;
-        }
-        return new THREE.Vector3(pt.x, pt.y, maxZ);
-      });
-    };
-
-    /**
      * Obtiene los puntos de intersección de la malla al barrer en una dirección.
      * origin se desplaza en pasos y se lanza rayo en -Z.
      */
@@ -760,10 +742,13 @@ const ThreeEngine: React.FC<{
         sweepRaycaster.set(origin, dir);
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) {
+          // Offset = 0: el centro del tubo queda exactamente en la superficie.
+          // Con depthTest:false y renderOrder:999 el tubo siempre se dibuja encima,
+          // por lo que la mitad visible del tubo sobresale de la malla sin flotar.
           points.push(hits[0].point.clone());
         }
       }
-      return smoothFrontZ(points);
+      return points;
     };
 
     /**
@@ -856,7 +841,7 @@ const ThreeEngine: React.FC<{
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) pts.push(hits[0].point.clone());
       }
-      return smoothFrontZ(pts);
+      return pts;
     };
 
     /**
@@ -880,7 +865,7 @@ const ThreeEngine: React.FC<{
           points.push(hits[0].point.clone());
         }
       }
-      return smoothFrontZ(points);
+      return points;
     };
 
     referenceLines.forEach(line => {
