@@ -432,12 +432,13 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     console.log('[Trazado] editablePoints count:', json.editablePoints?.length ?? 0);
 
     // El JSON fue generado desde Clinical3D (targetSize=5).
-    // Clinical3DViewer usa targetSize=8 → escalar todas las coords por 8/5.
-    const COORD_SCALE = 8 / 5;
+    // Clinical3DViewer ahora usa el mismo targetSize=5, por lo que las
+    // coordenadas son compatibles directamente sin ninguna transformación.
+    const COORD_SCALE = 1.0;
 
-    // Límites del hairline escalados al espacio de 8 unidades
-    const hairlineTopY  = (json.hairline?.topY  ?? 1.9) * COORD_SCALE;
-    const hairlineBottomY = (json.hairline?.bottomY ?? 0.6) * COORD_SCALE;
+    // Límites del hairline directamente en espacio 5 unidades
+    const hairlineTopY    = json.hairline?.topY    ?? 1.9;
+    const hairlineBottomY = json.hairline?.bottomY ?? 0.6;
 
     const lines: ReferenceLine[] = (json.referenceLines || []).map((l: any) => {
       let anchor: { x: number; y: number; z: number };

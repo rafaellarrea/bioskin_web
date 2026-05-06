@@ -189,7 +189,7 @@ const ThreeEngine: React.FC<{
     scene.add(editablePointsGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
-    camera.position.set(0, 0, 18);
+    camera.position.set(0, 0, 12);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
@@ -463,7 +463,9 @@ const ThreeEngine: React.FC<{
       });
 
       const maxDim = Math.max(size.x, size.y, size.z);
-      const scaleFactor = 8 / (maxDim || 1);
+      // targetSize=5 para coincidir exactamente con Clinical3D.tsx y que las
+      // coordenadas del JSON (generadas en ese viewer) sean directamente compatibles.
+      const scaleFactor = 5 / (maxDim || 1);
       model.scale.setScalar(scaleFactor);
 
       if (controlsRef.current) {
