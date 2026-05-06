@@ -467,14 +467,23 @@ const ThreeEngine: React.FC<{
 
     const onResize = () => {
       if (!mountRef.current || !cameraRef.current || !rendererRef.current) return;
-      cameraRef.current.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+      const w = mountRef.current.clientWidth;
+      const h = mountRef.current.clientHeight;
+      if (w === 0 || h === 0) return;
+      cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      rendererRef.current.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
 
+    // ResizeObserver: detecta cambios de tamaño del contenedor (ej. modal con animación
+    // flex donde height puede resolverse después del montaje inicial)
+    const ro = new ResizeObserver(onResize);
+    if (mountRef.current) ro.observe(mountRef.current);
+
     return () => {
       window.removeEventListener('resize', onResize);
+      ro.disconnect();
       if (rendererRef.current && rendererRef.current.domElement) {
         const dom = rendererRef.current.domElement;
         dom.removeEventListener('pointerdown', onPointerDown);

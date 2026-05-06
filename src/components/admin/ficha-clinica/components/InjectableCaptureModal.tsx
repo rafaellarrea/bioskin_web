@@ -158,7 +158,7 @@ export default function InjectableCaptureModal({
                 </div>
 
                 {/* Viewer container with flash overlay */}
-                <div className="relative flex-1 min-h-[320px]" ref={viewerContainerRef}>
+                <div className="relative h-[420px] shrink-0" ref={viewerContainerRef}>
                   <Clinical3DViewer
                     markers={markers}
                     selectedPathology={selectedPathology}
