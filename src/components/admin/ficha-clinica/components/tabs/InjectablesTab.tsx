@@ -1776,6 +1776,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         referenceLines={referenceLines}
         editablePoints={editablePoints}
         initialCaptures={capturedImages}
+        initialShowLines={showLines}
+        initialShowEditablePoints={showEditablePoints}
         onConfirm={(newCaptures) => setCapturedImages(newCaptures)}
       />
 

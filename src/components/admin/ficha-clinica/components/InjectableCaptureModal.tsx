@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Camera, X, Trash2, Check, Images, ZoomIn, ZoomOut,
-  RotateCcw, RotateCw, Info
+  RotateCcw, RotateCw, Info, Eye, EyeOff
 } from 'lucide-react';
 import Clinical3DViewer, { Marker3D, EditablePoint } from './Clinical3DViewer';
 import type { ReferenceLine } from './Clinical3DViewer';
@@ -30,6 +30,10 @@ interface InjectableCaptureModalProps {
   initialCaptures?: CaptureImage[];
   /** Callback con la lista final de capturas al confirmar */
   onConfirm: (captures: CaptureImage[]) => void;
+  /** Visibilidad inicial de líneas (hereda del estado de la vista principal) */
+  initialShowLines?: boolean;
+  /** Visibilidad inicial de puntos del trazado (hereda del estado de la vista principal) */
+  initialShowEditablePoints?: boolean;
 }
 
 // ==========================================
@@ -45,9 +49,14 @@ export default function InjectableCaptureModal({
   editablePoints = [],
   initialCaptures = [],
   onConfirm,
+  initialShowLines = true,
+  initialShowEditablePoints = true,
 }: InjectableCaptureModalProps) {
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const [captures, setCaptures] = useState<CaptureImage[]>(initialCaptures);
+  const [showLines, setShowLines] = useState(initialShowLines);
+  const [showEditablePoints, setShowEditablePoints] = useState(initialShowEditablePoints);
+  const [showMarkers, setShowMarkers] = useState(true);
   const [pendingLabel, setPendingLabel] = useState('');
   const [previewCapture, setPreviewCapture] = useState<CaptureImage | null>(null);
   const [captureFlash, setCaptureFlash] = useState(false);
@@ -157,16 +166,61 @@ export default function InjectableCaptureModal({
                   <span>Usa el ratón para rotar, hacer zoom o mover el modelo. Cuando tengas la vista deseada, escribe una etiqueta y captura.</span>
                 </div>
 
+                {/* Visibility toggles */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mr-1">Visibilidad:</span>
+                  <button
+                    onMouseDown={() => setShowLines(v => !v)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                      showLines
+                        ? 'bg-cyan-50 border-cyan-200 text-cyan-700'
+                        : 'bg-gray-100 border-gray-200 text-gray-400'
+                    }`}
+                    title={showLines ? 'Ocultar líneas de trazado' : 'Mostrar líneas de trazado'}
+                  >
+                    {showLines ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    Líneas
+                  </button>
+                  {editablePoints.length > 0 && (
+                    <button
+                      onMouseDown={() => setShowEditablePoints(v => !v)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                        showEditablePoints
+                          ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                          : 'bg-gray-100 border-gray-200 text-gray-400'
+                      }`}
+                      title={showEditablePoints ? 'Ocultar puntos del trazado' : 'Mostrar puntos del trazado'}
+                    >
+                      {showEditablePoints ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      Puntos
+                    </button>
+                  )}
+                  {markers.length > 0 && (
+                    <button
+                      onMouseDown={() => setShowMarkers(v => !v)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+                        showMarkers
+                          ? 'bg-violet-50 border-violet-200 text-violet-700'
+                          : 'bg-gray-100 border-gray-200 text-gray-400'
+                      }`}
+                      title={showMarkers ? 'Ocultar marcadores de inyección' : 'Mostrar marcadores de inyección'}
+                    >
+                      {showMarkers ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      Marcadores
+                    </button>
+                  )}
+                </div>
+
                 {/* Viewer container with flash overlay */}
                 <div className="relative h-[420px] shrink-0" ref={viewerContainerRef}>
                   <Clinical3DViewer
-                    markers={markers}
+                    markers={showMarkers ? markers : []}
                     selectedPathology={selectedPathology}
                     readOnly
                     height="100%"
-                    referenceLines={referenceLines}
+                    referenceLines={showLines ? referenceLines : []}
                     editablePoints={editablePoints}
-                    showEditablePoints={editablePoints.length > 0}
+                    showEditablePoints={showEditablePoints && editablePoints.length > 0}
                   />
                   {/* Flash animation on capture */}
                   <AnimatePresence>
