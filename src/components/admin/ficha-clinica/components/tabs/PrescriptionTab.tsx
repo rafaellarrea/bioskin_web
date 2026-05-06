@@ -245,8 +245,9 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
     const logoUrl = `${window.location.origin}/images/logo/logo.png`;
 
     const html = `
-      <html>
+      <html lang="es">
         <head>
+          <meta charset="UTF-8">
           <title>Receta Médica - ${patientName}</title>
           <style>
             @page { size: A4 portrait; margin: 0; }
@@ -369,7 +370,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
       </html>
     `;
 
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank', 'noopener');
     setTimeout(() => URL.revokeObjectURL(url), 60000);

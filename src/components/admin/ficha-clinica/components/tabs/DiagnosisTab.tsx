@@ -243,8 +243,9 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
   const handlePrint = () => {
     setMessage({ type: 'success', text: 'Abriendo vista de impresión...' });
     const html = `
-      <html>
+      <html lang="es">
         <head>
+          <meta charset="UTF-8">
           <title>Diagnóstico - ${patientName}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
@@ -295,7 +296,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
       </html>
     `;
 
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank', 'noopener');
     setTimeout(() => URL.revokeObjectURL(url), 60000);

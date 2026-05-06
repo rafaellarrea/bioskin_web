@@ -97,8 +97,9 @@ export default function ConsultationTab({ recordId, initialData, historyData = [
   const handlePrint = () => {
     setMessage({ type: 'success', text: 'Abriendo vista de impresión...' });
     const html = `
-      <html>
+      <html lang="es">
         <head>
+          <meta charset="UTF-8">
           <title>Motivo de Consulta</title>
           <style>
              body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; }
@@ -135,7 +136,7 @@ export default function ConsultationTab({ recordId, initialData, historyData = [
         </body>
       </html>
     `;
-    const blob = new Blob([html], { type: 'text/html' });
+    const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank', 'noopener');
     setTimeout(() => URL.revokeObjectURL(url), 60000);
