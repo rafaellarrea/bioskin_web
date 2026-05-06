@@ -6,11 +6,12 @@ import {
   FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
-import Clinical3DViewer, { Marker3D } from '../Clinical3DViewer';
+import Clinical3DViewer, { Marker3D, EditablePoint } from '../Clinical3DViewer';
 import type { ReferenceLine, LineType } from '../Clinical3DViewer';
 import InjectableCaptureModal, { CaptureImage } from '../InjectableCaptureModal';
 import ReferenceLinePanel from '../ReferenceLinePanel';
 import type { LinePreset } from '../ReferenceLinePanel';
+import trazadoSuperior from '../../data/trazado-referencia-superior.json';
 
 // ==========================================
 // TYPES
@@ -42,6 +43,7 @@ interface InjectionPoint extends Marker3D {
   tercio: 'superior' | 'medio' | 'inferior' | '';
   units: number;
   label: string;
+  editablePointId?: string;
 }
 
 interface InjectablesTabProps {
@@ -149,6 +151,20 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   // Paso del diálogo two-points: 0=inactivo 1=esperando 1er punto 2=esperando 2do punto
   const [twoPointStep, setTwoPointStep] = useState<0 | 1 | 2>(0);
 
+  // ── Puntos editables (trazado de referencia) ──────────────────────────
+  const [editablePoints, setEditablePoints] = useState<EditablePoint[]>([]);
+  const [showEditablePoints, setShowEditablePoints] = useState(true);
+  const [refJsonLoaded, setRefJsonLoaded] = useState(false);
+  const [pointMode, setPointMode] = useState<'none' | 'add' | 'delete'>('none');
+  // Modal de unidades para puntos del trazado
+  const [unitsModal, setUnitsModal] = useState<{
+    open: boolean;
+    pointId: string;
+    pointName: string;
+    existingUnits: number;
+  } | null>(null);
+  const [unitsModalInput, setUnitsModalInput] = useState('');
+
   // Sync from parent props
   useEffect(() => {
     const sorted = [...initialInjectables].sort(
@@ -187,16 +203,24 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         setInjectionPoints(points);
         setMarkers3D(rawPoints);
         setReferenceLines(rawLines);
-        if (points.length > 0 || rawLines.length > 0) setShow3D(true);
+        // Restaurar puntos editables si existen en mapping_data
+        const rawEditablePoints = Array.isArray((parsed as any)?.editablePoints) ? (parsed as any).editablePoints : [];
+        setEditablePoints(rawEditablePoints);
+        setRefJsonLoaded(rawEditablePoints.length > 0);
+        if (points.length > 0 || rawLines.length > 0 || rawEditablePoints.length > 0) setShow3D(true);
       } catch {
         setInjectionPoints([]);
         setMarkers3D([]);
         setReferenceLines([]);
+        setEditablePoints([]);
+        setRefJsonLoaded(false);
       }
     } else {
       setInjectionPoints([]);
       setMarkers3D([]);
       setReferenceLines([]);
+      setEditablePoints([]);
+      setRefJsonLoaded(false);
     }
   }, [current.id]);
 
@@ -242,10 +266,10 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       const action = current.id ? 'updateInjectable' : 'addInjectable';
       const derivedAreas = [...new Set(injectionPoints.map(p => p.label).filter(Boolean))];
 
-      // Nuevo formato de mapping_data: incluye referenceLines para persistencia
-      const hasData = injectionPoints.length > 0 || referenceLines.length > 0;
+      // Nuevo formato de mapping_data: incluye referenceLines y editablePoints para persistencia
+      const hasData = injectionPoints.length > 0 || referenceLines.length > 0 || editablePoints.length > 0;
       const mappingData = hasData
-        ? { injectionPoints, referenceLines }
+        ? { injectionPoints, referenceLines, editablePoints }
         : null;
 
       const payload = {
@@ -301,6 +325,11 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setPendingLineMeta(null);
     setFirstLineAnchor(null);
     setTwoPointStep(0);
+    setEditablePoints([]);
+    setRefJsonLoaded(false);
+    setPointMode('none');
+    setUnitsModal(null);
+    setUnitsModalInput('');
   };
 
   // ── HANDLERS: Líneas de referencia ──────────────────────────────────────
@@ -387,6 +416,137 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setPendingLineMeta(prev => prev ? { ...prev, label } : { label, color: '#ffffff' });
   };
 
+  // ── HANDLERS: Puntos editables del trazado ────────────────────────────
+
+  /** Cargar el trazado de referencia superior desde el JSON estático */
+  const handleLoadReferenceJson = () => {
+    if (refJsonLoaded) {
+      // Si ya está cargado, preguntar si recargar
+      if (!confirm('¿Recargar el trazado de referencia? Se perderán las posiciones personalizadas.')) return;
+    }
+    const json = trazadoSuperior as any;
+    const lines: ReferenceLine[] = (json.lines || []).map((l: any) => {
+      let anchor: { x: number; y: number; z: number };
+      let lineType: LineType;
+      let anchors: [{ x: number; y: number; z: number }, { x: number; y: number; z: number }] | undefined;
+
+      if (l.type === 'vertical') {
+        anchor = { x: l.offset ?? 0, y: 0, z: 0 };
+        lineType = 'vertical';
+      } else if (l.type === 'horizontal') {
+        anchor = { x: 0, y: l.offset ?? 0, z: 0 };
+        lineType = 'horizontal';
+      } else {
+        // two-points: los anchors vienen en l.points o l.anchors
+        const pts = l.anchors || l.points || [];
+        anchor = pts[0] ? { x: pts[0].x ?? 0, y: pts[0].y ?? 0, z: pts[0].z ?? 0 } : { x: 0, y: 0, z: 0 };
+        anchors = pts.length >= 2
+          ? [{ x: pts[0].x ?? 0, y: pts[0].y ?? 0, z: pts[0].z ?? 0 }, { x: pts[1].x ?? 0, y: pts[1].y ?? 0, z: pts[1].z ?? 0 }]
+          : undefined;
+        lineType = 'two-points';
+      }
+
+      return {
+        id: l.id || `ref-line-${Date.now()}-${Math.random()}`,
+        type: lineType,
+        label: l.label || l.id || 'Línea',
+        color: l.color || '#00eeff',
+        anchor,
+        offset: 0,
+        anchors,
+        visible: true,
+      } as ReferenceLine;
+    });
+
+    const points: EditablePoint[] = (json.points || []).map((p: any) => ({
+      id: p.id,
+      type: p.type || 'intersection',
+      x: p.x ?? 0,
+      y: p.y ?? 0,
+      z: p.z ?? 0,
+      lineIds: p.lineIds || [],
+      name: p.name || p.id || 'Punto',
+    }));
+
+    setReferenceLines(prev => {
+      // Reemplazar líneas de referencia cargadas desde JSON (mantener las dibujadas manualmente)
+      const manual = prev.filter(l => !l.id.startsWith('ref-line-'));
+      return [...manual, ...lines];
+    });
+    setEditablePoints(points);
+    setRefJsonLoaded(true);
+    setShow3D(true);
+  };
+
+  /** Clic sobre un punto editable → abrir modal de unidades */
+  const handleEditablePointClicked = (id: string) => {
+    const pt = editablePoints.find(p => p.id === id);
+    if (!pt) return;
+    const existing = injectionPoints.find(ip => ip.editablePointId === id);
+    setUnitsModal({
+      open: true,
+      pointId: id,
+      pointName: pt.name || id,
+      existingUnits: existing?.units ?? 0,
+    });
+    setUnitsModalInput(String(existing?.units ?? ''));
+  };
+
+  /** Punto editable movido en el visor 3D → actualizar posición */
+  const handleEditablePointMoved = (id: string, pos: { x: number; y: number; z: number }) => {
+    setEditablePoints(prev => prev.map(p => p.id === id ? { ...p, ...pos } : p));
+  };
+
+  /** Punto editable eliminado en el visor 3D */
+  const handleEditablePointDeleted = (id: string) => {
+    setEditablePoints(prev => prev.filter(p => p.id !== id));
+    setInjectionPoints(prev => prev.filter(ip => ip.editablePointId !== id));
+    setMarkers3D(prev => prev.filter((_, i) => {
+      const ip = injectionPoints[i];
+      return !ip || ip.editablePointId !== id;
+    }));
+  };
+
+  /** Confirmar unidades desde el modal de punto editable */
+  const handleUnitsModalConfirm = () => {
+    if (!unitsModal) return;
+    const units = Number(unitsModalInput) || 0;
+    const pt = editablePoints.find(p => p.id === unitsModal.pointId);
+    if (!pt) { setUnitsModal(null); return; }
+
+    // Crear o actualizar el InjectionPoint vinculado a este punto editable
+    const existingIdx = injectionPoints.findIndex(ip => ip.editablePointId === unitsModal.pointId);
+    const newPoint: InjectionPoint = {
+      id: existingIdx >= 0 ? injectionPoints[existingIdx].id : undefined,
+      type: 'Puntual' as const,
+      pathologyId: 'botox',
+      position: { x: pt.x, y: pt.y, z: pt.z },
+      rotation: [0, 0, 0],
+      normal: { x: 0, y: 0, z: 1 },
+      zone: unitsModal.pointName,
+      radius: 0.04,
+      tercio: 'superior',
+      units,
+      label: unitsModal.pointName,
+      editablePointId: unitsModal.pointId,
+    };
+
+    if (existingIdx >= 0) {
+      setInjectionPoints(prev => prev.map((ip, i) => i === existingIdx ? newPoint : ip));
+      setMarkers3D(prev => prev.map((m, i) => {
+        const ip = injectionPoints[i];
+        if (ip?.editablePointId === unitsModal.pointId) return { ...m, ...newPoint };
+        return m;
+      }));
+    } else {
+      setInjectionPoints(prev => [...prev, newPoint]);
+      setMarkers3D(prev => [...prev, newPoint]);
+    }
+
+    setUnitsModal(null);
+    setUnitsModalInput('');
+  };
+
   const handleSelect = (inj: Injectable) => {
     setCurrent({
       ...inj,
@@ -402,6 +562,29 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       setMessage({ type: 'error', text: `Complete el nombre del producto y las ${unitLabel} antes de marcar puntos` });
       return;
     }
+
+    // Modo "añadir punto libre" desde trazado: crear punto editable y abrir modal de unidades
+    if (marker.isAddPointMode) {
+      const newEp: EditablePoint = {
+        id: `free-${Date.now()}`,
+        type: 'free',
+        x: marker.position.x,
+        y: marker.position.y,
+        z: marker.position.z,
+        lineIds: [],
+        name: `Punto libre ${editablePoints.filter(p => p.type === 'free').length + 1}`,
+      };
+      setEditablePoints(prev => [...prev, newEp]);
+      setUnitsModal({
+        open: true,
+        pointId: newEp.id,
+        pointName: newEp.name!,
+        existingUnits: 0,
+      });
+      setUnitsModalInput('');
+      return;
+    }
+
     setPendingPoint(marker);
     setDialogStep(1);
     setDialogTercio('');
@@ -1179,6 +1362,63 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </div>
 
               <div ref={viewerRef} className="p-4">
+                {/* Toolbar: Trazado de Referencia Superior */}
+                <div className="mb-3 flex flex-wrap items-center gap-2 p-3 bg-slate-800/60 rounded-xl border border-slate-700">
+                  <button
+                    onClick={handleLoadReferenceJson}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      refJsonLoaded
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30'
+                        : 'bg-cyan-600 text-white hover:bg-cyan-500 shadow-md'
+                    }`}
+                    title="Cargar puntos y líneas del trazado de referencia superior"
+                  >
+                    <Crosshair className="w-3.5 h-3.5" />
+                    {refJsonLoaded ? 'Trazado cargado ✓' : 'Cargar Trazado Superior'}
+                  </button>
+
+                  {refJsonLoaded && (
+                    <>
+                      {/* Toggle visibilidad de puntos */}
+                      <button
+                        onClick={() => setShowEditablePoints(v => !v)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                          showEditablePoints
+                            ? 'bg-yellow-400/20 text-yellow-300 border-yellow-500/40 hover:bg-yellow-400/30'
+                            : 'bg-gray-600/40 text-gray-400 border-gray-600 hover:bg-gray-600/60'
+                        }`}
+                        title={showEditablePoints ? 'Ocultar puntos del trazado' : 'Mostrar puntos del trazado'}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-current inline-block" />
+                        {showEditablePoints ? 'Puntos visibles' : 'Puntos ocultos'}
+                        <span className="text-[10px] opacity-70">({editablePoints.length})</span>
+                      </button>
+
+                      {/* Divisor */}
+                      <div className="w-px h-5 bg-slate-600" />
+
+                      {/* Modo de interacción */}
+                      <span className="text-xs text-slate-400 font-medium">Modo:</span>
+                      {(['none', 'add', 'delete'] as const).map(mode => (
+                        <button
+                          key={mode}
+                          onClick={() => setPointMode(prev => prev === mode ? 'none' : mode)}
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                            pointMode === mode
+                              ? mode === 'delete'
+                                ? 'bg-red-500/30 text-red-300 border-red-500/50'
+                                : 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40'
+                              : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-700'
+                          }`}
+                          title={mode === 'none' ? 'Mover puntos (drag)' : mode === 'add' ? 'Añadir punto libre' : 'Eliminar punto al clic'}
+                        >
+                          {mode === 'none' ? '↔ Mover' : mode === 'add' ? '+ Añadir' : '✕ Eliminar'}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+
                 {/* Two-column layout: 3D viewer left, panel right */}
                 <div className="flex flex-col lg:flex-row gap-4">
                   {/* Left: 3D Viewer */}
@@ -1194,6 +1434,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         lineDrawingMode={viewMode === 'lines' ? activeLineType : null}
                         onLinePointAnchored={handleLinePointAnchored}
                         height="420px"
+                        editablePoints={editablePoints}
+                        showEditablePoints={showEditablePoints}
+                        pointMode={pointMode}
+                        onEditablePointMoved={handleEditablePointMoved}
+                        onEditablePointDeleted={handleEditablePointDeleted}
+                        onEditablePointClicked={handleEditablePointClicked}
                       />
 
                   {/* Dialog Overlay — Step 1: Tercio */}
@@ -1438,6 +1684,78 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         initialCaptures={capturedImages}
         onConfirm={(newCaptures) => setCapturedImages(newCaptures)}
       />
+
+      {/* ========== MODAL: UNIDADES PARA PUNTO DEL TRAZADO ========== */}
+      <AnimatePresence>
+        {unitsModal?.open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-800">Registrar inyección</h3>
+                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{unitsModal.pointName}</p>
+                </div>
+                <button
+                  onClick={() => { setUnitsModal(null); setUnitsModalInput(''); }}
+                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="mb-5">
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+                  {current.product_type === 'toxina' ? 'Unidades (UI)' : 'Volumen (ml)'}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step={current.product_type === 'toxina' ? '1' : '0.1'}
+                  value={unitsModalInput}
+                  onChange={e => setUnitsModalInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleUnitsModalConfirm(); }}
+                  autoFocus
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent text-center font-bold text-lg text-gray-800"
+                  placeholder="0"
+                />
+                {unitsModal.existingUnits > 0 && (
+                  <p className="text-[11px] text-gray-400 text-center mt-1">
+                    Valor anterior: <strong>{unitsModal.existingUnits}</strong> {current.product_type === 'toxina' ? 'UI' : 'ml'}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setUnitsModal(null); setUnitsModalInput(''); }}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleUnitsModalConfirm}
+                  disabled={!unitsModalInput || Number(unitsModalInput) <= 0}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  Guardar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

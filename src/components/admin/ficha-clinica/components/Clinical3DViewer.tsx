@@ -45,6 +45,17 @@ export interface Marker3D {
   radius?: number;
   scale?: { x: number; y: number };
   points?: { x: number; y: number; z: number }[];
+  isAddPointMode?: boolean;
+}
+
+export interface EditablePoint {
+  id: string;
+  type: 'intersection' | 'free';
+  x: number;
+  y: number;
+  z: number;
+  lineIds: string[];
+  name?: string;
 }
 
 export const getFacialZone = (point: THREE.Vector3, registeredZones: Zone[] = []) => {
@@ -99,6 +110,19 @@ interface Clinical3DViewerProps {
   lineDrawingMode?: LineType | null;
   /** Callback al anclar un punto de superficie (para verticales/horizontales emite 1 punto; para two-points emite 'first' y 'second') */
   onLinePointAnchored?: (point: { x: number; y: number; z: number }, step: 'first' | 'second') => void;
+  // ── Puntos editables (trazado de referencia) ──────────────────────────────
+  /** Puntos editables a renderizar (intersecciones y puntos libres de un trazado) */
+  editablePoints?: EditablePoint[];
+  /** Mostrar/ocultar los puntos editables */
+  showEditablePoints?: boolean;
+  /** Modo de interacción con puntos: 'none'=sólo drag, 'add'=añadir en malla, 'delete'=eliminar al clic */
+  pointMode?: 'none' | 'add' | 'delete';
+  /** Callback cuando un punto editable es movido */
+  onEditablePointMoved?: (id: string, pos: { x: number; y: number; z: number }) => void;
+  /** Callback cuando un punto editable es eliminado */
+  onEditablePointDeleted?: (id: string) => void;
+  /** Callback cuando se hace clic en un punto editable (sin drag) */
+  onEditablePointClicked?: (id: string) => void;
 }
 
 // ==========================================
@@ -117,7 +141,14 @@ const ThreeEngine: React.FC<{
   referenceLines?: ReferenceLine[];
   lineDrawingMode?: LineType | null;
   onLinePointAnchored?: (point: { x: number; y: number; z: number }, step: 'first' | 'second') => void;
-}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored }) => {
+  // ── Puntos editables ──────────────────────────────────────────────────
+  editablePoints?: EditablePoint[];
+  showEditablePoints?: boolean;
+  pointMode?: 'none' | 'add' | 'delete';
+  onEditablePointMoved?: (id: string, pos: { x: number; y: number; z: number }) => void;
+  onEditablePointDeleted?: (id: string) => void;
+  onEditablePointClicked?: (id: string) => void;
+}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -126,14 +157,15 @@ const ThreeEngine: React.FC<{
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
   const linesGroupRef = useRef<THREE.Group | null>(null);
+  const editablePointsGroupRef = useRef<THREE.Group | null>(null);
   // Increments each time the model finishes loading so the markers effect re-runs
   const [modelVersion, setModelVersion] = useState(0);
   // Track two-point step inside engine for cursor feedback
   const twoPointStepRef = useRef<0 | 1>(0);
 
-  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored });
+  const callbacks = useRef({ onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored, pointMode, onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked });
   useEffect(() => {
-    callbacks.current = { onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored };
+    callbacks.current = { onMeshClick, onLoaded, onError, zones, readOnly, lineDrawingMode, onLinePointAnchored, pointMode, onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked };
   });
 
   // 1. Initialize scene once
@@ -151,6 +183,10 @@ const ThreeEngine: React.FC<{
     const linesGroup = new THREE.Group();
     linesGroupRef.current = linesGroup;
     scene.add(linesGroup);
+
+    const editablePointsGroup = new THREE.Group();
+    editablePointsGroupRef.current = editablePointsGroup;
+    scene.add(editablePointsGroup);
 
     const camera = new THREE.PerspectiveCamera(35, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 18);
@@ -190,14 +226,87 @@ const ThreeEngine: React.FC<{
     let isDragging = false;
     let startPos = { x: 0, y: 0 };
 
+    // ── Estado drag de puntos editables ────────────────────────────────────
+    let draggedEditableId: string | null = null;
+    let draggedEditableGroup: THREE.Group | null = null;
+    let dragMoved = false;
+
     const onPointerDown = (e: MouseEvent) => {
+      // Detectar hit sobre punto editable
+      if (editablePointsGroupRef.current && cameraRef.current) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const epMeshes: THREE.Object3D[] = [];
+        editablePointsGroupRef.current.children.forEach(g => g.traverse(c => { if ((c as THREE.Mesh).isMesh) epMeshes.push(c); }));
+        const hits = raycaster.intersectObjects(epMeshes, false);
+        if (hits.length > 0) {
+          let obj: THREE.Object3D | null = hits[0].object;
+          while (obj && !obj.userData.isEditablePoint) obj = obj.parent;
+          if (obj && obj.userData.isEditablePoint) {
+            if (callbacks.current.pointMode === 'delete') {
+              callbacks.current.onEditablePointDeleted?.(obj.userData.editableId);
+              return;
+            }
+            // Iniciar drag
+            draggedEditableId = obj.userData.editableId;
+            draggedEditableGroup = obj as THREE.Group;
+            if (controlsRef.current) controlsRef.current.enabled = false;
+            isDragging = false;
+            dragMoved = false;
+            startPos = { x: e.clientX, y: e.clientY };
+            return;
+          }
+        }
+      }
       isDragging = false;
       startPos = { x: e.clientX, y: e.clientY };
     };
 
     const onPointerMove = (e: MouseEvent) => {
+      // Drag de punto editable sobre superficie
+      if (draggedEditableGroup && faceMeshRef.current && cameraRef.current) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, cameraRef.current);
+        const meshObjs: THREE.Object3D[] = [];
+        faceMeshRef.current.traverse(o => { if ((o as THREE.Mesh).isMesh) meshObjs.push(o); });
+        const hits = raycaster.intersectObjects(meshObjs, false);
+        if (hits.length > 0) {
+          const hit = hits[0];
+          if (hit.face) {
+            const nf = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+            draggedEditableGroup.position.copy(hit.point).addScaledVector(nf, 0.03);
+          } else {
+            draggedEditableGroup.position.copy(hit.point);
+          }
+          dragMoved = true;
+        }
+        return;
+      }
       if (Math.abs(e.clientX - startPos.x) > 2 || Math.abs(e.clientY - startPos.y) > 2) {
         isDragging = true;
+      }
+    };
+
+    const onPointerUp = (_e: MouseEvent) => {
+      if (draggedEditableId && draggedEditableGroup) {
+        const relId = draggedEditableId;
+        const relGroup = draggedEditableGroup;
+        draggedEditableId = null;
+        draggedEditableGroup = null;
+        if (controlsRef.current) controlsRef.current.enabled = true;
+        isDragging = true; // Prevenir que onClick dispare el flujo de marcación
+        if (dragMoved) {
+          const pos = relGroup.position;
+          callbacks.current.onEditablePointMoved?.(relId, { x: pos.x, y: pos.y, z: pos.z });
+        } else {
+          // Clic simple sobre punto → notificar al padre
+          callbacks.current.onEditablePointClicked?.(relId);
+        }
+        dragMoved = false;
       }
     };
 
@@ -226,7 +335,22 @@ const ThreeEngine: React.FC<{
           } else {
             callbacks.current.onLinePointAnchored?.(anchorPt, 'first');
           }
-          return; // No procesar como marcación
+          return;
+        }
+
+        // ── Modo añadir punto libre ────────────────────────────────────────
+        if (callbacks.current.pointMode === 'add') {
+          const nAdd = intersect.face ? intersect.face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(intersect.object.matrixWorld)).normalize() : new THREE.Vector3(0, 1, 0);
+          const ptAdd = point.clone().addScaledVector(nAdd, 0.03);
+          callbacks.current.onMeshClick({
+            position: { x: ptAdd.x, y: ptAdd.y, z: ptAdd.z },
+            rotation: [0, 0, 0],
+            normal: { x: nAdd.x, y: nAdd.y, z: nAdd.z },
+            zone: '',
+            radius: 0.3,
+            isAddPointMode: true,
+          });
+          return;
         }
 
         // ── Modo marcación normal ────────────────────────────────────────
@@ -251,6 +375,7 @@ const ThreeEngine: React.FC<{
 
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
     renderer.domElement.addEventListener('click', onClick);
 
     let animationFrameId: number;
@@ -277,6 +402,7 @@ const ThreeEngine: React.FC<{
         const dom = rendererRef.current.domElement;
         dom.removeEventListener('pointerdown', onPointerDown);
         dom.removeEventListener('pointermove', onPointerMove);
+        dom.removeEventListener('pointerup', onPointerUp);
         dom.removeEventListener('click', onClick);
       }
       cancelAnimationFrame(animationFrameId);
@@ -436,6 +562,73 @@ const ThreeEngine: React.FC<{
       }
     });
   }, [markers, modelVersion]);
+
+  // 4b. Renderizar puntos editables (trazado de referencia)
+  useEffect(() => {
+    const group = editablePointsGroupRef.current;
+    if (!group) return;
+
+    // Limpiar
+    while (group.children.length > 0) {
+      const child = group.children[0];
+      group.remove(child);
+      child.traverse((m: any) => {
+        if (m.geometry) m.geometry.dispose();
+        if (m.material) {
+          if (Array.isArray(m.material)) m.material.forEach((mt: any) => mt.dispose());
+          else m.material.dispose();
+        }
+      });
+    }
+
+    editablePoints.forEach((pt) => {
+      const ptGroup = new THREE.Group();
+      ptGroup.position.set(pt.x, pt.y, pt.z);
+      ptGroup.userData.isEditablePoint = true;
+      ptGroup.userData.editableId = pt.id;
+      ptGroup.userData.lineIds = pt.lineIds ?? [];
+      ptGroup.userData.epType = pt.type;
+      ptGroup.userData.pointName = pt.name ?? 'Punto libre';
+
+      const isIntersection = pt.type === 'intersection';
+      const sphereColor = isIntersection ? new THREE.Color(0x00eeff) : new THREE.Color(0xffdd00);
+
+      // Núcleo sólido blanco
+      const coreGeo = new THREE.SphereGeometry(0.025, 12, 12);
+      const coreMesh = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }));
+      coreMesh.renderOrder = 1001;
+      ptGroup.add(coreMesh);
+
+      // Halo exterior translúcido
+      const outerGeo = new THREE.SphereGeometry(0.05, 16, 16);
+      const outerMat = new THREE.MeshPhysicalMaterial({
+        color: sphereColor,
+        emissive: sphereColor,
+        emissiveIntensity: 0.7,
+        transparent: true,
+        opacity: 0.45,
+        roughness: 0,
+        transmission: 0.9,
+        thickness: 0.3,
+        ior: 1.5,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0,
+        depthTest: false,
+      });
+      const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+      outerMesh.renderOrder = 1001;
+      ptGroup.add(outerMesh);
+
+      group.add(ptGroup);
+    });
+  }, [editablePoints, modelVersion]);
+
+  // 4c. Visibilidad de puntos editables
+  useEffect(() => {
+    if (editablePointsGroupRef.current) {
+      editablePointsGroupRef.current.visible = showEditablePoints;
+    }
+  }, [showEditablePoints]);
 
   // 4. Renderizar líneas de referencia sobre la superficie del modelo
   useEffect(() => {
@@ -639,6 +832,12 @@ export default function Clinical3DViewer({
   referenceLines = [],
   lineDrawingMode = null,
   onLinePointAnchored,
+  editablePoints = [],
+  showEditablePoints = true,
+  pointMode = 'none',
+  onEditablePointMoved,
+  onEditablePointDeleted,
+  onEditablePointClicked,
 }: Clinical3DViewerProps) {
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({
     type: 'url',
@@ -720,6 +919,12 @@ export default function Clinical3DViewer({
             referenceLines={referenceLines}
             lineDrawingMode={lineDrawingMode}
             onLinePointAnchored={onLinePointAnchored}
+            editablePoints={editablePoints}
+            showEditablePoints={showEditablePoints}
+            pointMode={pointMode}
+            onEditablePointMoved={onEditablePointMoved}
+            onEditablePointDeleted={onEditablePointDeleted}
+            onEditablePointClicked={onEditablePointClicked}
           />
         )}
       </div>
