@@ -166,53 +166,76 @@ export default function InjectableCaptureModal({
                   <span>Usa el ratón para rotar, hacer zoom o mover el modelo. Cuando tengas la vista deseada, escribe una etiqueta y captura.</span>
                 </div>
 
-                {/* Visibility toggles */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mr-1">Visibilidad:</span>
-                  <button
-                    onMouseDown={() => setShowLines(v => !v)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-                      showLines
-                        ? 'bg-cyan-50 border-cyan-200 text-cyan-700'
-                        : 'bg-gray-100 border-gray-200 text-gray-400'
-                    }`}
-                    title={showLines ? 'Ocultar líneas de trazado' : 'Mostrar líneas de trazado'}
-                  >
-                    {showLines ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    Líneas
-                  </button>
-                  {editablePoints.length > 0 && (
+                {/* Toolbar: visibilidad + captura en una sola fila */}
+                <div className="flex items-center gap-2 flex-wrap shrink-0">
+                  {/* Toggles de visibilidad */}
+                  <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide shrink-0">Ver:</span>
                     <button
-                      onMouseDown={() => setShowEditablePoints(v => !v)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-                        showEditablePoints
-                          ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                      onMouseDown={() => setShowLines(v => !v)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-all ${
+                        showLines
+                          ? 'bg-cyan-50 border-cyan-200 text-cyan-700'
                           : 'bg-gray-100 border-gray-200 text-gray-400'
                       }`}
-                      title={showEditablePoints ? 'Ocultar puntos del trazado' : 'Mostrar puntos del trazado'}
+                      title={showLines ? 'Ocultar líneas' : 'Mostrar líneas'}
                     >
-                      {showEditablePoints ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                      Puntos
+                      {showLines ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      Líneas
                     </button>
-                  )}
-                  {markers.length > 0 && (
+                    {editablePoints.length > 0 && (
+                      <button
+                        onMouseDown={() => setShowEditablePoints(v => !v)}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-all ${
+                          showEditablePoints
+                            ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                            : 'bg-gray-100 border-gray-200 text-gray-400'
+                        }`}
+                        title={showEditablePoints ? 'Ocultar puntos' : 'Mostrar puntos'}
+                      >
+                        {showEditablePoints ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        Puntos
+                      </button>
+                    )}
+                    {markers.length > 0 && (
+                      <button
+                        onMouseDown={() => setShowMarkers(v => !v)}
+                        className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-all ${
+                          showMarkers
+                            ? 'bg-violet-50 border-violet-200 text-violet-700'
+                            : 'bg-gray-100 border-gray-200 text-gray-400'
+                        }`}
+                        title={showMarkers ? 'Ocultar marcadores' : 'Mostrar marcadores'}
+                      >
+                        {showMarkers ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        Marcadores
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Input etiqueta + botón Capturar */}
+                  <div className="flex gap-1.5 items-center shrink-0">
+                    <input
+                      type="text"
+                      className="w-40 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50 transition-all"
+                      placeholder="Etiqueta (opcional)"
+                      value={pendingLabel}
+                      onChange={e => setPendingLabel(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleCapture(); }}
+                    />
                     <button
-                      onMouseDown={() => setShowMarkers(v => !v)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-                        showMarkers
-                          ? 'bg-violet-50 border-violet-200 text-violet-700'
-                          : 'bg-gray-100 border-gray-200 text-gray-400'
-                      }`}
-                      title={showMarkers ? 'Ocultar marcadores de inyección' : 'Mostrar marcadores de inyección'}
+                      onClick={handleCapture}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all shrink-0"
+                      title="Capturar vista actual (Enter)"
                     >
-                      {showMarkers ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                      Marcadores
+                      <Camera className="w-3.5 h-3.5" />
+                      Capturar
                     </button>
-                  )}
+                  </div>
                 </div>
 
                 {/* Viewer container with flash overlay */}
-                <div className="relative h-[420px] shrink-0" ref={viewerContainerRef}>
+                <div className="relative flex-1 min-h-[260px]" ref={viewerContainerRef}>
                   <Clinical3DViewer
                     markers={showMarkers ? markers : []}
                     selectedPathology={selectedPathology}
@@ -234,25 +257,6 @@ export default function InjectableCaptureModal({
                       />
                     )}
                   </AnimatePresence>
-                </div>
-
-                {/* Capture controls */}
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50 transition-all"
-                    placeholder="Etiqueta/zona (opcional, ej: Tercio superior, Vista lateral...)"
-                    value={pendingLabel}
-                    onChange={e => setPendingLabel(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleCapture(); }}
-                  />
-                  <button
-                    onClick={handleCapture}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow-md transition-all shrink-0"
-                  >
-                    <Camera className="w-4 h-4" />
-                    Capturar
-                  </button>
                 </div>
               </div>
 
