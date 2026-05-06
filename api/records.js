@@ -931,11 +931,17 @@ export default async function handler(req, res) {
           'dilution_volume', 'follow_up_date'
         ];
         const cleanData = {};
+        const dateFields = ['date', 'expiration_date', 'follow_up_date'];
         for (const key of allowedFields) {
           if (updInjData[key] !== undefined) {
-            cleanData[key] = ['areas_treated', 'mapping_data'].includes(key) && typeof updInjData[key] === 'object'
-              ? JSON.stringify(updInjData[key])
-              : updInjData[key];
+            let val = updInjData[key];
+            // Convertir string vacío a null en campos de tipo date
+            if (dateFields.includes(key) && (val === '' || val === null)) {
+              val = null;
+            } else if (['areas_treated', 'mapping_data'].includes(key) && typeof val === 'object') {
+              val = JSON.stringify(val);
+            }
+            cleanData[key] = val;
           }
         }
 
