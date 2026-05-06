@@ -15,7 +15,6 @@ async function ensureInjectablesSchema(pool) {
     const migrations = [
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS product_type VARCHAR(20) DEFAULT 'toxina'",
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS units_used DECIMAL(6, 2)",
-      "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS injection_plane VARCHAR(100)",
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS needle_type VARCHAR(100)",
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS mapping_data JSONB",
       "ALTER TABLE injectables ADD COLUMN IF NOT EXISTS treatment_id INTEGER REFERENCES treatments(id) ON DELETE SET NULL",
@@ -881,7 +880,7 @@ export default async function handler(req, res) {
         const allowedFields = [
           'date', 'product_type', 'product_name', 'brand', 'lot_number',
           'expiration_date', 'volume_used', 'units_used', 'areas_treated',
-          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes',
+          'technique', 'needle_type', 'mapping_data', 'notes',
           'dilution_volume', 'follow_up_date'
         ];
         const dateFields = ['date', 'expiration_date', 'follow_up_date'];
@@ -927,7 +926,7 @@ export default async function handler(req, res) {
         const allowedFields = [
           'date', 'product_type', 'product_name', 'brand', 'lot_number',
           'expiration_date', 'volume_used', 'units_used', 'areas_treated',
-          'technique', 'injection_plane', 'needle_type', 'mapping_data', 'notes',
+          'technique', 'needle_type', 'mapping_data', 'notes',
           'dilution_volume', 'follow_up_date'
         ];
         const cleanData = {};

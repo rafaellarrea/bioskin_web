@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **May 6, 2026: Plano de Inyección por-punto + Modal multi-paso en Mapa 3D**
+- 🗺️ **Plano de inyección por punto**: Campo `injection_plane` movido del formulario principal a cada punto del mapa 3D, seleccionable en el modal de marcación.
+- 📋 **Modal trazado multi-paso**: Al hacer clic en un punto del trazado, el modal ahora tiene 4 pasos: (1) Unidades → Guardar directo O Siguiente, (2) Tercio, (3) Zona, (4) Plano de inyección — con barra de progreso visual.
+- ➕ **Dialog libre 4 pasos**: El flujo de puntos libres (clic en rostro) ahora incluye paso 4 para elegir plano de inyección.
+- 📊 **Desglose actualizado**: La lista de puntos muestra el plano de inyección como badge por punto. Impresión incluye columna "Plano" en tabla de tercio.
+- 🗃️ **DB sin injection_plane**: Eliminado de CREATE TABLE, ALTER TABLE migrations y allowedFields en API. Script de migración creado en `scripts/migrate-injection-plane-to-points.js`.
+
 ### ✅ **Apr 24, 2026: Multi-Captura 3D en Inyectables — Impresión con Matriz de Imágenes**
 - 📸 **InjectableCaptureModal**: Nuevo modal interactivo con visor 3D (read-only) para capturar múltiples vistas del mapeo facial.
 - 🖼️ **Matriz de imágenes**: El documento de impresión/exportación ahora incluye una grilla con todas las imágenes capturadas, cada una con su etiqueta opcional de zona.
