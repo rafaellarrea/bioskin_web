@@ -595,28 +595,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       return;
     }
 
-    // Modo "añadir punto libre" desde trazado: crear punto editable y abrir modal de unidades
-    if (marker.isAddPointMode) {
-      const newEp: EditablePoint = {
-        id: `free-${Date.now()}`,
-        type: 'free',
-        x: marker.position.x,
-        y: marker.position.y,
-        z: marker.position.z,
-        lineIds: [],
-        name: `Punto libre ${editablePoints.filter(p => p.type === 'free').length + 1}`,
-      };
-      setEditablePoints(prev => [...prev, newEp]);
-      setUnitsModal({
-        open: true,
-        pointId: newEp.id,
-        pointName: newEp.name!,
-        existingUnits: 0,
-      });
-      setUnitsModalInput('');
-      return;
-    }
-
+    // Todos los clics (puntos libres y normales) abren el diálogo de 3 pasos
     setPendingPoint(marker);
     setDialogStep(1);
     setDialogTercio('');
@@ -627,15 +606,36 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
   const handleDialogConfirm = () => {
     if (!pendingPoint || !dialogTercio || !dialogZone || !dialogUnits) return;
+
+    // Si viene de modo "añadir punto libre" (→ click en modo add), crear EditablePoint visual
+    let freeEditableId: string | undefined;
+    if ((pendingPoint as any).isAddPointMode) {
+      const newEp: EditablePoint = {
+        id: `free-${Date.now()}`,
+        type: 'free',
+        x: pendingPoint.position.x,
+        y: pendingPoint.position.y,
+        z: pendingPoint.position.z,
+        lineIds: [],
+        name: dialogZone,
+      };
+      setEditablePoints(prev => [...prev, newEp]);
+      freeEditableId = newEp.id;
+    }
+
     const newPoint: InjectionPoint = {
       ...pendingPoint,
       zone: dialogZone,
       tercio: dialogTercio,
       units: Number(dialogUnits) || 0,
       label: dialogZone,
+      ...(freeEditableId ? { editablePointId: freeEditableId } : {}),
     };
     setInjectionPoints(prev => [...prev, newPoint]);
-    setMarkers3D(prev => [...prev, { ...pendingPoint, zone: dialogZone }]);
+    // Solo añadir al grupo de markers3D si NO es punto libre (los libres usan editablePoints para renderizar)
+    if (!freeEditableId) {
+      setMarkers3D(prev => [...prev, { ...pendingPoint, zone: dialogZone }]);
+    }
     setPendingPoint(null);
     setDialogStep(0);
   };
@@ -1392,10 +1392,10 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         <span className="text-[10px] opacity-70">({editablePoints.length})</span>
                       </button>
 
-                      {/* Modo de interacción */}
+                      {/* Modo de interacción — Mover y Eliminar (solo con trazado cargado) */}
                       <div className="w-px h-5 bg-slate-600" />
                       <span className="text-xs text-slate-400 font-medium">Modo:</span>
-                      {(['none', 'add', 'delete'] as const).map(mode => (
+                      {(['none', 'delete'] as const).map(mode => (
                         <button
                           key={mode}
                           onClick={() => setPointMode(prev => prev === mode ? 'none' : mode)}
@@ -1406,13 +1406,26 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                                 : 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40'
                               : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-700'
                           }`}
-                          title={mode === 'none' ? 'Mover puntos (drag)' : mode === 'add' ? 'Añadir punto libre' : 'Eliminar punto al clic'}
+                          title={mode === 'none' ? 'Mover puntos (drag)' : 'Eliminar punto al clic'}
                         >
-                          {mode === 'none' ? '↔ Mover' : mode === 'add' ? '+ Añadir' : '✕ Eliminar'}
+                          {mode === 'none' ? '↔ Mover' : '✕ Eliminar'}
                         </button>
                       ))}
                     </>
                   )}
+
+                  {/* Botón + Añadir: siempre disponible para marcar puntos de inyección libres */}
+                  <button
+                    onClick={() => setPointMode(prev => prev === 'add' ? 'none' : 'add')}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                      pointMode === 'add'
+                        ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40'
+                        : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-700'
+                    }`}
+                    title="Añadir punto de inyección en el rostro 3D"
+                  >
+                    + Añadir
+                  </button>
 
                   {/* Separador + botón para abrir panel de líneas */}
                   <div className="ml-auto flex items-center gap-2">

@@ -231,6 +231,32 @@ const ThreeEngine: React.FC<{
     let draggedEditableGroup: THREE.Group | null = null;
     let dragMoved = false;
 
+    // ── Anillo de selección ────────────────────────────────────────────────
+    let selectedEditableId: string | null = null;
+    let selectionRingMesh: THREE.Mesh | null = null;
+
+    const clearSelectionRing = () => {
+      if (selectionRingMesh) {
+        const parent = selectionRingMesh.parent;
+        if (parent) parent.remove(selectionRingMesh);
+        selectionRingMesh.geometry.dispose();
+        (selectionRingMesh.material as THREE.Material).dispose();
+        selectionRingMesh = null;
+      }
+      selectedEditableId = null;
+    };
+
+    const addSelectionRing = (group: THREE.Group) => {
+      clearSelectionRing();
+      const ringGeo = new THREE.TorusGeometry(0.07, 0.008, 8, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.renderOrder = 1002;
+      group.add(ring);
+      selectionRingMesh = ring;
+      selectedEditableId = group.userData.editableId ?? null;
+    };
+
     const onPointerDown = (e: MouseEvent) => {
       // Detectar hit sobre punto editable
       if (editablePointsGroupRef.current && cameraRef.current) {
@@ -260,6 +286,7 @@ const ThreeEngine: React.FC<{
           }
         }
       }
+      clearSelectionRing();
       isDragging = false;
       startPos = { x: e.clientX, y: e.clientY };
     };
@@ -303,7 +330,12 @@ const ThreeEngine: React.FC<{
           const pos = relGroup.position;
           callbacks.current.onEditablePointMoved?.(relId, { x: pos.x, y: pos.y, z: pos.z });
         } else {
-          // Clic simple sobre punto → notificar al padre
+          // Clic simple sobre punto → anillo de selección + notificar al padre
+          if (selectedEditableId === relId) {
+            clearSelectionRing();
+          } else {
+            addSelectionRing(relGroup);
+          }
           callbacks.current.onEditablePointClicked?.(relId);
         }
         dragMoved = false;

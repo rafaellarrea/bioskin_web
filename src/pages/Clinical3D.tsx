@@ -2393,7 +2393,10 @@ export default function Clinical3D() {
         } else {
           setDeletedIntersectionIds([]);
         }
-        showNotification(`JSON importado: ${data.referenceLines?.length ?? 0} líneas, ${data.markers?.length ?? 0} marcadores`, 'success');
+        const importedTotal = (data.editablePoints as any[])?.length ?? 0;
+        const importedInters = (data.editablePoints as any[])?.filter((p: any) => p.type === 'intersection').length ?? 0;
+        const importedFree = (data.editablePoints as any[])?.filter((p: any) => p.type === 'free').length ?? 0;
+        showNotification(`JSON importado: ${data.referenceLines?.length ?? 0} líneas, ${importedTotal} pts (${importedInters} intersecciones · ${importedFree} libres)`, 'success');
       } catch {
         showNotification('Error al parsear el JSON', 'error');
       }
@@ -2467,7 +2470,8 @@ export default function Clinical3D() {
     a.click();
     URL.revokeObjectURL(url);
     const savedIntersCount = editablePoints.filter((p: any) => p.type === 'intersection').length;
-    showNotification(`JSON generado: ${referenceLines.length} líneas, ${savedIntersCount} intersecciones`, 'success');
+    const savedFreeCount = editablePoints.filter((p: any) => p.type === 'free').length;
+    showNotification(`JSON generado: ${referenceLines.length} líneas, ${editablePoints.length} pts (${savedIntersCount} intersecciones · ${savedFreeCount} libres)`, 'success');
   };
 
   return (
