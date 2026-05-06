@@ -425,7 +425,11 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       if (!confirm('¿Recargar el trazado de referencia? Se perderán las posiciones personalizadas.')) return;
     }
     const json = trazadoSuperior as any;
-    const lines: ReferenceLine[] = (json.lines || []).map((l: any) => {
+    // El JSON usa "referenceLines" y "editablePoints" como claves raíz
+    console.log('[Trazado] JSON keys:', Object.keys(json));
+    console.log('[Trazado] referenceLines count:', json.referenceLines?.length ?? 0);
+    console.log('[Trazado] editablePoints count:', json.editablePoints?.length ?? 0);
+    const lines: ReferenceLine[] = (json.referenceLines || []).map((l: any) => {
       let anchor: { x: number; y: number; z: number };
       let lineType: LineType;
       let anchors: [{ x: number; y: number; z: number }, { x: number; y: number; z: number }] | undefined;
@@ -437,7 +441,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         anchor = { x: 0, y: l.offset ?? 0, z: 0 };
         lineType = 'horizontal';
       } else {
-        // two-points: los anchors vienen en l.points o l.anchors
+        // two-points: los anchors vienen en l.anchors o l.points
         const pts = l.anchors || l.points || [];
         anchor = pts[0] ? { x: pts[0].x ?? 0, y: pts[0].y ?? 0, z: pts[0].z ?? 0 } : { x: 0, y: 0, z: 0 };
         anchors = pts.length >= 2
@@ -458,7 +462,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       } as ReferenceLine;
     });
 
-    const points: EditablePoint[] = (json.points || []).map((p: any) => ({
+    const points: EditablePoint[] = (json.editablePoints || []).map((p: any) => ({
       id: p.id,
       type: p.type || 'intersection',
       x: p.x ?? 0,
@@ -469,8 +473,9 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     }));
 
     setReferenceLines(prev => {
-      // Reemplazar líneas de referencia cargadas desde JSON (mantener las dibujadas manualmente)
-      const manual = prev.filter(l => !l.id.startsWith('ref-line-'));
+      // Las líneas del JSON tienen IDs que empiezan con 'line-'
+      // Las líneas dibujadas manualmente tienen IDs como timestamps puros (sin prefijo)
+      const manual = prev.filter(l => !l.id.startsWith('line-'));
       return [...manual, ...lines];
     });
     setEditablePoints(points);
