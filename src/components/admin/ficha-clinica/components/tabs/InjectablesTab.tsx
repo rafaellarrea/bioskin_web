@@ -142,7 +142,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [zoneFilter, setZoneFilter] = useState('');
 
   // ── Líneas de referencia ────────────────────────────────────────────────
-  const [viewMode, setViewMode] = useState<'lines' | 'marking'>('marking');
+  /** Panel de gestión de líneas: oculto por defecto, se abre bajo demanda */
+  const [showLinePanel, setShowLinePanel] = useState(false);
   const [referenceLines, setReferenceLines] = useState<ReferenceLine[]>([]);
   const [activeLineType, setActiveLineType] = useState<LineType | null>(null);
   const [pendingLineMeta, setPendingLineMeta] = useState<{ label: string; color: string; preset?: LinePreset } | null>(null);
@@ -1355,41 +1356,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="border-t border-gray-100"
             >
-              {/* ── TABS: Líneas de Referencia | Marcación ── */}
-              <div className="flex border-b border-gray-100 bg-gray-50/50">
-                <button
-                  onClick={() => setViewMode('lines')}
-                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
-                    viewMode === 'lines'
-                      ? 'border-cyan-500 text-cyan-700 bg-white'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Minus className="w-4 h-4 rotate-90" />
-                  Líneas de Referencia
-                  {referenceLines.length > 0 && (
-                    <span className="bg-cyan-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                      {referenceLines.length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => { setViewMode('marking'); handleCancelLine(); }}
-                  className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all ${
-                    viewMode === 'marking'
-                      ? 'border-violet-500 text-violet-700 bg-white'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Crosshair className="w-4 h-4" />
-                  Marcación
-                  {injectionPoints.length > 0 && (
-                    <span className="bg-violet-500 text-white text-[10px] font-bold px-1.5 h-4 rounded-full flex items-center justify-center">
-                      {injectionPoints.length}
-                    </span>
-                  )}
-                </button>
-              </div>
+              {/* ── SIN tabs — la vista es siempre de marcación ── */}
 
               <div ref={viewerRef} className="p-4">
                 {/* Toolbar: Trazado de Referencia Superior */}
@@ -1424,10 +1391,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         <span className="text-[10px] opacity-70">({editablePoints.length})</span>
                       </button>
 
-                      {/* Divisor */}
-                      <div className="w-px h-5 bg-slate-600" />
-
                       {/* Modo de interacción */}
+                      <div className="w-px h-5 bg-slate-600" />
                       <span className="text-xs text-slate-400 font-medium">Modo:</span>
                       {(['none', 'add', 'delete'] as const).map(mode => (
                         <button
@@ -1447,21 +1412,40 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                       ))}
                     </>
                   )}
+
+                  {/* Separador + botón para abrir panel de líneas */}
+                  <div className="ml-auto flex items-center gap-2">
+                    {referenceLines.length > 0 && (
+                      <span className="text-[10px] text-slate-400">{referenceLines.length} línea(s)</span>
+                    )}
+                    <button
+                      onClick={() => setShowLinePanel(v => !v)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                        showLinePanel
+                          ? 'bg-cyan-500/25 text-cyan-300 border-cyan-500/40'
+                          : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-600'
+                      }`}
+                      title="Gestionar líneas de referencia"
+                    >
+                      <Minus className="w-3.5 h-3.5 rotate-90" />
+                      {showLinePanel ? 'Cerrar líneas' : 'Líneas de ref.'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Two-column layout: 3D viewer left, panel right */}
                 <div className="flex flex-col lg:flex-row gap-4">
-                  {/* Left: 3D Viewer */}
+                  {/* Left: 3D Viewer (full width; drawer de líneas se superpone) */}
                   <div className="flex-1 min-w-0">
                     <div className="relative">
                       <Clinical3DViewer
                         markers={markers3D}
                         selectedPathology={current.product_type === 'toxina' ? 'botox' : 'filler'}
                         onMarkerPlaced={handleMarkerPlaced}
-                        skipConfirmation={viewMode === 'marking'}
-                        readOnly={viewMode === 'lines' && !activeLineType}
+                        skipConfirmation={true}
+                        readOnly={false}
                         referenceLines={referenceLines}
-                        lineDrawingMode={viewMode === 'lines' ? activeLineType : null}
+                        lineDrawingMode={showLinePanel ? activeLineType : null}
                         onLinePointAnchored={handleLinePointAnchored}
                         height="420px"
                         editablePoints={editablePoints}
@@ -1591,29 +1575,26 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Bottom bar (solo en modo marcación) */}
-                {viewMode === 'marking' && injectionPoints.length > 0 && (
-                  <div className="mt-3 flex items-center justify-between px-1">
-                    <span className="text-xs text-gray-500">
-                      {injectionPoints.length} punto(s) · {totalUsed} {unitLabel} aplicadas
-                    </span>
-                    <button
-                      onClick={() => { setMarkers3D([]); setInjectionPoints([]); }}
-                      className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                    >
-                      Limpiar todos
-                    </button>
-                  </div>
-                )}
-                  </div>
-
-                  {/* Right Panel: condicional según modo */}
-                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0">
-                    {viewMode === 'lines' ? (
-                      /* ── Panel de Líneas de Referencia ── */
-                      <div className="bg-slate-800 rounded-xl p-3 h-full min-h-[280px]">
+                  {/* Drawer de Líneas de Referencia — overlay sobre el viewer */}
+                  <AnimatePresence>
+                    {showLinePanel && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        className="absolute top-0 right-0 h-full w-72 z-20 bg-slate-800/95 backdrop-blur-sm rounded-xl shadow-2xl overflow-y-auto"
+                      >
+                        <div className="flex items-center justify-between px-3 pt-3 pb-2 border-b border-slate-700">
+                          <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Líneas de Referencia</span>
+                          <button
+                            onClick={() => { setShowLinePanel(false); handleCancelLine(); }}
+                            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                         <ReferenceLinePanel
                           lines={referenceLines}
                           activeType={activeLineType}
@@ -1627,10 +1608,30 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                           onOffsetChange={handleLineOffsetChange}
                           onRemove={handleRemoveLine}
                         />
-                      </div>
-                    ) : (
-                      /* ── Desglose de Puntos de Inyección ── */
-                      injectionPoints.length > 0 ? (
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>{/* /relative */}
+
+                {/* Bottom bar */}
+                {injectionPoints.length > 0 && (
+                  <div className="mt-3 flex items-center justify-between px-1">
+                    <span className="text-xs text-gray-500">
+                      {injectionPoints.length} punto(s) · {totalUsed} {unitLabel} aplicadas
+                    </span>
+                    <button
+                      onClick={() => { setMarkers3D([]); setInjectionPoints([]); }}
+                      className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                    >
+                      Limpiar todos
+                    </button>
+                  </div>
+                )}
+              </div>{/* /flex-1 */}
+
+                  {/* Right Panel: Desglose de Puntos de Inyección */}
+                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0">
+                      {injectionPoints.length > 0 ? (
                       <div className="space-y-3">
                         <div className="flex items-center gap-1.5">
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
@@ -1693,8 +1694,6 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         <p className="text-sm text-gray-400 font-medium">Sin marcaciones</p>
                         <p className="text-xs text-gray-300 mt-1">Haz clic en el rostro 3D para registrar puntos</p>
                       </div>
-                    )
-                    /* end marking panel */
                     )}
                   </div>
                 </div>

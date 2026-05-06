@@ -682,37 +682,6 @@ const ThreeEngine: React.FC<{
     };
 
     /**
-     * Crea un label sprite pequeño en 3D para la línea.
-     * Canvas compacto (160×22) con fuente 11px para que sea discreto.
-     */
-    const makeLabel = (text: string, position: THREE.Vector3, color: string): THREE.Sprite => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 160;
-      canvas.height = 22;
-      const ctx = canvas.getContext('2d')!;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(0,0,0,0.60)';
-      ctx.roundRect(1, 1, canvas.width - 2, canvas.height - 2, 4);
-      ctx.fill();
-      ctx.font = 'bold 11px system-ui, sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      // Truncar texto largo para evitar desbordamiento
-      const maxChars = 20;
-      const label = text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;
-      ctx.fillText(label, canvas.width / 2, canvas.height / 2);
-      const tex = new THREE.CanvasTexture(canvas);
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-      const sprite = new THREE.Sprite(mat);
-      sprite.position.copy(position);
-      // Escala reducida: ≈0.7u × 0.11u en espacio 3D (mucho más discreto)
-      sprite.scale.set(0.7, 0.11, 1);
-      sprite.renderOrder = 1001;
-      return sprite;
-    };
-
-    /**
      * Crea un tubo 3D (Mesh con TubeGeometry) que sigue los puntos de superficie.
      * Radio fino (0.003) para coincidir con el aspecto de la pestaña Clinical3D.
      * Si dashed=true, renderiza como puntos esféricos a intervalos regulares.
@@ -847,22 +816,12 @@ const ThreeEngine: React.FC<{
         }
         if (pts.length < 2) return;
         group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
-        // Label pequeño al final de la línea (arriba)
-        const labelPos = pts[pts.length - 1].clone();
-        labelPos.z += 0.15;
-        labelPos.y += 0.12;
-        group.add(makeLabel(line.label, labelPos, line.color));
 
       } else if (line.type === 'horizontal') {
         const yVal = line.anchor.y + line.offset;
         const pts = sweepSurface('y', yVal, -8, 8, 80);
         if (pts.length < 2) return;
         group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
-        // Label al extremo derecho de la línea
-        const labelPos = pts[pts.length - 1].clone();
-        labelPos.z += 0.15;
-        labelPos.x += 0.2;
-        group.add(makeLabel(line.label, labelPos, line.color));
 
       } else if (line.type === 'two-points' && line.anchors && line.anchors.length === 2) {
         const a = new THREE.Vector3(line.anchors[0].x, line.anchors[0].y, line.anchors[0].z);
@@ -871,11 +830,6 @@ const ThreeEngine: React.FC<{
         if (pts.length >= 2) {
           group.add(makeSurfaceTube(pts, color, 1.0, 0.003, isDashed));
         }
-        // Label en el punto medio del sweep
-        const midPts = pts.length >= 2 ? pts : [a, b];
-        const midPos = midPts[Math.floor(midPts.length / 2)].clone();
-        midPos.z += 0.15;
-        group.add(makeLabel(line.label, midPos, line.color));
 
         // Esferas en los extremos
         const startPt = pts.length > 0 ? pts[0] : new THREE.Vector3(a.x, a.y, a.z);
