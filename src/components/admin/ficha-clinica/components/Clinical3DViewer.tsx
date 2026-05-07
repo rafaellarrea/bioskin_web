@@ -214,7 +214,7 @@ const ThreeEngine: React.FC<{
     controls.enablePan = true;
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.minDistance = 5;
+    controls.minDistance = 1;
     controls.maxDistance = 100;
     controls.minPolarAngle = 0;
     controls.maxPolarAngle = Math.PI;
