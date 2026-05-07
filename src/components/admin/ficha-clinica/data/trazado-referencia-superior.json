@@ -5,10 +5,16 @@
   "hairline": {
     "topY": 1.9,
     "bottomY": 0.6,
+    "tercioMedioBottomY": 0.1,
+    "tercioInferiorBottomY": -1,
     "labelTop": "Hairline / Nacimiento del cabello",
     "labelBottom": "Límite inferior tercio superior",
+    "labelMedioBottom": "Límite med./inf. (nariz)",
+    "labelInferiorBottom": "Límite inferior",
     "colorTop": "#ff6b9d",
-    "colorBottom": "#f97316"
+    "colorBottom": "#f97316",
+    "colorMedioBottom": "#a78bfa",
+    "colorInferiorBottom": "#34d399"
   },
   "markers": [],
   "referenceLines": [
