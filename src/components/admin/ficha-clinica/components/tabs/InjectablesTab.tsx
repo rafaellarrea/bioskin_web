@@ -172,6 +172,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [editablePoints, setEditablePoints] = useState<EditablePoint[]>([]);
   const [showEditablePoints, setShowEditablePoints] = useState(true);
   const [showLines, setShowLines] = useState(true);
+  const [showBoundaryLines, setShowBoundaryLines] = useState(true);
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
   const [refJsonLoaded, setRefJsonLoaded] = useState(false);
   const [pointMode, setPointMode] = useState<'none' | 'add' | 'delete'>('none');
@@ -1540,6 +1541,13 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                               {showLines ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
                             </button>
                             <button
+                              onMouseDown={() => { setShowBoundaryLines(v => !v); }}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                            >
+                              <span>Líneas de tercios</span>
+                              {showBoundaryLines ? <Eye className="w-3.5 h-3.5 text-slate-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
+                            </button>
+                            <button
                               onMouseDown={() => { setShowEditablePoints(v => !v); }}
                               className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
                             >
@@ -1610,7 +1618,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         onEditablePointDeleted={handleEditablePointDeleted}
                         onEditablePointClicked={handleEditablePointClicked}
                         onProjectedPositions={handleProjectedPositions}
-                        tercioBoundaries={tercioBoundaries}
+                        tercioBoundaries={showBoundaryLines ? tercioBoundaries : null}
                       />
 
                       {/* Unit numbers overlay */}
