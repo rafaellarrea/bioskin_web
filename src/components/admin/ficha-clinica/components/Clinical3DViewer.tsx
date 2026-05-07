@@ -1027,11 +1027,33 @@ const ThreeEngine: React.FC<{
         const hits = sweepRaycaster.intersectObject(faceMesh, true);
         if (hits.length > 0) pts.push(hits[0].point.clone());
       }
-      return pts;
+      // Corregir hundimientos en cuencas oculares y nasales (igual que referenceLines)
+      if (pts.length < 4) return pts;
+      const out = pts.map(p => p.clone());
+      let i = 1;
+      const THRESHOLD = 0.30;
+      while (i < out.length) {
+        const zEntry = out[i - 1].z;
+        if (zEntry - out[i].z > THRESHOLD) {
+          let j = i + 1;
+          while (j < out.length && out[j].z < zEntry - THRESHOLD * 0.5) j++;
+          const exitIdx = Math.min(j, out.length - 1);
+          const zExit = out[exitIdx].z;
+          const span = exitIdx - (i - 1);
+          for (let k = i; k < exitIdx; k++) {
+            const t2 = (k - (i - 1)) / span;
+            out[k].z = zEntry + t2 * (zExit - zEntry);
+          }
+          i = exitIdx + 1;
+        } else {
+          i++;
+        }
+      }
+      return out;
     };
 
-    const BOUNDARY_OPACITY = 0.12;
-    const BOUNDARY_RADIUS  = 0.002;
+    const BOUNDARY_OPACITY = 0.45;
+    const BOUNDARY_RADIUS  = 0.010;
     const boundaries = [
       { y: tercioBoundaries.topY,              color: new THREE.Color('#ff6b9d') },
       { y: tercioBoundaries.bottomY,           color: new THREE.Color('#f97316') },
@@ -1046,17 +1068,25 @@ const ThreeEngine: React.FC<{
       radius: number
     ) => {
       const subGroup = new THREE.Group();
-      const SPACING = 0.06;
+      const SPACING = 0.05;
       let acc = 0;
       for (let i = 1; i < pts.length; i++) {
         acc += pts[i].distanceTo(pts[i - 1]);
         if (acc >= SPACING) {
           acc = 0;
-          const geo = new THREE.SphereGeometry(radius, 4, 4);
+          // Halo exterior (semitransparente)
+          const haloGeo = new THREE.SphereGeometry(radius * 2, 6, 6);
+          const haloMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35 * opacity, depthTest: false, depthWrite: false });
+          const halo = new THREE.Mesh(haloGeo, haloMat);
+          halo.position.copy(pts[i]);
+          halo.renderOrder = 998;
+          subGroup.add(halo);
+          // Núcleo sólido
+          const geo = new THREE.SphereGeometry(radius, 6, 6);
           const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthTest: false, depthWrite: false });
           const m = new THREE.Mesh(geo, mat);
           m.position.copy(pts[i]);
-          m.renderOrder = 998;
+          m.renderOrder = 999;
           subGroup.add(m);
         }
       }

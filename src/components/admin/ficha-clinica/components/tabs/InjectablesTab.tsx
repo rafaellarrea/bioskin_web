@@ -142,9 +142,20 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [zoneFilter, setZoneFilter] = useState('');
 
   // ── Límites de tercios (cargados desde JSON de referencia) ────────────
+  // Se inicializa directamente desde el JSON estático para que la auto-detección
+  // funcione sin necesidad de que el usuario haga clic en "Cargar Trazado".
   const [tercioBoundaries, setTercioBoundaries] = useState<{
     topY: number; bottomY: number; tercioMedioBottomY: number; tercioInferiorBottomY: number;
-  } | null>(null);
+  } | null>(() => {
+    const h = (trazadoSuperior as any).hairline;
+    if (!h) return null;
+    return {
+      topY:                  h.topY                  ?? 1.9,
+      bottomY:               h.bottomY               ?? 0.6,
+      tercioMedioBottomY:    h.tercioMedioBottomY    ?? 0.1,
+      tercioInferiorBottomY: h.tercioInferiorBottomY ?? -1,
+    };
+  });
 
   // ── Líneas de referencia ────────────────────────────────────────────────
   /** Panel de gestión de líneas: oculto por defecto, se abre bajo demanda */
