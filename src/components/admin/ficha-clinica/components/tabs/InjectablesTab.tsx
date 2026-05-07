@@ -2060,70 +2060,71 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               )}
 
               {/* Action buttons */}
-              <div className="flex gap-2">
-                {/* Eliminar — solo en paso 1 */}
+              <div className="flex flex-col gap-2">
+                {/* Fila secundaria: Eliminar + Cancelar (solo paso 1) */}
                 {unitsModalStep === 1 && (
-                  <button
-                    onClick={() => {
-                      handleEditablePointDeleted(unitsModal.pointId);
-                      setUnitsModal(null);
-                      setUnitsModalInput('');
-                      setUnitsModalStep(1);
-                      setUnitsModalTercio('');
-                      setUnitsModalZone('');
-                      setUnitsModalPlane('');
-                    }}
-                    className="px-3 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
-                    title="Eliminar punto"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        handleEditablePointDeleted(unitsModal.pointId);
+                        setUnitsModal(null);
+                        setUnitsModalInput('');
+                        setUnitsModalStep(1);
+                        setUnitsModalTercio('');
+                        setUnitsModalZone('');
+                        setUnitsModalPlane('');
+                      }}
+                      className="px-3 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
+                      title="Eliminar punto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => { setUnitsModal(null); setUnitsModalInput(''); setUnitsModalStep(1); setUnitsModalTercio(''); setUnitsModalZone(''); setUnitsModalPlane(''); setUnitsModalZoneFilter(''); }}
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 )}
 
-                {/* Volver — pasos 2-4 */}
-                {unitsModalStep > 1 && (
-                  <button
-                    onClick={() => setUnitsModalStep(prev => (prev - 1) as 1 | 2 | 3 | 4)}
-                    className="px-3 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                  >
-                    ←
-                  </button>
-                )}
+                {/* Fila principal: Volver (pasos 2-4) + Guardar + Siguiente (pasos 1-3) */}
+                <div className="flex gap-2">
+                  {/* Volver — pasos 2-4 */}
+                  {unitsModalStep > 1 && (
+                    <button
+                      onClick={() => setUnitsModalStep(prev => (prev - 1) as 1 | 2 | 3 | 4)}
+                      className="px-3 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    >
+                      ←
+                    </button>
+                  )}
 
-                {/* Cancelar — solo paso 1 */}
-                {unitsModalStep === 1 && (
+                  {/* Guardar — siempre disponible */}
                   <button
-                    onClick={() => { setUnitsModal(null); setUnitsModalInput(''); setUnitsModalStep(1); setUnitsModalTercio(''); setUnitsModalZone(''); setUnitsModalPlane(''); setUnitsModalZoneFilter(''); }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                    onClick={handleUnitsModalConfirm}
+                    disabled={!unitsModalInput || Number(unitsModalInput) <= 0}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
-                    Cancelar
+                    <Check className="w-4 h-4" />
+                    Guardar
                   </button>
-                )}
 
-                {/* Guardar — siempre disponible */}
-                <button
-                  onClick={handleUnitsModalConfirm}
-                  disabled={!unitsModalInput || Number(unitsModalInput) <= 0}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" />
-                  Guardar
-                </button>
-
-                {/* Siguiente — pasos 1-3 */}
-                {unitsModalStep < 4 && (
-                  <button
-                    onClick={() => {
-                      if (unitsModalStep === 2 && !unitsModalTercio) return;
-                      setUnitsModalStep(prev => (prev + 1) as 2 | 3 | 4);
-                      setUnitsModalZoneFilter('');
-                    }}
-                    disabled={unitsModalStep === 2 && !unitsModalTercio}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition-colors disabled:opacity-40 flex items-center justify-center gap-1"
-                  >
-                    Siguiente →
-                  </button>
-                )}
+                  {/* Siguiente — pasos 1-3 */}
+                  {unitsModalStep < 4 && (
+                    <button
+                      onClick={() => {
+                        if (unitsModalStep === 2 && !unitsModalTercio) return;
+                        setUnitsModalStep(prev => (prev + 1) as 2 | 3 | 4);
+                        setUnitsModalZoneFilter('');
+                      }}
+                      disabled={unitsModalStep === 2 && !unitsModalTercio}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition-colors disabled:opacity-40 flex items-center justify-center gap-1"
+                    >
+                      Siguiente →
+                    </button>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>
