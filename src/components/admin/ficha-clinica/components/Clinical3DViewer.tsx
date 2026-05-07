@@ -1017,7 +1017,7 @@ const ThreeEngine: React.FC<{
     const sweepRaycaster = new THREE.Raycaster();
     const sweepHoriz = (yVal: number): THREE.Vector3[] => {
       const pts: THREE.Vector3[] = [];
-      const steps = 80;
+      const steps = 200; // más pasos → segmentos más cortos → interpolación más precisa
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
         const x = -8 + t * 16;
@@ -1055,7 +1055,8 @@ const ThreeEngine: React.FC<{
     // Todas las líneas de tercio en gris opaco, mismo estilo que las líneas de referencia punteadas
     const BOUNDARY_COLOR  = new THREE.Color('#aaaaaa');
     const BOUNDARY_RADIUS = 0.003;   // igual que makeSurfaceTube dashed
-    const BOUNDARY_SPACING = 0.004;  // muy denso, casi línea continua
+    // Spacing con while+lerp: coloca múltiples dots por segmento → densidad real igual a ref lines
+    const BOUNDARY_SPACING = 0.040;  // igual que makeSurfaceTube dashed (ceja a ceja)
     const BOUNDARY_DOT_R  = BOUNDARY_RADIUS * 1.5;
     const BOUNDARY_HALO_R = BOUNDARY_RADIUS * 3;
 
@@ -1070,21 +1071,26 @@ const ThreeEngine: React.FC<{
       const subGroup = new THREE.Group();
       let acc = 0;
       for (let i = 1; i < pts.length; i++) {
-        acc += pts[i].distanceTo(pts[i - 1]);
-        if (acc >= BOUNDARY_SPACING) {
-          acc = 0;
+        const segLen = pts[i].distanceTo(pts[i - 1]);
+        acc += segLen;
+        // while + lerp: coloca TODOS los dots que caben en el segmento actual
+        while (acc >= BOUNDARY_SPACING) {
+          acc -= BOUNDARY_SPACING;
+          // posición interpolada dentro del segmento (misma densidad que ref lines)
+          const t = segLen > 0 ? 1 - acc / segLen : 1;
+          const pos = pts[i - 1].clone().lerp(pts[i], Math.max(0, Math.min(1, t)));
           // Halo exterior (igual que ref lines dashed)
           const haloGeo = new THREE.SphereGeometry(BOUNDARY_HALO_R, 6, 6);
           const haloMat = new THREE.MeshBasicMaterial({ color: BOUNDARY_COLOR, transparent: true, opacity: 0.35, depthTest: false, depthWrite: false });
           const halo = new THREE.Mesh(haloGeo, haloMat);
-          halo.position.copy(pts[i]);
+          halo.position.copy(pos);
           halo.renderOrder = 999;
           subGroup.add(halo);
           // Núcleo opaco
           const dotGeo = new THREE.SphereGeometry(BOUNDARY_DOT_R, 6, 6);
           const dotMat = new THREE.MeshBasicMaterial({ color: BOUNDARY_COLOR, depthTest: false, depthWrite: false });
           const dot = new THREE.Mesh(dotGeo, dotMat);
-          dot.position.copy(pts[i]);
+          dot.position.copy(pos);
           dot.renderOrder = 1000;
           subGroup.add(dot);
         }
