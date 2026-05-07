@@ -1052,51 +1052,50 @@ const ThreeEngine: React.FC<{
       return out;
     };
 
-    const BOUNDARY_OPACITY = 0.45;
-    const BOUNDARY_RADIUS  = 0.010;
+    // Todas las líneas de tercio en gris opaco, mismo estilo que las líneas de referencia punteadas
+    const BOUNDARY_COLOR  = new THREE.Color('#aaaaaa');
+    const BOUNDARY_RADIUS = 0.003;   // igual que makeSurfaceTube dashed
+    const BOUNDARY_SPACING = 0.040;  // igual que makeSurfaceTube dashed
+    const BOUNDARY_DOT_R  = BOUNDARY_RADIUS * 1.5;
+    const BOUNDARY_HALO_R = BOUNDARY_RADIUS * 3;
+
     const boundaries = [
-      { y: tercioBoundaries.topY,              color: new THREE.Color('#ff6b9d') },
-      { y: tercioBoundaries.bottomY,           color: new THREE.Color('#f97316') },
-      { y: tercioBoundaries.tercioMedioBottomY,    color: new THREE.Color('#a78bfa') },
-      { y: tercioBoundaries.tercioInferiorBottomY, color: new THREE.Color('#34d399') },
+      tercioBoundaries.topY,
+      tercioBoundaries.bottomY,
+      tercioBoundaries.tercioMedioBottomY,
+      tercioBoundaries.tercioInferiorBottomY,
     ];
 
-    const makeDottedBoundary = (
-      pts: THREE.Vector3[],
-      color: THREE.Color,
-      opacity: number,
-      radius: number
-    ) => {
+    const makeDottedBoundary = (pts: THREE.Vector3[]) => {
       const subGroup = new THREE.Group();
-      const SPACING = 0.05;
       let acc = 0;
       for (let i = 1; i < pts.length; i++) {
         acc += pts[i].distanceTo(pts[i - 1]);
-        if (acc >= SPACING) {
+        if (acc >= BOUNDARY_SPACING) {
           acc = 0;
-          // Halo exterior (semitransparente)
-          const haloGeo = new THREE.SphereGeometry(radius * 2, 6, 6);
-          const haloMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35 * opacity, depthTest: false, depthWrite: false });
+          // Halo exterior (igual que ref lines dashed)
+          const haloGeo = new THREE.SphereGeometry(BOUNDARY_HALO_R, 6, 6);
+          const haloMat = new THREE.MeshBasicMaterial({ color: BOUNDARY_COLOR, transparent: true, opacity: 0.35, depthTest: false, depthWrite: false });
           const halo = new THREE.Mesh(haloGeo, haloMat);
           halo.position.copy(pts[i]);
-          halo.renderOrder = 998;
+          halo.renderOrder = 999;
           subGroup.add(halo);
-          // Núcleo sólido
-          const geo = new THREE.SphereGeometry(radius, 6, 6);
-          const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthTest: false, depthWrite: false });
-          const m = new THREE.Mesh(geo, mat);
-          m.position.copy(pts[i]);
-          m.renderOrder = 999;
-          subGroup.add(m);
+          // Núcleo opaco
+          const dotGeo = new THREE.SphereGeometry(BOUNDARY_DOT_R, 6, 6);
+          const dotMat = new THREE.MeshBasicMaterial({ color: BOUNDARY_COLOR, depthTest: false, depthWrite: false });
+          const dot = new THREE.Mesh(dotGeo, dotMat);
+          dot.position.copy(pts[i]);
+          dot.renderOrder = 1000;
+          subGroup.add(dot);
         }
       }
       return subGroup;
     };
 
-    for (const b of boundaries) {
-      const pts = sweepHoriz(b.y);
+    for (const yVal of boundaries) {
+      const pts = sweepHoriz(yVal);
       if (pts.length < 2) continue;
-      group.add(makeDottedBoundary(pts, b.color, BOUNDARY_OPACITY, BOUNDARY_RADIUS));
+      group.add(makeDottedBoundary(pts));
     }
   }, [tercioBoundaries, modelVersion]);
 
