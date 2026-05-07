@@ -1055,7 +1055,7 @@ const ThreeEngine: React.FC<{
     // Todas las líneas de tercio en gris opaco, mismo estilo que las líneas de referencia punteadas
     const BOUNDARY_COLOR  = new THREE.Color('#aaaaaa');
     const BOUNDARY_RADIUS = 0.003;   // igual que makeSurfaceTube dashed
-    const BOUNDARY_SPACING = 0.012;  // más juntos que las líneas de ref
+    const BOUNDARY_SPACING = 0.004;  // muy denso, casi línea continua
     const BOUNDARY_DOT_R  = BOUNDARY_RADIUS * 1.5;
     const BOUNDARY_HALO_R = BOUNDARY_RADIUS * 3;
 
