@@ -132,6 +132,8 @@ interface Clinical3DViewerProps {
   onEditablePointClicked?: (id: string) => void;
   /** Callback por frame con posiciones 2D proyectadas de cada punto (editable e injection marker) */
   onProjectedPositions?: (positions: ProjectedPosition[]) => void;
+  /** Límites de tercios para renderizar líneas sutiles. Si se pasa, dibuja las 4 líneas divisorias. */
+  tercioBoundaries?: { topY: number; bottomY: number; tercioMedioBottomY: number; tercioInferiorBottomY: number } | null;
 }
 
 // ==========================================
@@ -158,7 +160,8 @@ const ThreeEngine: React.FC<{
   onEditablePointDeleted?: (id: string) => void;
   onEditablePointClicked?: (id: string) => void;
   onProjectedPositions?: (positions: ProjectedPosition[]) => void;
-}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions }) => {
+  tercioBoundaries?: { topY: number; bottomY: number; tercioMedioBottomY: number; tercioInferiorBottomY: number } | null;
+}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions, tercioBoundaries = null }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -167,6 +170,7 @@ const ThreeEngine: React.FC<{
   const faceMeshRef = useRef<THREE.Object3D | null>(null);
   const markersGroupRef = useRef<THREE.Group | null>(null);
   const linesGroupRef = useRef<THREE.Group | null>(null);
+  const boundariesGroupRef = useRef<THREE.Group | null>(null);
   const editablePointsGroupRef = useRef<THREE.Group | null>(null);
   // Increments each time the model finishes loading so the markers effect re-runs
   const [modelVersion, setModelVersion] = useState(0);
@@ -193,6 +197,10 @@ const ThreeEngine: React.FC<{
     const linesGroup = new THREE.Group();
     linesGroupRef.current = linesGroup;
     scene.add(linesGroup);
+
+    const boundariesGroup = new THREE.Group();
+    boundariesGroupRef.current = boundariesGroup;
+    scene.add(boundariesGroup);
 
     const editablePointsGroup = new THREE.Group();
     editablePointsGroupRef.current = editablePointsGroup;
@@ -839,7 +847,7 @@ const ThreeEngine: React.FC<{
     const makeSurfaceTube = (
       pts: THREE.Vector3[],
       color: THREE.Color,
-      _opacity = 1.0,
+      opacity = 1.0,
       radius = 0.003,
       dashed = false
     ): THREE.Group => {
@@ -862,7 +870,7 @@ const ThreeEngine: React.FC<{
             const haloMat = new THREE.MeshBasicMaterial({
               color,
               transparent: true,
-              opacity: 0.35,
+              opacity: 0.35 * opacity,
               depthTest: false,
               depthWrite: false,
             });
@@ -877,7 +885,7 @@ const ThreeEngine: React.FC<{
               depthTest: false,
               depthWrite: false,
               transparent: true,
-              opacity: 1.0,
+              opacity: opacity,
             });
             const dot = new THREE.Mesh(dotGeo, dotMat);
             dot.position.copy(pts[i]);
@@ -893,7 +901,7 @@ const ThreeEngine: React.FC<{
           depthTest: false,
           depthWrite: false,
           transparent: true,
-          opacity: 1.0,
+          opacity: opacity,
         });
         const mesh = new THREE.Mesh(tubeGeo, tubeMat);
         mesh.renderOrder = 999;
@@ -987,6 +995,81 @@ const ThreeEngine: React.FC<{
     });
   }, [referenceLines, modelVersion]);
 
+  // 5. Renderizar líneas de límite de tercios (muy sutiles, casi imperceptibles)
+  useEffect(() => {
+    const group = boundariesGroupRef.current;
+    const faceMesh = faceMeshRef.current;
+    if (!group || !faceMesh) return;
+
+    // Limpiar límites previos
+    while (group.children.length > 0) {
+      const child = group.children[0] as any;
+      group.remove(child);
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (Array.isArray(child.material)) child.material.forEach((m: any) => m.dispose());
+        else child.material.dispose();
+      }
+    }
+
+    if (!tercioBoundaries) return;
+
+    const sweepRaycaster = new THREE.Raycaster();
+    const sweepHoriz = (yVal: number): THREE.Vector3[] => {
+      const pts: THREE.Vector3[] = [];
+      const steps = 80;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const x = -8 + t * 16;
+        const origin = new THREE.Vector3(x, yVal, 50);
+        const dir = new THREE.Vector3(0, 0, -1);
+        sweepRaycaster.set(origin, dir);
+        const hits = sweepRaycaster.intersectObject(faceMesh, true);
+        if (hits.length > 0) pts.push(hits[0].point.clone());
+      }
+      return pts;
+    };
+
+    const BOUNDARY_OPACITY = 0.12;
+    const BOUNDARY_RADIUS  = 0.002;
+    const boundaries = [
+      { y: tercioBoundaries.topY,              color: new THREE.Color('#ff6b9d') },
+      { y: tercioBoundaries.bottomY,           color: new THREE.Color('#f97316') },
+      { y: tercioBoundaries.tercioMedioBottomY,    color: new THREE.Color('#a78bfa') },
+      { y: tercioBoundaries.tercioInferiorBottomY, color: new THREE.Color('#34d399') },
+    ];
+
+    const makeDottedBoundary = (
+      pts: THREE.Vector3[],
+      color: THREE.Color,
+      opacity: number,
+      radius: number
+    ) => {
+      const subGroup = new THREE.Group();
+      const SPACING = 0.06;
+      let acc = 0;
+      for (let i = 1; i < pts.length; i++) {
+        acc += pts[i].distanceTo(pts[i - 1]);
+        if (acc >= SPACING) {
+          acc = 0;
+          const geo = new THREE.SphereGeometry(radius, 4, 4);
+          const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthTest: false, depthWrite: false });
+          const m = new THREE.Mesh(geo, mat);
+          m.position.copy(pts[i]);
+          m.renderOrder = 998;
+          subGroup.add(m);
+        }
+      }
+      return subGroup;
+    };
+
+    for (const b of boundaries) {
+      const pts = sweepHoriz(b.y);
+      if (pts.length < 2) continue;
+      group.add(makeDottedBoundary(pts, b.color, BOUNDARY_OPACITY, BOUNDARY_RADIUS));
+    }
+  }, [tercioBoundaries, modelVersion]);
+
   return <div ref={mountRef} className="absolute inset-0 w-full h-full cursor-crosshair" />;
 };
 
@@ -1013,6 +1096,7 @@ export default function Clinical3DViewer({
   onEditablePointDeleted,
   onEditablePointClicked,
   onProjectedPositions,
+  tercioBoundaries = null,
 }: Clinical3DViewerProps) {
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({
     type: 'url',
@@ -1101,6 +1185,7 @@ export default function Clinical3DViewer({
             onEditablePointDeleted={onEditablePointDeleted}
             onEditablePointClicked={onEditablePointClicked}
             onProjectedPositions={onProjectedPositions}
+            tercioBoundaries={tercioBoundaries}
           />
         )}
       </div>

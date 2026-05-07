@@ -118,7 +118,7 @@ const mockDB = {
 // MOTOR 3D VANILLA (THREE.JS)
 // ==========================================
 
-const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {}, editablePoints = [], onEditablePointMoved = (_id: string, _pos: any) => {}, onEditablePointDeleted = (_id: string) => {}, onEditablePointAdded = (_pos: any) => {}, onEditablePointRestored = (_pt: any) => {}, pointMode = 'none', deletedIntersectionIds = [] }: any) => {
+const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, isZoneEditMode, zoneSelectionMode, referenceLines = [], lineDrawingMode = null, onLinePointAnchored, hairlineTopY = 4.8, hairlineBottomY = -2.0, tercioMedioBottomY = -5.5, tercioInferiorBottomY = -9.0, showHairline = true, showIntersections = true, onIntersectionsCalculated = (_pts: any[]) => {}, onMarkerMoved = (_id: string, _pos: any) => {}, editablePoints = [], onEditablePointMoved = (_id: string, _pos: any) => {}, onEditablePointDeleted = (_id: string) => {}, onEditablePointAdded = (_pos: any) => {}, onEditablePointRestored = (_pt: any) => {}, pointMode = 'none', deletedIntersectionIds = [] }: any) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -1734,12 +1734,18 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
 
     // ── Hairline limit lines ──
     if (showHairline) {
-      // Línea superior (hairlineTopY)
+      // Línea superior (hairlineTopY) — hairline
       const hlTopPts = sweepSurface(hairlineTopY, false, 80);
       makeSurfaceTube(hlTopPts, '#ff6b9d', 0.75, 0.002);
-      // Línea inferior (hairlineBottomY)
+      // Límite superior/medio (hairlineBottomY)
       const hlBotPts = sweepSurface(hairlineBottomY, false, 80);
       makeSurfaceTube(hlBotPts, '#f97316', 0.75, 0.002);
+      // Límite medio/inferior
+      const hlMidBotPts = sweepSurface(tercioMedioBottomY, false, 80);
+      makeSurfaceTube(hlMidBotPts, '#a78bfa', 0.75, 0.002);
+      // Límite inferior del tercio inferior (mentón)
+      const hlInfBotPts = sweepSurface(tercioInferiorBottomY, false, 80);
+      makeSurfaceTube(hlInfBotPts, '#34d399', 0.75, 0.002);
     }
 
     // ── Líneas de referencia ──
@@ -1886,7 +1892,7 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
     // Notificar al padre los puntos calculados (para JSON export / React state)
     onIntersectionsCalculated(calcIntersections);
 
-  }, [referenceLines, modelVersion, showHairline, hairlineTopY, hairlineBottomY, showIntersections]);
+  }, [referenceLines, modelVersion, showHairline, hairlineTopY, hairlineBottomY, tercioMedioBottomY, tercioInferiorBottomY, showIntersections]);
 
   // ── useEffect: solo PUNTOS LIBRES (los de intersección se renderizan directamente en el lines useEffect) ──
   useEffect(() => {
@@ -1951,7 +1957,15 @@ const ThreeScene = ({ modelSource, markers, zones, onMeshClick, onLoaded, onErro
                 </div>
                 <div className="flex items-center gap-1.5 bg-slate-900/70 backdrop-blur-sm rounded px-2 py-1 border border-slate-700/50">
                   <span className="w-4 h-0.5 rounded-full shrink-0" style={{ backgroundColor: '#f97316', boxShadow: '0 0 4px #f97316' }} />
-                  <span className="text-[10px] text-slate-300 font-medium leading-none">Límite inf. tercio</span>
+                  <span className="text-[10px] text-slate-300 font-medium leading-none">Límite sup./med.</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-slate-900/70 backdrop-blur-sm rounded px-2 py-1 border border-slate-700/50">
+                  <span className="w-4 h-0.5 rounded-full shrink-0" style={{ backgroundColor: '#a78bfa', boxShadow: '0 0 4px #a78bfa' }} />
+                  <span className="text-[10px] text-slate-300 font-medium leading-none">Límite med./inf.</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-slate-900/70 backdrop-blur-sm rounded px-2 py-1 border border-slate-700/50">
+                  <span className="w-4 h-0.5 rounded-full shrink-0" style={{ backgroundColor: '#34d399', boxShadow: '0 0 4px #34d399' }} />
+                  <span className="text-[10px] text-slate-300 font-medium leading-none">Límite inf. tercio inf.</span>
                 </div>
               </>
             )}
@@ -2072,6 +2086,8 @@ export default function Clinical3D() {
   // hairlineBottomY: debajo del ojo / inicio del tercio medio (abajo)
   const [hairlineTopY, setHairlineTopY] = useState(4.8);
   const [hairlineBottomY, setHairlineBottomY] = useState(-2.0);
+  const [tercioMedioBottomY, setTercioMedioBottomY] = useState(-5.5);
+  const [tercioInferiorBottomY, setTercioInferiorBottomY] = useState(-9.0);
   const [showHairline, setShowHairline] = useState(true);
 
   // === Puntos de intersección entre líneas ===
@@ -2379,6 +2395,8 @@ export default function Clinical3D() {
         if (data.hairline) {
           if (data.hairline.topY !== undefined) setHairlineTopY(data.hairline.topY);
           if (data.hairline.bottomY !== undefined) setHairlineBottomY(data.hairline.bottomY);
+          if (data.hairline.tercioMedioBottomY !== undefined) setTercioMedioBottomY(data.hairline.tercioMedioBottomY);
+          if (data.hairline.tercioInferiorBottomY !== undefined) setTercioInferiorBottomY(data.hairline.tercioInferiorBottomY);
         }
         if (data.markers && Array.isArray(data.markers)) {
           setMarkers(data.markers);
@@ -2414,10 +2432,16 @@ export default function Clinical3D() {
       hairline: {
         topY: hairlineTopY,
         bottomY: hairlineBottomY,
+        tercioMedioBottomY,
+        tercioInferiorBottomY,
         labelTop: 'Hairline / Nacimiento del cabello',
         labelBottom: 'Límite inferior tercio superior',
+        labelMedioBottom: 'Límite inferior tercio medio',
+        labelInferiorBottom: 'Límite inferior tercio inferior',
         colorTop: '#ff6b9d',
         colorBottom: '#f97316',
+        colorMedioBottom: '#a78bfa',
+        colorInferiorBottom: '#34d399',
       },
       markers: markers.map((m: Marker) => ({ ...m })),
       referenceLines: referenceLines.map((l: ReferenceLine) => ({
@@ -2603,6 +2627,8 @@ export default function Clinical3D() {
                 onMarkerMoved={handleMarkerMoved}
                 hairlineTopY={hairlineTopY}
                 hairlineBottomY={hairlineBottomY}
+                tercioMedioBottomY={tercioMedioBottomY}
+                tercioInferiorBottomY={tercioInferiorBottomY}
                 showHairline={showHairline}
                 showIntersections={showIntersections}
                 editablePoints={editablePoints}
@@ -3014,12 +3040,12 @@ export default function Clinical3D() {
                 />
               </div>
 
-              {/* Hairline Inferior */}
+              {/* Hairline Inferior (sup/med) */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#f97316' }} />
-                    <span className="text-xs text-slate-300 font-medium">Límite Inf. Tercio (ojo)</span>
+                    <span className="text-xs text-slate-300 font-medium">Límite Sup./Med. (ojo)</span>
                   </div>
                   <span className="text-[10px] font-mono text-slate-400">Y={hairlineBottomY.toFixed(2)}</span>
                 </div>
@@ -3028,6 +3054,40 @@ export default function Clinical3D() {
                   value={hairlineBottomY}
                   onChange={e => setHairlineBottomY(parseFloat(e.target.value))}
                   className="w-full h-1 accent-orange-500 cursor-pointer"
+                />
+              </div>
+
+              {/* Límite Medio/Inferior */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#a78bfa' }} />
+                    <span className="text-xs text-slate-300 font-medium">Límite Med./Inf. (nariz)</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">Y={tercioMedioBottomY.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="-12" max="2" step="0.1"
+                  value={tercioMedioBottomY}
+                  onChange={e => setTercioMedioBottomY(parseFloat(e.target.value))}
+                  className="w-full h-1 accent-violet-400 cursor-pointer"
+                />
+              </div>
+
+              {/* Límite Inferior del Tercio Inferior */}
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#34d399' }} />
+                    <span className="text-xs text-slate-300 font-medium">Límite Inf. Tercio Inf. (mentón)</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">Y={tercioInferiorBottomY.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="-16" max="-2" step="0.1"
+                  value={tercioInferiorBottomY}
+                  onChange={e => setTercioInferiorBottomY(parseFloat(e.target.value))}
+                  className="w-full h-1 accent-emerald-400 cursor-pointer"
                 />
               </div>
 

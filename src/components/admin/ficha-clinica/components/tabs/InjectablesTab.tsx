@@ -68,7 +68,6 @@ const toxinaBrands = getCatalogItems('marca_toxina');
 const rellenoBrands = getCatalogItems('marca_relleno');
 const techniques = getCatalogItems('tecnica_inyectable');
 const needles = getCatalogItems('aguja_inyectable');
-const planesInyeccion = getCatalogItems('planos_inyeccion');
 const zonasSuperior = getCatalogItems('tercio_superior');
 const zonasMedia = getCatalogItems('tercio_medio');
 const zonasInferior = getCatalogItems('tercio_inferior');
@@ -141,6 +140,11 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [dialogZone, setDialogZone] = useState('');
   const [dialogUnits, setDialogUnits] = useState('');
   const [zoneFilter, setZoneFilter] = useState('');
+
+  // ── Límites de tercios (cargados desde JSON de referencia) ────────────
+  const [tercioBoundaries, setTercioBoundaries] = useState<{
+    topY: number; bottomY: number; tercioMedioBottomY: number; tercioInferiorBottomY: number;
+  } | null>(null);
 
   // ── Líneas de referencia ────────────────────────────────────────────────
   /** Panel de gestión de líneas: oculto por defecto, se abre bajo demanda */
@@ -455,6 +459,17 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setPendingLineMeta(prev => prev ? { ...prev, label } : { label, color: '#ffffff' });
   };
 
+  /** Detecta automáticamente el tercio facial según la posición Y del punto en el modelo 3D.
+   *  En Three.js Y crece hacia arriba: superior (arriba) > medio > inferior (abajo). */
+  const detectTercioFromY = (y: number): 'superior' | 'medio' | 'inferior' => {
+    if (!tercioBoundaries) return 'superior';
+    const { bottomY, tercioMedioBottomY } = tercioBoundaries;
+    // bottomY = límite sup/med (hairlineBottomY), tercioMedioBottomY = límite med/inf
+    if (y >= bottomY) return 'superior';
+    if (y >= tercioMedioBottomY) return 'medio';
+    return 'inferior';
+  };
+
   // ── HANDLERS: Puntos editables del trazado ────────────────────────────
 
   /** Cargar el trazado de referencia superior desde el JSON estático */
@@ -475,8 +490,18 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     const COORD_SCALE = 1.0;
 
     // Límites del hairline directamente en espacio 5 unidades
-    const hairlineTopY    = json.hairline?.topY    ?? 1.9;
-    const hairlineBottomY = json.hairline?.bottomY ?? 0.6;
+    const hairlineTopY          = json.hairline?.topY              ?? 1.9;
+    const hairlineBottomY       = json.hairline?.bottomY           ?? 0.6;
+    const tercioMedioBottomY    = json.hairline?.tercioMedioBottomY    ?? -5.5;
+    const tercioInferiorBottomY = json.hairline?.tercioInferiorBottomY ?? -9.0;
+
+    // Guardar límites en estado para auto-detección de tercio
+    setTercioBoundaries({
+      topY: hairlineTopY,
+      bottomY: hairlineBottomY,
+      tercioMedioBottomY,
+      tercioInferiorBottomY,
+    });
 
     const lines: ReferenceLine[] = (json.referenceLines || []).map((l: any) => {
       let anchor: { x: number; y: number; z: number };
@@ -560,11 +585,18 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       existingUnits: existing?.units ?? 0,
     });
     setUnitsModalInput(String(existing?.units ?? ''));
-    setUnitsModalStep(1);
-    setUnitsModalTercio(existing?.tercio || '');
     setUnitsModalZone(existing?.label || '');
-    setUnitsModalPlane(existing?.injection_plane || '');
+    setUnitsModalPlane(existing?.injection_plane || 'profundo');
     setUnitsModalZoneFilter('');
+    if (tercioBoundaries && !existing?.tercio) {
+      // Auto-detectar tercio desde la posición Y del punto
+      const autoTercio = detectTercioFromY(pt.y);
+      setUnitsModalTercio(autoTercio);
+      setUnitsModalStep(existing ? 1 : 3); // si ya existe ir a step 1 para editar unidades; si es nuevo ir a zona
+    } else {
+      setUnitsModalTercio(existing?.tercio || '');
+      setUnitsModalStep(1);
+    }
   };
 
   /** Punto editable movido en el visor 3D → actualizar posición */
@@ -649,11 +681,19 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
     // Todos los clics abren el diálogo de 3 pasos
     setPendingPoint(marker);
-    setDialogStep(1);
-    setDialogTercio('');
     setDialogZone('');
     setDialogUnits('');
+    setDialogPlane('profundo');
     setZoneFilter('');
+    if (tercioBoundaries) {
+      // Auto-detectar tercio y saltar directamente a la selección de zona
+      const autoTercio = detectTercioFromY(marker.position.y);
+      setDialogTercio(autoTercio);
+      setDialogStep(2);
+    } else {
+      setDialogTercio('');
+      setDialogStep(1);
+    }
   };
 
   const handleDialogConfirm = () => {
@@ -1559,6 +1599,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         onEditablePointDeleted={handleEditablePointDeleted}
                         onEditablePointClicked={handleEditablePointClicked}
                         onProjectedPositions={handleProjectedPositions}
+                        tercioBoundaries={tercioBoundaries}
                       />
 
                       {/* Unit numbers overlay */}
@@ -1649,12 +1690,22 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                               </button>
                             ))}
                         </div>
-                        <button
-                          onClick={() => setDialogStep(1)}
-                          className="mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          ← Volver a tercios
-                        </button>
+                        {zoneFilter.trim() && (
+                          <button
+                            onClick={() => { setDialogZone(zoneFilter.trim()); setDialogStep(3); }}
+                            className="mt-2 w-full px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100 transition-colors text-left"
+                          >
+                            Usar &quot;{zoneFilter.trim()}&quot; →
+                          </button>
+                        )}
+                        {!tercioBoundaries && (
+                          <button
+                            onClick={() => setDialogStep(1)}
+                            className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            ← Volver a tercios
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1715,13 +1766,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         </div>
                         <p className="text-xs text-gray-400 mb-3">Selecciona el plano de inyección para este punto (opcional).</p>
                         <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto mb-3">
-                          <button
-                            onClick={() => setDialogPlane('')}
-                            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all ${!dialogPlane ? 'bg-gray-200 border-gray-400 text-gray-800' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}
-                          >
-                            Sin especificar
-                          </button>
-                          {planesInyeccion.map(p => (
+                          {(['superficial', 'medio', 'profundo'] as const).map(p => (
                             <button
                               key={p}
                               onClick={() => setDialogPlane(p)}
@@ -2024,12 +2069,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         </button>
                       ))}
                   </div>
-                  {unitsModalZoneFilter && !(TERCIO_ZONES[unitsModalTercio] || []).includes(unitsModalZoneFilter) && (
+                  {unitsModalZoneFilter.trim() && (
                     <button
-                      onClick={() => setUnitsModalZone(unitsModalZoneFilter)}
-                      className="mt-1.5 w-full text-xs text-violet-600 hover:text-violet-800 transition-colors text-left"
+                      onClick={() => setUnitsModalZone(unitsModalZoneFilter.trim())}
+                      className="mt-1.5 w-full px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100 transition-colors text-left"
                     >
-                      Usar &quot;{unitsModalZoneFilter}&quot; como zona personalizada
+                      Usar &quot;{unitsModalZoneFilter.trim()}&quot; →
                     </button>
                   )}
                 </div>
@@ -2040,13 +2085,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 <div className="mb-4">
                   <p className="text-xs text-gray-400 mb-2">Selecciona el plano de inyección (opcional).</p>
                   <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto">
-                    <button
-                      onClick={() => setUnitsModalPlane('')}
-                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all ${!unitsModalPlane ? 'bg-gray-200 border-gray-400 text-gray-800' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}
-                    >
-                      Sin especificar
-                    </button>
-                    {planesInyeccion.map(p => (
+                    {(['superficial', 'medio', 'profundo'] as const).map(p => (
                       <button
                         key={p}
                         onClick={() => setUnitsModalPlane(p)}

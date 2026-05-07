@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **May 7, 2026: Líneas de tercio, auto-detección y mejoras de UX en mapa 3D**
+- 📐 **4 líneas de borde en Clinical3D**: Añadidos 2 nuevos límites (Med./Inf. y Inf. Bottom) con sliders y colores violeta/esmeralda en la herramienta de diseño.
+- 💾 **JSON con 4 límites**: `handleSaveJson`/`handleImportJson` en Clinical3D.tsx ahora persisten `tercioMedioBottomY` y `tercioInferiorBottomY`.
+- 👁️ **Líneas sutiles en visor**: Clinical3DViewer.tsx muestra las 4 líneas de borde como líneas punteadas con opacidad 12% al cargar el JSON de trazado.
+- 🎯 **Auto-detección de tercio**: Al hacer clic en el mapa 3D, si hay límites cargados se detecta automáticamente el tercio por posición Y y se salta el paso de selección.
+- ✍️ **Zona libre tipeable**: En ambos diálogos (libre y modal multi-paso), el texto escrito en el filtro puede usarse directamente como zona con botón "Usar '...' →".
+- 🔄 **Volver a tercios oculto**: El botón "← Volver a tercios" se oculta cuando los límites están cargados (no tiene sentido volver si el tercio es auto-detectado).
+- ✈️ **Plano default 'profundo'**: El plano de inyección ahora inicia en 'profundo' al abrir cualquier diálogo de marcación.
+- 📋 **Planes fijos**: La selección de plano muestra solo 3 opciones: superficial / medio / profundo (eliminado "Sin especificar" y opciones extra del catálogo).
+
 ### ✅ **May 6, 2026: Plano de Inyección por-punto + Modal multi-paso en Mapa 3D**
 - 🗺️ **Plano de inyección por punto**: Campo `injection_plane` movido del formulario principal a cada punto del mapa 3D, seleccionable en el modal de marcación.
 - 📋 **Modal trazado multi-paso**: Al hacer clic en un punto del trazado, el modal ahora tiene 4 pasos: (1) Unidades → Guardar directo O Siguiente, (2) Tercio, (3) Zona, (4) Plano de inyección — con barra de progreso visual.
