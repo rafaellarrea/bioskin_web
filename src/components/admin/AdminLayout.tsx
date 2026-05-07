@@ -1,7 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LogOut, User } from 'lucide-react';
+import { ArrowLeft, LogOut, User, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+
+interface Breadcrumb {
+  label: string;
+  path: string;
+}
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -9,9 +14,10 @@ interface AdminLayoutProps {
   subtitle?: string;
   showBack?: boolean;
   backPath?: string;
+  breadcrumbs?: Breadcrumb[];
 }
 
-export default function AdminLayout({ children, title, subtitle, showBack = true, backPath }: AdminLayoutProps) {
+export default function AdminLayout({ children, title, subtitle, showBack = true, backPath, breadcrumbs }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { username, logout } = useAuth();
 
@@ -44,6 +50,21 @@ export default function AdminLayout({ children, title, subtitle, showBack = true
                 </button>
               )}
               <div>
+                {breadcrumbs && breadcrumbs.length > 0 && (
+                  <nav className="flex items-center gap-1 mb-1">
+                    {breadcrumbs.map((crumb, i) => (
+                      <React.Fragment key={crumb.path}>
+                        {i > 0 && <ChevronRight className="w-3 h-3 text-gray-400" />}
+                        <button
+                          onClick={() => navigate(crumb.path)}
+                          className="text-xs text-[#deb887] hover:text-[#c9a96e] hover:underline transition-colors font-medium"
+                        >
+                          {crumb.label}
+                        </button>
+                      </React.Fragment>
+                    ))}
+                  </nav>
+                )}
                 <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
                 {subtitle && <p className="text-gray-600 text-sm">{subtitle}</p>}
               </div>
