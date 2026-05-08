@@ -158,7 +158,7 @@ export default function ClinicalRecordManager() {
     <AdminLayout 
       title={patient ? `${patient.first_name} ${patient.last_name}` : 'Cargando...'} 
       subtitle={`Expediente #${recordId} • ${patient?.rut || 'Sin RUT'}`}
-      backPath="/admin"
+      backPath={patient ? `/admin/ficha-clinica/paciente/${patient.id}` : '/admin/clinical-records'}
     >
       <div className="space-y-6">
         {/* Header with Back Button to Patient Profile - Sticky */}

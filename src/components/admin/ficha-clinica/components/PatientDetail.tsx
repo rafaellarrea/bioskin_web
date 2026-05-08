@@ -161,7 +161,7 @@ export default function PatientDetail() {
       title={`${patient.first_name} ${patient.last_name}`} 
       subtitle="Historial de Expedientes Clínicos"
       showBack={true}
-      backPath="/admin"
+      backPath="/admin/clinical-records"
     >
       <div className="space-y-8">
         {/* Patient Info Card */}
