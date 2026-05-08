@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff
+  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil
 } from 'lucide-react';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D, EditablePoint } from '../Clinical3DViewer';
@@ -134,12 +134,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [capturedImages, setCapturedImages] = useState<CaptureImage[]>([]);
 
   // Dialog states
-  const [pendingPoint, setPendingPoint] = useState<Marker3D | null>(null);
-  const [dialogStep, setDialogStep] = useState<0 | 1 | 2 | 3 | 4>(0);
-  const [dialogTercio, setDialogTercio] = useState<'superior' | 'medio' | 'inferior' | ''>('');
-  const [dialogZone, setDialogZone] = useState('');
-  const [dialogUnits, setDialogUnits] = useState('');
-  const [zoneFilter, setZoneFilter] = useState('');
+  const [pendingFreePoint, setPendingFreePoint] = useState<Marker3D | null>(null);
+  const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
 
   // ── Límites de tercios (cargados desde JSON de referencia) ────────────
   // Se inicializa directamente desde el JSON estático para que la auto-detección
@@ -182,6 +178,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     pointId: string;
     pointName: string;
     existingUnits: number;
+    isNewPoint?: boolean;
   } | null>(null);
   const [unitsModalInput, setUnitsModalInput] = useState('');
   // Multi-step states for trazado point modal
@@ -190,8 +187,6 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [unitsModalZone, setUnitsModalZone] = useState('');
   const [unitsModalZoneFilter, setUnitsModalZoneFilter] = useState('');
   const [unitsModalPlane, setUnitsModalPlane] = useState('');
-  // Injection plane for free-click dialog
-  const [dialogPlane, setDialogPlane] = useState('');
   // Unit numbers overlay
   const [showUnitNumbers, setShowUnitNumbers] = useState(true);
   const showUnitNumbersRef = useRef(true);
@@ -590,25 +585,21 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     const pt = editablePoints.find(p => p.id === id);
     if (!pt) return;
     const existing = injectionPoints.find(ip => ip.editablePointId === id);
+    const autoTercio = tercioBoundaries ? detectTercioFromY(pt.y) : (existing?.tercio || '');
+    setSelectedPointId(id);
     setUnitsModal({
       open: true,
       pointId: id,
       pointName: pt.name || id,
       existingUnits: existing?.units ?? 0,
+      isNewPoint: false,
     });
     setUnitsModalInput(String(existing?.units ?? ''));
+    setUnitsModalTercio(autoTercio as 'superior' | 'medio' | 'inferior' | '');
     setUnitsModalZone(existing?.label || '');
-    setUnitsModalPlane(existing?.injection_plane || 'profundo');
+    setUnitsModalPlane(existing?.injection_plane || '');
     setUnitsModalZoneFilter('');
-    if (tercioBoundaries && !existing?.tercio) {
-      // Auto-detectar tercio desde la posición Y del punto
-      const autoTercio = detectTercioFromY(pt.y);
-      setUnitsModalTercio(autoTercio);
-      setUnitsModalStep(existing ? 1 : 3); // si ya existe ir a step 1 para editar unidades; si es nuevo ir a zona
-    } else {
-      setUnitsModalTercio(existing?.tercio || '');
-      setUnitsModalStep(1);
-    }
+    setUnitsModalStep(1);
   };
 
   /** Punto editable movido en el visor 3D → actualizar posición */
@@ -626,41 +617,71 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     }));
   };
 
-  /** Confirmar unidades desde el modal de punto editable */
   const handleUnitsModalConfirm = () => {
     if (!unitsModal) return;
     const units = Number(unitsModalInput) || 0;
-    const pt = editablePoints.find(p => p.id === unitsModal.pointId);
-    if (!pt) { setUnitsModal(null); return; }
 
-    // Crear o actualizar el InjectionPoint vinculado a este punto editable
-    const existingIdx = injectionPoints.findIndex(ip => ip.editablePointId === unitsModal.pointId);
-    const existing = existingIdx >= 0 ? injectionPoints[existingIdx] : null;
-    const effectiveTercio = unitsModalTercio || existing?.tercio || 'superior';
-    const effectiveLabel = unitsModalZone || existing?.label || unitsModal.pointName;
+    if (unitsModal.isNewPoint && pendingFreePoint) {
+      // ── Punto libre nuevo (free-click o add-mode) ──────────────────────
+      const freeCount = injectionPoints.filter(ip => ip.label?.startsWith('punto libre')).length;
+      const effectiveTercio = (unitsModalTercio || 'superior') as 'superior' | 'medio' | 'inferior';
+      const effectiveLabel = unitsModalZone || `punto libre ${freeCount + 1}`;
 
-    const newPoint: InjectionPoint = {
-      id: existing?.id,
-      type: 'Puntual' as const,
-      pathologyId: 'botox',
-      position: { x: pt.x, y: pt.y, z: pt.z },
-      rotation: [0, 0, 0],
-      normal: { x: 0, y: 0, z: 1 },
-      zone: effectiveLabel,
-      radius: 0.04,
-      tercio: effectiveTercio as 'superior' | 'medio' | 'inferior',
-      units,
-      label: effectiveLabel,
-      editablePointId: unitsModal.pointId,
-      ...(unitsModalPlane ? { injection_plane: unitsModalPlane } : {}),
-    };
+      // Siempre crear EditablePoint para que sea editable y aparezca en el panel
+      const newEp: EditablePoint = {
+        id: `free-${Date.now()}`,
+        type: 'free',
+        x: pendingFreePoint.position.x,
+        y: pendingFreePoint.position.y,
+        z: pendingFreePoint.position.z,
+        lineIds: [],
+        name: effectiveLabel,
+      };
+      setEditablePoints(prev => [...prev, newEp]);
 
-    // Los puntos del trazado usan editablePoints para su visual, NO markers3D
-    // (markers3D es para marcadores de inyección libre — son 3x más grandes)
-    if (existingIdx >= 0) {
-      setInjectionPoints(prev => prev.map((ip, i) => i === existingIdx ? newPoint : ip));
-    } else {
+      const newPoint: InjectionPoint = {
+        ...pendingFreePoint,
+        zone: effectiveLabel,
+        tercio: effectiveTercio,
+        units,
+        label: effectiveLabel,
+        editablePointId: newEp.id,
+        // Plano solo si el usuario lo seleccionó en Siguiente → paso 4
+        ...(unitsModalPlane ? { injection_plane: unitsModalPlane } : {}),
+      };
       setInjectionPoints(prev => [...prev, newPoint]);
+      setPendingFreePoint(null);
+    } else {
+      // ── Punto existente (trazado o libre ya guardado) ─────────────────
+      const pt = editablePoints.find(p => p.id === unitsModal.pointId);
+      if (!pt) { setUnitsModal(null); return; }
+
+      const existingIdx = injectionPoints.findIndex(ip => ip.editablePointId === unitsModal.pointId);
+      const existing = existingIdx >= 0 ? injectionPoints[existingIdx] : null;
+      const effectiveTercio = unitsModalTercio || existing?.tercio || 'superior';
+      const effectiveLabel = unitsModalZone || existing?.label || unitsModal.pointName;
+
+      const newPoint: InjectionPoint = {
+        id: existing?.id,
+        type: 'Puntual' as const,
+        pathologyId: 'botox',
+        position: { x: pt.x, y: pt.y, z: pt.z },
+        rotation: [0, 0, 0],
+        normal: { x: 0, y: 0, z: 1 },
+        zone: effectiveLabel,
+        radius: 0.04,
+        tercio: effectiveTercio as 'superior' | 'medio' | 'inferior',
+        units,
+        label: effectiveLabel,
+        editablePointId: unitsModal.pointId,
+        ...(unitsModalPlane ? { injection_plane: unitsModalPlane } : {}),
+      };
+
+      if (existingIdx >= 0) {
+        setInjectionPoints(prev => prev.map((ip, i) => i === existingIdx ? newPoint : ip));
+      } else {
+        setInjectionPoints(prev => [...prev, newPoint]);
+      }
     }
 
     setUnitsModal(null);
@@ -670,6 +691,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setUnitsModalZone('');
     setUnitsModalZoneFilter('');
     setUnitsModalPlane('');
+    setSelectedPointId(null);
   };
 
   const handleSelect = (inj: Injectable) => {
@@ -681,75 +703,31 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     });
   };
 
-  // 3D click → validate then open dialog
+  // 3D click → abrir modal en paso de UI (unidades)
   const handleMarkerPlaced = (marker: Marker3D) => {
-    // En modo añadir libre (isAddPointMode), saltamos el check canMark —
-    // el diálogo de 3 pasos captura zona + unidades directamente.
     const isAddMode = (marker as any).isAddPointMode;
     if (!isAddMode && !canMark) {
       setMessage({ type: 'error', text: `Complete el nombre del producto y las ${unitLabel} antes de marcar puntos` });
       return;
     }
 
-    // Todos los clics abren el diálogo de 3 pasos
-    setPendingPoint(marker);
-    setDialogZone('');
-    setDialogUnits('');
-    setDialogPlane('profundo');
-    setZoneFilter('');
-    if (tercioBoundaries) {
-      // Auto-detectar tercio y saltar directamente a la selección de zona
-      const autoTercio = detectTercioFromY(marker.position.y);
-      setDialogTercio(autoTercio);
-      setDialogStep(2);
-    } else {
-      setDialogTercio('');
-      setDialogStep(1);
-    }
-  };
+    const freeCount = injectionPoints.filter(ip => ip.label?.startsWith('punto libre')).length;
+    const autoTercio = tercioBoundaries ? detectTercioFromY(marker.position.y) : '';
 
-  const handleDialogConfirm = () => {
-    if (!pendingPoint || !dialogTercio || !dialogZone || !dialogUnits) return;
-
-    // Si viene de modo "añadir punto libre" (→ click en modo add), crear EditablePoint visual
-    let freeEditableId: string | undefined;
-    if ((pendingPoint as any).isAddPointMode) {
-      const newEp: EditablePoint = {
-        id: `free-${Date.now()}`,
-        type: 'free',
-        x: pendingPoint.position.x,
-        y: pendingPoint.position.y,
-        z: pendingPoint.position.z,
-        lineIds: [],
-        name: dialogZone,
-      };
-      setEditablePoints(prev => [...prev, newEp]);
-      freeEditableId = newEp.id;
-    }
-
-    const newPoint: InjectionPoint = {
-      ...pendingPoint,
-      zone: dialogZone,
-      tercio: dialogTercio,
-      units: Number(dialogUnits) || 0,
-      label: dialogZone,
-      ...(dialogPlane ? { injection_plane: dialogPlane } : {}),
-      ...(freeEditableId ? { editablePointId: freeEditableId } : {}),
-    };
-    setInjectionPoints(prev => [...prev, newPoint]);
-    // Solo añadir al grupo de markers3D si NO es punto libre (los libres usan editablePoints para renderizar)
-    if (!freeEditableId) {
-      setMarkers3D(prev => [...prev, { ...pendingPoint, zone: dialogZone }]);
-    }
-    setPendingPoint(null);
-    setDialogStep(0);
-    setDialogPlane('');
-  };
-
-  const handleDialogCancel = () => {
-    setPendingPoint(null);
-    setDialogStep(0);
-    setDialogPlane('');
+    setPendingFreePoint(marker);
+    setUnitsModal({
+      open: true,
+      pointId: 'pending-free',
+      pointName: 'Nuevo punto libre',
+      existingUnits: 0,
+      isNewPoint: true,
+    });
+    setUnitsModalInput('');
+    setUnitsModalTercio(autoTercio as 'superior' | 'medio' | 'inferior' | '');
+    setUnitsModalZone(`punto libre ${freeCount + 1}`);
+    setUnitsModalZoneFilter('');
+    setUnitsModalPlane('');
+    setUnitsModalStep(1);
   };
 
   const handleRemovePoint = (index: number) => {
@@ -1619,6 +1597,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         onEditablePointClicked={handleEditablePointClicked}
                         onProjectedPositions={handleProjectedPositions}
                         tercioBoundaries={showBoundaryLines ? tercioBoundaries : null}
+                        selectedPointId={selectedPointId ?? undefined}
                       />
 
                       {/* Unit numbers overlay */}
@@ -1642,176 +1621,6 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                           );
                         })}
                       </div>
-
-                  {/* Dialog Overlay — Step 1: Tercio */}
-                  {dialogStep === 1 && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
-                      <div className="bg-white rounded-xl shadow-2xl p-5 m-4 max-w-xs w-full">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-sm font-bold text-gray-800">Paso 1/3 — Tercio Facial</h3>
-                          <button onClick={handleDialogCancel} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <div className="space-y-2">
-                          {(['superior', 'medio', 'inferior'] as const).map(t => (
-                            <button
-                              key={t}
-                              onClick={() => { setDialogTercio(t); setDialogStep(2); setZoneFilter(''); }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-left text-sm font-semibold transition-all hover:shadow-md ${TERCIO_COLORS[t].bg} ${TERCIO_COLORS[t].border} ${TERCIO_COLORS[t].text}`}
-                            >
-                              <div className={`w-3 h-3 rounded-full ${t === 'superior' ? 'bg-cyan-400' : t === 'medio' ? 'bg-violet-400' : 'bg-amber-400'}`} />
-                              {TERCIO_LABELS[t]}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Dialog Overlay — Step 2: Zona */}
-                  {dialogStep === 2 && dialogTercio && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
-                      <div className="bg-white rounded-xl shadow-2xl p-5 m-4 max-w-xs w-full">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-sm font-bold text-gray-800">Paso 2/3 — Zona</h3>
-                          <button onClick={handleDialogCancel} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${TERCIO_COLORS[dialogTercio].text}`}>
-                          {TERCIO_LABELS[dialogTercio]}
-                        </p>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none mb-2"
-                          placeholder="Buscar o escribir zona..."
-                          value={zoneFilter}
-                          onChange={e => setZoneFilter(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter' && zoneFilter.trim()) {
-                              setDialogZone(zoneFilter.trim());
-                              setDialogStep(3);
-                            }
-                          }}
-                          autoFocus
-                        />
-                        <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
-                          {(TERCIO_ZONES[dialogTercio] || [])
-                            .filter(z => !zoneFilter || z.toLowerCase().includes(zoneFilter.toLowerCase()))
-                            .map(z => (
-                              <button
-                                key={z}
-                                onClick={() => { setDialogZone(z); setDialogStep(3); }}
-                                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all duration-150 hover:shadow-sm ${TERCIO_COLORS[dialogTercio].bg} ${TERCIO_COLORS[dialogTercio].border} ${TERCIO_COLORS[dialogTercio].text}`}
-                              >
-                                {z}
-                              </button>
-                            ))}
-                        </div>
-                        {zoneFilter.trim() && (
-                          <button
-                            onClick={() => { setDialogZone(zoneFilter.trim()); setDialogStep(3); }}
-                            className="mt-2 w-full px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 border border-violet-200 text-violet-700 hover:bg-violet-100 transition-colors text-left"
-                          >
-                            Usar &quot;{zoneFilter.trim()}&quot; →
-                          </button>
-                        )}
-                        {!tercioBoundaries && (
-                          <button
-                            onClick={() => setDialogStep(1)}
-                            className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            ← Volver a tercios
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Dialog Overlay — Step 3: Units */}
-                  {dialogStep === 3 && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
-                      <div className="bg-white rounded-xl shadow-2xl p-5 m-4 max-w-xs w-full">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-sm font-bold text-gray-800">Paso 3/4 — {unitLabel}</h3>
-                          <button onClick={handleDialogCancel} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <div className="text-xs text-gray-500 mb-3 space-y-1 bg-gray-50 rounded-lg p-2.5">
-                          <p><strong className={TERCIO_COLORS[dialogTercio as keyof typeof TERCIO_COLORS]?.text || ''}>Tercio:</strong> {TERCIO_LABELS[dialogTercio as keyof typeof TERCIO_LABELS] || dialogTercio}</p>
-                          <p><strong className="text-gray-700">Zona:</strong> {dialogZone}</p>
-                        </div>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none mb-3"
-                          placeholder={`Cantidad de ${unitLabel} en este punto`}
-                          value={dialogUnits}
-                          onChange={e => setDialogUnits(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter' && dialogUnits && Number(dialogUnits) > 0) setDialogStep(4); }}
-                          autoFocus
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setDialogStep(2)}
-                            className="flex-1 px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            ← Volver
-                          </button>
-                          <button
-                            onClick={() => setDialogStep(4)}
-                            disabled={!dialogUnits || Number(dialogUnits) <= 0}
-                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-white bg-violet-500 rounded-lg hover:bg-violet-600 disabled:opacity-40 transition-colors"
-                          >
-                            Siguiente →
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Dialog Overlay — Step 4: Injection Plane */}
-                  {dialogStep === 4 && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10 rounded-xl">
-                      <div className="bg-white rounded-xl shadow-2xl p-5 m-4 max-w-xs w-full">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-sm font-bold text-gray-800">Paso 4/4 — Plano de Inyección</h3>
-                          <button onClick={handleDialogCancel} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <p className="text-xs text-gray-400 mb-3">Selecciona el plano de inyección para este punto (opcional).</p>
-                        <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto mb-3">
-                          {(['superficial', 'medio', 'profundo'] as const).map(p => (
-                            <button
-                              key={p}
-                              onClick={() => setDialogPlane(p)}
-                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all ${dialogPlane === p ? 'bg-violet-100 border-violet-400 text-violet-700 shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}`}
-                            >
-                              {p}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setDialogStep(3)}
-                            className="flex-1 px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            ← Volver
-                          </button>
-                          <button
-                            onClick={handleDialogConfirm}
-                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-white bg-violet-500 rounded-lg hover:bg-violet-600 transition-colors"
-                          >
-                            <Check className="w-3.5 h-3.5" /> Confirmar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Drawer de Líneas de Referencia — overlay sobre el viewer */}
                   <AnimatePresence>
@@ -1900,22 +1709,40 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                               <div className="divide-y divide-gray-100">
                                 {pts.map((p, i) => {
                                   const globalIndex = injectionPoints.indexOf(p);
+                                  const rowEpId = p.editablePointId;
+                                  const isSelected = !!rowEpId && rowEpId === selectedPointId;
                                   return (
-                                    <div key={i} className="flex items-center justify-between px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors">
+                                    <div
+                                      key={i}
+                                      className={`flex items-center justify-between px-3 py-1.5 text-xs transition-colors cursor-pointer ${
+                                        isSelected ? 'bg-cyan-50 ring-1 ring-inset ring-cyan-300' : 'hover:bg-gray-50'
+                                      }`}
+                                      onClick={() => { if (rowEpId) setSelectedPointId(isSelected ? null : rowEpId); }}
+                                    >
                                       <div className="flex items-center gap-2 min-w-0">
-                                        <span className="text-gray-400 font-mono w-4 flex-shrink-0">{globalIndex + 1}</span>
+                                        <span className={`font-mono w-4 flex-shrink-0 ${isSelected ? 'text-cyan-500 font-bold' : 'text-gray-400'}`}>{globalIndex + 1}</span>
                                         <div className="flex flex-col min-w-0">
-                                          <span className="font-medium text-gray-700 truncate">{p.label || '—'}</span>
+                                          <span className={`font-medium truncate ${isSelected ? 'text-cyan-700' : 'text-gray-700'}`}>{p.label || '—'}</span>
                                           {p.injection_plane && (
                                             <span className="text-[10px] text-violet-500 truncate">{p.injection_plane}</span>
                                           )}
                                         </div>
                                       </div>
-                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                      <div className="flex items-center gap-1.5 flex-shrink-0">
                                         <span className="font-semibold text-gray-800">{p.units} {unitLabel}</span>
                                         <span className="text-gray-400 w-9 text-right cursor-help" title={`${totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}% del total de ${totalUsed} ${unitLabel} aplicadas`}>{totalUsed > 0 ? Math.round((p.units / totalUsed) * 100) : 0}%</span>
+                                        {/* Editar — abre modal si tiene editablePointId */}
+                                        {rowEpId && (
+                                          <button
+                                            onClick={e => { e.stopPropagation(); handleEditablePointClicked(rowEpId); }}
+                                            className="p-0.5 text-cyan-400 hover:text-cyan-600 hover:bg-cyan-50 rounded transition-colors"
+                                            title="Editar punto"
+                                          >
+                                            <Pencil className="w-3 h-3" />
+                                          </button>
+                                        )}
                                         <button
-                                          onClick={() => handleRemovePoint(globalIndex)}
+                                          onClick={e => { e.stopPropagation(); handleRemovePoint(globalIndex); }}
                                           className="p-0.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                           title="Eliminar punto"
                                         >
@@ -1990,7 +1817,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{unitsModal.pointName}</p>
                 </div>
                 <button
-                  onClick={() => { setUnitsModal(null); setUnitsModalInput(''); setUnitsModalStep(1); setUnitsModalTercio(''); setUnitsModalZone(''); setUnitsModalPlane(''); setUnitsModalZoneFilter(''); }}
+                  onClick={() => { setPendingFreePoint(null); setSelectedPointId(null); setUnitsModal(null); setUnitsModalInput(''); setUnitsModalStep(1); setUnitsModalTercio(''); setUnitsModalZone(''); setUnitsModalPlane(''); setUnitsModalZoneFilter(''); }}
                   className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -2122,23 +1949,27 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 {/* Fila secundaria: Eliminar + Cancelar (solo paso 1) */}
                 {unitsModalStep === 1 && (
                   <div className="flex gap-2">
+                    {/* Eliminar — solo para puntos ya existentes */}
+                    {!unitsModal.isNewPoint && (
+                      <button
+                        onClick={() => {
+                          handleEditablePointDeleted(unitsModal.pointId);
+                          setSelectedPointId(null);
+                          setUnitsModal(null);
+                          setUnitsModalInput('');
+                          setUnitsModalStep(1);
+                          setUnitsModalTercio('');
+                          setUnitsModalZone('');
+                          setUnitsModalPlane('');
+                        }}
+                        className="px-3 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
+                        title="Eliminar punto"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
-                      onClick={() => {
-                        handleEditablePointDeleted(unitsModal.pointId);
-                        setUnitsModal(null);
-                        setUnitsModalInput('');
-                        setUnitsModalStep(1);
-                        setUnitsModalTercio('');
-                        setUnitsModalZone('');
-                        setUnitsModalPlane('');
-                      }}
-                      className="px-3 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition-colors flex items-center gap-1"
-                      title="Eliminar punto"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => { setUnitsModal(null); setUnitsModalInput(''); setUnitsModalStep(1); setUnitsModalTercio(''); setUnitsModalZone(''); setUnitsModalPlane(''); setUnitsModalZoneFilter(''); }}
+                      onClick={() => { setPendingFreePoint(null); setSelectedPointId(null); setUnitsModal(null); setUnitsModalInput(''); setUnitsModalStep(1); setUnitsModalTercio(''); setUnitsModalZone(''); setUnitsModalPlane(''); setUnitsModalZoneFilter(''); }}
                       className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
                     >
                       Cancelar

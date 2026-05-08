@@ -134,6 +134,8 @@ interface Clinical3DViewerProps {
   onProjectedPositions?: (positions: ProjectedPosition[]) => void;
   /** Límites de tercios para renderizar líneas sutiles. Si se pasa, dibuja las 4 líneas divisorias. */
   tercioBoundaries?: { topY: number; bottomY: number; tercioMedioBottomY: number; tercioInferiorBottomY: number } | null;
+  /** ID del punto editable actualmente seleccionado (se resalta visualmente en el modelo 3D) */
+  selectedPointId?: string;
 }
 
 // ==========================================
@@ -161,7 +163,8 @@ const ThreeEngine: React.FC<{
   onEditablePointClicked?: (id: string) => void;
   onProjectedPositions?: (positions: ProjectedPosition[]) => void;
   tercioBoundaries?: { topY: number; bottomY: number; tercioMedioBottomY: number; tercioInferiorBottomY: number } | null;
-}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions, tercioBoundaries = null }) => {
+  selectedPointId?: string;
+}> = ({ modelSource, markers, zones, onMeshClick, onLoaded, onError, readOnly, referenceLines = [], lineDrawingMode, onLinePointAnchored, editablePoints = [], showEditablePoints = true, pointMode = 'none', onEditablePointMoved, onEditablePointDeleted, onEditablePointClicked, onProjectedPositions, tercioBoundaries = null, selectedPointId }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -758,6 +761,16 @@ const ThreeEngine: React.FC<{
     }
   }, [showEditablePoints]);
 
+  // 4d. Resaltar el punto editable seleccionado (escala mayor + color)
+  useEffect(() => {
+    const group = editablePointsGroupRef.current;
+    if (!group) return;
+    group.children.forEach(child => {
+      const isSelected = selectedPointId && child.userData.editableId === selectedPointId;
+      child.scale.setScalar(isSelected ? 1.8 : 1.0);
+    });
+  }, [selectedPointId, editablePoints]);
+
   // 4. Renderizar líneas de referencia sobre la superficie del modelo
   useEffect(() => {
     const group = linesGroupRef.current;
@@ -1132,6 +1145,7 @@ export default function Clinical3DViewer({
   onEditablePointClicked,
   onProjectedPositions,
   tercioBoundaries = null,
+  selectedPointId,
 }: Clinical3DViewerProps) {
   const [modelSource, setModelSource] = useState<{ type: 'url' | 'buffer'; data: string | ArrayBuffer }>({
     type: 'url',
@@ -1221,6 +1235,7 @@ export default function Clinical3DViewer({
             onEditablePointClicked={onEditablePointClicked}
             onProjectedPositions={onProjectedPositions}
             tercioBoundaries={tercioBoundaries}
+            selectedPointId={selectedPointId}
           />
         )}
       </div>
