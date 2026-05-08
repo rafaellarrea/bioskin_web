@@ -47,6 +47,8 @@ export default function Navbar() {
     return null;
   }
 
+  const isAdminRoute = pathname.startsWith('/admin');
+
   return (
     <>
       {/* Navegación Principal - Desktop & Mobile */}
@@ -125,9 +127,11 @@ export default function Navbar() {
           </div>
 
           {/* Search Bar Row - Full Width & Responsive */}
-          <div className="pb-4 px-2 md:px-0 flex justify-center w-full">
-             <AISearch variant="bar" className="w-full max-w-2xl" />
-          </div>
+          {!isAdminRoute && (
+            <div className="pb-4 px-2 md:px-0 flex justify-center w-full">
+              <AISearch variant="bar" className="w-full max-w-2xl" />
+            </div>
+          )}
         </div>
       </nav>
 

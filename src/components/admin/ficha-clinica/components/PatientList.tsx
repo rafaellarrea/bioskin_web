@@ -75,7 +75,7 @@ export default function PatientList() {
   );
 
   return (
-    <AdminLayout title="Fichas Clínicas" subtitle="Gestión de pacientes y expedientes médicos">
+    <AdminLayout title="Fichas Clínicas" subtitle="Gestión de pacientes y expedientes médicos" backPath="/admin">
       <div className="space-y-6">
         <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-xl shadow-sm">
           <h2 className="text-xl font-bold text-gray-800">Pacientes Registrados</h2>
