@@ -503,6 +503,11 @@ const ThreeEngine: React.FC<{
             const id = (c as THREE.Group).userData.editableId;
             if (id) projectGroup(c, id);
           });
+          // Sentinel: encode camera distance so parent can scale the number labels
+          if (controlsRef.current) {
+            const camDist = cam.position.distanceTo(controlsRef.current.target);
+            projected.push({ id: '__zoom__', x: camDist, y: 0 });
+          }
           callbacks.current.onProjectedPositions(projected);
         }
       }

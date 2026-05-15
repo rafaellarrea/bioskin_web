@@ -200,6 +200,17 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     const overlay = unitOverlayRef.current;
     if (!overlay) return;
     positions.forEach(({ id, x, y }) => {
+      if (id === '__zoom__') {
+        // x = camera distance; derive a clamped font size so numbers scale with zoom
+        const REF_DIST = 12;   // default camera distance
+        const BASE_PX = 9;     // font size at reference distance
+        const MIN_PX = 7;      // minimum (very zoomed out)
+        const MAX_PX = 15;     // maximum (very zoomed in)
+        const raw = BASE_PX * REF_DIST / Math.max(x, 0.1);
+        const clamped = Math.max(MIN_PX, Math.min(MAX_PX, raw));
+        overlay.style.setProperty('--unit-font-size', `${clamped.toFixed(1)}px`);
+        return;
+      }
       const el = overlay.querySelector(`[data-pid="${id}"]`) as HTMLElement | null;
       if (el) el.style.transform = `translate(${Math.round(x + 5)}px, ${Math.round(y - 12)}px)`;
     });
@@ -1613,8 +1624,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                             <span
                               key={pid}
                               data-pid={pid}
-                              className="absolute top-0 left-0 text-[7px] font-bold text-white leading-none bg-black/50 rounded-full px-[3px] py-[1.5px] pointer-events-none"
-                              style={{ transform: 'translate(0px,0px)' }}
+                              className="absolute top-0 left-0 font-bold text-white leading-none bg-black/50 rounded-full px-[3px] py-[1.5px] pointer-events-none"
+                              style={{ transform: 'translate(0px,0px)', fontSize: 'var(--unit-font-size, 9px)' }}
                             >
                               {ip.units}
                             </span>
@@ -1676,10 +1687,10 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </div>{/* /flex-1 */}
 
                   {/* Right Panel: Desglose de Puntos de Inyección */}
-                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0">
+                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col">
                       {injectionPoints.length > 0 ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-1.5">
+                      <>
+                        <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
                           <div className="group relative">
                             <Info className="w-3.5 h-3.5 text-gray-300 hover:text-violet-400 cursor-help transition-colors" />
@@ -1693,6 +1704,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                             </div>
                           </div>
                         </div>
+                        <div className="flex flex-col gap-3 overflow-y-auto max-h-[420px] pr-1 custom-scrollbar">
                         {(['superior', 'medio', 'inferior'] as const).map(tercio => {
                           const pts = pointsByTercio[tercio];
                           if (!pts || pts.length === 0) return null;
@@ -1756,7 +1768,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                             </div>
                           );
                         })}
-                      </div>
+                        </div>
+                      </>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
                         <Crosshair className="w-8 h-8 text-gray-300 mb-2" />

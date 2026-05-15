@@ -82,6 +82,16 @@ export default function InjectableCaptureModal({
     const overlay = unitOverlayRef.current;
     if (!overlay) return;
     positions.forEach(({ id, x, y }) => {
+      if (id === '__zoom__') {
+        const REF_DIST = 12;
+        const BASE_PX = 9;
+        const MIN_PX = 7;
+        const MAX_PX = 15;
+        const raw = BASE_PX * REF_DIST / Math.max(x, 0.1);
+        const clamped = Math.max(MIN_PX, Math.min(MAX_PX, raw));
+        overlay.style.setProperty('--unit-font-size', `${clamped.toFixed(1)}px`);
+        return;
+      }
       const el = overlay.querySelector(`[data-pid="${id}"]`) as HTMLElement | null;
       if (el) el.style.transform = `translate(${Math.round(x + 5)}px, ${Math.round(y - 12)}px)`;
     });
@@ -297,8 +307,8 @@ export default function InjectableCaptureModal({
                         <span
                           key={pid}
                           data-pid={pid}
-                          className="absolute top-0 left-0 text-[7px] font-bold text-white leading-none bg-black/50 rounded-full px-[3px] py-[1.5px] pointer-events-none"
-                          style={{ transform: 'translate(0px,0px)' }}
+                          className="absolute top-0 left-0 font-bold text-white leading-none bg-black/50 rounded-full px-[3px] py-[1.5px] pointer-events-none"
+                          style={{ transform: 'translate(0px,0px)', fontSize: 'var(--unit-font-size, 9px)' }}
                         >
                           {ip.units}
                         </span>
