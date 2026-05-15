@@ -95,9 +95,14 @@ const toDateOnly = (d: string | null | undefined): string => {
   if (!d) return '';
   return d.includes('T') ? d.split('T')[0] : d;
 };
+/** Retorna la fecha LOCAL actual en YYYY-MM-DD (no UTC) */
+const getLocalDate = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 const EMPTY_INJECTABLE: Injectable = {
-  date: new Date().toISOString().split('T')[0],
+  date: getLocalDate(),
   product_type: 'toxina',
   product_name: '',
   brand: '',
@@ -122,6 +127,7 @@ const EMPTY_INJECTABLE: Injectable = {
 export default function InjectablesTab({ recordId, injectables: initialInjectables, patientName, onSave }: InjectablesTabProps) {
   const [injectables, setInjectables] = useState<Injectable[]>([]);
   const [current, setCurrent] = useState<Injectable>({ ...EMPTY_INJECTABLE });
+  const [dateLocked, setDateLocked] = useState(false);
   const [saving, setSaving] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const [markers3D, setMarkers3D] = useState<Marker3D[]>([]);
@@ -372,7 +378,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   };
 
   const handleNew = () => {
-    setCurrent({ ...EMPTY_INJECTABLE });
+    setCurrent({ ...EMPTY_INJECTABLE, date: getLocalDate() });
+    setDateLocked(false);
     setMarkers3D([]);
     setInjectionPoints([]);
     setReferenceLines([]);
@@ -712,6 +719,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       expiration_date: toDateOnly(inj.expiration_date),
       follow_up_date: toDateOnly(inj.follow_up_date),
     });
+    setDateLocked(true);
   };
 
   // 3D click → abrir modal en paso de UI (unidades)
@@ -1178,12 +1186,29 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 <Calendar className="w-3.5 h-3.5 text-gray-400" />
                 Fecha
               </label>
-              <input
-                type="date"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
-                value={current.date}
-                onChange={e => setCurrent({ ...current, date: e.target.value })}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  disabled={dateLocked}
+                  className={`flex-1 px-3 py-2.5 border rounded-xl text-sm outline-none transition-all ${
+                    dateLocked
+                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-200 focus:ring-2 focus:ring-violet-300 focus:border-violet-300 bg-gray-50/50'
+                  }`}
+                  value={current.date}
+                  onChange={e => setCurrent({ ...current, date: e.target.value })}
+                />
+                {current.id && dateLocked && (
+                  <button
+                    type="button"
+                    onClick={() => setDateLocked(false)}
+                    className="p-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors shrink-0"
+                    title="Actualizar fecha"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Marca / Producto</label>

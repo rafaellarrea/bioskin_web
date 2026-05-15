@@ -1,8 +1,19 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar, Check, AlertCircle, Pill } from 'lucide-react';
+import { Plus, Trash2, Save, FileText, Copy, Printer, Search, Calendar, Check, AlertCircle, Pill, Pencil } from 'lucide-react';
 import prescriptionOptions from '../../data/prescription_options.json';
 import { Tooltip } from '../../../../ui/Tooltip';
+
+/** Extrae solo YYYY-MM-DD de un ISO timestamp para evitar desfase de zona horaria */
+const toDateOnly = (d: string | null | undefined): string => {
+  if (!d) return '';
+  return d.includes('T') ? d.split('T')[0] : d;
+};
+/** Retorna la fecha LOCAL actual en YYYY-MM-DD (no UTC) */
+const getLocalDate = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 interface PrescriptionItem {
   medicamento: string;
@@ -46,10 +57,11 @@ const EMPTY_ITEM: PrescriptionItem = {
 export default function PrescriptionTab({ recordId, patientName, patientAge }: PrescriptionTabProps) {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [currentPrescription, setCurrentPrescription] = useState<Prescription>({
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: getLocalDate(),
     diagnostico: '',
     items: [{ ...EMPTY_ITEM }]
   });
+  const [dateLocked, setDateLocked] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -110,10 +122,11 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         if (action === 'createPrescription') {
           // Reset form if new
           setCurrentPrescription({
-            fecha: new Date().toISOString().split('T')[0],
+            fecha: getLocalDate(),
             diagnostico: '',
             items: [{ ...EMPTY_ITEM }]
           });
+          setDateLocked(false);
         }
         setMessage({ type: 'success', text: 'Receta guardada correctamente' });
       } else {
@@ -131,7 +144,8 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
     try {
       const res = await fetch(`/api/records?action=getPrescription&id=${id}`);
       const data = await res.json();
-      setCurrentPrescription(data);
+      setCurrentPrescription({ ...data, fecha: toDateOnly(data.fecha) });
+      setDateLocked(true);
       setMessage(null);
     } catch (error) {
       console.error('Error loading details:', error);
@@ -140,10 +154,11 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
 
   const handleNew = () => {
     setCurrentPrescription({
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: getLocalDate(),
       diagnostico: '',
       items: [{ ...EMPTY_ITEM }]
     });
+    setDateLocked(false);
     setMessage(null);
   };
 
@@ -151,8 +166,9 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
     const { id, ...rest } = currentPrescription;
     setCurrentPrescription({
       ...rest,
-      fecha: new Date().toISOString().split('T')[0]
+      fecha: getLocalDate()
     });
+    setDateLocked(false);
     setMessage({ type: 'success', text: 'Receta duplicada. Guarde para crear una nueva.' });
   };
 
@@ -391,7 +407,7 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
           {prescriptions.map((p, index) => {
             const rawDate = p.fecha || '';
-            const dateObj = rawDate ? new Date(rawDate.includes('T') ? rawDate : rawDate + 'T12:00:00') : null;
+            const dateObj = rawDate ? new Date(toDateOnly(rawDate) + 'T12:00:00') : null;
             const dateFormatted = dateObj && !isNaN(dateObj.getTime())
               ? dateObj.toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })
               : rawDate;
@@ -580,14 +596,32 @@ export default function PrescriptionTab({ recordId, patientName, patientAge }: P
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="date"
-                className="w-full pl-10 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
-                value={currentPrescription.fecha}
-                onChange={e => setCurrentPrescription(prev => ({ ...prev, fecha: e.target.value }))}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="date"
+                  disabled={dateLocked}
+                  className={`w-full pl-10 p-2 border rounded-lg outline-none transition-all ${
+                    dateLocked
+                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-200 focus:ring-2 focus:ring-[#deb887] bg-gray-50/50 focus:bg-white'
+                  }`}
+                  value={currentPrescription.fecha}
+                  onChange={e => setCurrentPrescription(prev => ({ ...prev, fecha: e.target.value }))}
+                />
+              </div>
+              {currentPrescription.id && dateLocked && (
+                <Tooltip content="Actualizar fecha">
+                  <button
+                    type="button"
+                    onClick={() => setDateLocked(false)}
+                    className="p-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors shrink-0"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                </Tooltip>
+              )}
             </div>
           </div>
           <div className="col-span-1 md:col-span-2">

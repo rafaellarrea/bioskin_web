@@ -1,8 +1,19 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Calendar, DollarSign, Clock, Save, Trash2, Copy, Sparkles, X, MessageSquare, Check, AlertCircle, FileText } from 'lucide-react';
+import { Plus, Calendar, DollarSign, Clock, Save, Trash2, Copy, Sparkles, X, MessageSquare, Check, AlertCircle, FileText, Pencil } from 'lucide-react';
 import treatmentOptions from '../../data/treatment_options.json';
 import { Tooltip } from '../../../../ui/Tooltip';
+
+/** Extrae solo YYYY-MM-DD de un ISO timestamp para evitar desfase de zona horaria */
+const toDateOnly = (d: string | null | undefined): string => {
+  if (!d) return '';
+  return d.includes('T') ? d.split('T')[0] : d;
+};
+/** Retorna la fecha LOCAL actual en YYYY-MM-DD (no UTC) */
+const getLocalDate = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 interface Treatment {
   id?: number;
@@ -38,6 +49,7 @@ const EMPTY_TREATMENT: Treatment = {
 
 export default function TreatmentTab({ recordId, treatments, physicalExams = [], patientName, patientAge, onSave }: TreatmentTabProps) {
   const [currentTreatment, setCurrentTreatment] = useState<Treatment>({ ...EMPTY_TREATMENT });
+  const [dateLocked, setDateLocked] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -186,12 +198,14 @@ ${protocolText}`;
   };
 
   const handleNew = () => {
-    setCurrentTreatment({ ...EMPTY_TREATMENT, date: new Date().toISOString().split('T')[0] });
+    setCurrentTreatment({ ...EMPTY_TREATMENT, date: getLocalDate() });
+    setDateLocked(false);
     setMessage(null);
   };
 
   const handleSelect = (treatment: Treatment) => {
-    setCurrentTreatment({ ...treatment });
+    setCurrentTreatment({ ...treatment, date: toDateOnly(treatment.date) });
+    setDateLocked(true);
     setMessage(null);
   };
 
@@ -255,8 +269,9 @@ ${protocolText}`;
     const { id, ...rest } = currentTreatment;
     setCurrentTreatment({
       ...rest,
-      date: new Date().toISOString().split('T')[0]
+      date: getLocalDate()
     });
+    setDateLocked(false);
     setMessage({ type: 'success', text: 'Tratamiento duplicado. Guarde para crear uno nuevo.' });
   };
 
@@ -292,7 +307,7 @@ ${protocolText}`;
                 }`}
               >
                 <div className="font-medium flex justify-between items-center">
-                  <span>{new Date(t.date.includes('T') ? t.date : t.date + 'T12:00:00').toLocaleDateString('es-EC')}</span>
+                  <span>{new Date(toDateOnly(t.date) + 'T12:00:00').toLocaleDateString('es-EC')}</span>
                   <FileText className="w-4 h-4 opacity-70" />
                 </div>
                 <div className="font-semibold truncate mt-1">{t.procedure_name}</div>
@@ -382,14 +397,32 @@ ${protocolText}`;
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Fecha</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="date"
-                  className="w-full pl-10 p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
-                  value={currentTreatment.date}
-                  onChange={e => setCurrentTreatment({...currentTreatment, date: e.target.value})}
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="date"
+                    disabled={dateLocked}
+                    className={`w-full pl-10 p-2.5 border rounded-lg outline-none transition-all ${
+                      dateLocked
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border-gray-200 focus:ring-2 focus:ring-[#deb887] bg-gray-50/50 focus:bg-white'
+                    }`}
+                    value={currentTreatment.date}
+                    onChange={e => setCurrentTreatment({...currentTreatment, date: e.target.value})}
+                  />
+                </div>
+                {currentTreatment.id && dateLocked && (
+                  <Tooltip content="Actualizar fecha">
+                    <button
+                      type="button"
+                      onClick={() => setDateLocked(false)}
+                      className="p-2.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors shrink-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </Tooltip>
+                )}
               </div>
             </div>
             <div className="space-y-2">

@@ -4,6 +4,12 @@ import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Sparkles, Check, X, Inf
 import diagnosisOptions from '../../data/diagnosis_options.json';
 import { Tooltip } from '../../../../ui/Tooltip';
 
+/** Extrae solo YYYY-MM-DD de un ISO timestamp para evitar desfase de zona horaria */
+const toDateOnly = (d: string | null | undefined): string => {
+  if (!d) return '';
+  return d.includes('T') ? d.split('T')[0] : d;
+};
+
 interface Diagnosis {
   id?: number;
   record_id: number;
@@ -330,7 +336,7 @@ export default function DiagnosisTab({ recordId, diagnoses, physicalExams = [], 
               <div className="font-medium truncate mb-1 text-gray-800">{diag.diagnosis_text}</div>
               <div className="text-xs opacity-90 flex items-center gap-2 text-gray-500">
                 <span className={`w-2 h-2 rounded-full ${diag.type === 'confirmed' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                {diag.date ? new Date(diag.date.includes('T') ? diag.date : diag.date + 'T12:00:00').toLocaleDateString('es-EC') : 'Nuevo'}
+                {diag.date ? new Date(toDateOnly(diag.date) + 'T12:00:00').toLocaleDateString('es-EC') : 'Nuevo'}
               </div>
             </motion.div>
           ))}
