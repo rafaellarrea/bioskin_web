@@ -1,5 +1,16 @@
 import pg from 'pg';
-const { Pool } = pg;
+const { Pool, types } = pg;
+
+// ── Solución real para bug de fechas -1 día ──────────────────────────────────
+// El driver pg convierte DATE/TIMESTAMP a objetos JS Date en UTC.
+// Al serializar a JSON quedan como "2026-05-15T00:00:00.000Z".
+// En Ecuador (UTC-5) el navegador interpreta eso como el 14 a las 7 PM → día anterior.
+// Solución: indicar a pg que devuelva estas columnas como strings tal como vienen de PG,
+// sin conversión de zona horaria. Así el frontend siempre recibe "YYYY-MM-DD" o
+// "YYYY-MM-DD HH:MM:SS" sin ambigüedad de timezone.
+types.setTypeParser(1082, val => val); // DATE         → "YYYY-MM-DD"
+types.setTypeParser(1114, val => val); // TIMESTAMP    → "YYYY-MM-DD HH:MM:SS"
+types.setTypeParser(1184, val => val); // TIMESTAMPTZ  → "YYYY-MM-DD HH:MM:SS+00"
 
 console.log('✅ [API] records.js loaded');
 

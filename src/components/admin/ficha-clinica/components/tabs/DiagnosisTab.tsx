@@ -4,10 +4,13 @@ import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Sparkles, Check, X, Inf
 import diagnosisOptions from '../../data/diagnosis_options.json';
 import { Tooltip } from '../../../../ui/Tooltip';
 
-/** Extrae solo YYYY-MM-DD de un ISO timestamp para evitar desfase de zona horaria */
+/** Extrae solo YYYY-MM-DD de un ISO timestamp o string de PG para evitar desfase de zona horaria */
 const toDateOnly = (d: string | null | undefined): string => {
   if (!d) return '';
-  return d.includes('T') ? d.split('T')[0] : d;
+  const s = String(d);
+  if (s.includes('T')) return s.split('T')[0]; // "2026-05-15T00:00:00.000Z"
+  if (s.includes(' ') && s.length > 10) return s.split(' ')[0]; // "2026-05-15 00:00:00"
+  return s; // ya es "YYYY-MM-DD"
 };
 
 interface Diagnosis {
