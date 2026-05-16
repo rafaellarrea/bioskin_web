@@ -80,9 +80,9 @@ const TERCIO_ZONES: Record<string, string[]> = {
 };
 
 const TERCIO_COLORS: Record<string, { bg: string; border: string; text: string; badge: string; header: string }> = {
-  superior: { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', badge: 'bg-cyan-100 text-cyan-800', header: 'bg-cyan-100 border-cyan-300' },
-  medio: { bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', badge: 'bg-violet-100 text-violet-800', header: 'bg-violet-100 border-violet-300' },
-  inferior: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800', header: 'bg-amber-100 border-amber-300' },
+  superior: { bg: 'bg-[#deb887]/10', border: 'border-[#deb887]/40', text: 'text-[#b8944d]', badge: 'bg-[#deb887]/20 text-[#b8944d]', header: 'bg-[#deb887]/15 border-[#deb887]/30' },
+  medio: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800', header: 'bg-amber-100 border-amber-300' },
+  inferior: { bg: 'bg-stone-50', border: 'border-stone-200', text: 'text-stone-600', badge: 'bg-stone-100 text-stone-700', header: 'bg-stone-100 border-stone-300' },
 };
 
 const TERCIO_LABELS: Record<string, string> = {
@@ -1724,7 +1724,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </div>{/* /flex-1 */}
 
                   {/* Right Panel: Desglose de Puntos de Inyección */}
-                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col">
+                  <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 flex flex-col min-h-0">
                       {injectionPoints.length > 0 ? (
                       <>
                         <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
@@ -1741,7 +1741,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-3 overflow-y-auto max-h-[420px] pr-1 custom-scrollbar">
+                        <div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 max-h-[400px] pr-1 scrollbar-thin">
                         {(['superior', 'medio', 'inferior'] as const).map(tercio => {
                           const pts = pointsByTercio[tercio];
                           if (!pts || pts.length === 0) return null;

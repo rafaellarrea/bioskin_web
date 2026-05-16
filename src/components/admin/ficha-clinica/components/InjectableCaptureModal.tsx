@@ -169,13 +169,13 @@ export default function InjectableCaptureModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-100"
           >
             {/* ---- HEADER ---- */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-violet-50 to-cyan-50 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-[#deb887]/10 to-[#deb887]/5 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-violet-100 rounded-xl">
-                  <Images className="w-5 h-5 text-violet-600" />
+                <div className="p-2 bg-[#deb887]/20 rounded-xl">
+                  <Images className="w-5 h-5 text-[#b8944d]" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-gray-800">Capturas del Mapeo 3D</h2>
@@ -209,7 +209,7 @@ export default function InjectableCaptureModal({
                       onMouseDown={() => setShowLines(v => !v)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-all ${
                         showLines
-                          ? 'bg-cyan-50 border-cyan-200 text-cyan-700'
+                          ? 'bg-[#deb887]/15 border-[#deb887]/40 text-[#b8944d]'
                           : 'bg-gray-100 border-gray-200 text-gray-400'
                       }`}
                       title={showLines ? 'Ocultar líneas' : 'Mostrar líneas'}
@@ -236,7 +236,7 @@ export default function InjectableCaptureModal({
                         onMouseDown={() => setShowMarkers(v => !v)}
                         className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-all ${
                           showMarkers
-                            ? 'bg-violet-50 border-violet-200 text-violet-700'
+                            ? 'bg-[#deb887]/10 border-[#deb887]/30 text-[#b8944d]'
                             : 'bg-gray-100 border-gray-200 text-gray-400'
                         }`}
                         title={showMarkers ? 'Ocultar marcadores' : 'Mostrar marcadores'}
@@ -265,7 +265,7 @@ export default function InjectableCaptureModal({
                   <div className="flex gap-1.5 items-center shrink-0">
                     <input
                       type="text"
-                      className="w-40 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50 transition-all"
+                      className="w-40 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#deb887] focus:border-[#deb887] outline-none bg-gray-50 transition-all"
                       placeholder="Etiqueta (opcional)"
                       value={pendingLabel}
                       onChange={e => setPendingLabel(e.target.value)}
@@ -273,7 +273,7 @@ export default function InjectableCaptureModal({
                     />
                     <button
                       onClick={handleCapture}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all shrink-0"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#deb887] hover:bg-[#c5a075] text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all shrink-0"
                       title="Capturar vista actual (Enter)"
                     >
                       <Camera className="w-3.5 h-3.5" />
@@ -349,7 +349,7 @@ export default function InjectableCaptureModal({
                 </div>
 
                 {/* Gallery scroll */}
-                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3 min-h-0 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3 min-h-0 scrollbar-thin">
                   {captures.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-gray-300">
                       <Camera className="w-10 h-10 mb-2 opacity-40" />
@@ -360,7 +360,7 @@ export default function InjectableCaptureModal({
                     captures.map((capture, index) => (
                       <div
                         key={capture.id}
-                        className="group relative bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:border-violet-300 transition-all"
+                        className="group relative bg-gray-50 border border-gray-200 rounded-xl overflow-hidden hover:border-[#deb887] hover:shadow-sm transition-all"
                       >
                         {/* Thumbnail */}
                         <div
@@ -387,7 +387,7 @@ export default function InjectableCaptureModal({
                               <input
                                 autoFocus
                                 type="text"
-                                className="flex-1 text-xs px-2 py-1 border border-violet-300 rounded-lg focus:ring-1 focus:ring-violet-300 outline-none"
+                                className="flex-1 text-xs px-2 py-1 border border-[#deb887] rounded-lg focus:ring-1 focus:ring-[#deb887] outline-none"
                                 value={editingLabelValue}
                                 onChange={e => setEditingLabelValue(e.target.value)}
                                 onKeyDown={e => {
@@ -402,7 +402,7 @@ export default function InjectableCaptureModal({
                           ) : (
                             <>
                               <button
-                                className="flex-1 text-left text-xs text-gray-600 truncate hover:text-violet-600 transition-colors"
+                                className="flex-1 text-left text-xs text-gray-600 truncate hover:text-[#b8944d] transition-colors"
                                 onClick={() => handleStartEditLabel(capture)}
                                 title="Clic para editar etiqueta"
                               >
@@ -426,7 +426,7 @@ export default function InjectableCaptureModal({
             </div>
 
             {/* ---- FOOTER ---- */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/70 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0">
               <p className="text-xs text-gray-400">
                 {captures.length === 0
                   ? 'No hay capturas. Puedes confirmar y se omitirán imágenes en la impresión.'
@@ -441,7 +441,7 @@ export default function InjectableCaptureModal({
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 rounded-xl shadow-sm hover:shadow-md transition-all"
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-[#deb887] hover:bg-[#c5a075] rounded-xl shadow-sm hover:shadow-md transition-all"
                 >
                   <Check className="w-4 h-4" />
                   Confirmar ({captures.length})
