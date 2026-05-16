@@ -349,7 +349,7 @@ export default function InjectableCaptureModal({
                 </div>
 
                 {/* Gallery scroll */}
-                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3 min-h-0 scrollbar-thin">
+                <div className="flex-1 overflow-y-scroll px-4 pb-4 space-y-3 min-h-0 scrollbar-gold">
                   {captures.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center text-gray-300">
                       <Camera className="w-10 h-10 mb-2 opacity-40" />

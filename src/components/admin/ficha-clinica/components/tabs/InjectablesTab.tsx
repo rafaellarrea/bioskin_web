@@ -1741,7 +1741,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 max-h-[400px] pr-1 scrollbar-thin">
+                        <div className="overflow-y-scroll h-[400px] pr-1.5 space-y-2 scrollbar-gold">
                         {(['superior', 'medio', 'inferior'] as const).map(tercio => {
                           const pts = pointsByTercio[tercio];
                           if (!pts || pts.length === 0) return null;

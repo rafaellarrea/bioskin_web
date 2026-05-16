@@ -78,32 +78,6 @@
     @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg;
   }
 
-  /* Scrollbar personalizado — dorado sutil */
-  .custom-scrollbar,
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: #deb887 transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar,
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track,
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb,
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #deb887;
-    border-radius: 9999px;
-    opacity: 0.6;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover,
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #c5a075;
-  }
-
   .animate-fade-in {
     @apply opacity-0 translate-y-8 transition-all duration-700 ease-out;
   }
@@ -127,4 +101,34 @@
   .animate-notification {
     animation: fadeIn 0.3s ease-out;
   }
+}
+
+/* ── Scrollbars personalizados (fuera de @layer para garantizar aplicación) ── */
+.custom-scrollbar,
+.scrollbar-thin,
+.scrollbar-gold {
+  scrollbar-width: thin;
+  scrollbar-color: #deb887 transparent;
+}
+.custom-scrollbar::-webkit-scrollbar,
+.scrollbar-thin::-webkit-scrollbar,
+.scrollbar-gold::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track,
+.scrollbar-thin::-webkit-scrollbar-track,
+.scrollbar-gold::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.scrollbar-thin::-webkit-scrollbar-thumb,
+.scrollbar-gold::-webkit-scrollbar-thumb {
+  background-color: #deb887;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.scrollbar-thin::-webkit-scrollbar-thumb:hover,
+.scrollbar-gold::-webkit-scrollbar-thumb:hover {
+  background-color: #c5a075;
 }
