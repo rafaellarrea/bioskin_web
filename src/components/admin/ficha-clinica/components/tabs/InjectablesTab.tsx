@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Droplets, Plus, Save, Trash2, Printer,
+  Droplets, Plus, Save, Trash2, Printer, Copy,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil
+  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil, AlertCircle
 } from 'lucide-react';
+import { Tooltip } from '../../../../ui/Tooltip';
 import injectablesCatalog from '../../data/injectables.json';
 import Clinical3DViewer, { Marker3D, EditablePoint } from '../Clinical3DViewer';
 import type { ReferenceLine, LineType, ProjectedPosition } from '../Clinical3DViewer';
@@ -1007,13 +1008,13 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       {/* ========== SIDEBAR — Historial de Inyectables ========== */}
       <div className="w-full md:w-72 border-r-0 md:border-r border-b md:border-b-0 border-gray-100 pr-0 md:pr-6 pb-4 md:pb-0 flex flex-col gap-4 shrink-0">
         <div className="font-bold text-gray-800 flex items-center gap-2">
-          <div className="w-1 h-5 bg-violet-500 rounded-full" />
+          <div className="w-1 h-5 bg-[#deb887] rounded-full" />
           Historial de Inyectables
         </div>
         <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
           {injectables.length === 0 ? (
             <div className="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
-              <Droplets className="w-8 h-8 opacity-20" />
+              <AlertCircle className="w-8 h-8 opacity-20" />
               No hay inyectables previos
             </div>
           ) : (
@@ -1030,19 +1031,20 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   onClick={() => handleSelect(inj)}
                   className={`p-4 rounded-xl cursor-pointer border transition-all shadow-sm ${
                     isActive
-                      ? isToxina
-                        ? 'bg-cyan-500 text-white border-cyan-500 shadow-md'
-                        : 'bg-violet-500 text-white border-violet-500 shadow-md'
-                      : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-violet-200/50'
+                      ? 'bg-[#deb887] text-white border-[#deb887] shadow-md'
+                      : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-[#deb887]/30'
                   }`}
                 >
-                  <div className="font-medium flex justify-between items-center">
-                    <span className="text-xs">{dateStr}</span>
-                    <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white/70' : isToxina ? 'bg-cyan-400' : 'bg-violet-400'}`} />
+                  <div className={`flex items-center gap-1.5 text-xs font-semibold mb-1.5 ${isActive ? 'text-white/80' : 'text-[#deb887]'}`}>
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>{dateStr}</span>
                   </div>
-                  <div className="font-semibold truncate mt-1 text-sm">{inj.product_name || 'Sin nombre'}</div>
-                  <div className={`text-xs truncate mt-0.5 ${isActive ? 'opacity-80' : 'text-gray-500'}`}>
-                    {isToxina ? 'Toxina' : 'Relleno'}{areas.length > 0 ? ` · ${areas.slice(0, 2).join(', ')}` : ''}
+                  <div className={`font-semibold text-sm leading-tight truncate mb-1 ${isActive ? 'text-white' : 'text-gray-800'}`}>
+                    {inj.product_name || <span className={`italic font-normal ${isActive ? 'text-white/60' : 'text-gray-400'}`}>Sin nombre</span>}
+                  </div>
+                  <div className={`flex items-center justify-between text-xs ${isActive ? 'text-white/70' : 'text-gray-400'}`}>
+                    <span>{isToxina ? 'Toxina' : 'Relleno'}{areas.length > 0 ? ` · ${areas.slice(0, 2).join(', ')}` : ''}</span>
+                    <Droplets className="w-3.5 h-3.5 opacity-60" />
                   </div>
                 </motion.div>
               );
@@ -1051,40 +1053,37 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         </div>
 
         {/* Bottom action in sidebar */}
-        <button
-          onClick={handleNew}
-          className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-violet-600 bg-violet-50 hover:bg-violet-100 rounded-xl border border-violet-200 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Inyectable
-        </button>
+        <Tooltip content="Nuevo Inyectable">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleNew}
+            className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Inyectable
+          </motion.button>
+        </Tooltip>
       </div>
 
       {/* ========== MAIN CONTENT ========== */}
       <div className="flex-1 flex flex-col gap-4 relative overflow-y-auto md:overflow-y-auto custom-scrollbar pr-1">
-        {/* Message Toast */}
         <AnimatePresence>
           {message && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium border ${
+              className={`p-4 rounded-xl flex items-center gap-3 shadow-sm ${
                 message.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-red-50 text-red-700 border-red-200'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                  : 'bg-red-50 text-red-700 border border-red-100'
               }`}
             >
-              {message.type === 'success' ? (
-                <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>
-                </div>
-              ) : (
-                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12"/></svg>
-                </div>
-              )}
-              {message.text}
+              <div className={`p-1.5 rounded-full ${message.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+              </div>
+              <span className="font-medium text-sm">{message.text}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1092,54 +1091,69 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         {/* Toolbar */}
         <div className="flex flex-wrap gap-4 justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm sticky top-0 z-10">
           <div className="flex gap-2 items-center">
-            <div className="p-2 bg-gradient-to-br from-violet-100 to-cyan-50 rounded-lg">
-              <Droplets className="w-4 h-4 text-violet-600" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-gray-800">
-                {current.id ? current.product_name || 'Inyectable sin nombre' : 'Nuevo Inyectable'}
-              </h2>
-              <p className="text-[10px] text-gray-400">
-                {current.id ? `ID: ${current.id}` : 'Toxina botulínica, ácido hialurónico y mapeo facial 3D'}
-              </p>
-            </div>
+            <Tooltip content="Nuevo Inyectable">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleNew}
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200"
+              >
+                <Plus className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Guardar">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSave}
+                disabled={saving}
+                className="p-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] shadow-lg shadow-[#deb887]/20 disabled:opacity-70"
+              >
+                {saving ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" /> : <Save className="w-5 h-5" />}
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Eliminar">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDelete}
+                disabled={!current.id}
+                className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 disabled:opacity-30"
+              >
+                <Trash2 className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
           </div>
+
           <div className="flex items-center gap-2">
-            {/* Capture management button */}
-            <button
-              onClick={() => setCaptureModalOpen(true)}
-              className="relative flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg border border-gray-200 transition-all"
-              title="Gestionar capturas del mapeo 3D para impresión"
-            >
-              <Images className="w-4 h-4" />
-              {capturedImages.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-violet-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                  {capturedImages.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg border border-gray-200 transition-all"
-              title="Imprimir ficha"
-            >
-              <Printer className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-gradient-to-r from-violet-500 to-violet-600 rounded-lg shadow-sm hover:shadow-md disabled:opacity-50 transition-all"
-            >
-              <Save className="w-4 h-4" />
-              <span className="hidden sm:inline">{saving ? 'Guardando...' : 'Guardar'}</span>
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={!current.id}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-100 disabled:opacity-30 transition-all"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <Tooltip content="Gestionar capturas del mapeo 3D">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setCaptureModalOpen(true)}
+                className="relative p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200"
+              >
+                <Images className="w-5 h-5" />
+                {capturedImages.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-[#deb887] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                    {capturedImages.length}
+                  </span>
+                )}
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Imprimir ficha">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handlePrint}
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200"
+              >
+                <Printer className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
           </div>
         </div>
 
@@ -1154,7 +1168,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 onClick={() => setCurrent({ ...current, product_type: 'toxina', brand: '' })}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
                   current.product_type === 'toxina'
-                    ? 'bg-white text-cyan-700 shadow-sm ring-1 ring-cyan-200'
+                    ? 'bg-white text-[#b8944d] shadow-sm ring-1 ring-[#deb887]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -1165,7 +1179,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 onClick={() => setCurrent({ ...current, product_type: 'relleno', brand: '' })}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
                   current.product_type === 'relleno'
-                    ? 'bg-white text-violet-700 shadow-sm ring-1 ring-violet-200'
+                    ? 'bg-white text-[#b8944d] shadow-sm ring-1 ring-[#deb887]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -1185,40 +1199,41 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           {/* Row 1: Date + Brand + Product Name */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                Fecha
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Fecha</label>
               <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  disabled={dateLocked}
-                  className={`flex-1 px-3 py-2.5 border rounded-xl text-sm outline-none transition-all ${
-                    dateLocked
-                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'border-gray-200 focus:ring-2 focus:ring-violet-300 focus:border-violet-300 bg-gray-50/50'
-                  }`}
-                  value={current.date}
-                  onChange={e => setCurrent({ ...current, date: e.target.value })}
-                />
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="date"
+                    disabled={dateLocked}
+                    className={`w-full pl-10 p-2.5 border rounded-lg outline-none transition-all ${
+                      dateLocked
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border-gray-200 focus:ring-2 focus:ring-[#deb887] bg-gray-50/50 focus:bg-white'
+                    }`}
+                    value={current.date}
+                    onChange={e => setCurrent({ ...current, date: e.target.value })}
+                  />
+                </div>
                 {current.id && dateLocked && (
-                  <button
-                    type="button"
-                    onClick={() => setDateLocked(false)}
-                    className="p-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors shrink-0"
-                    title="Actualizar fecha"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
+                  <Tooltip content="Actualizar fecha">
+                    <button
+                      type="button"
+                      onClick={() => setDateLocked(false)}
+                      className="p-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors shrink-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </Tooltip>
                 )}
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Marca / Producto</label>
+              <label className="block text-sm font-medium text-gray-700">Marca / Producto</label>
               <input
                 type="text"
                 list="inj-tab-brands"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                 value={current.brand}
                 onChange={e => setCurrent({ ...current, brand: e.target.value })}
                 placeholder={current.product_type === 'toxina' ? 'Ej: BOTOX® 100UI' : 'Ej: Juvederm Ultra'}
@@ -1228,10 +1243,10 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </datalist>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Nombre del Producto *</label>
+              <label className="block text-sm font-medium text-gray-700">Nombre del Producto <span className="text-red-400">*</span></label>
               <input
                 type="text"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                 value={current.product_name}
                 onChange={e => setCurrent({ ...current, product_name: e.target.value })}
                 placeholder="Nombre comercial"
@@ -1242,34 +1257,31 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           {/* Row 2: Lot + Expiration + Units/Volume */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Lote</label>
+              <label className="block text-sm font-medium text-gray-700">Lote</label>
               <input
                 type="text"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                 value={current.lot_number}
                 onChange={e => setCurrent({ ...current, lot_number: e.target.value })}
                 placeholder="Nro. de lote"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Vencimiento</label>
+              <label className="block text-sm font-medium text-gray-700">Vencimiento</label>
               <input
                 type="date"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                 value={current.expiration_date}
                 onChange={e => setCurrent({ ...current, expiration_date: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                <Gauge className="w-3.5 h-3.5 text-gray-400" />
-                {current.product_type === 'toxina' ? 'Unidades (UI)' : 'Volumen (ml)'}
-              </label>
+              <label className="block text-sm font-medium text-gray-700">{current.product_type === 'toxina' ? 'Unidades (UI)' : 'Volumen (ml)'}</label>
               {current.product_type === 'toxina' ? (
                 <input
                   type="number"
                   step="0.5"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                   value={current.units_used}
                   onChange={e => setCurrent({ ...current, units_used: e.target.value })}
                   placeholder="Ej: 20"
@@ -1278,7 +1290,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 <input
                   type="number"
                   step="0.1"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                  className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                   value={current.volume_used}
                   onChange={e => setCurrent({ ...current, volume_used: e.target.value })}
                   placeholder="Ej: 1.0"
@@ -1287,17 +1299,14 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
             </div>
           </div>
 
-          {/* Row 3: Technique + Needle (Plano de Inyección movido a por-punto en mapeo 3D) */}
+          {/* Row 3: Technique + Needle */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                <Crosshair className="w-3.5 h-3.5 text-gray-400" />
-                Técnica
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Técnica</label>
               <input
                 type="text"
                 list="inj-tab-techniques"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                 value={current.technique}
                 onChange={e => setCurrent({ ...current, technique: e.target.value })}
                 placeholder="Técnica de inyección"
@@ -1307,11 +1316,11 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </datalist>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Aguja / Cánula</label>
+              <label className="block text-sm font-medium text-gray-700">Aguja / Cánula</label>
               <input
                 type="text"
                 list="inj-tab-needles"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none transition-all bg-gray-50/50 focus:bg-white"
                 value={current.needle_type}
                 onChange={e => setCurrent({ ...current, needle_type: e.target.value })}
                 placeholder="Tipo de aguja"
@@ -1335,13 +1344,13 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                     type="number"
                     step="0.5"
                     min="0"
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#deb887] outline-none bg-gray-50/50 focus:bg-white transition-all"
                     value={current.dilution_volume}
                     onChange={e => setCurrent({ ...current, dilution_volume: e.target.value })}
                     placeholder="Ej: 2.5"
                   />
                   {Number(current.dilution_volume) > 0 && Number(current.units_used) > 0 && (
-                    <span className="text-xs text-violet-600 font-semibold shrink-0 bg-violet-50 px-2.5 py-1.5 rounded-lg border border-violet-100">
+                    <span className="text-xs text-[#b8944d] font-semibold shrink-0 bg-[#deb887]/10 px-2.5 py-1.5 rounded-lg border border-[#deb887]/30">
                       {(Number(current.units_used) / Number(current.dilution_volume)).toFixed(1)} UI/ml
                     </span>
                   )}
@@ -1355,7 +1364,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               </label>
               <input
                 type="date"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none bg-gray-50/50 transition-all"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#deb887] outline-none bg-gray-50/50 focus:bg-white transition-all"
                 value={current.follow_up_date}
                 onChange={e => setCurrent({ ...current, follow_up_date: e.target.value })}
               />
@@ -1364,10 +1373,10 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Observaciones Clínicas</label>
+            <label className="block text-sm font-medium text-gray-700">Observaciones Clínicas</label>
             <textarea
               rows={3}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none resize-none bg-gray-50/50 transition-all"
+              className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none resize-none transition-all bg-gray-50/50 focus:bg-white"
               value={current.notes}
               onChange={e => setCurrent({ ...current, notes: e.target.value })}
               placeholder="Notas clínicas, reacciones adversas, seguimiento..."
@@ -1382,7 +1391,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           <div className="flex items-center gap-1.5">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Distribución del Vial</p>
             <div className="group relative">
-              <Info className="w-3.5 h-3.5 text-gray-300 hover:text-violet-400 cursor-help transition-colors" />
+              <Info className="w-3.5 h-3.5 text-gray-300 hover:text-[#deb887] cursor-help transition-colors" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2.5 bg-gray-800 text-white text-[11px] rounded-lg shadow-xl z-50 leading-relaxed">
                 <p className="font-semibold mb-1">¿Qué significa cada valor?</p>
                 <p><strong>Total Vial:</strong> Cantidad total de producto disponible en el vial.</p>
@@ -1400,7 +1409,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
             </div>
             <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm" title="Suma de unidades aplicadas en todos los puntos">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Utilizadas</p>
-              <p className="text-lg font-bold text-violet-600">{totalUsed} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
+              <p className="text-lg font-bold text-[#b8944d]">{totalUsed} <span className="text-xs font-normal text-gray-400">{unitLabel}</span></p>
             </div>
             <div className={`rounded-xl p-3 text-center border shadow-sm ${remaining < 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100'}`} title="Producto restante en el vial (Total − Utilizadas)">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Restantes</p>
@@ -1415,7 +1424,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       )}
 
       {/* 3D Mapping Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <button
           onClick={() => {
             if (!canMark && !show3D) {
@@ -1427,8 +1436,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           className="w-full flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg transition-colors ${show3D ? 'bg-violet-100' : 'bg-gray-100'}`}>
-              <Box className={`w-4 h-4 transition-colors ${show3D ? 'text-violet-600' : 'text-gray-500'}`} />
+            <div className={`p-2 rounded-lg transition-colors ${show3D ? 'bg-[#deb887]/15' : 'bg-gray-100'}`}>
+              <Box className={`w-4 h-4 transition-colors ${show3D ? 'text-[#b8944d]' : 'text-gray-500'}`} />
             </div>
             <div className="text-left">
               <span className="text-sm font-semibold text-gray-800">Mapeo Facial 3D</span>
@@ -1437,12 +1446,12 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           </div>
           <div className="flex items-center gap-2">
             {referenceLines.length > 0 && (
-              <span className="bg-cyan-100 text-cyan-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-[#deb887]/15 text-[#b8944d] text-xs font-bold px-2 py-0.5 rounded-full">
                 {referenceLines.length} línea{referenceLines.length !== 1 ? 's' : ''}
               </span>
             )}
             {injectionPoints.length > 0 && (
-              <span className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-[#deb887]/20 text-[#b8944d] text-xs font-bold px-2 py-0.5 rounded-full">
                 {injectionPoints.length} punto{injectionPoints.length !== 1 ? 's' : ''}
               </span>
             )}
@@ -1472,8 +1481,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                     onClick={handleLoadReferenceJson}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       refJsonLoaded
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30'
-                        : 'bg-cyan-600 text-white hover:bg-cyan-500 shadow-md'
+                        ? 'bg-[#deb887]/20 text-[#deb887] border border-[#deb887]/40 hover:bg-[#deb887]/30'
+                        : 'bg-[#deb887] text-white hover:bg-[#c5a075] shadow-md'
                     }`}
                     title="Cargar puntos y líneas del trazado de referencia superior"
                   >
@@ -1555,7 +1564,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                               className="w-full flex items-center justify-between px-3 py-2.5 text-xs text-slate-200 hover:bg-slate-700 transition-colors"
                             >
                               <span>Líneas de ref.</span>
-                              {showLines ? <Eye className="w-3.5 h-3.5 text-cyan-400" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
+                              {showLines ? <Eye className="w-3.5 h-3.5 text-[#deb887]" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
                             </button>
                             <button
                               onMouseDown={() => { setShowBoundaryLines(v => !v); }}
@@ -1602,7 +1611,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                       onClick={() => setShowLinePanel(v => !v)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                         showLinePanel
-                          ? 'bg-cyan-500/25 text-cyan-300 border-cyan-500/40'
+                          ? 'bg-[#deb887]/25 text-[#deb887] border-[#deb887]/40'
                           : 'bg-slate-700/50 text-slate-400 border-slate-600 hover:bg-slate-600'
                       }`}
                       title="Gestionar líneas de referencia"
@@ -1721,7 +1730,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                         <div className="flex items-center gap-1.5 mb-2 flex-shrink-0">
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose de Puntos</p>
                           <div className="group relative">
-                            <Info className="w-3.5 h-3.5 text-gray-300 hover:text-violet-400 cursor-help transition-colors" />
+                            <Info className="w-3.5 h-3.5 text-gray-300 hover:text-[#deb887] cursor-help transition-colors" />
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-64 p-2.5 bg-gray-800 text-white text-[11px] rounded-lg shadow-xl z-50 leading-relaxed">
                               <p className="font-semibold mb-1">Desglose de puntos de inyección</p>
                               <p>Cada punto de inyección se clasifica por <strong>tercio facial</strong> (superior, medio, inferior).</p>
@@ -1755,16 +1764,16 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                                     <div
                                       key={i}
                                       className={`flex items-center justify-between px-3 py-1.5 text-xs transition-colors cursor-pointer ${
-                                        isSelected ? 'bg-cyan-50 ring-1 ring-inset ring-cyan-300' : 'hover:bg-gray-50'
+                                        isSelected ? 'bg-[#deb887]/10 ring-1 ring-inset ring-[#deb887]/40' : 'hover:bg-gray-50'
                                       }`}
                                       onClick={() => { if (rowEpId) setSelectedPointId(isSelected ? null : rowEpId); }}
                                     >
                                       <div className="flex items-center gap-2 min-w-0">
-                                        <span className={`font-mono w-4 flex-shrink-0 ${isSelected ? 'text-cyan-500 font-bold' : 'text-gray-400'}`}>{globalIndex + 1}</span>
+                                        <span className={`font-mono w-4 flex-shrink-0 ${isSelected ? 'text-[#b8944d] font-bold' : 'text-gray-400'}`}>{globalIndex + 1}</span>
                                         <div className="flex flex-col min-w-0">
-                                          <span className={`font-medium truncate ${isSelected ? 'text-cyan-700' : 'text-gray-700'}`}>{p.label || '—'}</span>
+                                          <span className={`font-medium truncate ${isSelected ? 'text-[#b8944d]' : 'text-gray-700'}`}>{p.label || '—'}</span>
                                           {p.injection_plane && (
-                                            <span className="text-[10px] text-violet-500 truncate">{p.injection_plane}</span>
+                                            <span className="text-[10px] text-[#b8944d]/70 truncate">{p.injection_plane}</span>
                                           )}
                                         </div>
                                       </div>
@@ -1775,7 +1784,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                                         {rowEpId && (
                                           <button
                                             onClick={e => { e.stopPropagation(); handleEditablePointClicked(rowEpId); }}
-                                            className="p-0.5 text-cyan-400 hover:text-cyan-600 hover:bg-cyan-50 rounded transition-colors"
+                                            className="p-0.5 text-[#deb887] hover:text-[#b8944d] hover:bg-[#deb887]/10 rounded transition-colors"
                                             title="Editar punto"
                                           >
                                             <Pencil className="w-3 h-3" />
@@ -1868,7 +1877,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
               {/* Step progress bar */}
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4].map(s => (
-                  <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${s <= unitsModalStep ? 'bg-cyan-500' : 'bg-gray-200'}`} />
+                  <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${s <= unitsModalStep ? 'bg-[#deb887]' : 'bg-gray-200'}`} />
                 ))}
               </div>
 
@@ -1879,7 +1888,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                     <div className="flex flex-wrap gap-1 mb-3 p-2 bg-gray-50 rounded-lg">
                       {unitsModalTercio && <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${TERCIO_COLORS[unitsModalTercio]?.badge || 'bg-gray-100 text-gray-600'}`}>{TERCIO_LABELS[unitsModalTercio]}</span>}
                       {unitsModalZone && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-semibold">{unitsModalZone}</span>}
-                      {unitsModalPlane && <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-semibold">{unitsModalPlane}</span>}
+                      {unitsModalPlane && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#deb887]/15 text-[#b8944d] font-semibold">{unitsModalPlane}</span>}
                     </div>
                   )}
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
@@ -1893,7 +1902,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                     onChange={e => setUnitsModalInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleUnitsModalConfirm(); }}
                     autoFocus
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent text-center font-bold text-lg text-gray-800"
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#deb887] focus:border-transparent text-center font-bold text-lg text-gray-800"
                     placeholder="0"
                   />
                   {unitsModal.existingUnits > 0 && (
@@ -1917,7 +1926,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                           : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                       }`}
                     >
-                      <div className={`w-3 h-3 rounded-full ${t === 'superior' ? 'bg-cyan-400' : t === 'medio' ? 'bg-violet-400' : 'bg-amber-400'}`} />
+                      <div className={`w-3 h-3 rounded-full ${t === 'superior' ? 'bg-[#deb887]' : t === 'medio' ? 'bg-[#c5a075]' : 'bg-amber-400'}`} />
                       {TERCIO_LABELS[t]}
                       {unitsModalTercio === t && <Check className="w-4 h-4 ml-auto" />}
                     </button>
@@ -1933,7 +1942,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   </p>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-300 outline-none mb-2"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#deb887] focus:border-[#deb887] outline-none mb-2"
                     placeholder="Buscar o escribir zona..."
                     value={unitsModalZoneFilter}
                     onChange={e => setUnitsModalZoneFilter(e.target.value)}
@@ -2034,7 +2043,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   <button
                     onClick={handleUnitsModalConfirm}
                     disabled={!unitsModalInput || Number(unitsModalInput) <= 0}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#deb887] text-white text-sm font-semibold hover:bg-[#c5a075] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
                     <Check className="w-4 h-4" />
                     Guardar
