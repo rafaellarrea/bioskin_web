@@ -239,6 +239,14 @@ export default function InventoryMovements() {
                     <td className="px-6 py-4">
                       <div className="text-gray-800">{move.reason}</div>
                       <div className="text-xs text-gray-500">{move.user_id}</div>
+                      {(move.sale_price != null) && (
+                        <div className="text-xs text-emerald-600 font-medium mt-0.5">
+                          Venta: ${parseFloat(move.sale_price).toFixed(2)}
+                          {move.cost_price != null && (
+                            <span className="text-gray-400 font-normal ml-1">(costo: ${parseFloat(move.cost_price).toFixed(2)})</span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button 

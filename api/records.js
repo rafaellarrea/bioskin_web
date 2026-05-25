@@ -468,11 +468,15 @@ export default async function handler(req, res) {
 
       case 'inventoryConsume':
         try {
-          const { batch_id, quantity, reason, user_id, reference_id, preferred_display_unit } = body;
+          const { batch_id, quantity, reason, user_id, reference_id, preferred_display_unit, cost_price, sale_price } = body;
           
           const client = await pool.connect();
           try {
             await client.query('BEGIN');
+
+            // Lazy migration: add cost/sale columns if not present
+            await client.query(`ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2)`);
+            await client.query(`ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS sale_price NUMERIC(12,2)`);
             
             // Check current stock
             const batchRes = await client.query('SELECT quantity_current, item_id FROM inventory_batches WHERE id = $1', [batch_id]);
@@ -507,9 +511,9 @@ export default async function handler(req, res) {
             // Record Movement only if quantity > 0
             if (quantity > 0) {
               await client.query(`
-                INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id)
-                VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5)
-              `, [batch_id, -quantity, reason, reference_id, user_id]);
+                INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id, cost_price, sale_price)
+                VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5, $6, $7)
+              `, [batch_id, -quantity, reason, reference_id, user_id, cost_price ?? null, sale_price ?? null]);
             }
 
             await client.query('COMMIT');

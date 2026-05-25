@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, Droplet, RefreshCw } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { X, Save, AlertCircle, ShoppingCart, Package } from 'lucide-react';
 
 interface ConsumeModalProps {
   item: any;
@@ -8,15 +8,17 @@ interface ConsumeModalProps {
   onRestock?: () => void;
 }
 
-export default function ConsumeModal({ item, onClose, onSave, onRestock }: ConsumeModalProps) {
+export default function ConsumeModal({ item, onClose, onSave }: ConsumeModalProps) {
+  const isVenta = item.category === 'Venta';
+
   const [batches, setBatches] = useState<any[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('1');
-  const [reason, setReason] = useState('Uso en cabina');
+  const [reason, setReason] = useState(isVenta ? 'Venta directa' : 'Uso en cabina');
+  const [costPrice, setCostPrice] = useState<string>('');
+  const [salePrice, setSalePrice] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'manual' | 'visual'>('visual');
-  const [remainingLevel, setRemainingLevel] = useState<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -34,19 +36,13 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
       .finally(() => setLoading(false));
   }, [item.id]);
 
-  const isConsumable = item.category === 'Consumible';
-
-  useEffect(() => {
-    if (!isConsumable) setMode('manual');
-  }, [isConsumable]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBatchId) {
       setError('Debe seleccionar un lote con stock disponible');
       return;
     }
-    
+
     const qty = parseFloat(quantity);
     if (isNaN(qty) || qty <= 0) {
       setError('La cantidad debe ser mayor a 0');
@@ -55,8 +51,15 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
 
     const batch = batches.find(b => b.id === parseInt(selectedBatchId));
     if (batch && qty > batch.quantity_current) {
-      setError(`Stock insuficiente en el lote seleccionado (Máx: ${batch.quantity_current})`);
+      setError(`Stock insuficiente en el lote seleccionado (MÃ¡x: ${batch.quantity_current})`);
       return;
+    }
+
+    if (isVenta) {
+      if (!salePrice || parseFloat(salePrice) <= 0) {
+        setError('Ingresa el precio de venta');
+        return;
+      }
     }
 
     setLoading(true);
@@ -66,71 +69,30 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
         batch_id: selectedBatchId,
         quantity: qty,
         reason,
-        preferred_display_unit: mode === 'visual' ? 'percentage' : 'absolute'
+        ...(isVenta && {
+          cost_price: costPrice ? parseFloat(costPrice) : null,
+          sale_price: parseFloat(salePrice),
+        }),
       });
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Error al registrar consumo');
+      setError(err.message || 'Error al registrar');
     } finally {
       setLoading(false);
     }
   };
 
-  const getBatchCurrentLevel = () => {
-    const batch = batches.find(b => b.id === parseInt(selectedBatchId));
-    if (!batch) return 1;
-    const current = parseFloat(batch.quantity_current);
-    const initial = parseFloat(batch.quantity_initial) || 1;
-    
-    if (initial === 0) return 0;
-    
-    // Calculate percentage of INITIAL capacity
-    let level = current / initial;
-    if (level > 1) level = 1;
-    return level;
-  };
-
-  const handleLevelSelect = (targetLevel: number) => {
-    const batch = batches.find(b => b.id === parseInt(selectedBatchId));
-    if (!batch) return;
-
-    // Calculate based on INITIAL quantity (Total Capacity)
-    // If quantity_initial is not available or 0, we can't calculate percentage accurately for volume
-    // But we assume it is available. If not, we might fallback to current (which is wrong if already consumed)
-    // or 1 if it's unit based.
-    const initialQty = parseFloat(batch.quantity_initial) || 1;
-    const currentQty = parseFloat(batch.quantity_current);
-    
-    // Target quantity based on percentage of INITIAL capacity
-    // e.g. 500ml * 0.4 = 200ml remaining
-    const targetRemaining = initialQty * targetLevel;
-    
-    // Consumption is the difference between current and target
-    // e.g. Current 300ml - Target 200ml = 100ml to consume
-    let calculatedConsumption = currentQty - targetRemaining;
-    
-    // Round to 2 decimals
-    calculatedConsumption = Math.round(calculatedConsumption * 100) / 100;
-
-    if (calculatedConsumption < 0) {
-      setError('El nivel seleccionado es mayor al stock actual. Use "Agregar Stock" para corregir.');
-      setQuantity('0');
-    } else {
-      setError(null);
-      setQuantity(calculatedConsumption.toString());
-    }
-    
-    setRemainingLevel(targetLevel);
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+        {/* Header */}
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <div>
             <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              {isConsumable ? <Droplet className="w-5 h-5 text-orange-500" /> : null}
-              Registrar Consumo
+              {isVenta
+                ? <ShoppingCart className="w-5 h-5 text-emerald-500" />
+                : <Package className="w-5 h-5 text-orange-400" />}
+              {isVenta ? 'Registrar Venta' : 'Registrar Consumo'}
             </h3>
             <p className="text-xs text-gray-500">{item.name}</p>
           </div>
@@ -139,14 +101,15 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
             <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
+          {/* Batch */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Seleccionar Lote</label>
             {batches.length === 0 ? (
@@ -159,115 +122,92 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
               >
                 {batches.map(batch => (
                   <option key={batch.id} value={batch.id}>
-                    Lote: {batch.batch_number} (Vence: {new Date(batch.expiration_date).toLocaleDateString()}) - Stock: {batch.quantity_current}
+                    Lote: {batch.batch_number} (Vence: {new Date(batch.expiration_date).toLocaleDateString()}) â€” Stock: {batch.quantity_current}
                   </option>
                 ))}
               </select>
             )}
           </div>
 
-          {isConsumable && (
-            <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {isVenta ? 'Cantidad Vendida' : 'Cantidad a Consumir'}
+            </label>
+            <div className="flex gap-2">
               <input
-                type="checkbox"
-                id="visualMode"
-                checked={mode === 'visual'}
-                onChange={(e) => setMode(e.target.checked ? 'visual' : 'manual')}
-                className="w-4 h-4 text-[#deb887] border-gray-300 rounded focus:ring-[#deb887] cursor-pointer"
+                type="number"
+                step="1"
+                min="1"
+                className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
+                value={quantity}
+                onChange={e => setQuantity(e.target.value)}
               />
-              <label htmlFor="visualMode" className="text-sm text-gray-700 select-none cursor-pointer flex-1">
-                Usar selector visual de nivel restante
-                <span className="block text-xs text-gray-500 font-normal">
-                  (Recomendado si no se puede medir cantidad exacta)
-                </span>
-              </label>
+              <span className="p-2 bg-gray-100 rounded-lg text-gray-600 min-w-[70px] text-center flex items-center justify-center text-sm">
+                {item.unit_of_measure || 'Unidad'}
+              </span>
             </div>
-          )}
+          </div>
 
-          {mode === 'visual' ? (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="block text-sm font-medium text-gray-700">Nivel Restante en Envase</label>
-                <span className="text-xs text-gray-500">
-                  Actual: {Math.round(getBatchCurrentLevel() * 100)}%
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-6 gap-2">
-                {[0, 0.2, 0.4, 0.5, 0.8, 1.0].map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => handleLevelSelect(level)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
-                      remainingLevel === level 
-                        ? 'border-[#deb887] bg-[#deb887]/10 ring-1 ring-[#deb887]' 
-                        : 'border-gray-200 hover:border-[#deb887]/50'
-                    }`}
-                  >
-                    <div className="h-8 w-3 bg-gray-200 rounded-sm relative overflow-hidden">
-                      <div 
-                        className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${level === 0 ? 'bg-red-400' : 'bg-orange-400'}`}
-                        style={{ height: `${level * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className={`text-[10px] font-medium ${level === 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                      {level === 0 ? 'Agotado' : `${level * 100}%`}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              
-              <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600 space-y-2">
-                <div className="flex justify-between items-center">
-                   <span>Nivel restante seleccionado:</span>
-                   <span className="font-medium text-gray-800">{remainingLevel !== null ? Math.round(remainingLevel * 100) : 0}%</span>
+          {/* Price fields â€” only for Venta */}
+          {isVenta && (
+            <div className="space-y-4 p-4 bg-emerald-50/60 rounded-xl border border-emerald-100">
+              <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Precios de esta venta</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Costo de adquisiciÃ³n
+                    <span className="text-gray-400 font-normal"> (opcional)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      className="w-full pl-6 pr-2 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none text-sm"
+                      value={costPrice}
+                      onChange={e => setCostPrice(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="flex justify-between items-center border-t border-gray-200 pt-2">
-                   <span>Consumo a registrar:</span>
-                   <span className="font-bold text-[#deb887] text-sm">{quantity} {item.unit_of_measure}</span>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Precio de venta <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      required
+                      className="w-full pl-6 pr-2 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none text-sm"
+                      value={salePrice}
+                      onChange={e => setSalePrice(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-              
-              <p className="text-[10px] text-center text-gray-400 mt-1">
-                Selecciona el porcentaje del total original que queda disponible actualmente.
-              </p>
-
-              {onRestock && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => { onClose(); onRestock(); }}
-                    className="w-full py-2 px-4 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Reponer / Nuevo Envase
-                  </button>
-                  <p className="text-[10px] text-center text-gray-400 mt-1">
-                    Registrará un nuevo lote y aumentará el conteo de unidades.
-                  </p>
+              {costPrice && salePrice && parseFloat(salePrice) > 0 && (
+                <div className="flex justify-between items-center text-xs text-gray-600 border-t border-emerald-100 pt-2">
+                  <span>Margen por unidad:</span>
+                  <span className={`font-semibold ${parseFloat(salePrice) - parseFloat(costPrice) >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                    ${(parseFloat(salePrice) - parseFloat(costPrice)).toFixed(2)}
+                    {parseFloat(costPrice) > 0 && (
+                      <span className="text-gray-400 font-normal ml-1">
+                        ({(((parseFloat(salePrice) - parseFloat(costPrice)) / parseFloat(costPrice)) * 100).toFixed(0)}%)
+                      </span>
+                    )}
+                  </span>
                 </div>
               )}
             </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad a Consumir</label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  step={isConsumable ? "0.1" : "1"}
-                  min={isConsumable ? "0.1" : "1"}
-                  className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
-                  value={quantity}
-                  onChange={e => setQuantity(e.target.value)}
-                />
-                <span className="p-2 bg-gray-100 rounded-lg text-gray-600 min-w-[60px] text-center flex items-center justify-center">
-                  {item.unit_of_measure}
-                </span>
-              </div>
-            </div>
           )}
 
+          {/* Reason */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
             <select
@@ -275,29 +215,44 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
               value={reason}
               onChange={e => setReason(e.target.value)}
             >
-              <option value="Uso en cabina">Uso en cabina / Tratamiento</option>
-              <option value="Venta directa">Venta directa</option>
-              <option value="Mermas / Daño">Mermas / Daño</option>
-              <option value="Vencimiento">Vencimiento</option>
-              <option value="Ajuste de inventario">Ajuste de inventario</option>
+              {isVenta ? (
+                <>
+                  <option value="Venta directa">Venta directa</option>
+                  <option value="Venta con descuento">Venta con descuento</option>
+                  <option value="Muestra gratis">Muestra / PromociÃ³n</option>
+                </>
+              ) : (
+                <>
+                  <option value="Uso en cabina">Uso en cabina / Tratamiento</option>
+                  <option value="Venta directa">Venta directa</option>
+                  <option value="Mermas / DaÃ±o">Mermas / DaÃ±o</option>
+                  <option value="Vencimiento">Vencimiento</option>
+                  <option value="Ajuste de inventario">Ajuste de inventario</option>
+                </>
+              )}
             </select>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+              className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || batches.length === 0}
-              className="px-4 py-2 bg-[#deb887] text-white rounded-lg hover:bg-[#c5a075] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium ${
+                isVenta
+                  ? 'bg-emerald-500 hover:bg-emerald-600'
+                  : 'bg-[#deb887] hover:bg-[#c5a075]'
+              }`}
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Registrando...' : 'Confirmar Consumo'}
+              {loading ? 'Registrando...' : isVenta ? 'Confirmar Venta' : 'Confirmar Consumo'}
             </button>
           </div>
         </form>
@@ -305,3 +260,4 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
     </div>
   );
 }
+
