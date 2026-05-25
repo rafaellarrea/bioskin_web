@@ -1,8 +1,8 @@
-[
+﻿[
   {
     "id": 1,
     "categoria": "botox",
-    "elemento": "BOTOX® (Allergan)",
+    "elemento": "BOTOXÂ® (Allergan)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -11,7 +11,7 @@
   {
     "id": 2,
     "categoria": "botox",
-    "elemento": "BOTOX® Cosmetic",
+    "elemento": "BOTOXÂ® Cosmetic",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -20,7 +20,7 @@
   {
     "id": 3,
     "categoria": "botox",
-    "elemento": "BOTOX® 50UI",
+    "elemento": "BOTOXÂ® 50UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -29,7 +29,7 @@
   {
     "id": 4,
     "categoria": "botox",
-    "elemento": "BOTOX® 100UI",
+    "elemento": "BOTOXÂ® 100UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -38,7 +38,7 @@
   {
     "id": 5,
     "categoria": "botox",
-    "elemento": "BOTOX® 200UI",
+    "elemento": "BOTOXÂ® 200UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -47,7 +47,7 @@
   {
     "id": 6,
     "categoria": "dysport",
-    "elemento": "Dysport® (Ipsen)",
+    "elemento": "DysportÂ® (Ipsen)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -56,7 +56,7 @@
   {
     "id": 7,
     "categoria": "dysport",
-    "elemento": "Dysport® 125UI",
+    "elemento": "DysportÂ® 125UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -65,7 +65,7 @@
   {
     "id": 8,
     "categoria": "dysport",
-    "elemento": "Dysport® 250UI",
+    "elemento": "DysportÂ® 250UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -74,7 +74,7 @@
   {
     "id": 9,
     "categoria": "dysport",
-    "elemento": "Dysport® 500UI",
+    "elemento": "DysportÂ® 500UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -83,7 +83,7 @@
   {
     "id": 10,
     "categoria": "xeomin",
-    "elemento": "Xeomin® (Merz)",
+    "elemento": "XeominÂ® (Merz)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -92,7 +92,7 @@
   {
     "id": 11,
     "categoria": "xeomin",
-    "elemento": "Xeomin® 50UI",
+    "elemento": "XeominÂ® 50UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -101,7 +101,7 @@
   {
     "id": 12,
     "categoria": "xeomin",
-    "elemento": "Xeomin® 100UI",
+    "elemento": "XeominÂ® 100UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -110,7 +110,7 @@
   {
     "id": 13,
     "categoria": "xeomin",
-    "elemento": "Xeomin® 200UI",
+    "elemento": "XeominÂ® 200UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -119,7 +119,7 @@
   {
     "id": 14,
     "categoria": "otras_marcas",
-    "elemento": "Azzalure® (Galderma)",
+    "elemento": "AzzalureÂ® (Galderma)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -128,7 +128,7 @@
   {
     "id": 15,
     "categoria": "otras_marcas",
-    "elemento": "Nuceiva® (Evolus)",
+    "elemento": "NuceivaÂ® (Evolus)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -137,7 +137,7 @@
   {
     "id": 16,
     "categoria": "otras_marcas",
-    "elemento": "Letybo® (Hugel)",
+    "elemento": "LetyboÂ® (Hugel)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -146,7 +146,7 @@
   {
     "id": 17,
     "categoria": "otras_marcas",
-    "elemento": "Nabota® (Daewoong)",
+    "elemento": "NabotaÂ® (Daewoong)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -155,7 +155,7 @@
   {
     "id": 18,
     "categoria": "otras_marcas",
-    "elemento": "Relatox® (Medytox)",
+    "elemento": "RelatoxÂ® (Medytox)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -164,7 +164,7 @@
   {
     "id": 19,
     "categoria": "otras_marcas",
-    "elemento": "Prosigne® (Lanzhou)",
+    "elemento": "ProsigneÂ® (Lanzhou)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -173,7 +173,7 @@
   {
     "id": 20,
     "categoria": "otras_marcas",
-    "elemento": "BTX-A® (Chinese)",
+    "elemento": "BTX-AÂ® (Chinese)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -182,7 +182,7 @@
   {
     "id": 21,
     "categoria": "allergan",
-    "elemento": "Juvederm® Ultra",
+    "elemento": "JuvedermÂ® Ultra",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -191,7 +191,7 @@
   {
     "id": 22,
     "categoria": "allergan",
-    "elemento": "Juvederm® Ultra Plus",
+    "elemento": "JuvedermÂ® Ultra Plus",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -200,7 +200,7 @@
   {
     "id": 23,
     "categoria": "allergan",
-    "elemento": "Juvederm® Voluma",
+    "elemento": "JuvedermÂ® Voluma",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -209,7 +209,7 @@
   {
     "id": 24,
     "categoria": "allergan",
-    "elemento": "Juvederm® Volift",
+    "elemento": "JuvedermÂ® Volift",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -218,7 +218,7 @@
   {
     "id": 25,
     "categoria": "allergan",
-    "elemento": "Juvederm® Volbella",
+    "elemento": "JuvedermÂ® Volbella",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -227,7 +227,7 @@
   {
     "id": 26,
     "categoria": "allergan",
-    "elemento": "Juvederm® Hydrate",
+    "elemento": "JuvedermÂ® Hydrate",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -236,7 +236,7 @@
   {
     "id": 27,
     "categoria": "allergan",
-    "elemento": "Juvederm® Smile",
+    "elemento": "JuvedermÂ® Smile",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -245,7 +245,7 @@
   {
     "id": 28,
     "categoria": "galderma",
-    "elemento": "Restylane® Lyft",
+    "elemento": "RestylaneÂ® Lyft",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -254,7 +254,7 @@
   {
     "id": 29,
     "categoria": "galderma",
-    "elemento": "Restylane® Refyne",
+    "elemento": "RestylaneÂ® Refyne",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -263,7 +263,7 @@
   {
     "id": 30,
     "categoria": "galderma",
-    "elemento": "Restylane® Defyne",
+    "elemento": "RestylaneÂ® Defyne",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -272,7 +272,7 @@
   {
     "id": 31,
     "categoria": "galderma",
-    "elemento": "Restylane® Kysse",
+    "elemento": "RestylaneÂ® Kysse",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -281,7 +281,7 @@
   {
     "id": 32,
     "categoria": "galderma",
-    "elemento": "Restylane® Fynesse",
+    "elemento": "RestylaneÂ® Fynesse",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -290,7 +290,7 @@
   {
     "id": 33,
     "categoria": "galderma",
-    "elemento": "Restylane® Volyme",
+    "elemento": "RestylaneÂ® Volyme",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -299,7 +299,7 @@
   {
     "id": 34,
     "categoria": "merz",
-    "elemento": "Belotero® Basic",
+    "elemento": "BeloteroÂ® Basic",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -308,7 +308,7 @@
   {
     "id": 35,
     "categoria": "merz",
-    "elemento": "Belotero® Soft",
+    "elemento": "BeloteroÂ® Soft",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -317,7 +317,7 @@
   {
     "id": 36,
     "categoria": "merz",
-    "elemento": "Belotero® Intense",
+    "elemento": "BeloteroÂ® Intense",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -326,7 +326,7 @@
   {
     "id": 37,
     "categoria": "merz",
-    "elemento": "Belotero® Volume",
+    "elemento": "BeloteroÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -335,7 +335,7 @@
   {
     "id": 38,
     "categoria": "merz",
-    "elemento": "Belotero® Balance",
+    "elemento": "BeloteroÂ® Balance",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -344,7 +344,7 @@
   {
     "id": 39,
     "categoria": "teoxane",
-    "elemento": "Teosyal® RHA 1",
+    "elemento": "TeosyalÂ® RHA 1",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -353,7 +353,7 @@
   {
     "id": 40,
     "categoria": "teoxane",
-    "elemento": "Teosyal® RHA 2",
+    "elemento": "TeosyalÂ® RHA 2",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -362,7 +362,7 @@
   {
     "id": 41,
     "categoria": "teoxane",
-    "elemento": "Teosyal® RHA 3",
+    "elemento": "TeosyalÂ® RHA 3",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -371,7 +371,7 @@
   {
     "id": 42,
     "categoria": "teoxane",
-    "elemento": "Teosyal® RHA 4",
+    "elemento": "TeosyalÂ® RHA 4",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -380,7 +380,7 @@
   {
     "id": 43,
     "categoria": "teoxane",
-    "elemento": "Teosyal® Ultra Deep",
+    "elemento": "TeosyalÂ® Ultra Deep",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -389,7 +389,7 @@
   {
     "id": 44,
     "categoria": "teoxane",
-    "elemento": "Teosyal® Kiss",
+    "elemento": "TeosyalÂ® Kiss",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -398,7 +398,7 @@
   {
     "id": 45,
     "categoria": "teoxane",
-    "elemento": "Teosyal® Global Action",
+    "elemento": "TeosyalÂ® Global Action",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -407,7 +407,7 @@
   {
     "id": 46,
     "categoria": "otras_marcas",
-    "elemento": "Stylage® (Vivacy)",
+    "elemento": "StylageÂ® (Vivacy)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -416,7 +416,7 @@
   {
     "id": 47,
     "categoria": "otras_marcas",
-    "elemento": "Princess® Volume",
+    "elemento": "PrincessÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -425,7 +425,7 @@
   {
     "id": 48,
     "categoria": "otras_marcas",
-    "elemento": "Princess® Filler",
+    "elemento": "PrincessÂ® Filler",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -434,7 +434,7 @@
   {
     "id": 49,
     "categoria": "otras_marcas",
-    "elemento": "Saypha® Volume",
+    "elemento": "SayphaÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -443,7 +443,7 @@
   {
     "id": 50,
     "categoria": "otras_marcas",
-    "elemento": "Hyacorp® Body",
+    "elemento": "HyacorpÂ® Body",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -452,7 +452,7 @@
   {
     "id": 51,
     "categoria": "otras_marcas",
-    "elemento": "Revolax® Deep",
+    "elemento": "RevolaxÂ® Deep",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -461,7 +461,7 @@
   {
     "id": 52,
     "categoria": "otras_marcas",
-    "elemento": "Neuramis® Volume",
+    "elemento": "NeuramisÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -470,7 +470,7 @@
   {
     "id": 53,
     "categoria": "estimuladores_colageno",
-    "elemento": "Sculptra® (PLLA)",
+    "elemento": "SculptraÂ® (PLLA)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -479,7 +479,7 @@
   {
     "id": 54,
     "categoria": "estimuladores_colageno",
-    "elemento": "Radiesse® (CaHA)",
+    "elemento": "RadiesseÂ® (CaHA)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -488,7 +488,7 @@
   {
     "id": 55,
     "categoria": "estimuladores_colageno",
-    "elemento": "Ellansé® S",
+    "elemento": "EllansÃ©Â® S",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -497,7 +497,7 @@
   {
     "id": 56,
     "categoria": "estimuladores_colageno",
-    "elemento": "Ellansé® M",
+    "elemento": "EllansÃ©Â® M",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -506,7 +506,7 @@
   {
     "id": 57,
     "categoria": "estimuladores_colageno",
-    "elemento": "Ellansé® L",
+    "elemento": "EllansÃ©Â® L",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -515,7 +515,7 @@
   {
     "id": 58,
     "categoria": "estimuladores_colageno",
-    "elemento": "Ellansé® E",
+    "elemento": "EllansÃ©Â® E",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -524,7 +524,7 @@
   {
     "id": 59,
     "categoria": "estimuladores_colageno",
-    "elemento": "New-Fill® (PLLA)",
+    "elemento": "New-FillÂ® (PLLA)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -533,7 +533,7 @@
   {
     "id": 60,
     "categoria": "rellenos_permanentes",
-    "elemento": "Silicona médica",
+    "elemento": "Silicona mÃ©dica",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -551,7 +551,7 @@
   {
     "id": 62,
     "categoria": "rellenos_permanentes",
-    "elemento": "Aquamid® (Polyacrylamide)",
+    "elemento": "AquamidÂ® (Polyacrylamide)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -560,7 +560,7 @@
   {
     "id": 63,
     "categoria": "rellenos_permanentes",
-    "elemento": "Bio-Alcamid®",
+    "elemento": "Bio-AlcamidÂ®",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -569,7 +569,7 @@
   {
     "id": 64,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica lineal",
+    "elemento": "TÃ©cnica lineal",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -578,7 +578,7 @@
   {
     "id": 65,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica serial puncture",
+    "elemento": "TÃ©cnica serial puncture",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -587,7 +587,7 @@
   {
     "id": 66,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica de abanico",
+    "elemento": "TÃ©cnica de abanico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -596,7 +596,7 @@
   {
     "id": 67,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica cruzada",
+    "elemento": "TÃ©cnica cruzada",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -605,7 +605,7 @@
   {
     "id": 68,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica multicapa",
+    "elemento": "TÃ©cnica multicapa",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -614,7 +614,7 @@
   {
     "id": 69,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica sandwich",
+    "elemento": "TÃ©cnica sandwich",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -623,7 +623,7 @@
   {
     "id": 70,
     "categoria": "tecnicas_basicas",
-    "elemento": "Técnica structural",
+    "elemento": "TÃ©cnica structural",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -632,7 +632,7 @@
   {
     "id": 71,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica de pilares",
+    "elemento": "TÃ©cnica de pilares",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -641,7 +641,7 @@
   {
     "id": 72,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica mesh",
+    "elemento": "TÃ©cnica mesh",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -650,7 +650,7 @@
   {
     "id": 73,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica 3D vectorial",
+    "elemento": "TÃ©cnica 3D vectorial",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -659,7 +659,7 @@
   {
     "id": 74,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica de soporte",
+    "elemento": "TÃ©cnica de soporte",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -668,7 +668,7 @@
   {
     "id": 75,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica liquid facelift",
+    "elemento": "TÃ©cnica liquid facelift",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -677,7 +677,7 @@
   {
     "id": 76,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica 8-point lift",
+    "elemento": "TÃ©cnica 8-point lift",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -686,7 +686,7 @@
   {
     "id": 77,
     "categoria": "tecnicas_avanzadas",
-    "elemento": "Técnica MD codes",
+    "elemento": "TÃ©cnica MD codes",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -722,7 +722,7 @@
   {
     "id": 81,
     "categoria": "metodos_inyeccion",
-    "elemento": "Supraperióstico",
+    "elemento": "SupraperiÃ³stico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -731,7 +731,7 @@
   {
     "id": 82,
     "categoria": "metodos_inyeccion",
-    "elemento": "Subcutáneo",
+    "elemento": "SubcutÃ¡neo",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -740,7 +740,7 @@
   {
     "id": 83,
     "categoria": "metodos_inyeccion",
-    "elemento": "Intradérmico",
+    "elemento": "IntradÃ©rmico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -758,7 +758,7 @@
   {
     "id": 85,
     "categoria": "planos_inyeccion",
-    "elemento": "Epidérmico",
+    "elemento": "EpidÃ©rmico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -767,7 +767,7 @@
   {
     "id": 86,
     "categoria": "planos_inyeccion",
-    "elemento": "Dérmico superficial",
+    "elemento": "DÃ©rmico superficial",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -776,7 +776,7 @@
   {
     "id": 87,
     "categoria": "planos_inyeccion",
-    "elemento": "Dérmico medio",
+    "elemento": "DÃ©rmico medio",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -785,7 +785,7 @@
   {
     "id": 88,
     "categoria": "planos_inyeccion",
-    "elemento": "Dérmico profundo",
+    "elemento": "DÃ©rmico profundo",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -794,7 +794,7 @@
   {
     "id": 89,
     "categoria": "planos_inyeccion",
-    "elemento": "Subcutáneo",
+    "elemento": "SubcutÃ¡neo",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -803,7 +803,7 @@
   {
     "id": 90,
     "categoria": "planos_inyeccion",
-    "elemento": "Supraperióstico",
+    "elemento": "SupraperiÃ³stico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -812,7 +812,7 @@
   {
     "id": 91,
     "categoria": "planos_inyeccion",
-    "elemento": "Preperióstico",
+    "elemento": "PreperiÃ³stico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -883,7 +883,7 @@
   },
   {
     "id": 99,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "22G x 40mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -892,7 +892,7 @@
   },
   {
     "id": 100,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "22G x 50mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -901,7 +901,7 @@
   },
   {
     "id": 101,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "22G x 70mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -910,7 +910,7 @@
   },
   {
     "id": 102,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "23G x 25mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -919,7 +919,7 @@
   },
   {
     "id": 103,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "25G x 25mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -928,7 +928,7 @@
   },
   {
     "id": 104,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "25G x 38mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -937,7 +937,7 @@
   },
   {
     "id": 105,
-    "categoria": "microcánulas",
+    "categoria": "microcÃ¡nulas",
     "elemento": "27G x 25mm",
     "descripcion": null,
     "es_maestro": 1,
@@ -1028,7 +1028,7 @@
   {
     "id": 115,
     "categoria": "tercio_superior",
-    "elemento": "Región temporal",
+    "elemento": "RegiÃ³n temporal",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1046,7 +1046,7 @@
   {
     "id": 117,
     "categoria": "tercio_superior",
-    "elemento": "Líneas horizontales frente",
+    "elemento": "LÃ­neas horizontales frente",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1064,7 +1064,7 @@
   {
     "id": 119,
     "categoria": "tercio_medio",
-    "elemento": "Pómulos",
+    "elemento": "PÃ³mulos",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1100,7 +1100,7 @@
   {
     "id": 123,
     "categoria": "tercio_medio",
-    "elemento": "Valle de lágrimas",
+    "elemento": "Valle de lÃ¡grimas",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1118,7 +1118,7 @@
   {
     "id": 125,
     "categoria": "tercio_medio",
-    "elemento": "Región malar",
+    "elemento": "RegiÃ³n malar",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1154,7 +1154,7 @@
   {
     "id": 129,
     "categoria": "tercio_inferior",
-    "elemento": "Mentón",
+    "elemento": "MentÃ³n",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1163,7 +1163,7 @@
   {
     "id": 130,
     "categoria": "tercio_inferior",
-    "elemento": "Línea mandibular",
+    "elemento": "LÃ­nea mandibular",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1181,7 +1181,7 @@
   {
     "id": 132,
     "categoria": "tercio_inferior",
-    "elemento": "Código de barras",
+    "elemento": "CÃ³digo de barras",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1208,7 +1208,7 @@
   {
     "id": 135,
     "categoria": "areas_corporales",
-    "elemento": "Glúteos",
+    "elemento": "GlÃºteos",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1343,7 +1343,7 @@
   {
     "id": 150,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Asimetría",
+    "elemento": "AsimetrÃ­a",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1352,7 +1352,7 @@
   {
     "id": 151,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Sobrecorrección",
+    "elemento": "SobrecorrecciÃ³n",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1361,7 +1361,7 @@
   {
     "id": 152,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Subcorrección",
+    "elemento": "SubcorrecciÃ³n",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1388,7 +1388,7 @@
   {
     "id": 155,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Embolización vascular",
+    "elemento": "EmbolizaciÃ³n vascular",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1397,7 +1397,7 @@
   {
     "id": 156,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Infección",
+    "elemento": "InfecciÃ³n",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1406,7 +1406,7 @@
   {
     "id": 157,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Reacción alérgica",
+    "elemento": "ReacciÃ³n alÃ©rgica",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1415,7 +1415,7 @@
   {
     "id": 158,
     "categoria": "complicaciones_tratamiento",
-    "elemento": "Migración del producto",
+    "elemento": "MigraciÃ³n del producto",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1460,7 +1460,7 @@
   {
     "id": 163,
     "categoria": "cuidados_post_tratamiento",
-    "elemento": "Aplicar frío local",
+    "elemento": "Aplicar frÃ­o local",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1505,7 +1505,7 @@
   {
     "id": 168,
     "categoria": "cuidados_post_tratamiento",
-    "elemento": "Tomar analgésicos si necesario",
+    "elemento": "Tomar analgÃ©sicos si necesario",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1523,7 +1523,7 @@
   {
     "id": 170,
     "categoria": "cuidados_post_tratamiento",
-    "elemento": "Revisión a los 15 días",
+    "elemento": "RevisiÃ³n a los 15 dÃ­as",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1559,7 +1559,7 @@
   {
     "id": 22105,
     "categoria": "marca_toxina",
-    "elemento": "BOTOX® (Allergan)",
+    "elemento": "BOTOXÂ® (Allergan)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1568,7 +1568,7 @@
   {
     "id": 22106,
     "categoria": "marca_toxina",
-    "elemento": "BOTOX® 100UI",
+    "elemento": "BOTOXÂ® 100UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1577,7 +1577,7 @@
   {
     "id": 22107,
     "categoria": "marca_toxina",
-    "elemento": "BOTOX® 200UI",
+    "elemento": "BOTOXÂ® 200UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1586,7 +1586,7 @@
   {
     "id": 22108,
     "categoria": "marca_toxina",
-    "elemento": "BOTOX® 50UI",
+    "elemento": "BOTOXÂ® 50UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1595,7 +1595,7 @@
   {
     "id": 22109,
     "categoria": "marca_toxina",
-    "elemento": "BOTOX® Cosmetic",
+    "elemento": "BOTOXÂ® Cosmetic",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1631,7 +1631,7 @@
   {
     "id": 22113,
     "categoria": "marca_toxina",
-    "elemento": "Dysport® (Ipsen)",
+    "elemento": "DysportÂ® (Ipsen)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1640,7 +1640,7 @@
   {
     "id": 22114,
     "categoria": "marca_toxina",
-    "elemento": "Dysport® 125UI",
+    "elemento": "DysportÂ® 125UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1649,7 +1649,7 @@
   {
     "id": 22115,
     "categoria": "marca_toxina",
-    "elemento": "Dysport® 250UI",
+    "elemento": "DysportÂ® 250UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1658,7 +1658,7 @@
   {
     "id": 22116,
     "categoria": "marca_toxina",
-    "elemento": "Dysport® 500UI",
+    "elemento": "DysportÂ® 500UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1694,7 +1694,7 @@
   {
     "id": 22120,
     "categoria": "marca_toxina",
-    "elemento": "Xeomin® (Merz)",
+    "elemento": "XeominÂ® (Merz)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1703,7 +1703,7 @@
   {
     "id": 22121,
     "categoria": "marca_toxina",
-    "elemento": "Xeomin® 100UI",
+    "elemento": "XeominÂ® 100UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1712,7 +1712,7 @@
   {
     "id": 22122,
     "categoria": "marca_toxina",
-    "elemento": "Xeomin® 200UI",
+    "elemento": "XeominÂ® 200UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1721,7 +1721,7 @@
   {
     "id": 22123,
     "categoria": "marca_toxina",
-    "elemento": "Xeomin® 50UI",
+    "elemento": "XeominÂ® 50UI",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1730,7 +1730,7 @@
   {
     "id": 22124,
     "categoria": "marca_toxina",
-    "elemento": "Azzalure® (Galderma)",
+    "elemento": "AzzalureÂ® (Galderma)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1739,7 +1739,7 @@
   {
     "id": 22125,
     "categoria": "marca_toxina",
-    "elemento": "BTX-A® (Chinese)",
+    "elemento": "BTX-AÂ® (Chinese)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1748,7 +1748,7 @@
   {
     "id": 22126,
     "categoria": "marca_toxina",
-    "elemento": "Hyacorp® Body",
+    "elemento": "HyacorpÂ® Body",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1757,7 +1757,7 @@
   {
     "id": 22127,
     "categoria": "marca_toxina",
-    "elemento": "Letybo® (Hugel)",
+    "elemento": "LetyboÂ® (Hugel)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1766,7 +1766,7 @@
   {
     "id": 22128,
     "categoria": "marca_toxina",
-    "elemento": "Nabota® (Daewoong)",
+    "elemento": "NabotaÂ® (Daewoong)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1775,7 +1775,7 @@
   {
     "id": 22129,
     "categoria": "marca_toxina",
-    "elemento": "Neuramis® Volume",
+    "elemento": "NeuramisÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1784,7 +1784,7 @@
   {
     "id": 22130,
     "categoria": "marca_toxina",
-    "elemento": "Nuceiva® (Evolus)",
+    "elemento": "NuceivaÂ® (Evolus)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1793,7 +1793,7 @@
   {
     "id": 22131,
     "categoria": "marca_toxina",
-    "elemento": "Princess® Filler",
+    "elemento": "PrincessÂ® Filler",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1802,7 +1802,7 @@
   {
     "id": 22132,
     "categoria": "marca_toxina",
-    "elemento": "Princess® Volume",
+    "elemento": "PrincessÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1811,7 +1811,7 @@
   {
     "id": 22133,
     "categoria": "marca_toxina",
-    "elemento": "Prosigne® (Lanzhou)",
+    "elemento": "ProsigneÂ® (Lanzhou)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1820,7 +1820,7 @@
   {
     "id": 22134,
     "categoria": "marca_toxina",
-    "elemento": "Relatox® (Medytox)",
+    "elemento": "RelatoxÂ® (Medytox)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1829,7 +1829,7 @@
   {
     "id": 22135,
     "categoria": "marca_toxina",
-    "elemento": "Revolax® Deep",
+    "elemento": "RevolaxÂ® Deep",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1838,7 +1838,7 @@
   {
     "id": 22136,
     "categoria": "marca_toxina",
-    "elemento": "Saypha® Volume",
+    "elemento": "SayphaÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1847,7 +1847,7 @@
   {
     "id": 22137,
     "categoria": "marca_toxina",
-    "elemento": "Stylage® (Vivacy)",
+    "elemento": "StylageÂ® (Vivacy)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1856,7 +1856,7 @@
   {
     "id": 22138,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Hydrate",
+    "elemento": "JuvedermÂ® Hydrate",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1865,7 +1865,7 @@
   {
     "id": 22139,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Smile",
+    "elemento": "JuvedermÂ® Smile",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1874,7 +1874,7 @@
   {
     "id": 22140,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Ultra",
+    "elemento": "JuvedermÂ® Ultra",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1883,7 +1883,7 @@
   {
     "id": 22141,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Ultra Plus",
+    "elemento": "JuvedermÂ® Ultra Plus",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1892,7 +1892,7 @@
   {
     "id": 22142,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Volbella",
+    "elemento": "JuvedermÂ® Volbella",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1901,7 +1901,7 @@
   {
     "id": 22143,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Volift",
+    "elemento": "JuvedermÂ® Volift",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1910,7 +1910,7 @@
   {
     "id": 22144,
     "categoria": "marca_relleno",
-    "elemento": "Juvederm® Voluma",
+    "elemento": "JuvedermÂ® Voluma",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1919,7 +1919,7 @@
   {
     "id": 22145,
     "categoria": "marca_relleno",
-    "elemento": "Restylane® Defyne",
+    "elemento": "RestylaneÂ® Defyne",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1928,7 +1928,7 @@
   {
     "id": 22146,
     "categoria": "marca_relleno",
-    "elemento": "Restylane® Fynesse",
+    "elemento": "RestylaneÂ® Fynesse",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1937,7 +1937,7 @@
   {
     "id": 22147,
     "categoria": "marca_relleno",
-    "elemento": "Restylane® Kysse",
+    "elemento": "RestylaneÂ® Kysse",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1946,7 +1946,7 @@
   {
     "id": 22148,
     "categoria": "marca_relleno",
-    "elemento": "Restylane® Lyft",
+    "elemento": "RestylaneÂ® Lyft",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1955,7 +1955,7 @@
   {
     "id": 22149,
     "categoria": "marca_relleno",
-    "elemento": "Restylane® Refyne",
+    "elemento": "RestylaneÂ® Refyne",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1964,7 +1964,7 @@
   {
     "id": 22150,
     "categoria": "marca_relleno",
-    "elemento": "Restylane® Volyme",
+    "elemento": "RestylaneÂ® Volyme",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1973,7 +1973,7 @@
   {
     "id": 22151,
     "categoria": "marca_relleno",
-    "elemento": "Belotero® Balance",
+    "elemento": "BeloteroÂ® Balance",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1982,7 +1982,7 @@
   {
     "id": 22152,
     "categoria": "marca_relleno",
-    "elemento": "Belotero® Basic",
+    "elemento": "BeloteroÂ® Basic",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -1991,7 +1991,7 @@
   {
     "id": 22153,
     "categoria": "marca_relleno",
-    "elemento": "Belotero® Intense",
+    "elemento": "BeloteroÂ® Intense",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2000,7 +2000,7 @@
   {
     "id": 22154,
     "categoria": "marca_relleno",
-    "elemento": "Belotero® Soft",
+    "elemento": "BeloteroÂ® Soft",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2009,7 +2009,7 @@
   {
     "id": 22155,
     "categoria": "marca_relleno",
-    "elemento": "Belotero® Volume",
+    "elemento": "BeloteroÂ® Volume",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2018,7 +2018,7 @@
   {
     "id": 22156,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® Global Action",
+    "elemento": "TeosyalÂ® Global Action",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2027,7 +2027,7 @@
   {
     "id": 22157,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® Kiss",
+    "elemento": "TeosyalÂ® Kiss",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2036,7 +2036,7 @@
   {
     "id": 22158,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® RHA 1",
+    "elemento": "TeosyalÂ® RHA 1",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2045,7 +2045,7 @@
   {
     "id": 22159,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® RHA 2",
+    "elemento": "TeosyalÂ® RHA 2",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2054,7 +2054,7 @@
   {
     "id": 22160,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® RHA 3",
+    "elemento": "TeosyalÂ® RHA 3",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2063,7 +2063,7 @@
   {
     "id": 22161,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® RHA 4",
+    "elemento": "TeosyalÂ® RHA 4",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2072,7 +2072,7 @@
   {
     "id": 22162,
     "categoria": "marca_relleno",
-    "elemento": "Teosyal® Ultra Deep",
+    "elemento": "TeosyalÂ® Ultra Deep",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2081,7 +2081,7 @@
   {
     "id": 22163,
     "categoria": "marca_relleno",
-    "elemento": "Ellansé® E",
+    "elemento": "EllansÃ©Â® E",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2090,7 +2090,7 @@
   {
     "id": 22164,
     "categoria": "marca_relleno",
-    "elemento": "Ellansé® L",
+    "elemento": "EllansÃ©Â® L",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2099,7 +2099,7 @@
   {
     "id": 22165,
     "categoria": "marca_relleno",
-    "elemento": "Ellansé® M",
+    "elemento": "EllansÃ©Â® M",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2108,7 +2108,7 @@
   {
     "id": 22166,
     "categoria": "marca_relleno",
-    "elemento": "Ellansé® S",
+    "elemento": "EllansÃ©Â® S",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2117,7 +2117,7 @@
   {
     "id": 22167,
     "categoria": "marca_relleno",
-    "elemento": "New-Fill® (PLLA)",
+    "elemento": "New-FillÂ® (PLLA)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2126,7 +2126,7 @@
   {
     "id": 22168,
     "categoria": "marca_relleno",
-    "elemento": "Radiesse® (CaHA)",
+    "elemento": "RadiesseÂ® (CaHA)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2135,7 +2135,7 @@
   {
     "id": 22169,
     "categoria": "marca_relleno",
-    "elemento": "Sculptra® (PLLA)",
+    "elemento": "SculptraÂ® (PLLA)",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2144,7 +2144,7 @@
   {
     "id": 22170,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica cruzada",
+    "elemento": "TÃ©cnica cruzada",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2153,7 +2153,7 @@
   {
     "id": 22171,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica de abanico",
+    "elemento": "TÃ©cnica de abanico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2162,7 +2162,7 @@
   {
     "id": 22172,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica lineal",
+    "elemento": "TÃ©cnica lineal",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2171,7 +2171,7 @@
   {
     "id": 22173,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica multicapa",
+    "elemento": "TÃ©cnica multicapa",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2180,7 +2180,7 @@
   {
     "id": 22174,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica sandwich",
+    "elemento": "TÃ©cnica sandwich",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2189,7 +2189,7 @@
   {
     "id": 22175,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica serial puncture",
+    "elemento": "TÃ©cnica serial puncture",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2198,7 +2198,7 @@
   {
     "id": 22176,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica structural",
+    "elemento": "TÃ©cnica structural",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2207,7 +2207,7 @@
   {
     "id": 22177,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica 3D vectorial",
+    "elemento": "TÃ©cnica 3D vectorial",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2216,7 +2216,7 @@
   {
     "id": 22178,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica 8-point lift",
+    "elemento": "TÃ©cnica 8-point lift",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2225,7 +2225,7 @@
   {
     "id": 22179,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica MD codes",
+    "elemento": "TÃ©cnica MD codes",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2234,7 +2234,7 @@
   {
     "id": 22180,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica de pilares",
+    "elemento": "TÃ©cnica de pilares",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2243,7 +2243,7 @@
   {
     "id": 22181,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica de soporte",
+    "elemento": "TÃ©cnica de soporte",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2252,7 +2252,7 @@
   {
     "id": 22182,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica liquid facelift",
+    "elemento": "TÃ©cnica liquid facelift",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2261,7 +2261,7 @@
   {
     "id": 22183,
     "categoria": "tecnica_inyectable",
-    "elemento": "Técnica mesh",
+    "elemento": "TÃ©cnica mesh",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2288,7 +2288,7 @@
   {
     "id": 22186,
     "categoria": "tecnica_inyectable",
-    "elemento": "Intradérmico",
+    "elemento": "IntradÃ©rmico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2306,7 +2306,7 @@
   {
     "id": 22188,
     "categoria": "tecnica_inyectable",
-    "elemento": "Subcutáneo",
+    "elemento": "SubcutÃ¡neo",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,
@@ -2324,7 +2324,7 @@
   {
     "id": 22190,
     "categoria": "tecnica_inyectable",
-    "elemento": "Supraperióstico",
+    "elemento": "SupraperiÃ³stico",
     "descripcion": null,
     "es_maestro": 1,
     "activo": 1,

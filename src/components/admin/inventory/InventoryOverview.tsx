@@ -1,101 +1,100 @@
 import React from 'react';
-import { Package, AlertTriangle, RefreshCw, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Package, AlertTriangle, RefreshCw, AlertCircle, TrendingUp } from 'lucide-react';
 
-interface StatsProps {
-  items: any[];
-  batches?: any[];
+interface Stats {
+  total_items: number;
+  out_of_stock_count: number;
+  low_stock_count: number;
+  expiring_soon_count: number;
+  expired_count: number;
+  movements_this_month: number;
 }
 
-export default function InventoryOverview({ items, batches = [] }: StatsProps) {
-  const lowStockCount = items.filter(i => i.total_stock <= i.min_stock_level && i.total_stock > 0).length;
-  const outOfStockCount = items.filter(i => i.total_stock === 0).length;
-  
-  // Calculate expiry risks (batches < 30 days)
-  // If batches are provided, use them for precise count.
-  // If not, use generic item next_expiry field.
-  let expiringCount = 0;
-  let expiredCount = 0;
+interface Props {
+  stats: Stats | null;
+  loading?: boolean;
+}
 
-  if (batches.length > 0) {
-    expiringCount = batches.filter(b => {
-      const today = new Date();
-      const expiry = new Date(b.expiration_date);
-      const diffTime = expiry.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-      return diffDays <= 30 && diffDays >= 0;
-    }).length;
+const KPI_CARDS = [
+  {
+    key: 'total_items' as const,
+    label: 'Total Productos',
+    icon: Package,
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600',
+    format: (v: number) => v,
+    sub: null,
+  },
+  {
+    key: 'low_stock_count' as const,
+    label: 'Bajo Stock',
+    icon: AlertTriangle,
+    iconBg: 'bg-yellow-100',
+    iconColor: 'text-yellow-600',
+    format: (v: number) => v,
+    subKey: 'out_of_stock_count' as const,
+    subLabel: 'agotados',
+    subColor: 'text-red-500',
+  },
+  {
+    key: 'expiring_soon_count' as const,
+    label: 'Lotes por Vencer',
+    icon: AlertCircle,
+    iconBg: 'bg-orange-100',
+    iconColor: 'text-orange-600',
+    format: (v: number) => v,
+    subKey: 'expired_count' as const,
+    subLabel: 'vencidos',
+    subColor: 'text-red-600',
+  },
+  {
+    key: 'movements_this_month' as const,
+    label: 'Movimientos (Mes)',
+    icon: TrendingUp,
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-600',
+    format: (v: number) => v,
+    sub: null,
+  },
+];
 
-    expiredCount = batches.filter(b => {
-       const today = new Date();
-       const expiry = new Date(b.expiration_date);
-       return expiry < today;
-    }).length;
-  } else {
-    // Fallback using items next_expiry
-    expiringCount = items.filter(i => {
-      if (!i.next_expiry) return false;
-      const today = new Date();
-      const expiry = new Date(i.next_expiry);
-      const diffTime = expiry.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-      return diffDays <= 30 && diffDays >= 0;
-    }).length;
-    
-    expiredCount = items.filter(i => {
-       if (!i.next_expiry) return false;
-       const today = new Date();
-       const expiry = new Date(i.next_expiry);
-       return expiry < today;
-    }).length;
-  }
-
+export default function InventoryOverview({ stats, loading }: Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-        <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
-          <Package className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500 font-medium">Total Productos</p>
-          <p className="text-2xl font-bold text-gray-800">{items.length}</p>
-        </div>
-      </div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {KPI_CARDS.map((card, i) => {
+        const value = stats ? stats[card.key] : 0;
+        const subValue = stats && 'subKey' in card ? stats[card.subKey as keyof Stats] : null;
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-        <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg">
-          <AlertTriangle className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500 font-medium">Bajo Stock</p>
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-bold text-gray-800">{lowStockCount}</p>
-            <span className="text-xs text-red-500 font-medium">{outOfStockCount} Agotados</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-        <div className="p-3 bg-orange-100 text-orange-600 rounded-lg">
-          <AlertCircle className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500 font-medium">Lotes por Vencer</p>
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-bold text-gray-800">{expiringCount}</p>
-            {expiredCount > 0 && <span className="text-xs text-red-600 font-medium">{expiredCount} Vencidos</span>}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-        <div className="p-3 bg-green-100 text-green-600 rounded-lg">
-          <RefreshCw className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500 font-medium">Movimientos (Mes)</p>
-          <p className="text-2xl font-bold text-gray-800">--</p>
-        </div>
-      </div>
+        return (
+          <motion.div
+            key={card.key}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.07 }}
+            className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3"
+          >
+            <div className={`p-2.5 rounded-xl ${card.iconBg} flex-shrink-0`}>
+              <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 font-medium truncate">{card.label}</p>
+              {loading ? (
+                <div className="mt-1 h-7 w-12 bg-gray-100 rounded-lg animate-pulse" />
+              ) : (
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-bold text-gray-900">{card.format(value)}</span>
+                  {subValue !== null && subValue !== undefined && (subValue as number) > 0 && (
+                    <span className={`text-xs font-semibold ${(card as any).subColor}`}>
+                      {subValue} {(card as any).subLabel}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

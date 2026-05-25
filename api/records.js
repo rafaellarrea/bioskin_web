@@ -249,6 +249,73 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: err.message });
         }
 
+      case 'inventoryStats':
+        try {
+          // Ensure preferred_display_unit column exists (lazy migration, safe if already present)
+          try {
+            await pool.query(`ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS preferred_display_unit VARCHAR(20) DEFAULT 'absolute'`);
+          } catch (migErr) { /* column may already exist */ }
+
+          const statsResult = await pool.query(`
+            SELECT
+              COUNT(DISTINCT i.id)::int AS total_items,
+              COUNT(DISTINCT CASE WHEN COALESCE(stock.total_stock, 0) = 0 THEN i.id END)::int AS out_of_stock_count,
+              COUNT(DISTINCT CASE WHEN COALESCE(stock.total_stock, 0) > 0 AND COALESCE(stock.total_stock, 0) <= i.min_stock_level THEN i.id END)::int AS low_stock_count
+            FROM inventory_items i
+            LEFT JOIN (
+              SELECT item_id, SUM(quantity_current) AS total_stock
+              FROM inventory_batches
+              WHERE status = 'active'
+              GROUP BY item_id
+            ) stock ON stock.item_id = i.id
+          `);
+
+          const batchStats = await pool.query(`
+            SELECT
+              COUNT(CASE WHEN expiration_date < CURRENT_DATE AND status = 'active' THEN 1 END)::int AS expired_count,
+              COUNT(CASE WHEN expiration_date >= CURRENT_DATE AND expiration_date <= CURRENT_DATE + INTERVAL '30 days' AND status = 'active' THEN 1 END)::int AS expiring_soon_count
+            FROM inventory_batches
+            WHERE status = 'active'
+          `);
+
+          const movementsStats = await pool.query(`
+            SELECT COUNT(*)::int AS movements_this_month
+            FROM inventory_movements
+            WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)
+          `);
+
+          const alertBatches = await pool.query(`
+            SELECT 
+              b.id,
+              b.batch_number,
+              b.expiration_date,
+              b.quantity_current,
+              i.name AS item_name,
+              i.sku,
+              i.unit_of_measure,
+              CASE 
+                WHEN b.expiration_date < CURRENT_DATE THEN 'expired'
+                WHEN b.expiration_date <= CURRENT_DATE + INTERVAL '30 days' THEN 'expiring_soon'
+              END AS alert_type
+            FROM inventory_batches b
+            JOIN inventory_items i ON b.item_id = i.id
+            WHERE b.status = 'active'
+              AND (b.expiration_date < CURRENT_DATE OR b.expiration_date <= CURRENT_DATE + INTERVAL '30 days')
+            ORDER BY b.expiration_date ASC
+            LIMIT 20
+          `);
+
+          return res.status(200).json({
+            ...statsResult.rows[0],
+            ...batchStats.rows[0],
+            ...movementsStats.rows[0],
+            alert_batches: alertBatches.rows
+          });
+        } catch (err) {
+          console.error('Error fetching inventory stats:', err);
+          return res.status(500).json({ error: err.message });
+        }
+
       case 'inventoryGetItem':
         try {
           const itemId = req.query.id;

@@ -210,7 +210,7 @@ export default function InventoryMovements() {
                 </tr>
               ) : (
                 filteredMovements.map((move) => (
-                  <tr key={move.id} className="hover:bg-gray-50 transition-colors group">
+                  <tr key={move.id} className={`transition-colors group ${move.quantity_change > 0 ? 'hover:bg-emerald-50/40' : 'hover:bg-red-50/40'}`}>
                     <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                       {format(new Date(move.created_at), 'dd MMM yyyy HH:mm', { locale: es })}
                     </td>
