@@ -256,7 +256,7 @@ export default function ConsumeModal({ item, onClose, onSave, onRestock }: Consu
                 <input
                   type="number"
                   step={isConsumable ? "0.1" : "1"}
-                  min="0.1"
+                  min={isConsumable ? "0.1" : "1"}
                   className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#deb887] outline-none"
                   value={quantity}
                   onChange={e => setQuantity(e.target.value)}
