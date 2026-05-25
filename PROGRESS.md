@@ -10,6 +10,16 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **May 2026: Rediseño completo pestaña Inventario**
+- 🃏 **Card grid**: `InventoryProductCard.tsx` reemplaza la tabla — grid animado con barra de stock, badges de categoría, menú kebab y botones inline Ingresar/Consumir.
+- 🗂️ **Drawer lateral**: `InventoryProductDrawer.tsx` panel deslizante con sub-tabs Lotes / Movimientos y acciones rápidas.
+- 🚨 **Banner de alertas**: `InventoryAlerts.tsx` muestra lotes vencidos/por vencer, sin stock y bajo stock con expand/collapse.
+- 🧙 **Wizard de creación**: `InventoryForm.tsx` rediseñado en 2 pasos — datos del producto + stock inicial en una sola experiencia.
+- 📊 **KPIs reales**: `InventoryOverview.tsx` ahora consume datos reales de la API (movimientos/mes, lotes por vencer, sin stock).
+- ⚙️ **Backend**: caso `inventoryStats` agregado en `api/records.js` con migración lazy de columna `preferred_display_unit`.
+- 🧪 **Test script**: `scripts/test-inventory-v2.js` para validar respuesta de `inventoryStats`.
+- 🐛 **Fix**: `injectables.json` cabecera corrupta reparada (bloqueaba el build).
+
 ### ✅ **May 7, 2026: Líneas de tercio, auto-detección y mejoras de UX en mapa 3D**
 - 📐 **4 líneas de borde en Clinical3D**: Añadidos 2 nuevos límites (Med./Inf. y Inf. Bottom) con sliders y colores violeta/esmeralda en la herramienta de diseño.
 - 💾 **JSON con 4 límites**: `handleSaveJson`/`handleImportJson` en Clinical3D.tsx ahora persisten `tercioMedioBottomY` y `tercioInferiorBottomY`.
