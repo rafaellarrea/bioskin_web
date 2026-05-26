@@ -212,7 +212,12 @@ export default function InventoryMovements() {
                 filteredMovements.map((move) => (
                   <tr key={move.id} className={`transition-colors group ${move.quantity_change > 0 ? 'hover:bg-emerald-50/40' : 'hover:bg-red-50/40'}`}>
                     <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                      {format(new Date(move.created_at), 'dd MMM yyyy HH:mm', { locale: es })}
+                      {(() => {
+                        const d = new Date(move.created_at);
+                        return isNaN(d.getTime())
+                          ? <span className="text-red-400">Fecha inválida</span>
+                          : format(d, 'dd MMM yyyy HH:mm', { locale: es });
+                      })()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-800">{move.item_name}</div>
