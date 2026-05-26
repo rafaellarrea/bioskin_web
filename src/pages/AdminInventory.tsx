@@ -101,7 +101,7 @@ export default function AdminInventory() {
   };
 
   const handleDeleteItem = async (item: any) => {
-    if (!window.confirm(`Â¿Eliminar "${item.name}"? Esta acciÃ³n no se puede deshacer.`)) return;
+    if (!window.confirm(`¿Eliminar "${item.name}"? Esta acción no se puede deshacer.`)) return;
     const res = await fetch(`/api/records?action=inventoryDeleteItem&id=${item.id}`, { method: 'DELETE' });
     if (!res.ok) { const e = await res.json(); alert(e.error || 'Error al eliminar'); return; }
     setDrawerItem(null);
@@ -157,7 +157,7 @@ export default function AdminInventory() {
 
   // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
-    <AdminLayout title="Inventario ClÃ­nico" subtitle="GestiÃ³n de productos, stock y trazabilidad">
+    <AdminLayout title="Inventario Clínico" subtitle="Gestión de productos, stock y trazabilidad">
 
       {/* Toast success */}
       <AnimatePresence>

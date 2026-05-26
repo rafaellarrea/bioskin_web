@@ -231,6 +231,11 @@ export default async function handler(req, res) {
 
       case 'inventoryListItems':
         try {
+          // Lazy migration: ensure price columns exist on inventory_items
+          try {
+            await pool.query(`ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2)`);
+            await pool.query(`ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS sale_price NUMERIC(12,2)`);
+          } catch (_) { /* columns already exist */ }
           const items = await pool.query(`
             SELECT 
               i.*,
@@ -352,12 +357,14 @@ export default async function handler(req, res) {
 
       case 'inventoryCreateItem':
         try {
-          const { sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration } = body;
+          const { sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price } = body;
           const newItem = await pool.query(`
-            INSERT INTO inventory_items (sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            INSERT INTO inventory_items (sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING *
-          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration]);
+          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration,
+              cost_price ? parseFloat(cost_price) : null,
+              sale_price ? parseFloat(sale_price) : null]);
           return res.status(201).json(newItem.rows[0]);
         } catch (err) {
           console.error('Error creating inventory item:', err);
@@ -366,13 +373,17 @@ export default async function handler(req, res) {
 
       case 'inventoryUpdateItem':
         try {
-          const { id, sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration } = body;
+          const { id, sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price } = body;
           const updatedItem = await pool.query(`
             UPDATE inventory_items 
-            SET sku = $1, name = $2, description = $3, category = $4, group_name = $5, unit_of_measure = $6, min_stock_level = $7, requires_cold_chain = $8, sanitary_registration = $9
-            WHERE id = $10
+            SET sku = $1, name = $2, description = $3, category = $4, group_name = $5, unit_of_measure = $6, min_stock_level = $7, requires_cold_chain = $8, sanitary_registration = $9,
+                cost_price = $10, sale_price = $11
+            WHERE id = $12
             RETURNING *
-          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, id]);
+          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration,
+              cost_price ? parseFloat(cost_price) : null,
+              sale_price ? parseFloat(sale_price) : null,
+              id]);
           
           if (updatedItem.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
           return res.status(200).json(updatedItem.rows[0]);
@@ -468,15 +479,11 @@ export default async function handler(req, res) {
 
       case 'inventoryConsume':
         try {
-          const { batch_id, quantity, reason, user_id, reference_id, preferred_display_unit, cost_price, sale_price } = body;
+          const { batch_id, quantity, reason, user_id, reference_id, preferred_display_unit } = body;
           
           const client = await pool.connect();
           try {
             await client.query('BEGIN');
-
-            // Lazy migration: add cost/sale columns if not present
-            await client.query(`ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2)`);
-            await client.query(`ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS sale_price NUMERIC(12,2)`);
             
             // Check current stock
             const batchRes = await client.query('SELECT quantity_current, item_id FROM inventory_batches WHERE id = $1', [batch_id]);
@@ -511,9 +518,9 @@ export default async function handler(req, res) {
             // Record Movement only if quantity > 0
             if (quantity > 0) {
               await client.query(`
-                INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id, cost_price, sale_price)
-                VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5, $6, $7)
-              `, [batch_id, -quantity, reason, reference_id, user_id, cost_price ?? null, sale_price ?? null]);
+                INSERT INTO inventory_movements (batch_id, movement_type, quantity_change, reason, reference_id, user_id)
+                VALUES ($1, 'CONSUMPTION', $2, $3, $4, $5)
+              `, [batch_id, -quantity, reason, reference_id, user_id]);
             }
 
             await client.query('COMMIT');

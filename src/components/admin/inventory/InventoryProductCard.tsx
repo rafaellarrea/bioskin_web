@@ -22,6 +22,8 @@ interface InventoryItem {
   requires_cold_chain: boolean;
   sanitary_registration?: string;
   description?: string;
+  cost_price?: number | null;
+  sale_price?: number | null;
 }
 
 interface Props {
@@ -230,6 +232,26 @@ export default function InventoryProductCard({
           )}
         </div>
       </div>
+
+      {/* Precios — solo categoría Venta */}
+      {item.category === 'Venta' && (item.sale_price || item.cost_price) && (
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 text-[11px] text-gray-500">
+            {item.cost_price ? (
+              <span>Costo: <span className="font-semibold text-gray-700">${Number(item.cost_price).toFixed(2)}</span></span>
+            ) : null}
+            {item.cost_price && item.sale_price ? <span className="text-gray-300">|</span> : null}
+            {item.sale_price ? (
+              <span>Venta: <span className="font-semibold text-emerald-600">${Number(item.sale_price).toFixed(2)}</span></span>
+            ) : null}
+            {item.cost_price && item.sale_price && Number(item.cost_price) > 0 ? (
+              <span className="ml-auto text-[10px] text-emerald-500 font-medium">
+                {(((Number(item.sale_price) - Number(item.cost_price)) / Number(item.cost_price)) * 100).toFixed(0)}% margen
+              </span>
+            ) : null}
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="px-3 pb-3 pt-1 border-t border-gray-50 flex items-center gap-2">

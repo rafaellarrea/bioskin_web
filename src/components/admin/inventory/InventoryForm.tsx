@@ -23,7 +23,9 @@ export default function InventoryForm({ initialData, onClose, onSave, onSaveWith
     unit_of_measure: initialData?.unit_of_measure || 'Vial',
     min_stock_level: initialData?.min_stock_level ?? 5,
     requires_cold_chain: initialData?.requires_cold_chain || false,
-    sanitary_registration: initialData?.sanitary_registration || ''
+    sanitary_registration: initialData?.sanitary_registration || '',
+    cost_price: initialData?.cost_price ?? '',
+    sale_price: initialData?.sale_price ?? ''
   });
 
   const [stockData, setStockData] = useState({
@@ -211,6 +213,55 @@ export default function InventoryForm({ initialData, onClose, onSave, onSaveWith
                         onChange={e => f('group_name', e.target.value)} placeholder="Ej. Rellenos" />
                     </div>
                   </div>
+
+                  {/* Precios — solo para categoría Venta */}
+                  {formData.category === 'Venta' && (
+                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 space-y-3">
+                      <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Precios de referencia</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className={labelCls}>Costo de adquisición <span className="normal-case font-normal text-gray-400">(opcional)</span></label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                            <input
+                              type="number" step="0.01" min="0" placeholder="0.00"
+                              className={`${inputCls} pl-7`}
+                              value={formData.cost_price}
+                              onChange={e => f('cost_price', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className={labelCls}>Precio de venta</label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                            <input
+                              type="number" step="0.01" min="0" placeholder="0.00"
+                              className={`${inputCls} pl-7`}
+                              value={formData.sale_price}
+                              onChange={e => f('sale_price', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {formData.cost_price && formData.sale_price && parseFloat(formData.sale_price as string) > 0 && (
+                        <div className="flex justify-between items-center text-xs text-gray-600 border-t border-emerald-100 pt-2">
+                          <span>Margen estimado:</span>
+                          <span className={`font-semibold ${
+                            parseFloat(formData.sale_price as string) - parseFloat(formData.cost_price as string) >= 0
+                              ? 'text-emerald-600' : 'text-red-500'
+                          }`}>
+                            ${(parseFloat(formData.sale_price as string) - parseFloat(formData.cost_price as string)).toFixed(2)}
+                            {parseFloat(formData.cost_price as string) > 0 && (
+                              <span className="text-gray-400 font-normal ml-1">
+                                ({(((parseFloat(formData.sale_price as string) - parseFloat(formData.cost_price as string)) / parseFloat(formData.cost_price as string)) * 100).toFixed(0)}%)
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
