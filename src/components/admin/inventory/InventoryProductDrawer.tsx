@@ -57,6 +57,14 @@ export default function InventoryProductDrawer({ item, onClose, onEdit, onAddSto
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<'batches' | 'movements'>('batches');
 
+  const formatSafeDate = (value: string, pattern: string) => {
+    if (!value) return '-';
+    const normalized = value.includes(' ') ? value.replace(' ', 'T') : value;
+    const parsed = new Date(normalized);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return format(parsed, pattern, { locale: es });
+  };
+
   useEffect(() => {
     if (!item) return;
     setDetail(null);
@@ -72,7 +80,9 @@ export default function InventoryProductDrawer({ item, onClose, onEdit, onAddSto
 
   const getExpiryStatus = (date: string) => {
     if (!date || date.startsWith('2099')) return { label: 'Sin Vencimiento', cls: 'bg-blue-50 text-blue-700', Icon: CheckCircle };
-    const days = differenceInDays(new Date(date), new Date());
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return { label: 'Fecha inválida', cls: 'bg-gray-100 text-gray-500', Icon: AlertCircle };
+    const days = differenceInDays(parsed, new Date());
     if (days < 0) return { label: 'Vencido', cls: 'bg-red-100 text-red-700', Icon: AlertCircle };
     if (days <= 30) return { label: `Vence en ${days}d`, cls: 'bg-orange-100 text-orange-700', Icon: AlertTriangle };
     if (days <= 90) return { label: `${days}d restantes`, cls: 'bg-yellow-100 text-yellow-700', Icon: AlertTriangle };
@@ -267,7 +277,7 @@ export default function InventoryProductDrawer({ item, onClose, onEdit, onAddSto
                         </div>
                         {!batch.expiration_date.startsWith('2099') && (
                           <p className="text-[10px] text-gray-400 mt-1.5">
-                            Vence: {format(new Date(batch.expiration_date), 'dd MMM yyyy', { locale: es })}
+                            Vence: {formatSafeDate(batch.expiration_date, 'dd MMM yyyy')}
                           </p>
                         )}
                       </motion.div>
@@ -301,9 +311,7 @@ export default function InventoryProductDrawer({ item, onClose, onEdit, onAddSto
                               {isIn ? '+' : ''}{mov.quantity_change} {item.unit_of_measure}
                             </span>
                             <span className="text-[10px] text-gray-400 flex-shrink-0">
-                              {mov.created_at
-                                ? format(new Date(mov.created_at.replace(' ', 'T')), 'dd MMM HH:mm', { locale: es })
-                                : '-'}
+                              {formatSafeDate(mov.created_at, 'dd MMM HH:mm')}
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 truncate">{mov.reason || mov.movement_type}</p>
