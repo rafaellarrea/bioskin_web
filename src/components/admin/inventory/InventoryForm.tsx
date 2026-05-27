@@ -4,13 +4,14 @@ import { X, Save, AlertCircle, ChevronRight, ChevronLeft, Package, Plus, Calenda
 
 interface InventoryFormProps {
   initialData?: any;
+  suggestedSku?: string;
   onClose: () => void;
   onSave: (data: any) => Promise<void>;
   /** Called only on new products, with initial stock data */
   onSaveWithStock?: (itemData: any, stockData: any) => Promise<void>;
 }
 
-export default function InventoryForm({ initialData, onClose, onSave, onSaveWithStock }: InventoryFormProps) {
+export default function InventoryForm({ initialData, suggestedSku, onClose, onSave, onSaveWithStock }: InventoryFormProps) {
   const isEditing = !!initialData?.id;
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -177,7 +178,8 @@ export default function InventoryForm({ initialData, onClose, onSave, onSaveWith
                     <div>
                       <label className={labelCls}>SKU / Código</label>
                       <input type="text" className={inputCls} value={formData.sku}
-                        onChange={e => f('sku', e.target.value)} placeholder="Ej. BOT-001" />
+                        onChange={e => f('sku', e.target.value)}
+                        placeholder={!isEditing && suggestedSku ? suggestedSku : 'Ej. BOT-001'} />
                     </div>
                     <div>
                       <label className={labelCls}>Nombre *</label>

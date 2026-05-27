@@ -136,6 +136,9 @@ Tables:
 - src/components/admin/technical/TechnicalDashboard.tsx  // Vista por carpetas de cliente + copiar documentos
 - src/components/admin/technical/TechnicalDocumentForm.tsx // Borradores, edición diferida, plantillas, tipo delivery_receipt y autocompletado de cliente
 - src/components/admin/technical/TechnicalDocumentView.tsx // Formatos imprimibles para recepción, informe, proforma y acta
+
+// Inventory UX (React)
+- src/components/admin/inventory/InventoryForm.tsx // SKU opcional con sugerencia consecutiva (placeholder 3 dígitos, editable)
 ```
 
 #### **AI Service**

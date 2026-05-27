@@ -160,6 +160,16 @@ export default function AdminInventory() {
     return cats.sort();
   }, [items]);
 
+  const suggestedSku = useMemo(() => {
+    const numericSkus = items
+      .map(i => String(i?.sku ?? '').trim())
+      .filter(s => /^\d+$/.test(s))
+      .map(s => parseInt(s, 10));
+
+    const next = (numericSkus.length > 0 ? Math.max(...numericSkus) : items.length) + 1;
+    return String(next).padStart(3, '0');
+  }, [items]);
+
   const TABS = [
     { id: 'inventory' as const, label: 'Inventario', icon: Package },
     { id: 'batches' as const, label: 'Lotes', icon: Calendar },
@@ -343,6 +353,7 @@ export default function AdminInventory() {
       {showForm && (
         <InventoryForm
           initialData={selectedItem}
+          suggestedSku={selectedItem?.id ? undefined : suggestedSku}
           onClose={() => { setShowForm(false); setSelectedItem(null); }}
           onSave={handleCreateItem}
           onSaveWithStock={selectedItem?.id ? undefined : handleCreateWithStock}

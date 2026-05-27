@@ -12,6 +12,7 @@
 
 ### ✅ **May 2026: Rediseño completo pestaña Inventario**
 - ✅ May 27 Fix SKU duplicado vacío + campo marca en alta/edición de producto.
+- ✅ May 27 SKU sugerido consecutivo (placeholder 3 dígitos) en formulario de inventario.
 - 🃏 **Card grid**: `InventoryProductCard.tsx` reemplaza la tabla — grid animado con barra de stock, badges de categoría, menú kebab y botones inline Ingresar/Consumir.
 - 🗂️ **Drawer lateral**: `InventoryProductDrawer.tsx` panel deslizante con sub-tabs Lotes / Movimientos y acciones rápidas.
 - 🚨 **Banner de alertas**: `InventoryAlerts.tsx` muestra lotes vencidos/por vencer, sin stock y bajo stock con expand/collapse.
