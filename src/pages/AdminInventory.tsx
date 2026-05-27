@@ -63,6 +63,15 @@ export default function AdminInventory() {
 
   const refresh = () => { fetchInventory(); fetchStats(); };
 
+  const getApiErrorMessage = async (res: Response, fallback: string) => {
+    try {
+      const data = await res.json();
+      return data?.error || fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   // â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const handleCreateItem = async (data: any) => {
@@ -72,7 +81,9 @@ export default function AdminInventory() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error(data.id ? 'Error al actualizar' : 'Error al crear producto');
+    if (!res.ok) {
+      throw new Error(await getApiErrorMessage(res, data.id ? 'Error al actualizar' : 'Error al crear producto'));
+    }
     const saved = await res.json();
     setSuccessMessage(data.id ? 'Producto actualizado' : 'Producto creado');
     refresh();
@@ -86,7 +97,7 @@ export default function AdminInventory() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(itemData)
     });
-    if (!itemRes.ok) throw new Error('Error al crear producto');
+    if (!itemRes.ok) throw new Error(await getApiErrorMessage(itemRes, 'Error al crear producto'));
     const newItem = await itemRes.json();
 
     // Step 2: add initial batch

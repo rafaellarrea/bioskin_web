@@ -17,6 +17,7 @@ export default function InventoryForm({ initialData, onClose, onSave, onSaveWith
   const [formData, setFormData] = useState({
     sku: initialData?.sku || '',
     name: initialData?.name || '',
+    brand: initialData?.brand || '',
     description: initialData?.description || '',
     category: initialData?.category || 'Inyectable',
     group_name: initialData?.group_name || '',
@@ -183,6 +184,12 @@ export default function InventoryForm({ initialData, onClose, onSave, onSaveWith
                       <input type="text" required className={inputCls} value={formData.name}
                         onChange={e => f('name', e.target.value)} placeholder="Nombre del producto" />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Marca</label>
+                    <input type="text" className={inputCls} value={formData.brand}
+                      onChange={e => f('brand', e.target.value)} placeholder="Ej. Allergan, Galderma" />
                   </div>
 
                   <div>

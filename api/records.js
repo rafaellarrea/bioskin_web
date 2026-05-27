@@ -115,6 +115,19 @@ export default async function handler(req, res) {
       }
     }
 
+    const normalizeOptionalText = (value) => {
+      if (value == null) return null;
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      return trimmed === '' ? null : trimmed;
+    };
+
+    const normalizeOptionalNumber = (value) => {
+      if (value == null || value === '') return null;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
     switch (action) {
       case 'init':
         return res.status(200).json({ message: 'Database initialized (skipped)' });
@@ -235,6 +248,7 @@ export default async function handler(req, res) {
           try {
             await pool.query(`ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2)`);
             await pool.query(`ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS sale_price NUMERIC(12,2)`);
+            await pool.query(`ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS brand VARCHAR(120)`);
           } catch (_) { /* columns already exist */ }
           const items = await pool.query(`
             SELECT 
@@ -357,39 +371,55 @@ export default async function handler(req, res) {
 
       case 'inventoryCreateItem':
         try {
-          const { sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price } = body;
+          const { sku, name, brand, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price } = body;
+          const cleanSku = normalizeOptionalText(sku);
+          const cleanBrand = normalizeOptionalText(brand);
+          const cleanDescription = normalizeOptionalText(description);
+          const cleanGroupName = normalizeOptionalText(group_name);
+          const cleanSanitaryRegistration = normalizeOptionalText(sanitary_registration);
           const newItem = await pool.query(`
-            INSERT INTO inventory_items (sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO inventory_items (sku, name, brand, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
-          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration,
-              cost_price ? parseFloat(cost_price) : null,
-              sale_price ? parseFloat(sale_price) : null]);
+          `, [cleanSku, name, cleanBrand, cleanDescription, category, cleanGroupName, unit_of_measure, min_stock_level, requires_cold_chain, cleanSanitaryRegistration,
+              normalizeOptionalNumber(cost_price),
+              normalizeOptionalNumber(sale_price)]);
           return res.status(201).json(newItem.rows[0]);
         } catch (err) {
           console.error('Error creating inventory item:', err);
-          return res.status(500).json({ error: err.message });
+          if (err.code === '23505' && err.constraint === 'inventory_items_sku_key') {
+            return res.status(409).json({ error: 'El SKU ya existe. Usa otro código o deja el campo vacío.' });
+          }
+          return res.status(500).json({ error: 'Error al crear producto de inventario.' });
         }
 
       case 'inventoryUpdateItem':
         try {
-          const { id, sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price } = body;
+          const { id, sku, name, brand, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration, cost_price, sale_price } = body;
+          const cleanSku = normalizeOptionalText(sku);
+          const cleanBrand = normalizeOptionalText(brand);
+          const cleanDescription = normalizeOptionalText(description);
+          const cleanGroupName = normalizeOptionalText(group_name);
+          const cleanSanitaryRegistration = normalizeOptionalText(sanitary_registration);
           const updatedItem = await pool.query(`
             UPDATE inventory_items 
-            SET sku = $1, name = $2, description = $3, category = $4, group_name = $5, unit_of_measure = $6, min_stock_level = $7, requires_cold_chain = $8, sanitary_registration = $9,
-                cost_price = $10, sale_price = $11
-            WHERE id = $12
+            SET sku = $1, name = $2, brand = $3, description = $4, category = $5, group_name = $6, unit_of_measure = $7, min_stock_level = $8, requires_cold_chain = $9, sanitary_registration = $10,
+                cost_price = $11, sale_price = $12
+            WHERE id = $13
             RETURNING *
-          `, [sku, name, description, category, group_name, unit_of_measure, min_stock_level, requires_cold_chain, sanitary_registration,
-              cost_price ? parseFloat(cost_price) : null,
-              sale_price ? parseFloat(sale_price) : null,
+          `, [cleanSku, name, cleanBrand, cleanDescription, category, cleanGroupName, unit_of_measure, min_stock_level, requires_cold_chain, cleanSanitaryRegistration,
+              normalizeOptionalNumber(cost_price),
+              normalizeOptionalNumber(sale_price),
               id]);
           
           if (updatedItem.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
           return res.status(200).json(updatedItem.rows[0]);
         } catch (err) {
           console.error('Error updating inventory item:', err);
-          return res.status(500).json({ error: err.message });
+          if (err.code === '23505' && err.constraint === 'inventory_items_sku_key') {
+            return res.status(409).json({ error: 'El SKU ya existe. Usa otro código o deja el campo vacío.' });
+          }
+          return res.status(500).json({ error: 'Error al actualizar producto de inventario.' });
         }
 
       case 'inventoryDeleteItem':

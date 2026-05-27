@@ -128,7 +128,7 @@ Tables:
 // Technical Service System (Neon PostgreSQL)
 Tables:
 - technical_service_documents (id, ticket_number, document_type, client_name, status, equipment_data, checklist_data)
-- inventory_items (id, sku, name, category, unit_of_measure)
+- inventory_items (id, sku, name, brand, category, unit_of_measure, cost_price, sale_price)
 - inventory_batches (id, item_id, batch_number, expiration_date, quantity)
 - inventory_movements (id, batch_id, movement_type, quantity_change)
 
