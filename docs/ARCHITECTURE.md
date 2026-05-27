@@ -139,6 +139,7 @@ Tables:
 
 // Inventory UX (React)
 - src/components/admin/inventory/InventoryForm.tsx // SKU opcional con sugerencia consecutiva (placeholder 3 dígitos, editable)
+- src/components/admin/inventory/InventoryProductCard.tsx // Muestra marca y SKU en cada card de inventario
 ```
 
 #### **AI Service**

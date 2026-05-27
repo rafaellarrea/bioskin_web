@@ -10,6 +10,7 @@ interface InventoryItem {
   id: number;
   sku: string;
   name: string;
+  brand?: string;
   category: string;
   group_name?: string;
   unit_of_measure: string;
@@ -138,7 +139,12 @@ export default function InventoryProductCard({
             <h3 className="font-semibold text-gray-900 text-sm leading-snug truncate pr-1" title={item.name}>
               {item.name}
             </h3>
-            <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'Sin SKU'}</p>
+            {item.brand && (
+              <p className="text-[11px] text-gray-500 mt-0.5 truncate" title={item.brand}>
+                Marca: {item.brand}
+              </p>
+            )}
+            <p className="text-[11px] text-gray-500 font-mono mt-0.5">SKU: {item.sku || 'Sin SKU'}</p>
           </div>
 
           {/* Kebab menu */}

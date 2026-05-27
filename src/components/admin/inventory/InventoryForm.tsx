@@ -44,6 +44,15 @@ export default function InventoryForm({ initialData, suggestedSku, onClose, onSa
 
   const f = (field: string, value: any) => setFormData(p => ({ ...p, [field]: value }));
 
+  const getPayloadFormData = () => {
+    const typedSku = String(formData.sku || '').trim();
+    const fallbackSku = !isEditing && suggestedSku ? suggestedSku : '';
+    return {
+      ...formData,
+      sku: typedSku || fallbackSku,
+    };
+  };
+
   const handleStep1Next = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) { setError('El nombre es obligatorio'); return; }
@@ -59,7 +68,7 @@ export default function InventoryForm({ initialData, suggestedSku, onClose, onSa
     setLoading(true);
     setError(null);
     try {
-      await onSave({ ...formData, id: initialData?.id });
+      await onSave({ ...getPayloadFormData(), id: initialData?.id });
       setDone(true);
       setTimeout(() => onClose(), 900);
     } catch (err: any) {
@@ -73,12 +82,13 @@ export default function InventoryForm({ initialData, suggestedSku, onClose, onSa
     setLoading(true);
     setError(null);
     try {
+      const payloadFormData = getPayloadFormData();
       if (skip || !onSaveWithStock) {
-        await onSave({ ...formData });
+        await onSave(payloadFormData);
       } else {
         const finalBatch = stockData.batch_number.trim()
           || `LOTE-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000)}`;
-        await onSaveWithStock({ ...formData }, {
+        await onSaveWithStock(payloadFormData, {
           ...stockData,
           batch_number: finalBatch,
           expiration_date: noExpiry ? '2099-12-31' : stockData.expiration_date

@@ -27,6 +27,10 @@ Usa el agente más especializado posible según el tipo de tarea:
 - Usa scripts o pruebas relevantes antes de afirmar que un fix funciona.
 - No declares éxito sin evidencia fresca.
 
+## Git Workflow (Obligatorio)
+- Después de CADA cambio en el código, ejecutar siempre: `git add .`, `git commit -m "..."`, `git push`.
+- No cerrar una tarea con cambios en archivos sin commit/push.
+
 ## Project Conventions
 - Mantén los cambios de UI en `src/**`; evita `public/*.html` salvo petición explícita.
 - No crear nuevas bases de datos; usar las existentes.
