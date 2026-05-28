@@ -6,14 +6,20 @@ import faceZonesData from '../../../../data/face-zones.json';
 
 export interface Mark {
   id: string;
-  x: number; // percentage 0-100
-  y: number; // percentage 0-100
+  x: number; // percentage 0-100 (legacy 2D) — 0 for 3D marks
+  y: number; // percentage 0-100 (legacy 2D) — 0 for 3D marks
   z?: number; // Not used in 2D
   category: string;
   notes?: string; // Used for Zone Label
   view?: 'front' | 'back'; // For Body Map
   distribution?: 'puntual' | 'zonal';
   severity?: 'leve' | 'moderado' | 'severo' | 'profundo';
+  // 3D fields (used when is3D === true)
+  is3D?: boolean;
+  position3D?: { x: number; y: number; z: number };
+  normal3D?: { x: number; y: number; z: number };
+  rotation3D?: number[];
+  tercio?: string;
 }
 
 interface FaceMapCanvasProps {

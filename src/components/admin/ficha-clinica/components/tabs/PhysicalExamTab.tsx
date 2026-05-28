@@ -2,10 +2,57 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info, Edit2, Check, User, FileText } from 'lucide-react';
 import { CLINICAL_FIELDS, LESION_CATALOG, PARAMETER_TOOLTIPS } from '../../../../../data/clinical-catalogs';
-import FaceMapCanvas, { Mark } from '../FaceMapCanvas';
+import { Mark } from '../FaceMapCanvas';
 import BodyMapCanvas from '../BodyMapCanvas';
+import Clinical3DViewer from '../Clinical3DViewer';
+import type { Marker3D } from '../Clinical3DViewer';
 import { Tooltip } from '../../../../ui/Tooltip';
 import { Select } from '../../../../ui/Select';
+import injectablesCatalog from '../../data/injectables.json';
+import trazadoData from '../../data/trazado-referencia-superior.json';
+
+// ── Constantes para el visor 3D facial ────────────────────────────────────────
+const _trazado = trazadoData as any;
+const TERCIO_BOUNDARIES = _trazado.hairline as {
+  topY: number; bottomY: number;
+  tercioMedioBottomY: number; tercioInferiorBottomY: number;
+};
+// Límite lateral: anchors de "Cola Ceja Izq. → Cola Ceja Der."
+const COLA_CEJA_X = 0.771;
+// Solo la línea de cola de ceja para delimitación lateral visible
+const COLA_CEJA_LINE = (_trazado.referenceLines as any[]).find(
+  (l: any) => l.id === 'line-1778025446677'
+);
+
+const _getCatalogItems = (cat: string): string[] =>
+  (injectablesCatalog as any[])
+    .filter((i: any) => i.categoria === cat && i.activo === 1)
+    .map((i: any) => i.elemento);
+
+const ZONES_SUPERIOR = _getCatalogItems('tercio_superior');
+const ZONES_MEDIO    = _getCatalogItems('tercio_medio');
+const ZONES_INFERIOR = _getCatalogItems('tercio_inferior');
+const ZONES_LATERAL  = ['Sien', 'Región preauricular', 'Oreja', 'Región retroauricular', 'Nuca', 'Cabeza'];
+const ZONES_CUELLO   = ['Mandíbula', 'Ángulo mandibular', 'Área submentoniana', 'Cuello anterior'];
+
+interface FacialRegion { tercio: string; suggestions: string[] }
+
+function getFacialRegion(pos: { x: number; y: number; z: number }): FacialRegion {
+  const { x, y } = pos;
+  if (Math.abs(x) > COLA_CEJA_X) {
+    return { tercio: 'Zona Lateral', suggestions: ZONES_LATERAL };
+  }
+  if (y > TERCIO_BOUNDARIES.bottomY) {
+    return { tercio: 'Tercio Superior', suggestions: ZONES_SUPERIOR };
+  }
+  if (y > TERCIO_BOUNDARIES.tercioMedioBottomY) {
+    return { tercio: 'Tercio Medio', suggestions: ZONES_MEDIO };
+  }
+  if (y > TERCIO_BOUNDARIES.tercioInferiorBottomY) {
+    return { tercio: 'Tercio Inferior', suggestions: ZONES_INFERIOR };
+  }
+  return { tercio: 'Zona Inferior / Cuello', suggestions: ZONES_CUELLO };
+}
 
 interface PhysicalExam {
   id?: number;
@@ -50,7 +97,17 @@ const EMPTY_EXAM: Omit<PhysicalExam, 'record_id'> = {
 };
 
 // Modal Component for Editing Marks
-const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onSave: (m: Mark) => void, onCancel: () => void, categories: string[] }) => {
+const MarkEditModal = ({
+  mark, onSave, onCancel, categories,
+  tercio, suggestedZones,
+}: {
+  mark: Mark;
+  onSave: (m: Mark) => void;
+  onCancel: () => void;
+  categories: string[];
+  tercio?: string;
+  suggestedZones?: string[];
+}) => {
   const [editedMark, setEditedMark] = useState<Mark>({
     ...mark,
     distribution: mark.distribution || 'puntual',
@@ -65,12 +122,17 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
         exit={{ opacity: 0, scale: 0.9 }}
         className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100"
       >
-        <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-4">
+        <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-4">
           <div className="w-1.5 h-6 bg-[#deb887] rounded-full" />
           Detalles de la Lesión
+          {tercio && (
+            <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-[#deb887]/15 text-[#b8956a] border border-[#deb887]/30">
+              {tercio}
+            </span>
+          )}
         </h3>
         
-        <div className="space-y-5">
+        <div className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-bold text-gray-700">Tipo de Lesión</label>
             <input 
@@ -130,22 +192,40 @@ const MarkEditModal = ({ mark, onSave, onCancel, categories }: { mark: Mark, onS
 
           <div className="space-y-2">
             <label className="block text-sm font-bold text-gray-700">Zona / Ubicación</label>
+            {suggestedZones && suggestedZones.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {suggestedZones.map(z => (
+                  <button
+                    key={z}
+                    type="button"
+                    onClick={() => setEditedMark({ ...editedMark, notes: z })}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                      editedMark.notes === z
+                        ? 'bg-[#deb887] text-white border-[#deb887]'
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-[#deb887] hover:text-[#b8956a]'
+                    }`}
+                  >
+                    {z}
+                  </button>
+                ))}
+              </div>
+            )}
             <input 
               type="text"
               value={editedMark.notes || ''}
               onChange={e => setEditedMark({...editedMark, notes: e.target.value})}
               className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#deb887] focus:border-transparent outline-none transition-all bg-gray-50/50 focus:bg-white"
               placeholder="Ej: Mejilla derecha, Frente..."
-              autoFocus
+              autoFocus={!suggestedZones}
             />
             <p className="text-xs text-gray-500 flex items-center gap-1">
               <Info size={12} />
-              Puede ajustar el nombre de la zona manualmente.
+              {suggestedZones ? 'Seleccione una zona sugerida o escríbala.' : 'Puede ajustar el nombre de la zona manualmente.'}
             </p>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
           <motion.button 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -183,6 +263,8 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   // Modal State
   const [editingMark, setEditingMark] = useState<Mark | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // 3D region context for modal suggestions
+  const [pendingRegion, setPendingRegion] = useState<FacialRegion | null>(null);
 
   useEffect(() => {
     if (physicalExams.length > 0 && !currentExam.id) {
@@ -324,7 +406,37 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
     setIsModalOpen(true);
   };
 
+  // 3D model click → identify tercio → open modal with suggestions
+  const handle3DMarkerPlaced = (marker3D: Marker3D) => {
+    if (!selectedCategory) {
+      alert('Por favor seleccione una lesión/categoría primero');
+      return;
+    }
+    const region = getFacialRegion(marker3D.position);
+    setPendingRegion(region);
+    const newMark: Mark = {
+      id: Date.now().toString(),
+      x: 0,
+      y: 0,
+      category: selectedCategory,
+      is3D: true,
+      position3D: marker3D.position,
+      normal3D: marker3D.normal,
+      rotation3D: marker3D.rotation,
+      tercio: region.tercio,
+      notes: '',
+    };
+    setEditingMark(newMark);
+    setIsModalOpen(true);
+  };
+
   const initiateEditMark = (mark: Mark) => {
+    // For 3D marks, restore region context so modal shows suggestions
+    if (mark.is3D && mark.position3D) {
+      setPendingRegion(getFacialRegion(mark.position3D));
+    } else {
+      setPendingRegion(null);
+    }
     setEditingMark(mark);
     setIsModalOpen(true);
   };
@@ -345,6 +457,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
     }
     setIsModalOpen(false);
     setEditingMark(null);
+    setPendingRegion(null);
   };
 
   const removeFaceMark = (id: string) => {
@@ -354,6 +467,22 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   const removeBodyMark = (id: string) => {
     setBodyMarks(prev => prev.filter(m => m.id !== id));
   };
+
+  // Convert face marks to Marker3D[] for the 3D viewer (only 3D marks)
+  const face3DMarkers: Marker3D[] = faceMarks
+    .filter(m => m.is3D && m.position3D)
+    .map(m => ({
+      id: m.id,
+      pathologyId: 'lesion',
+      type: (m.distribution === 'zonal' ? 'Zonal' : 'Puntual') as 'Puntual' | 'Zonal',
+      position: m.position3D!,
+      normal: m.normal3D || { x: 0, y: 0, z: 1 },
+      rotation: m.rotation3D || [0, 0, 0],
+      zone: m.notes || m.tercio || '',
+      radius: 0.3,
+    }));
+
+  const legacyFaceMarks = faceMarks.filter(m => !m.is3D);
 
   return (
     <motion.div 
@@ -366,8 +495,10 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
           <MarkEditModal 
             mark={editingMark} 
             onSave={saveMarkFromModal} 
-            onCancel={() => setIsModalOpen(false)}
+            onCancel={() => { setIsModalOpen(false); setPendingRegion(null); }}
             categories={LESION_CATALOG}
+            tercio={pendingRegion?.tercio}
+            suggestedZones={pendingRegion?.suggestions}
           />
         )}
       </AnimatePresence>
@@ -531,23 +662,34 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                   ))}
                 </datalist>
               </div>
+              {activeTab === 'facial' && !selectedCategory && (
+                <p className="text-xs text-amber-600 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                  <Info size={11} />
+                  Seleccione una lesión antes de marcar en el modelo 3D
+                </p>
+              )}
             </div>
 
-            <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center overflow-auto min-h-[400px]">
+            <div className="flex-1 rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[420px]">
               {activeTab === 'facial' ? (
-                <FaceMapCanvas 
-                  marks={faceMarks} 
-                  onAddMark={initiateAddMark} 
-                  onRemoveMark={removeFaceMark}
-                  selectedCategory={selectedCategory}
+                <Clinical3DViewer
+                  markers={face3DMarkers}
+                  selectedPathology="lesion"
+                  tercioBoundaries={TERCIO_BOUNDARIES}
+                  referenceLines={COLA_CEJA_LINE ? [COLA_CEJA_LINE] : []}
+                  skipConfirmation={true}
+                  onMarkerPlaced={handle3DMarkerPlaced}
+                  height="420px"
                 />
               ) : (
-                <BodyMapCanvas 
-                  marks={bodyMarks} 
-                  onAddMark={initiateAddMark} 
-                  onRemoveMark={removeBodyMark}
-                  selectedCategory={selectedCategory}
-                />
+                <div className="p-6 flex flex-col items-center bg-white h-full">
+                  <BodyMapCanvas 
+                    marks={bodyMarks} 
+                    onAddMark={initiateAddMark} 
+                    onRemoveMark={removeBodyMark}
+                    selectedCategory={selectedCategory}
+                  />
+                </div>
               )}
             </div>
             
@@ -556,6 +698,18 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                 <div className="w-1 h-4 bg-[#deb887] rounded-full" />
                 Lesiones Marcadas ({activeTab === 'facial' ? faceMarks.length : bodyMarks.length})
               </h4>
+
+              {/* Legacy 2D marks banner */}
+              {activeTab === 'facial' && legacyFaceMarks.length > 0 && (
+                <div className="mb-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700">
+                  <Info size={13} className="mt-0.5 shrink-0" />
+                  <span>
+                    <strong>{legacyFaceMarks.length}</strong> marcación{legacyFaceMarks.length > 1 ? 'es' : ''} anterior{legacyFaceMarks.length > 1 ? 'es' : ''} (formato 2D) preservada{legacyFaceMarks.length > 1 ? 's' : ''}.
+                    No se visualizan en el modelo 3D pero sus datos están intactos.
+                  </span>
+                </div>
+              )}
+
               <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-xl bg-white shadow-sm custom-scrollbar">
                 <AnimatePresence>
                   {(activeTab === 'facial' ? faceMarks : bodyMarks).map((mark, i) => (
@@ -566,15 +720,25 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                       key={mark.id} 
                       className="flex justify-between items-center p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-800 text-sm">{i + 1}. {mark.category}</span>
-                        <span className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-medium text-gray-800 text-sm">{i + 1}. {mark.category}</span>
+                          {activeTab === 'facial' && (
+                            mark.is3D
+                              ? <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#deb887]/20 text-[#b8956a] border border-[#deb887]/30">3D</span>
+                              : <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">2D</span>
+                          )}
+                          {mark.tercio && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 truncate max-w-[100px]">{mark.tercio}</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
                           {mark.notes && <span className="font-medium text-gray-600">{mark.notes}</span>}
                           {mark.severity && <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 border border-gray-200">{mark.severity}</span>}
                           {mark.distribution && <span className="text-gray-400 italic">{mark.distribution}</span>}
                         </span>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 shrink-0 ml-2">
                         <Tooltip content="Editar">
                           <button 
                             onClick={() => initiateEditMark(mark)}

@@ -20,6 +20,7 @@ export const PATHOLOGIES = [
   { id: 'thread', name: 'Hilos Tensores', color: '#f59e0b' },
   { id: 'melasma', name: 'Melasma / Pigmentación', color: '#10b981' },
   { id: 'acnescar', name: 'Cicatrices de Acné', color: '#ef4444' },
+  { id: 'lesion', name: 'Lesión Cutánea', color: '#deb887' },
 ];
 
 export type MarkerType = 'Puntual' | 'Zonal';
