@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info, Edit2, Check, User, FileText } from 'lucide-react';
+import { Save, AlertCircle, Plus, Trash2, Copy, Printer, Info, Edit2, Check, User, FileText, Eye, EyeOff } from 'lucide-react';
 import { CLINICAL_FIELDS, LESION_CATALOG, PARAMETER_TOOLTIPS } from '../../../../../data/clinical-catalogs';
 import { Mark } from '../FaceMapCanvas';
 import BodyMapCanvas from '../BodyMapCanvas';
@@ -17,10 +17,10 @@ const TERCIO_BOUNDARIES = _trazado.hairline as {
   topY: number; bottomY: number;
   tercioMedioBottomY: number; tercioInferiorBottomY: number;
 };
-// Límite lateral: X de anchors de "Cola Ceja Izq. → Cola Ceja Der."
-const COLA_CEJA_X_LEFT  = -0.7713958166299704;
-const COLA_CEJA_X_RIGHT =  0.774641619765616;
-const COLA_CEJA_X       =  0.771; // umbral de detección lateral (≈ promedio absoluto)
+// Límite lateral: líneas verticales desplazadas hacia afuera (zona sien/temporal)
+const COLA_CEJA_X_LEFT  = -1.0;
+const COLA_CEJA_X_RIGHT =  1.0;
+const COLA_CEJA_X       =  1.0; // umbral de detección lateral
 // Líneas verticales imaginarias en cola de ceja: de frente-hairline hasta mentón
 const FACE_Y_MAX = 2.2;
 const FACE_Y_MIN = -2.5;
@@ -342,6 +342,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
   const [isModalOpen, setIsModalOpen] = useState(false);
   // 3D region context for modal suggestions
   const [pendingRegion, setPendingRegion] = useState<FacialRegion | null>(null);
+  const [showReferenceLines, setShowReferenceLines] = useState(true);
 
   useEffect(() => {
     if (physicalExams.length > 0 && !currentExam.id) {
@@ -749,15 +750,25 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
 
             <div className="flex-1 rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[420px]">
               {activeTab === 'facial' ? (
-                <Clinical3DViewer
-                  markers={face3DMarkers}
-                  selectedPathology="lesion"
-                  tercioBoundaries={TERCIO_BOUNDARIES}
-                  referenceLines={FACE_REFERENCE_LINES}
-                  skipConfirmation={true}
-                  onMarkerPlaced={handle3DMarkerPlaced}
-                  height="420px"
-                />
+                <div className="relative">
+                  <button
+                    onClick={() => setShowReferenceLines(v => !v)}
+                    className="absolute top-2 right-2 z-10 flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-gray-900/65 text-white hover:bg-gray-900/90 transition-colors border border-white/15 backdrop-blur-sm select-none"
+                    title={showReferenceLines ? 'Ocultar líneas de referencia' : 'Mostrar líneas de referencia'}
+                  >
+                    {showReferenceLines ? <EyeOff size={12} /> : <Eye size={12} />}
+                    {showReferenceLines ? 'Ocultar líneas' : 'Mostrar líneas'}
+                  </button>
+                  <Clinical3DViewer
+                    markers={face3DMarkers}
+                    selectedPathology="lesion"
+                    tercioBoundaries={TERCIO_BOUNDARIES}
+                    referenceLines={showReferenceLines ? FACE_REFERENCE_LINES : []}
+                    skipConfirmation={true}
+                    onMarkerPlaced={handle3DMarkerPlaced}
+                    height="420px"
+                  />
+                </div>
               ) : (
                 <div className="p-6 flex flex-col items-center bg-white h-full">
                   <BodyMapCanvas 
