@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer, Copy,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil, AlertCircle
+  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil, AlertCircle, Undo2
 } from 'lucide-react';
 import { Tooltip } from '../../../../ui/Tooltip';
 import injectablesCatalog from '../../data/injectables.json';
@@ -197,10 +197,21 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const [unitsModalZone, setUnitsModalZone] = useState('');
   const [unitsModalZoneFilter, setUnitsModalZoneFilter] = useState('');
   const [unitsModalPlane, setUnitsModalPlane] = useState('');
+  const [, setDialogPlane] = useState('');
+  // Undo stack: snapshots of {injectionPoints, markers3D, editablePoints} before each mutation
+  const [undoStack, setUndoStack] = useState<Array<{
+    injectionPoints: InjectionPoint[];
+    markers3D: Marker3D[];
+    editablePoints: EditablePoint[];
+  }>>([]);
+  // Clear-points confirmation state
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   // Unit numbers overlay
   const [showUnitNumbers, setShowUnitNumbers] = useState(true);
   const showUnitNumbersRef = useRef(true);
   const unitOverlayRef = useRef<HTMLDivElement>(null);
+  // Timer ref to push undo only once per drag gesture on point-move
+  const moveUndoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep ref in sync with state to avoid closure issues in the RAF callback
   useEffect(() => { showUnitNumbersRef.current = showUnitNumbers; }, [showUnitNumbers]);
@@ -402,6 +413,63 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setUnitsModalZoneFilter('');
     setUnitsModalPlane('');
     setDialogPlane('');
+    setUndoStack([]);
+    setShowClearConfirm(false);
+  };
+
+  // ── pushUndo: snapshot before any point mutation ───────────────────────
+  const pushUndo = useCallback((pts: InjectionPoint[], m3d: Marker3D[], eps: EditablePoint[]) => {
+    setUndoStack(prev => [
+      ...prev.slice(-19),
+      { injectionPoints: pts, markers3D: m3d, editablePoints: eps },
+    ]);
+  }, []);
+
+  // ── handleUndo: restore last snapshot ─────────────────────────────────
+  const handleUndo = useCallback(() => {
+    setUndoStack(prev => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      setInjectionPoints(last.injectionPoints);
+      setMarkers3D(last.markers3D);
+      setEditablePoints(last.editablePoints);
+      setShowClearConfirm(false);
+      return prev.slice(0, -1);
+    });
+  }, []);
+
+  // Ctrl+Z / Cmd+Z → deshacer última acción sobre puntos
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleUndo]);
+
+  // ── handleDuplicate: copia el registro actual sin ID (nuevo) ───────────
+  const handleDuplicate = () => {
+    if (!current.id) return;
+    const hasData = injectionPoints.length > 0 || referenceLines.length > 0 || editablePoints.length > 0;
+    const currentMappingData = hasData
+      ? { injectionPoints, referenceLines, editablePoints }
+      : current.mapping_data;
+    setCurrent({
+      ...current,
+      id: undefined,
+      record_id: undefined,
+      date: getLocalDate(),
+      lot_number: '',
+      expiration_date: '',
+      follow_up_date: '',
+      mapping_data: currentMappingData,
+    });
+    setDateLocked(false);
+    setUndoStack([]);
+    setShowClearConfirm(false);
   };
 
   // ── HANDLERS: Líneas de referencia ──────────────────────────────────────
@@ -626,11 +694,18 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
   /** Punto editable movido en el visor 3D → actualizar posición */
   const handleEditablePointMoved = (id: string, pos: { x: number; y: number; z: number }) => {
+    // Push undo only once per drag gesture (debounced: resets 800ms after last move event)
+    if (!moveUndoTimerRef.current) {
+      pushUndo(injectionPoints, markers3D, editablePoints);
+    }
+    if (moveUndoTimerRef.current) clearTimeout(moveUndoTimerRef.current);
+    moveUndoTimerRef.current = setTimeout(() => { moveUndoTimerRef.current = null; }, 800);
     setEditablePoints(prev => prev.map(p => p.id === id ? { ...p, ...pos } : p));
   };
 
   /** Punto editable eliminado en el visor 3D */
   const handleEditablePointDeleted = (id: string) => {
+    pushUndo(injectionPoints, markers3D, editablePoints);
     setEditablePoints(prev => prev.filter(p => p.id !== id));
     setInjectionPoints(prev => prev.filter(ip => ip.editablePointId !== id));
     setMarkers3D(prev => prev.filter((_, i) => {
@@ -645,6 +720,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
 
     if (unitsModal.isNewPoint && pendingFreePoint) {
       // ── Punto libre nuevo (free-click o add-mode) ──────────────────────
+      pushUndo(injectionPoints, markers3D, editablePoints);
       const freeCount = injectionPoints.filter(ip => ip.label?.startsWith('punto libre')).length;
       const effectiveTercio = (unitsModalTercio || 'superior') as 'superior' | 'medio' | 'inferior';
       const effectiveLabel = unitsModalZone || `punto libre ${freeCount + 1}`;
@@ -677,7 +753,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       // ── Punto existente (trazado o libre ya guardado) ─────────────────
       const pt = editablePoints.find(p => p.id === unitsModal.pointId);
       if (!pt) { setUnitsModal(null); return; }
-
+      pushUndo(injectionPoints, markers3D, editablePoints);
       const existingIdx = injectionPoints.findIndex(ip => ip.editablePointId === unitsModal.pointId);
       const existing = existingIdx >= 0 ? injectionPoints[existingIdx] : null;
       const effectiveTercio = unitsModalTercio || existing?.tercio || 'superior';
@@ -724,6 +800,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       follow_up_date: toDateOnly(inj.follow_up_date),
     });
     setDateLocked(true);
+    setUndoStack([]);
+    setShowClearConfirm(false);
   };
 
   // 3D click → abrir modal en paso de UI (unidades)
@@ -754,6 +832,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   };
 
   const handleRemovePoint = (index: number) => {
+    pushUndo(injectionPoints, markers3D, editablePoints);
     setInjectionPoints(prev => prev.filter((_, i) => i !== index));
     setMarkers3D(prev => prev.filter((_, i) => i !== index));
   };
@@ -1044,7 +1123,18 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   </div>
                   <div className={`flex items-center justify-between text-xs ${isActive ? 'text-white/70' : 'text-gray-400'}`}>
                     <span>{isToxina ? 'Toxina' : 'Relleno'}{areas.length > 0 ? ` · ${areas.slice(0, 2).join(', ')}` : ''}</span>
-                    <Droplets className="w-3.5 h-3.5 opacity-60" />
+                    <div className="flex items-center gap-1">
+                      {isActive && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDuplicate(); }}
+                          title="Duplicar este registro"
+                          className="p-0.5 rounded hover:bg-white/20 transition-colors"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      )}
+                      <Droplets className="w-3.5 h-3.5 opacity-60" />
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -1053,17 +1143,32 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
         </div>
 
         {/* Bottom action in sidebar */}
-        <Tooltip content="Nuevo Inyectable">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handleNew}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            Nuevo Inyectable
-          </motion.button>
-        </Tooltip>
+        <div className="flex flex-col gap-2">
+          <Tooltip content="Nuevo Inyectable">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleNew}
+              className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Nuevo Inyectable
+            </motion.button>
+          </Tooltip>
+          {current.id && (
+            <Tooltip content="Duplicar el registro seleccionado para editarlo">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleDuplicate}
+                className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 transition-all"
+              >
+                <Copy className="w-4 h-4" />
+                Duplicar seleccionado
+              </motion.button>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       {/* ========== MAIN CONTENT ========== */}
@@ -1123,6 +1228,30 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                 className="p-2 hover:bg-red-50 rounded-lg text-red-500 border border-red-100 disabled:opacity-30"
               >
                 <Trash2 className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Duplicar registro seleccionado para editar">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDuplicate}
+                disabled={!current.id}
+                className="p-2 hover:bg-amber-50 rounded-lg text-amber-600 border border-amber-100 disabled:opacity-30"
+              >
+                <Copy className="w-5 h-5" />
+              </motion.button>
+            </Tooltip>
+
+            <Tooltip content="Deshacer última acción (Ctrl+Z)">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleUndo}
+                disabled={undoStack.length === 0}
+                className="p-2 hover:bg-blue-50 rounded-lg text-blue-500 border border-blue-100 disabled:opacity-30"
+              >
+                <Undo2 className="w-5 h-5" />
               </motion.button>
             </Tooltip>
           </div>
@@ -1707,18 +1836,71 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
                   </AnimatePresence>
                 </div>{/* /relative */}
 
-                {/* Bottom bar */}
-                {injectionPoints.length > 0 && (
-                  <div className="mt-3 flex items-center justify-between px-1">
-                    <span className="text-xs text-gray-500">
-                      {injectionPoints.length} punto(s) · {totalUsed} {unitLabel} aplicadas
+                {/* Bottom bar — controles de puntos + deshacer */}
+                {(injectionPoints.length > 0 || undoStack.length > 0) && (
+                  <div className="mt-3 flex items-center justify-between gap-2 px-1">
+                    {/* Estado de puntos */}
+                    <span className="text-xs text-gray-500 shrink-0">
+                      {injectionPoints.length > 0
+                        ? `${injectionPoints.length} punto(s) · ${totalUsed} ${unitLabel} aplicadas`
+                        : <span className="italic text-gray-400">Puntos limpiados</span>
+                      }
                     </span>
-                    <button
-                      onClick={() => { setMarkers3D([]); setInjectionPoints([]); }}
-                      className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                    >
-                      Limpiar todos
-                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {/* Botón deshacer — visible cuando hay acciones en el stack */}
+                      {undoStack.length > 0 && (
+                        <button
+                          onClick={handleUndo}
+                          title="Deshacer (Ctrl+Z)"
+                          className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          <Undo2 className="w-3.5 h-3.5" />
+                          Deshacer
+                        </button>
+                      )}
+
+                      {/* Botón limpiar todos con confirmación */}
+                      {injectionPoints.length > 0 && (
+                        !showClearConfirm ? (
+                          <button
+                            onClick={() => setShowClearConfirm(true)}
+                            className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                          >
+                            Limpiar puntos
+                          </button>
+                        ) : (
+                          <AnimatePresence>
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              className="flex items-center gap-1.5 bg-red-50 border border-red-100 px-2 py-1 rounded-lg"
+                            >
+                              <span className="text-xs text-red-600 font-medium">¿Eliminar todos los puntos?</span>
+                              <button
+                                onClick={() => {
+                                  pushUndo(injectionPoints, markers3D, editablePoints);
+                                  setMarkers3D([]);
+                                  setInjectionPoints([]);
+                                  setEditablePoints([]);
+                                  setShowClearConfirm(false);
+                                }}
+                                className="text-xs font-semibold text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded transition-colors"
+                              >
+                                Sí
+                              </button>
+                              <button
+                                onClick={() => setShowClearConfirm(false)}
+                                className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                              >
+                                No
+                              </button>
+                            </motion.div>
+                          </AnimatePresence>
+                        )
+                      )}
+                    </div>
                   </div>
                 )}
               </div>{/* /flex-1 */}
