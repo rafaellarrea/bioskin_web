@@ -6,9 +6,9 @@ import { Mark } from '../FaceMapCanvas';
 import BodyMapCanvas from '../BodyMapCanvas';
 import Clinical3DViewer from '../Clinical3DViewer';
 import type { Marker3D } from '../Clinical3DViewer';
+import type { ReferenceLine } from '../ReferenceLinePanel';
 import { Tooltip } from '../../../../ui/Tooltip';
 import { Select } from '../../../../ui/Select';
-import injectablesCatalog from '../../data/injectables.json';
 import trazadoData from '../../data/trazado-referencia-superior.json';
 
 // ── Constantes para el visor 3D facial ────────────────────────────────────────
@@ -17,23 +17,107 @@ const TERCIO_BOUNDARIES = _trazado.hairline as {
   topY: number; bottomY: number;
   tercioMedioBottomY: number; tercioInferiorBottomY: number;
 };
-// Límite lateral: anchors de "Cola Ceja Izq. → Cola Ceja Der."
-const COLA_CEJA_X = 0.771;
-// Solo la línea de cola de ceja para delimitación lateral visible
+// Límite lateral: X de anchors de "Cola Ceja Izq. → Cola Ceja Der."
+const COLA_CEJA_X_LEFT  = -0.7713958166299704;
+const COLA_CEJA_X_RIGHT =  0.774641619765616;
+const COLA_CEJA_X       =  0.771; // umbral de detección lateral (≈ promedio absoluto)
+
+// Línea horizontal cola de ceja (two-points) — desde el JSON
 const COLA_CEJA_LINE = (_trazado.referenceLines as any[]).find(
   (l: any) => l.id === 'line-1778025446677'
-);
+) as ReferenceLine | undefined;
 
-const _getCatalogItems = (cat: string): string[] =>
-  (injectablesCatalog as any[])
-    .filter((i: any) => i.categoria === cat && i.activo === 1)
-    .map((i: any) => i.elemento);
+// Líneas verticales imaginarias en cola de ceja: de frente-hairline hasta mentón
+const FACE_Y_MAX = 2.2;
+const FACE_Y_MIN = -2.5;
+const COLA_CEJA_VERTICALS: ReferenceLine[] = [
+  {
+    id: 'ceja-vert-izq',
+    type: 'vertical',
+    label: 'Límite lateral Izq.',
+    color: '#38bdf8',
+    visible: true,
+    dashed: true,
+    anchor: { x: COLA_CEJA_X_LEFT, y: 0, z: 0 },
+    offset: 0,
+    yMin: FACE_Y_MIN,
+    yMax: FACE_Y_MAX,
+  },
+  {
+    id: 'ceja-vert-der',
+    type: 'vertical',
+    label: 'Límite lateral Der.',
+    color: '#38bdf8',
+    visible: true,
+    dashed: true,
+    anchor: { x: COLA_CEJA_X_RIGHT, y: 0, z: 0 },
+    offset: 0,
+    yMin: FACE_Y_MIN,
+    yMax: FACE_Y_MAX,
+  },
+];
 
-const ZONES_SUPERIOR = _getCatalogItems('tercio_superior');
-const ZONES_MEDIO    = _getCatalogItems('tercio_medio');
-const ZONES_INFERIOR = _getCatalogItems('tercio_inferior');
-const ZONES_LATERAL  = ['Sien', 'Región preauricular', 'Oreja', 'Región retroauricular', 'Nuca', 'Cabeza'];
-const ZONES_CUELLO   = ['Mandíbula', 'Ángulo mandibular', 'Área submentoniana', 'Cuello anterior'];
+const FACE_REFERENCE_LINES: ReferenceLine[] = [
+  ...(COLA_CEJA_LINE ? [COLA_CEJA_LINE] : []),
+  ...COLA_CEJA_VERTICALS,
+];
+
+// ── Zonas sugeridas por tercio (anatómicamente correctas, piel del rostro) ────
+// Tercio superior: frente — desde cejas hasta nacimiento del cabello
+const ZONES_SUPERIOR = [
+  'Frente central',
+  'Frente lateral',
+  'Glabela',
+  'Entrecejo',
+  'Región superciliar (cejas)',
+  'Cola de ceja',
+  'Líneas de expresión frontal',
+  'Región temporal superior',
+];
+// Tercio medio: zona ocular, nasal y malar — desde base del ojo hasta base de nariz
+const ZONES_MEDIO = [
+  'Párpado superior',
+  'Párpado inferior',
+  'Surco palpebral inferior (ojeras)',
+  'Valle de lágrimas',
+  'Región infraorbitaria',
+  'Patas de gallo',
+  'Dorso nasal',
+  'Punta nasal',
+  'Alas nasales',
+  'Pómulo / región malar',
+  'Mejilla',
+  'Surco nasogeniano',
+  'Región cigomática',
+];
+// Tercio inferior: perioral, mentón y mandíbula — desde base de nariz hasta límite inferior
+const ZONES_INFERIOR = [
+  'Labio superior',
+  'Labio inferior',
+  'Filtrum (surco subnasal)',
+  'Comisuras labiales',
+  'Surco perioral (código de barras)',
+  'Surco marioneta',
+  'Mentón',
+  'Región mentoniana',
+  'Área submentoniana / papada',
+  'Línea mandibular',
+];
+const ZONES_LATERAL = [
+  'Sien',
+  'Región preauricular',
+  'Oreja',
+  'Región retroauricular',
+  'Nuca',
+  'Cabeza',
+];
+const ZONES_CUELLO = [
+  'Mandíbula',
+  'Ángulo mandibular',
+  'Área submentoniana',
+  'Cuello anterior',
+  'Cuello lateral',
+];
 
 interface FacialRegion { tercio: string; suggestions: string[] }
 
@@ -479,7 +563,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
       normal: m.normal3D || { x: 0, y: 0, z: 1 },
       rotation: m.rotation3D || [0, 0, 0],
       zone: m.notes || m.tercio || '',
-      radius: 0.3,
+      radius: 0.1,
     }));
 
   const legacyFaceMarks = faceMarks.filter(m => !m.is3D);
@@ -676,7 +760,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                   markers={face3DMarkers}
                   selectedPathology="lesion"
                   tercioBoundaries={TERCIO_BOUNDARIES}
-                  referenceLines={COLA_CEJA_LINE ? [COLA_CEJA_LINE] : []}
+                  referenceLines={FACE_REFERENCE_LINES}
                   skipConfirmation={true}
                   onMarkerPlaced={handle3DMarkerPlaced}
                   height="420px"
