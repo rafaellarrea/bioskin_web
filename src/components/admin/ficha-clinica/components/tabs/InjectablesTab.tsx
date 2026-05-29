@@ -465,9 +465,6 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
       id: undefined,
       record_id: undefined,
       date: getLocalDate(),
-      lot_number: '',
-      expiration_date: '',
-      follow_up_date: '',
       mapping_data: currentMappingData,
     });
     setDateLocked(false);
