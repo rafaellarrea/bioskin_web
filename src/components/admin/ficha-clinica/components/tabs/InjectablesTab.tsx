@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Droplets, Plus, Save, Trash2, Printer, Copy,
   ChevronDown, ChevronUp, Box, Calendar,
-  FlaskConical, Crosshair, Gauge, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil, AlertCircle, Undo2
+  FlaskConical, Crosshair, X, Check, Info, Images, Minus, Eye, EyeOff, Pencil, AlertCircle, Undo2
 } from 'lucide-react';
 import { Tooltip } from '../../../../ui/Tooltip';
 import injectablesCatalog from '../../data/injectables.json';
@@ -212,6 +212,8 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
   const unitOverlayRef = useRef<HTMLDivElement>(null);
   // Timer ref to push undo only once per drag gesture on point-move
   const moveUndoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // True while the form holds an unsaved duplicate (shows pending card in sidebar)
+  const [isPendingDuplicate, setIsPendingDuplicate] = useState(false);
 
   // Keep ref in sync with state to avoid closure issues in the RAF callback
   useEffect(() => { showUnitNumbersRef.current = showUnitNumbers; }, [showUnitNumbers]);
@@ -415,6 +417,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setDialogPlane('');
     setUndoStack([]);
     setShowClearConfirm(false);
+    setIsPendingDuplicate(false);
   };
 
   // ── pushUndo: snapshot before any point mutation ───────────────────────
@@ -470,6 +473,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setDateLocked(false);
     setUndoStack([]);
     setShowClearConfirm(false);
+    setIsPendingDuplicate(true);
   };
 
   // ── HANDLERS: Líneas de referencia ──────────────────────────────────────
@@ -802,6 +806,7 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
     setDateLocked(true);
     setUndoStack([]);
     setShowClearConfirm(false);
+    setIsPendingDuplicate(false);
   };
 
   // 3D click → abrir modal en paso de UI (unidades)
@@ -1091,14 +1096,38 @@ export default function InjectablesTab({ recordId, injectables: initialInjectabl
           Historial de Inyectables
         </div>
         <div className="flex-1 overflow-y-auto space-y-3 max-h-[200px] md:max-h-none pr-2 custom-scrollbar">
-          {injectables.length === 0 ? (
+          {/* Pending duplicate card — shown at top while unsaved */}
+          {isPendingDuplicate && (
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="p-4 rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600">
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Duplicado — hoy</span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded-full">
+                  Sin guardar
+                </span>
+              </div>
+              <div className="font-semibold text-sm leading-tight truncate text-gray-800 mb-1">
+                {current.product_name || <span className="italic font-normal text-gray-400">Sin nombre</span>}
+              </div>
+              <div className="text-xs text-amber-600/70">
+                {current.product_type === 'toxina' ? 'Toxina' : 'Relleno'} · Editando ahora
+              </div>
+            </motion.div>
+          )}
+          {injectables.length === 0 && !isPendingDuplicate ? (
             <div className="text-gray-400 text-sm text-center py-8 flex flex-col items-center gap-2">
               <AlertCircle className="w-8 h-8 opacity-20" />
               No hay inyectables previos
             </div>
           ) : (
             injectables.map((inj, index) => {
-              const isActive = current.id === inj.id;
+              const isActive = !isPendingDuplicate && current.id === inj.id;
               const isToxina = inj.product_type === 'toxina';
               const dateStr = inj.date ? new Date(toDateOnly(inj.date) + 'T12:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: '2-digit' }) : '';
               const areas = Array.isArray(inj.areas_treated) ? inj.areas_treated : [];
