@@ -762,7 +762,7 @@ export default function PhysicalExamTab({ recordId, physicalExams, patientName, 
                   <Clinical3DViewer
                     markers={face3DMarkers}
                     selectedPathology="lesion"
-                    tercioBoundaries={TERCIO_BOUNDARIES}
+                    tercioBoundaries={showReferenceLines ? TERCIO_BOUNDARIES : null}
                     referenceLines={showReferenceLines ? FACE_REFERENCE_LINES : []}
                     skipConfirmation={true}
                     onMarkerPlaced={handle3DMarkerPlaced}

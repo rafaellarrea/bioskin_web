@@ -4,8 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import {
-  Loader2, AlertCircle, Upload,
-  RotateCw, RotateCcw
+  Loader2, AlertCircle, Upload
 } from 'lucide-react';
 import type { ReferenceLine, LineType } from './ReferenceLinePanel';
 export type { ReferenceLine, LineType };
@@ -1198,23 +1197,6 @@ export default function Clinical3DViewer({
     event.target.value = '';
   };
 
-  const handleRotate = (direction: 'left' | 'right') => {
-    // @ts-ignore
-    const controls = window.clinical3d_controls_embed;
-    if (!controls) return;
-    const camera = controls.object;
-    const r = camera.position.distanceTo(controls.target);
-    let phi = Math.acos((camera.position.y - controls.target.y) / r);
-    let theta = Math.atan2(camera.position.z - controls.target.z, camera.position.x - controls.target.x);
-    theta += direction === 'left' ? 0.5 : -0.5;
-    camera.position.set(
-      r * Math.sin(phi) * Math.cos(theta) + controls.target.x,
-      r * Math.cos(phi) + controls.target.y,
-      r * Math.sin(phi) * Math.sin(theta) + controls.target.z
-    );
-    controls.update();
-  };
-
   const isLoading = !modelLoaded && !modelError;
 
   return (
@@ -1264,18 +1246,6 @@ export default function Clinical3DViewer({
             Subir .glb
             <input type="file" accept=".glb,.gltf" className="hidden" onChange={handleFileUpload} />
           </label>
-        </div>
-      )}
-
-      {/* Mini controls overlay */}
-      {modelLoaded && !modelError && (
-        <div className="absolute top-2 right-2 z-10 flex gap-1">
-          <button onClick={() => handleRotate('left')} className="p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded text-white" title="Rotar izquierda">
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={() => handleRotate('right')} className="p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded text-white" title="Rotar derecha">
-            <RotateCw className="w-3.5 h-3.5" />
-          </button>
         </div>
       )}
 
