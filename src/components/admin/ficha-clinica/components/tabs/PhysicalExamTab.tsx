@@ -21,12 +21,6 @@ const TERCIO_BOUNDARIES = _trazado.hairline as {
 const COLA_CEJA_X_LEFT  = -0.7713958166299704;
 const COLA_CEJA_X_RIGHT =  0.774641619765616;
 const COLA_CEJA_X       =  0.771; // umbral de detección lateral (≈ promedio absoluto)
-
-// Línea horizontal cola de ceja (two-points) — desde el JSON
-const COLA_CEJA_LINE = (_trazado.referenceLines as any[]).find(
-  (l: any) => l.id === 'line-1778025446677'
-) as ReferenceLine | undefined;
-
 // Líneas verticales imaginarias en cola de ceja: de frente-hairline hasta mentón
 const FACE_Y_MAX = 2.2;
 const FACE_Y_MIN = -2.5;
@@ -58,7 +52,6 @@ const COLA_CEJA_VERTICALS: ReferenceLine[] = [
 ];
 
 const FACE_REFERENCE_LINES: ReferenceLine[] = [
-  ...(COLA_CEJA_LINE ? [COLA_CEJA_LINE] : []),
   ...COLA_CEJA_VERTICALS,
 ];
 
