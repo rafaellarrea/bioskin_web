@@ -69,6 +69,29 @@ function getPool() {
   }
 }
 
+// Obtiene usuario de sesión para tenant scoping.
+// Retorna {role, clinic_id, user_id, access_scope, username} o null (pre-migración / sin auth).
+async function getSessionUser(pool, req) {
+  const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
+  if (!token) return null;
+  try {
+    const r = await pool.query(`
+      SELECT s.role, s.clinic_id, s.clinic_user_id as user_id, s.access_scope, s.username
+      FROM admin_sessions s
+      LEFT JOIN clinic_users cu ON cu.id = s.clinic_user_id
+      WHERE s.session_token = $1
+        AND s.is_active = true
+        AND s.expires_at > NOW()
+        AND (s.clinic_user_id IS NULL OR cu.is_active = true)
+    `, [token]);
+    if (!r.rows.length) return null;
+    const s = r.rows[0];
+    return { role: s.role || 'clinic_admin', clinic_id: s.clinic_id, user_id: s.user_id, access_scope: s.access_scope || 'all', username: s.username };
+  } catch {
+    return null; // pre-migración: columnas nuevas aún no existen, acceso irrestricto
+  }
+}
+
 export default async function handler(req, res) {
   console.log(`[Clinical Records API] Request received: ${req.method} ${req.url}`);
 
@@ -566,22 +589,41 @@ export default async function handler(req, res) {
           return res.status(500).json({ error: err.message });
         }
 
-      case 'listPatients':
-        const patients = await pool.query('SELECT * FROM patients ORDER BY last_name, first_name');
+      case 'listPatients': {
+        const su = await getSessionUser(pool, req);
+        const filterMine = req.query.filterMine === 'true';
+        let pq, pp = [];
+        if (!su || su.clinic_id == null) {
+          // Pre-migración o sesión legacy → todos los pacientes (backwards compat)
+          pq = 'SELECT * FROM patients ORDER BY last_name, first_name';
+        } else if (su.role === 'master_admin') {
+          const cf = req.query.clinicId ? parseInt(req.query.clinicId) : null;
+          if (cf) { pq = 'SELECT * FROM patients WHERE clinic_id = $1 ORDER BY last_name, first_name'; pp = [cf]; }
+          else { pq = 'SELECT * FROM patients ORDER BY last_name, first_name'; }
+        } else if (su.access_scope === 'own' || (su.access_scope === 'all' && filterMine)) {
+          pq = 'SELECT * FROM patients WHERE clinic_id = $1 AND (created_by_user_id = $2 OR created_by_user_id IS NULL) ORDER BY last_name, first_name';
+          pp = [su.clinic_id, su.user_id];
+        } else {
+          pq = 'SELECT * FROM patients WHERE clinic_id = $1 ORDER BY last_name, first_name';
+          pp = [su.clinic_id];
+        }
+        const patients = await pool.query(pq, pp);
         return res.status(200).json(patients.rows);
+      }
 
-      case 'getPatient':
+      case 'getPatient': {
         const { id } = req.query;
         const patient = await pool.query('SELECT * FROM patients WHERE id = $1', [id]);
         if (patient.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
-        
+        // Clinic scope check
+        const su = await getSessionUser(pool, req);
+        if (su?.clinic_id != null && patient.rows[0].clinic_id != null && patient.rows[0].clinic_id !== su.clinic_id && su.role !== 'master_admin') {
+          return res.status(403).json({ error: 'Acceso no autorizado a este paciente' });
+        }
         // Also fetch active record ID
         const record = await pool.query('SELECT id FROM clinical_records WHERE patient_id = $1 AND status = \'active\' LIMIT 1', [id]);
-        
-        return res.status(200).json({ 
-          ...patient.rows[0], 
-          active_record_id: record.rows[0]?.id || null 
-        });
+        return res.status(200).json({ ...patient.rows[0], active_record_id: record.rows[0]?.id || null });
+      }
 
       case 'listRecords':
         const { patient_id } = req.query;
@@ -608,12 +650,27 @@ export default async function handler(req, res) {
           // Handle empty strings as null for optional fields
           const cleanRut = rut && rut.trim() !== '' ? rut.trim() : null;
           const cleanBirthDate = birth_date && birth_date.trim() !== '' ? birth_date : null;
-          
-          const newPatient = await pool.query(
-            `INSERT INTO patients (first_name, last_name, rut, email, phone, birth_date, gender, address, occupation) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-            [first_name, last_name, cleanRut, email, phone, cleanBirthDate, gender, address, occupation]
-          );
+
+          // Obtener clinic_id y created_by_user_id desde sesión (post-migración)
+          const suCreate = await getSessionUser(pool, req);
+          const patientClinicId = suCreate?.clinic_id ?? null;
+          const patientCreatedBy = suCreate?.user_id ?? null;
+
+          // Usar INSERT con columnas de tenant si están disponibles
+          let newPatient;
+          if (patientClinicId != null) {
+            newPatient = await pool.query(
+              `INSERT INTO patients (first_name, last_name, rut, email, phone, birth_date, gender, address, occupation, clinic_id, created_by_user_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+              [first_name, last_name, cleanRut, email, phone, cleanBirthDate, gender, address, occupation, patientClinicId, patientCreatedBy]
+            );
+          } else {
+            newPatient = await pool.query(
+              `INSERT INTO patients (first_name, last_name, rut, email, phone, birth_date, gender, address, occupation)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+              [first_name, last_name, cleanRut, email, phone, cleanBirthDate, gender, address, occupation]
+            );
+          }
           // Create an initial clinical record for the patient
           await pool.query('INSERT INTO clinical_records (patient_id, status) VALUES ($1, \'active\')', [newPatient.rows[0].id]);
           
@@ -639,10 +696,21 @@ export default async function handler(req, res) {
 
       case 'updatePatient': {
         const { id: pid, ...updates } = body;
-        const fields = Object.keys(updates);
-        const values = Object.values(updates);
+        // Whitelist de campos permitidos (previene SQL injection por nombres de columna)
+        const ALLOWED_PATIENT_FIELDS = ['first_name', 'last_name', 'rut', 'email', 'phone', 'birth_date', 'gender', 'address', 'occupation'];
+        const safe = Object.fromEntries(Object.entries(updates).filter(([k]) => ALLOWED_PATIENT_FIELDS.includes(k)));
+        // Clinic scope check
+        const suUpd = await getSessionUser(pool, req);
+        if (suUpd?.clinic_id != null) {
+          const chk = await pool.query('SELECT clinic_id FROM patients WHERE id = $1', [pid]);
+          if (chk.rows.length && chk.rows[0].clinic_id != null && chk.rows[0].clinic_id !== suUpd.clinic_id && suUpd.role !== 'master_admin') {
+            return res.status(403).json({ error: 'Acceso no autorizado' });
+          }
+        }
+        const fields = Object.keys(safe);
+        if (!fields.length) return res.status(400).json({ error: 'Sin campos válidos para actualizar' });
+        const values = Object.values(safe);
         const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ');
-        
         const updatedPatient = await pool.query(
           `UPDATE patients SET ${setClause}, updated_at = NOW() WHERE id = $1 RETURNING *`,
           [pid, ...values]
@@ -650,11 +718,16 @@ export default async function handler(req, res) {
         return res.status(200).json(updatedPatient.rows[0]);
       }
 
-      case 'deletePatient':
+      case 'deletePatient': {
         const { id: delPid } = req.query;
-        // Delete related records first (cascade usually handles this but good to be explicit or safe)
-        // Assuming cascade delete is set up in DB, otherwise we need to delete children first.
-        // For safety, let's just delete the patient and let DB handle constraints or errors.
+        // Clinic scope check
+        const suDel = await getSessionUser(pool, req);
+        if (suDel?.clinic_id != null) {
+          const chk = await pool.query('SELECT clinic_id FROM patients WHERE id = $1', [delPid]);
+          if (chk.rows.length && chk.rows[0].clinic_id != null && chk.rows[0].clinic_id !== suDel.clinic_id && suDel.role !== 'master_admin') {
+            return res.status(403).json({ error: 'Acceso no autorizado' });
+          }
+        }
         try {
           await pool.query('DELETE FROM patients WHERE id = $1', [delPid]);
           return res.status(200).json({ success: true });
@@ -662,6 +735,7 @@ export default async function handler(req, res) {
           console.error('Error deleting patient:', err);
           return res.status(500).json({ error: 'Error al eliminar paciente. Puede tener registros asociados.' });
         }
+      }
 
       case 'deleteRecord':
         const { id: delRecordId } = req.query;

@@ -5,6 +5,1150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración - BIOSKIN</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    @media (max-width: 768px) { body { padding: 10px; } }
+
+    .dashboard-container {
+      max-width: 1100px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 { font-size: 28px; margin-bottom: 8px; }
+    .header p  { font-size: 14px; opacity: 0.9; }
+    .user-info {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 18px;
+      border-radius: 25px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      backdrop-filter: blur(10px);
+      font-size: 14px;
+    }
+    .role-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .role-badge.master_admin  { background: #f59e0b; color: white; }
+    .role-badge.clinic_admin  { background: rgba(255,255,255,0.9); color: #667eea; }
+    .role-badge.clinic_user   { background: #10b981; color: white; }
+
+    /* ── Tab nav ── */
+    .tab-nav {
+      display: flex;
+      border-bottom: 2px solid #e5e7eb;
+      background: white;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 14px 24px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: #667eea; }
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    /* ── Content ── */
+    .content { padding: 30px; }
+    @media (max-width: 768px) { .content { padding: 20px; } }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(102,126,234,0.2); border-color: #667eea; }
+    .card-icon  { font-size: 40px; margin-bottom: 12px; }
+    .card-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
+    .card-description { font-size: 13px; color: #666; line-height: 1.5; }
+
+    /* ── Clinic stat cards ── */
+    .clinic-card {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 22px;
+      transition: all 0.3s ease;
+    }
+    .clinic-card:hover { box-shadow: 0 6px 20px rgba(102,126,234,0.15); border-color: #667eea; }
+    .clinic-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .clinic-name { font-size: 16px; font-weight: 700; color: #333; }
+    .clinic-slug { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .clinic-stats { display: flex; gap: 16px; margin-top: 12px; }
+    .clinic-stat { text-align: center; }
+    .clinic-stat-num { font-size: 22px; font-weight: 700; color: #667eea; }
+    .clinic-stat-lbl { font-size: 11px; color: #6b7280; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover { background: #f0f0ff; }
+    .btn-danger {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #dc2626;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,0.2); }
+    .btn-icon {
+      background: none;
+      border: 1px solid #e5e7eb;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-icon:hover { background: #f9fafb; border-color: #667eea; }
+
+    .logout-btn {
+      background: rgba(239,68,68,0.1);
+      border: 2px solid rgba(239,68,68,0.3);
+      color: #dc2626;
+      padding: 12px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
+      transition: all 0.3s ease;
+    }
+    .logout-btn:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.5); }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #f9fafb;
+      color: #6b7280;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    .data-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    .data-table tr:hover td { background: #fafafa; }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .user-name  { font-weight: 600; color: #333; font-size: 14px; }
+    .user-uname { font-size: 12px; color: #9ca3af; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-master  { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .badge-cadmin  { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .badge-cuser   { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .badge-all     { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+    .badge-own     { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+    .badge-active  { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .badge-inactive{ background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ── Toggle switch ── */
+    .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background: #d1d5db; border-radius: 22px; transition: 0.3s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute; height: 16px; width: 16px;
+      left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s;
+    }
+    .toggle input:checked + .toggle-slider { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .alert.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .alert.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .alert.info    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.65);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .modal h3 { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 20px; }
+    .modal-close {
+      position: absolute; top: 16px; right: 18px;
+      font-size: 22px; cursor: pointer; color: #9ca3af;
+      border: none; background: none; line-height: 1;
+    }
+    .modal-close:hover { color: #333; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: white;
+      font-family: inherit;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-group .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-bar select,
+    .filter-bar input {
+      padding: 8px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 13px;
+      background: white;
+    }
+    .filter-bar select:focus,
+    .filter-bar input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    /* ── Health modal ── */
+    .health-modal {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    .health-modal.open { display: flex; }
+    .console-log {
+      background: #1e1e1e; color: #0f0; font-family: monospace;
+      padding: 15px; border-radius: 10px; height: 180px;
+      overflow-y: auto; font-size: 12px;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: #9ca3af; }
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+  </style>
+</head>
+<body>
+  <!-- Auth check -->
+  <script>
+    const AUTH_API = '/api/admin-auth';
+    let currentUser = null;
+    let sessionToken = null;
+
+    (async function checkAuth() {
+      sessionToken = localStorage.getItem('adminSessionToken');
+      if (!sessionToken) { redirectToLogin(); return; }
+      try {
+        const res = await fetch(`${AUTH_API}?action=verify`, { headers: { 'Authorization': `Bearer ${sessionToken}` } });
+        const data = await res.json();
+        if (data.success && data.valid) {
+          currentUser = data.user;
+          updateUI();
+        } else {
+          localStorage.clear();
+          redirectToLogin();
+        }
+      } catch { redirectToLogin(); }
+    })();
+
+    function redirectToLogin() { window.location.href = '/admin-login.html?redirect=/admin-dashboard.html'; }
+
+    function updateUI() {
+      if (!currentUser) return;
+      document.getElementById('username').textContent = currentUser.full_name || currentUser.username;
+      const roleBadge = document.getElementById('roleBadge');
+      const roleLabels = { master_admin: '⭐ Master Admin', clinic_admin: '🏥 Clinic Admin', clinic_user: '👤 Usuario' };
+      roleBadge.textContent = roleLabels[currentUser.role] || currentUser.role;
+      roleBadge.className = `role-badge ${currentUser.role}`;
+
+      // Mostrar/ocultar tabs según rol
+      if (currentUser.role === 'master_admin' || currentUser.role === 'clinic_admin') {
+        document.getElementById('tabUsers').style.display = '';
+      }
+      if (currentUser.role === 'master_admin') {
+        document.getElementById('tabClinics').style.display = '';
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      document.getElementById(`tab-${tabName}`).style.display = '';
+
+      if (tabName === 'users')   loadUsers();
+      if (tabName === 'clinics') loadClinics();
+    }
+
+    async function downloadBackup(btn) {
+      if (!confirm('¿Generar y descargar copia completa de la base de datos?')) return;
+      const orig = btn.innerHTML;
+      btn.style.opacity = '0.7'; btn.style.cursor = 'wait';
+      try {
+        const res = await fetch('/api/backup', { headers: { 'Authorization': `Bearer ${sessionToken}` } });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error'); }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement('a'), { href: url, download: 'bioskin-backup.json' });
+        document.body.appendChild(a); a.click();
+        URL.revokeObjectURL(url); a.remove();
+        alert('✅ Copia descargada correctamente');
+      } catch (e) { alert('❌ Error: ' + e.message); }
+      finally { btn.innerHTML = orig; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    }
+
+    async function logout() {
+      try {
+        await fetch(`${AUTH_API}?action=logout`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` }, body: JSON.stringify({ sessionToken }) });
+      } catch {}
+      localStorage.clear();
+      window.location.href = '/admin-login.html';
+    }
+  </script>
+
+  <div class="dashboard-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🏥 Panel de Administración</h1>
+      <p>Gestión centralizada BIOSKIN</p>
+      <div class="user-info">
+        👤 <span id="username">Cargando...</span>
+        <span id="roleBadge" class="role-badge clinic_admin">Admin</span>
+      </div>
+      <div style="margin-top: 12px;">
+        <button onclick="downloadBackup(this)" style="background:rgba(255,255,255,0.2); border:2px solid white; color:white; padding:7px 18px; border-radius:20px; cursor:pointer; font-weight:600; font-size:13px; backdrop-filter:blur(5px);">
+          📥 Descargar Backup
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab navigation -->
+    <div class="tab-nav">
+      <button class="tab-btn active" data-tab="tools" onclick="switchTab('tools')">🛠 Herramientas</button>
+      <button class="tab-btn" data-tab="users"   id="tabUsers"   onclick="switchTab('users')"   style="display:none">👥 Usuarios</button>
+      <button class="tab-btn" data-tab="clinics" id="tabClinics" onclick="switchTab('clinics')" style="display:none">🏥 Clínicas</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ── Tab: Herramientas ── -->
+      <div id="tab-tools" class="tab-content">
+        <div class="section-title">📊 Herramientas de Gestión</div>
+        <div class="card-grid">
+          <a href="/chatbot-manager.html" class="card">
+            <div class="card-icon">💬</div>
+            <div class="card-title">Gestión de Chats</div>
+            <div class="card-description">Conversaciones activas, responde mensajes y gestiona clientes en tiempo real</div>
+          </a>
+          <div class="card" onclick="downloadBackup(this)">
+            <div class="card-icon">💾</div>
+            <div class="card-title">Copia de Seguridad</div>
+            <div class="card-description">Descargar base de datos completa (Fichas, Finanzas, Chatbot)</div>
+          </div>
+          <div class="card" onclick="openSystemHealth()">
+            <div class="card-icon">🏥</div>
+            <div class="card-title">Estado del Sistema</div>
+            <div class="card-description">Diagnóstico de API, Calendar y SMTP</div>
+          </div>
+        </div>
+        <button onclick="logout()" class="logout-btn">🚪 Cerrar Sesión</button>
+      </div>
+
+      <!-- ── Tab: Usuarios ── -->
+      <div id="tab-users" class="tab-content" style="display:none">
+        <div class="top-bar">
+          <div class="section-title" style="margin:0">👥 Usuarios</div>
+          <button class="btn-primary" onclick="openUserModal()">+ Nuevo Usuario</button>
+        </div>
+
+        <div class="filter-bar" id="usersFilterBar">
+          <div id="clinicFilterWrap" style="display:none">
+            <select id="clinicFilterSelect" onchange="loadUsers()" style="min-width:180px">
+              <option value="">— Todas las clínicas —</option>
+            </select>
+          </div>
+          <input type="text" id="userSearch" placeholder="🔍 Buscar usuario..." oninput="filterUsersTable()" style="min-width:200px">
+        </div>
+
+        <div id="usersAlert"></div>
+
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th id="thClinic">Clínica</th>
+                <th>Acceso</th>
+                <th>Estado</th>
+                <th>Último acceso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:30px;color:#9ca3af">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:24px">
+          <button onclick="logout()" class="logout-btn">🚪 Cerrar Sesión</button>
+        </div>
+      </div>
+
+      <!-- ── Tab: Clínicas ── -->
+      <div id="tab-clinics" class="tab-content" style="display:none">
+        <div class="top-bar">
+          <div class="section-title" style="margin:0">🏥 Clínicas</div>
+          <button class="btn-primary" onclick="openClinicModal()">+ Nueva Clínica</button>
+        </div>
+        <div id="clinicsAlert"></div>
+        <div id="clinicsGrid" class="card-grid">
+          <div style="text-align:center;padding:30px;color:#9ca3af;grid-column:1/-1">Cargando...</div>
+        </div>
+        <div style="margin-top:24px">
+          <button onclick="logout()" class="logout-btn">🚪 Cerrar Sesión</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /dashboard-container -->
+
+  <!-- ════════════ Modal: Crear / Editar Usuario ════════════ -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+      <h3 id="userModalTitle">Nuevo Usuario</h3>
+      <div id="userModalAlert"></div>
+      <input type="hidden" id="editUserId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Usuario *</label>
+          <input type="text" id="uUsername" placeholder="ej: doctora_maria" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="uFullName" placeholder="María González">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="uEmail" placeholder="maria@clinica.com">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rol *</label>
+          <select id="uRole" onchange="onRoleChange()">
+            <option value="clinic_user">👤 Usuario de Clínica</option>
+            <option value="clinic_admin">🏥 Admin de Clínica</option>
+            <option value="master_admin" id="optMasterAdmin" style="display:none">⭐ Master Admin</option>
+          </select>
+        </div>
+        <div class="form-group" id="accessScopeWrap">
+          <label>Acceso a pacientes</label>
+          <select id="uAccessScope">
+            <option value="own">Solo sus pacientes</option>
+            <option value="all">Todos los de la clínica</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="uClinicWrap" style="display:none">
+        <label>Clínica *</label>
+        <select id="uClinicId">
+          <option value="">— Selecciona clínica —</option>
+        </select>
+      </div>
+      <div class="form-row" id="passwordWrap">
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input type="password" id="uPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>Confirmar contraseña *</label>
+          <input type="password" id="uPasswordConfirm" placeholder="Repetir contraseña">
+        </div>
+      </div>
+      <p class="hint" id="passwordHint" style="display:none;color:#9ca3af;font-size:12px;margin-bottom:12px">
+        Deja en blanco para mantener la contraseña actual.
+      </p>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('userModal')">Cancelar</button>
+        <button class="btn-primary" onclick="saveUser()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ Modal: Reset Password ════════════ -->
+  <div class="modal-overlay" id="resetModal">
+    <div class="modal" style="max-width:380px">
+      <button class="modal-close" onclick="closeModal('resetModal')">&times;</button>
+      <h3>🔑 Cambiar Contraseña</h3>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px">Usuario: <strong id="resetUsername"></strong></p>
+      <div id="resetAlert"></div>
+      <input type="hidden" id="resetUserId">
+      <div class="form-group">
+        <label>Nueva contraseña *</label>
+        <input type="password" id="rNewPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label>Confirmar contraseña *</label>
+        <input type="password" id="rConfirmPass" placeholder="Repetir contraseña">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('resetModal')">Cancelar</button>
+        <button class="btn-primary" onclick="doResetPassword()">🔑 Cambiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ Modal: Crear / Editar Clínica ════════════ -->
+  <div class="modal-overlay" id="clinicModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('clinicModal')">&times;</button>
+      <h3 id="clinicModalTitle">Nueva Clínica</h3>
+      <div id="clinicModalAlert"></div>
+      <input type="hidden" id="editClinicId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="cName" placeholder="ej: Centro Estético Luna">
+        </div>
+        <div class="form-group">
+          <label>Slug (URL único) *</label>
+          <input type="text" id="cSlug" placeholder="ej: centro-luna">
+          <div class="hint">Solo letras, números y guiones. Sin espacios.</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="cEmail" placeholder="info@clinica.com">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="cPhone" placeholder="+593 99 000 0000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Dirección</label>
+        <textarea id="cAddress" placeholder="Av. Principal 123, Ciudad"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('clinicModal')">Cancelar</button>
+        <button class="btn-primary" onclick="saveClinic()">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ Modal: Sistema / Diagnóstico ════════════ -->
+  <div class="health-modal" id="healthModal">
+    <div style="background:white;width:90%;max-width:580px;padding:28px;border-radius:15px;position:relative">
+      <h3 class="section-title">🔍 Diagnóstico del Sistema</h3>
+      <button onclick="closeModal('healthModal')" style="position:absolute;top:14px;right:18px;font-size:22px;cursor:pointer;border:none;background:none;color:#9ca3af">&times;</button>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#f9fafb;padding:14px;border-radius:10px;margin-bottom:10px">
+          <div><strong>Google Calendar API</strong><div id="calStatus" style="font-size:12px;color:#6b7280">No verificado</div></div>
+          <button onclick="runTest('calendar')" style="background:#4285F4;color:white;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px">Probar</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#f9fafb;padding:14px;border-radius:10px">
+          <div><strong>Servidor de Correo (SMTP)</strong><div id="emailStatus" style="font-size:12px;color:#6b7280">No verificado</div></div>
+          <button onclick="runTest('email')" style="background:#EA4335;color:white;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px">Probar</button>
+        </div>
+      </div>
+      <div class="console-log" id="consoleLog">&gt; Esperando pruebas...</div>
+    </div>
+  </div>
+
+  <!-- ════════════ JavaScript: Users ════════════ -->
+  <script>
+    let allUsers = [];
+    let allClinicsCache = [];
+
+    // ── Load & render users ──────────────────────────────────────────────────
+    async function loadUsers() {
+      const clinicId = document.getElementById('clinicFilterSelect')?.value || '';
+      const url = `/api/admin-auth?action=listUsers${clinicId ? '&clinicId=' + clinicId : ''}`;
+      try {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${sessionToken}` } });
+        allUsers = await res.json();
+        renderUsersTable(allUsers);
+      } catch (e) { showTabAlert('users', '❌ Error cargando usuarios: ' + e.message, 'error'); }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('usersTableBody');
+      const isMaster = currentUser?.role === 'master_admin';
+      document.getElementById('thClinic').style.display = isMaster ? '' : 'none';
+
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">👥</div><p>No hay usuarios registrados</p></div></td></tr>';
+        return;
+      }
+
+      const roleColors = { master_admin: '#f59e0b', clinic_admin: '#667eea', clinic_user: '#10b981' };
+      tbody.innerHTML = users.map(u => {
+        const initial = (u.full_name || u.username).charAt(0).toUpperCase();
+        const color = roleColors[u.role] || '#9ca3af';
+        const roleBadge = { master_admin: 'badge-master', clinic_admin: 'badge-cadmin', clinic_user: 'badge-cuser' }[u.role] || 'badge-cuser';
+        const roleLabel = { master_admin: '⭐ Master Admin', clinic_admin: '🏥 Clinic Admin', clinic_user: '👤 Usuario' }[u.role] || u.role;
+        const scopeHtml = u.role === 'clinic_user'
+          ? `<span class="badge ${u.access_scope === 'all' ? 'badge-all' : 'badge-own'}">${u.access_scope === 'all' ? '🌐 Todos' : '🔒 Propio'}</span>` : '—';
+        const lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString('es-EC', { day:'2-digit', month:'short', year:'numeric' }) : 'Nunca';
+        const clinicCell = isMaster ? `<td style="display:none">${u.clinic_name || '<span style="color:#9ca3af">Global</span>'}</td>` : '';
+        // Don't allow deleting master_admin or yourself
+        const canDelete = u.id !== currentUser?.id && u.role !== 'master_admin';
+        return `
+          <tr data-username="${u.username}" data-fullname="${u.full_name || ''}">
+            <td>
+              <div class="user-cell">
+                <div class="avatar" style="background:${color}">${initial}</div>
+                <div>
+                  <div class="user-name">${u.full_name || '—'}</div>
+                  <div class="user-uname">@${u.username}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge ${roleBadge}">${roleLabel}</span></td>
+            ${clinicCell}
+            <td>${scopeHtml}</td>
+            <td>
+              <label class="toggle">
+                <input type="checkbox" ${u.is_active ? 'checked' : ''} onchange="toggleUserActive(${u.id}, this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td style="font-size:12px;color:#6b7280">${lastLogin}</td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn-icon" onclick="openUserModal(${u.id})" title="Editar">✏️</button>
+                <button class="btn-icon" onclick="openResetModal(${u.id}, '${u.username}')" title="Cambiar contraseña">🔑</button>
+                ${canDelete ? `<button class="btn-danger" onclick="confirmDeleteUser(${u.id}, '${u.username}')">🗑</button>` : ''}
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function filterUsersTable() {
+      const q = document.getElementById('userSearch').value.toLowerCase();
+      const rows = document.querySelectorAll('#usersTableBody tr[data-username]');
+      rows.forEach(r => {
+        const match = r.dataset.username.includes(q) || r.dataset.fullname.toLowerCase().includes(q);
+        r.style.display = match ? '' : 'none';
+      });
+    }
+
+    async function toggleUserActive(id, isActive) {
+      try {
+        const res = await fetch(`/api/admin-auth?action=updateUser`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+          body: JSON.stringify({ id, is_active: isActive })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        showTabAlert('users', isActive ? '✅ Usuario activado' : '⚠️ Usuario desactivado', 'success');
+      } catch (e) { showTabAlert('users', '❌ ' + e.message, 'error'); loadUsers(); }
+    }
+
+    async function confirmDeleteUser(id, username) {
+      if (!confirm(`¿Desactivar permanentemente al usuario "${username}"?\n\nSus sesiones activas serán cerradas.`)) return;
+      try {
+        const res = await fetch(`/api/admin-auth?action=deleteUser&id=${id}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        showTabAlert('users', `✅ Usuario "${username}" desactivado`, 'success');
+        loadUsers();
+      } catch (e) { showTabAlert('users', '❌ ' + e.message, 'error'); }
+    }
+
+    // ── User modal ───────────────────────────────────────────────────────────
+    async function openUserModal(userId) {
+      document.getElementById('userModalAlert').innerHTML = '';
+      document.getElementById('editUserId').value = userId || '';
+      const isEdit = !!userId;
+      document.getElementById('userModalTitle').textContent = isEdit ? '✏️ Editar Usuario' : '👤 Nuevo Usuario';
+
+      // Master admin can see master_admin option in role dropdown
+      document.getElementById('optMasterAdmin').style.display = currentUser?.role === 'master_admin' ? '' : 'none';
+
+      // Show clinic selector for master_admin
+      const clinicWrap = document.getElementById('uClinicWrap');
+      if (currentUser?.role === 'master_admin') {
+        clinicWrap.style.display = '';
+        await populateClinicSelect('uClinicId');
+      } else {
+        clinicWrap.style.display = 'none';
+      }
+
+      if (isEdit) {
+        const u = allUsers.find(x => x.id === userId);
+        if (u) {
+          document.getElementById('uUsername').value   = u.username;
+          document.getElementById('uFullName').value   = u.full_name || '';
+          document.getElementById('uEmail').value      = u.email || '';
+          document.getElementById('uRole').value       = u.role;
+          document.getElementById('uAccessScope').value= u.access_scope || 'own';
+          if (currentUser?.role === 'master_admin') document.getElementById('uClinicId').value = u.clinic_id || '';
+          document.getElementById('uUsername').disabled = true;
+          document.getElementById('passwordWrap').style.display = 'none';
+          document.getElementById('passwordHint').style.display = '';
+        }
+      } else {
+        document.getElementById('uUsername').disabled = false;
+        document.getElementById('uUsername').value    = '';
+        document.getElementById('uFullName').value    = '';
+        document.getElementById('uEmail').value       = '';
+        document.getElementById('uRole').value        = 'clinic_user';
+        document.getElementById('uAccessScope').value = 'own';
+        document.getElementById('uPassword').value    = '';
+        document.getElementById('uPasswordConfirm').value = '';
+        document.getElementById('passwordWrap').style.display = '';
+        document.getElementById('passwordHint').style.display = 'none';
+      }
+      onRoleChange();
+      openModal('userModal');
+    }
+
+    function onRoleChange() {
+      const role = document.getElementById('uRole').value;
+      document.getElementById('accessScopeWrap').style.display = role === 'clinic_user' ? '' : 'none';
+    }
+
+    async function saveUser() {
+      const id = document.getElementById('editUserId').value;
+      const isEdit = !!id;
+      const username     = document.getElementById('uUsername').value.trim();
+      const full_name    = document.getElementById('uFullName').value.trim();
+      const email        = document.getElementById('uEmail').value.trim();
+      const role         = document.getElementById('uRole').value;
+      const access_scope = document.getElementById('uAccessScope').value;
+      const clinic_id    = document.getElementById('uClinicId')?.value || null;
+      const password     = document.getElementById('uPassword').value;
+      const confirm      = document.getElementById('uPasswordConfirm').value;
+
+      if (!isEdit && !username) return showModalAlert('userModal', '⚠️ El usuario es requerido');
+      if (!isEdit && !password) return showModalAlert('userModal', '⚠️ La contraseña es requerida');
+      if (password && password !== confirm) return showModalAlert('userModal', '❌ Las contraseñas no coinciden');
+      if (password && password.length < 6) return showModalAlert('userModal', '❌ Mínimo 6 caracteres');
+
+      const body = { full_name, email, role, access_scope };
+      if (!isEdit) { body.username = username; body.password = password; }
+      if (isEdit) { body.id = parseInt(id); }
+      if (currentUser?.role === 'master_admin' && clinic_id) body.clinic_id = parseInt(clinic_id);
+
+      const action = isEdit ? 'updateUser' : 'createUser';
+      try {
+        const res = await fetch(`/api/admin-auth?action=${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        closeModal('userModal');
+        showTabAlert('users', `✅ Usuario ${isEdit ? 'actualizado' : 'creado'} correctamente`, 'success');
+        loadUsers();
+      } catch (e) { showModalAlert('userModal', '❌ ' + e.message); }
+    }
+
+    // ── Reset password modal ─────────────────────────────────────────────────
+    function openResetModal(userId, username) {
+      document.getElementById('resetUserId').value = userId;
+      document.getElementById('resetUsername').textContent = username;
+      document.getElementById('rNewPass').value     = '';
+      document.getElementById('rConfirmPass').value = '';
+      document.getElementById('resetAlert').innerHTML = '';
+      openModal('resetModal');
+    }
+
+    async function doResetPassword() {
+      const id      = document.getElementById('resetUserId').value;
+      const pass    = document.getElementById('rNewPass').value;
+      const confirm = document.getElementById('rConfirmPass').value;
+      if (!pass) return showModalAlert('resetModal', '⚠️ Ingresa una contraseña');
+      if (pass.length < 6) return showModalAlert('resetModal', '❌ Mínimo 6 caracteres');
+      if (pass !== confirm) return showModalAlert('resetModal', '❌ Las contraseñas no coinciden');
+      try {
+        const res = await fetch('/api/admin-auth?action=resetPassword', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+          body: JSON.stringify({ id: parseInt(id), newPassword: pass })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        closeModal('resetModal');
+        showTabAlert('users', '✅ Contraseña actualizada', 'success');
+      } catch (e) { showModalAlert('resetModal', '❌ ' + e.message); }
+    }
+  </script>
+
+  <!-- ════════════ JavaScript: Clinics ════════════ -->
+  <script>
+    async function loadClinics() {
+      try {
+        const res = await fetch('/api/admin-auth?action=listClinics', {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        });
+        const clinics = await res.json();
+        allClinicsCache = clinics;
+        renderClinicsGrid(clinics);
+        // Populate clinic filter for users tab
+        populateClinicFilterDropdown(clinics);
+      } catch (e) { showTabAlert('clinics', '❌ Error: ' + e.message, 'error'); }
+    }
+
+    function renderClinicsGrid(clinics) {
+      const grid = document.getElementById('clinicsGrid');
+      if (!clinics.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🏥</div><p>No hay clínicas registradas</p></div>';
+        return;
+      }
+      grid.innerHTML = clinics.map(c => `
+        <div class="clinic-card">
+          <div class="clinic-card-header">
+            <div>
+              <div class="clinic-name">🏥 ${c.name}</div>
+              <div class="clinic-slug">/${c.slug}</div>
+            </div>
+            <span class="badge ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? 'Activa' : 'Inactiva'}</span>
+          </div>
+          ${c.email   ? `<div style="font-size:13px;color:#6b7280;margin-bottom:4px">📧 ${c.email}</div>` : ''}
+          ${c.phone   ? `<div style="font-size:13px;color:#6b7280;margin-bottom:4px">📞 ${c.phone}</div>` : ''}
+          ${c.address ? `<div style="font-size:13px;color:#6b7280;margin-bottom:8px">📍 ${c.address}</div>` : ''}
+          <div class="clinic-stats">
+            <div class="clinic-stat">
+              <div class="clinic-stat-num">${c.user_count}</div>
+              <div class="clinic-stat-lbl">Usuarios</div>
+            </div>
+            <div class="clinic-stat">
+              <div class="clinic-stat-num">${c.patient_count}</div>
+              <div class="clinic-stat-lbl">Pacientes</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn-secondary" onclick="openClinicModal(${c.id})" style="flex:1">✏️ Editar</button>
+            <button class="btn-secondary" onclick="viewClinicUsers(${c.id}, '${c.name}')" style="flex:1">👥 Usuarios</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function populateClinicFilterDropdown(clinics) {
+      const sel = document.getElementById('clinicFilterSelect');
+      if (!sel) return;
+      const current = sel.value;
+      sel.innerHTML = '<option value="">— Todas las clínicas —</option>';
+      clinics.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        if (String(c.id) === String(current)) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      document.getElementById('clinicFilterWrap').style.display = currentUser?.role === 'master_admin' ? '' : 'none';
+    }
+
+    async function populateClinicSelect(selectId) {
+      if (!allClinicsCache.length) {
+        try {
+          const res = await fetch('/api/admin-auth?action=listClinics', { headers: { 'Authorization': `Bearer ${sessionToken}` } });
+          allClinicsCache = await res.json();
+        } catch {}
+      }
+      const sel = document.getElementById(selectId);
+      if (!sel) return;
+      sel.innerHTML = '<option value="">— Selecciona clínica —</option>';
+      allClinicsCache.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    function viewClinicUsers(clinicId, clinicName) {
+      document.getElementById('clinicFilterSelect').value = clinicId;
+      switchTab('users');
+    }
+
+    // ── Clinic modal ─────────────────────────────────────────────────────────
+    function openClinicModal(clinicId) {
+      document.getElementById('clinicModalAlert').innerHTML = '';
+      document.getElementById('editClinicId').value = clinicId || '';
+      const isEdit = !!clinicId;
+      document.getElementById('clinicModalTitle').textContent = isEdit ? '✏️ Editar Clínica' : '🏥 Nueva Clínica';
+      if (isEdit) {
+        const c = allClinicsCache.find(x => x.id === clinicId);
+        if (c) {
+          document.getElementById('cName').value    = c.name;
+          document.getElementById('cSlug').value    = c.slug;
+          document.getElementById('cEmail').value   = c.email   || '';
+          document.getElementById('cPhone').value   = c.phone   || '';
+          document.getElementById('cAddress').value = c.address || '';
+          document.getElementById('cSlug').disabled = true;
+        }
+      } else {
+        ['cName','cSlug','cEmail','cPhone','cAddress'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('cSlug').disabled = false;
+      }
+      openModal('clinicModal');
+    }
+
+    async function saveClinic() {
+      const id      = document.getElementById('editClinicId').value;
+      const isEdit  = !!id;
+      const name    = document.getElementById('cName').value.trim();
+      const slug    = document.getElementById('cSlug').value.trim();
+      const email   = document.getElementById('cEmail').value.trim();
+      const phone   = document.getElementById('cPhone').value.trim();
+      const address = document.getElementById('cAddress').value.trim();
+
+      if (!name)   return showModalAlert('clinicModal', '⚠️ El nombre es requerido');
+      if (!isEdit && !slug) return showModalAlert('clinicModal', '⚠️ El slug es requerido');
+
+      const body = isEdit ? { id: parseInt(id), name, email, phone, address }
+                          : { name, slug, email, phone, address };
+      const action = isEdit ? 'updateClinic' : 'createClinic';
+      try {
+        const res = await fetch(`/api/admin-auth?action=${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        closeModal('clinicModal');
+        showTabAlert('clinics', `✅ Clínica ${isEdit ? 'actualizada' : 'creada'} correctamente`, 'success');
+        loadClinics();
+      } catch (e) { showModalAlert('clinicModal', '❌ ' + e.message); }
+    }
+  </script>
+
+  <!-- ════════════ JavaScript: Utils ════════════ -->
+  <script>
+    function openModal(id)  { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // Cerrar modal al clic fuera
+    document.addEventListener('click', e => {
+      if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+      if (e.target.classList.contains('health-modal'))  closeModal(e.target.id);
+    });
+
+    function showTabAlert(tab, msg, type = 'info') {
+      const el = document.getElementById(`${tab}Alert`);
+      if (!el) return;
+      el.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+      setTimeout(() => { el.innerHTML = ''; }, 4000);
+    }
+
+    function showModalAlert(modalId, msg, type = 'error') {
+      const alertEl = document.getElementById(`${modalId.replace('Modal','').replace('modal','ModalAlert') || modalId + 'Alert'}`);
+      // Map modal IDs to alert IDs
+      const alertMap = { userModal: 'userModalAlert', resetModal: 'resetAlert', clinicModal: 'clinicModalAlert' };
+      const el = document.getElementById(alertMap[modalId]);
+      if (!el) return;
+      el.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+    }
+
+    function openSystemHealth() {
+      document.getElementById('healthModal').classList.add('open');
+    }
+
+    async function runTest(type) {
+      const log = document.getElementById('consoleLog');
+      const status = document.getElementById(type === 'calendar' ? 'calStatus' : 'emailStatus');
+      const endpoint = type === 'calendar' ? '/api/test-calendar' : '/api/test-email';
+      log.innerHTML += `\n&gt; Iniciando prueba de ${type}...`;
+      status.textContent = 'Probando...'; status.style.color = '#f59e0b';
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (data.logs) data.logs.forEach(l => log.innerHTML += `\n&gt; ${l}`);
+        if (data.success) {
+          status.textContent = '✅ OPERATIVO'; status.style.color = '#10b981';
+          log.innerHTML += '\n&gt; ✅ PRUEBA EXITOSA';
+        } else {
+          status.textContent = '❌ FALLO'; status.style.color = '#ef4444';
+          log.innerHTML += `\n&gt; ❌ ERROR: ${data.message || data.error}`;
+        }
+      } catch (e) {
+        status.textContent = '❌ ERROR RED'; status.style.color = '#ef4444';
+        log.innerHTML += `\n&gt; ❌ ${e.message}`;
+      }
+      log.scrollTop = log.scrollHeight;
+    }
+  </script>
+</body>
+</html>
+  <style>
     * {
       margin: 0;
       padding: 0;

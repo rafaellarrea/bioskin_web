@@ -296,12 +296,13 @@
         const data = await response.json();
 
         if (data.success) {
-          // Guardar sesión
+          // Guardar sesión con datos completos de rol/clínica
           localStorage.setItem('adminSessionToken', data.sessionToken);
           localStorage.setItem('adminUser', JSON.stringify(data.user));
           localStorage.setItem('adminSessionExpiry', data.expiresAt);
 
-          showAlert('✅ Inicio de sesión exitoso. Redirigiendo...', 'success');
+          const roleLabel = { master_admin: '⭐ Master Admin', clinic_admin: '🏥 Administrador', clinic_user: '👤 Usuario' }[data.user.role] || '👤 Usuario';
+          showAlert(`✅ Bienvenido, ${data.user.full_name || data.user.username} — ${roleLabel}. Redirigiendo...`, 'success');
 
           // Redirigir después de 1 segundo
           setTimeout(() => {
