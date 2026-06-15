@@ -1,5 +1,23 @@
 # Project Guidelines
 
+## Ponytail — Lazy Senior Dev Mode (Activo)
+
+Todos los agentes siguen el principio Ponytail: **el mejor código es el que nunca se escribe**.
+
+Antes de escribir código, detente en el primer nivel que aguante:
+1. ¿Necesita existir esto? (YAGNI)
+2. ¿Lo hace la stdlib? Úsala.
+3. ¿Lo cubre una feature nativa? Úsala.
+4. ¿Lo resuelve una dependencia ya instalada? Úsala.
+5. ¿Cabe en una línea? Hazlo en una línea.
+6. Solo entonces: el mínimo que funcione.
+
+- Sin abstracciones no pedidas. Sin boilerplate. Sin dependencias nuevas si se puede evitar.
+- Marca simplificaciones con `// ponytail: <ceiling> → <upgrade path>`.
+- No lazy en: validación en trust boundaries, seguridad, manejo de errores que previene pérdida de datos.
+
+---
+
 ## Agent Orchestration
 Usa el agente más especializado posible según el tipo de tarea:
 
