@@ -10,6 +10,13 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jun 2026: Sistema multi-tenant + control de features por clínica**
+- ✅ Jun Backend: tabla `clinic_features`, `ALL_FEATURES` (13), `seedFeatures/getFeatures/setFeature/getAllClinicFeatures`
+- ✅ Jun `AuthContext.tsx` reescrito con `role/features/hasFeature()`
+- ✅ Jun `AdminDashboard.tsx` filtra tiles por feature habilitada para la clínica
+- ✅ Jun `AdminMasterDashboard.tsx` nuevo — gestión de clínicas, usuarios y feature toggles
+- ✅ Jun Deploy a producción + migración `clinic_features` en Neon + smoke tests 16/16 ✅
+
 ### ✅ **May 2026: Rediseño completo pestaña Inventario**
 - ✅ May 27 Fix SKU duplicado vacío + campo marca en alta/edición de producto.
 - ✅ May 27 SKU sugerido consecutivo (placeholder 3 dígitos) en formulario de inventario.
