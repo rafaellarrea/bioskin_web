@@ -10,6 +10,12 @@
 
 ## 🎯 Últimas Actualizaciones
 
+### ✅ **Jun 2026: Rediseño UI dashboards admin — gold theme + tab Módulos**
+- ✅ Jun `AdminLogin.tsx` rediseñado — fondo claro, logo dorado, Playfair Display, inputs rounded-xl
+- ✅ Jun `AdminDashboard.tsx` rediseñado — fondo `#fafafa`, cards blancas, iconos por colores semánticos, encoding UTF-8 corregido
+- ✅ Jun `AdminMasterDashboard.tsx` — badge BIOSKIN dorado, tab "📦 Módulos" con grid de 14 tiles + selector de clínica, botón "Módulos" en cards de clínica, Modal backdrop-blur-sm
+- ✅ Jun Commit `4ff0cc6` — build limpio, cero errores TypeScript
+
 ### ✅ **Jun 2026: Sistema multi-tenant + control de features por clínica**
 - ✅ Jun Backend: tabla `clinic_features`, `ALL_FEATURES` (13), `seedFeatures/getFeatures/setFeature/getAllClinicFeatures`
 - ✅ Jun `AuthContext.tsx` reescrito con `role/features/hasFeature()`
