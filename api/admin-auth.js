@@ -12,6 +12,13 @@ const SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const LOCK_ATTEMPTS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 
+// Módulos disponibles en el sistema (ponytail: array plano → upgrade a tabla si crece a >20)
+const ALL_FEATURES = [
+  'calendar', 'block_schedule', 'appointment', 'diagnosis', 'protocols',
+  'chat_assistant', 'clinical_records', 'finance', 'inventory',
+  'clinical_3d', 'technical', 'backup', 'blog'
+];
+
 // ponytail: PBKDF2+salt (100k iters, sha512) → upgrade a Argon2 si compliance crece. Node built-in, cero deps.
 function hashPassword(password, salt) {
   const s = salt || crypto.randomBytes(16).toString('hex');
@@ -80,6 +87,16 @@ async function initMultiTenantSchema() {
   await sql`CREATE INDEX IF NOT EXISTS idx_clinic_users_username ON clinic_users(username) WHERE is_active = true`;
   await sql`CREATE INDEX IF NOT EXISTS idx_patients_clinic ON patients(clinic_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_session_token ON admin_sessions(session_token) WHERE is_active = true`;
+
+  // Tabla de features por clínica
+  await sql`
+    CREATE TABLE IF NOT EXISTS clinic_features (
+      clinic_id INTEGER NOT NULL REFERENCES clinics(id) ON DELETE CASCADE,
+      feature   VARCHAR(50) NOT NULL,
+      enabled   BOOLEAN DEFAULT true,
+      PRIMARY KEY (clinic_id, feature)
+    )
+  `;
 }
 
 async function seedData() {
@@ -129,7 +146,54 @@ async function seedData() {
   await sql`UPDATE patients SET clinic_id = ${bioskinId} WHERE clinic_id IS NULL`;
   console.log(`✅ Pacientes existentes migrados a clínica bioskin (id=${bioskinId})`);
 
+  // Seed features para clínica bioskin
+  await seedFeatures(bioskinId);
+
   return { bioskinId };
+}
+
+async function seedFeatures(clinicId) {
+  for (const f of ALL_FEATURES) {
+    await sql`
+      INSERT INTO clinic_features (clinic_id, feature, enabled)
+      VALUES (${clinicId}, ${f}, true)
+      ON CONFLICT (clinic_id, feature) DO NOTHING
+    `;
+  }
+}
+
+// Devuelve array de features habilitados para una clínica.
+// master_admin (clinicId=null) → todos los features.
+async function getFeatures(clinicId) {
+  if (!clinicId) return ALL_FEATURES;
+  try {
+    const r = await sql`
+      SELECT feature FROM clinic_features
+      WHERE clinic_id = ${clinicId} AND enabled = true
+    `;
+    return r.rows.length ? r.rows.map(x => x.feature) : ALL_FEATURES; // fallback si sin seed
+  } catch { return ALL_FEATURES; }
+}
+
+async function setFeature(clinicId, feature, enabled) {
+  if (!clinicId || !feature) return { error: 'clinicId y feature requeridos' };
+  if (!ALL_FEATURES.includes(feature)) return { error: `Feature desconocida: ${feature}` };
+  await sql`
+    INSERT INTO clinic_features (clinic_id, feature, enabled)
+    VALUES (${clinicId}, ${feature}, ${!!enabled})
+    ON CONFLICT (clinic_id, feature) DO UPDATE SET enabled = ${!!enabled}
+  `;
+  return { success: true };
+}
+
+async function getAllClinicFeatures() {
+  const r = await sql`
+    SELECT cf.clinic_id, cf.feature, cf.enabled, c.name as clinic_name
+    FROM clinic_features cf
+    JOIN clinics c ON c.id = cf.clinic_id
+    ORDER BY c.name, cf.feature
+  `;
+  return r.rows;
 }
 
 // ── Auth core ────────────────────────────────────────────────────────────────
@@ -200,7 +264,8 @@ async function loginUser(username, password, ip, ua) {
     success: true,
     sessionToken: token,
     expiresAt: exp,
-    user: { id: u.id, username: u.username, full_name: u.full_name, email: u.email, role: u.role, clinic_id: u.clinic_id, access_scope: u.access_scope }
+    user: { id: u.id, username: u.username, full_name: u.full_name, email: u.email, role: u.role, clinic_id: u.clinic_id, access_scope: u.access_scope },
+    features: await getFeatures(u.clinic_id)
   };
 }
 
@@ -495,6 +560,7 @@ export default async function handler(req, res) {
     if (action === 'verify') {
       const token = (req.headers.authorization || '').replace('Bearer ', '').trim() || req.query.token || req.body?.sessionToken;
       const result = await verifySession(token);
+      if (result.valid) result.features = await getFeatures(result.user.clinic_id);
       return res.status(result.valid ? 200 : 401).json({ success: result.valid, ...result });
     }
 
@@ -561,6 +627,35 @@ export default async function handler(req, res) {
       if (!requireRole(user, 'master_admin')) return res.status(403).json({ error: 'Solo master_admin' });
       const result = await updateClinic(req.body || {});
       return res.status(result.error ? 400 : 200).json(result);
+    }
+
+    // ── Feature management ───────────────────────────────────────────────
+    if (action === 'getFeatures') {
+      // clinic_admin/user obtienen sus propias features; master_admin puede consultar cualquier clínica
+      const clinicId = req.query.clinicId ? parseInt(req.query.clinicId) : (user.clinic_id || null);
+      if (user.role !== 'master_admin' && clinicId !== user.clinic_id) {
+        return res.status(403).json({ error: 'Sin permiso' });
+      }
+      return res.status(200).json({ success: true, features: await getFeatures(clinicId), allFeatures: ALL_FEATURES });
+    }
+
+    if (action === 'setFeature') {
+      if (!requireRole(user, 'master_admin')) return res.status(403).json({ error: 'Solo master_admin' });
+      const { clinicId, feature, enabled } = req.body || {};
+      const result = await setFeature(clinicId, feature, enabled);
+      return res.status(result.error ? 400 : 200).json(result);
+    }
+
+    if (action === 'getClinicFeatures') {
+      if (!requireRole(user, 'master_admin')) return res.status(403).json({ error: 'Solo master_admin' });
+      return res.status(200).json({ success: true, data: await getAllClinicFeatures() });
+    }
+
+    if (action === 'initFeatures') {
+      if (!requireRole(user, 'master_admin')) return res.status(403).json({ error: 'Solo master_admin' });
+      const clinics = await sql`SELECT id FROM clinics`;
+      for (const c of clinics.rows) await seedFeatures(c.id);
+      return res.status(200).json({ success: true, message: `Features inicializados para ${clinics.rows.length} clínica(s)` });
     }
 
     return res.status(400).json({ success: false, error: 'Acción no válida' });

@@ -20,6 +20,7 @@ import Faq from './pages/Faq';
 import BlogAdminPage from './pages/BlogAdminPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminMasterDashboard from './pages/AdminMasterDashboard';
 import AdminCalendarManager from './pages/AdminCalendarManager';
 import AdminBlockSchedule from './pages/AdminBlockSchedule';
 import AdminAppointment from './pages/AdminAppointment';
@@ -68,8 +69,9 @@ function App() {
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/blog-admin" element={<BlogAdminPage />} />
 
-              {/* RUTAS ADMINISTRATIVAS CHATBOT */}
+              {/* RUTAS ADMINISTRATIVAS */}
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/master" element={<AdminMasterDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/calendar" element={<AdminCalendarManager />} />
               <Route path="/admin/block-schedule" element={<AdminBlockSchedule />} />

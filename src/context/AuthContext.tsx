@@ -1,123 +1,127 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+
+export interface AuthUser {
+  id?: number;
+  username: string;
+  full_name?: string;
+  role: 'master_admin' | 'clinic_admin' | 'clinic_user';
+  clinic_id: number | null;
+  access_scope: 'all' | 'own';
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   username: string | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  user: AuthUser | null;
+  features: string[];
+  login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
+  hasFeature: (feature: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const LS_TOKEN  = 'adminSessionToken';
+const LS_USER   = 'adminUser';
+const LS_EXPIRY = 'adminSessionExpiry';
+
+function persistAuth(token: string, user: AuthUser, expiry: string, features: string[]) {
+  localStorage.setItem(LS_TOKEN,  token);
+  localStorage.setItem(LS_USER,   JSON.stringify({ ...user, features }));
+  localStorage.setItem(LS_EXPIRY, expiry);
+}
+
+function clearAuth() {
+  localStorage.removeItem(LS_TOKEN);
+  localStorage.removeItem(LS_USER);
+  localStorage.removeItem(LS_EXPIRY);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [features, setFeatures] = useState<string[]>([]);
 
-  const checkAuth = async (): Promise<boolean> => {
-    try {
-      const sessionToken = localStorage.getItem('adminSessionToken');
-      if (!sessionToken) {
-        setIsAuthenticated(false);
-        setUsername(null);
-        return false;
-      }
-
-      // Verificar sesión con el API
-      const response = await fetch('/api/admin-auth?action=verify', {
-        headers: {
-          'Authorization': `Bearer ${sessionToken}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.valid) {
-        const savedUsername = localStorage.getItem('adminUsername');
-        setIsAuthenticated(true);
-        setUsername(savedUsername || data.user?.username || 'admin');
-        return true;
-      } else {
-        // Sesión inválida, limpiar
-        localStorage.removeItem('adminSessionToken');
-        localStorage.removeItem('adminUsername');
-        setIsAuthenticated(false);
-        setUsername(null);
-        return false;
-      }
-    } catch (error) {
-      console.error('Error verificando autenticación:', error);
-      setIsAuthenticated(false);
-      setUsername(null);
-      return false;
-    }
+  const applySession = (u: AuthUser, feat: string[]) => {
+    setIsAuthenticated(true);
+    setUser(u);
+    setFeatures(feat);
   };
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const resetSession = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+    setFeatures([]);
+  };
+
+  const checkAuth = useCallback(async (): Promise<boolean> => {
     try {
-      console.log('🔐 Intentando login con API...');
-      
-      const response = await fetch('/api/admin-auth?action=login', {
+      const token = localStorage.getItem(LS_TOKEN);
+      if (!token) { resetSession(); return false; }
+
+      const res  = await fetch('/api/admin-auth?action=verify', { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+
+      if (data.success && data.valid && data.user) {
+        applySession(data.user, data.features || []);
+        return true;
+      }
+      clearAuth(); resetSession(); return false;
+    } catch {
+      resetSession(); return false;
+    }
+  }, []);
+
+  const login = async (username: string, password: string): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      const res  = await fetch('/api/admin-auth?action=login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
+      const data = await res.json();
 
-      const data = await response.json();
-      console.log('📊 Respuesta del API:', data);
-
-      if (data.success) {
-        // Guardar sesión
-        localStorage.setItem('adminSessionToken', data.sessionToken);
-        localStorage.setItem('adminUsername', data.user?.username || username);
-        localStorage.setItem('adminSessionExpiry', data.expiresAt);
-        
-        setIsAuthenticated(true);
-        setUsername(data.user?.username || username);
-        
-        console.log('✅ Login exitoso');
-        return true;
-      } else {
-        console.error('❌ Login fallido:', data.error);
-        return false;
+      if (data.success && data.user) {
+        persistAuth(data.sessionToken, data.user, data.expiresAt, data.features || []);
+        applySession(data.user, data.features || []);
+        return { ok: true };
       }
-    } catch (error) {
-      console.error('❌ Error en login:', error);
-      return false;
+      return { ok: false, error: data.error || 'Credenciales inválidas' };
+    } catch {
+      return { ok: false, error: 'Error de conexión' };
     }
   };
 
   const logout = () => {
-    const sessionToken = localStorage.getItem('adminSessionToken');
-    
-    // Intentar cerrar sesión en el servidor
-    if (sessionToken) {
+    const token = localStorage.getItem(LS_TOKEN);
+    if (token) {
       fetch('/api/admin-auth?action=logout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionToken}`
-        },
-        body: JSON.stringify({ sessionToken })
-      }).catch(err => console.error('Error cerrando sesión en servidor:', err));
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ sessionToken: token })
+      }).catch(() => {});
     }
-    
-    // Limpiar local
-    localStorage.removeItem('adminSessionToken');
-    localStorage.removeItem('adminUsername');
-    localStorage.removeItem('adminSessionExpiry');
-    setIsAuthenticated(false);
-    setUsername(null);
+    clearAuth();
+    resetSession();
   };
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const hasFeature = (feature: string) =>
+    user?.role === 'master_admin' || features.includes(feature);
+
+  useEffect(() => { checkAuth(); }, [checkAuth]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{
+      isAuthenticated,
+      username: user?.username ?? null,
+      user,
+      features,
+      login,
+      logout,
+      checkAuth,
+      hasFeature
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -125,8 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
-  }
+  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 }

@@ -30,13 +30,13 @@ export default function AdminLogin() {
     }
 
     try {
-      const success = await login(username, password);
-      if (success) {
+      const result = await login(username, password);
+      if (result.ok) {
         navigate('/admin');
       } else {
-        setError('Usuario o contraseña incorrectos');
+        setError(result.error || 'Usuario o contraseña incorrectos');
       }
-    } catch (err) {
+    } catch {
       setError('Error al iniciar sesión');
     } finally {
       setLoading(false);
