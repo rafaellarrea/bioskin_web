@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LogOut, User, Calendar, Clock, Ban, Bell, X, AlertCircle, Brain, Zap,
   ClipboardList, Bot, Package, Activity, DollarSign, Cuboid, Wrench,
-  Users, Shield, Database
+  Users, Shield, Database, ChevronRight, Sparkles, CheckCircle2,
 } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
@@ -12,25 +12,28 @@ interface UpcomingAppointment {
   description?: string; daysUntil: number; isToday: boolean; isTomorrow: boolean;
 }
 
-// Mapa feature â†’ configuraciÃ³n del tile
-const MODULE_CONFIG: Record<string, { title: string; description: string; icon: any; path: string; color: string }> = {
-  technical:        { title: 'Servicio TÃ©cnico',        description: 'GestiÃ³n de reparaciones, informes BioskinTech',          icon: Wrench,        path: '/admin/technical',        color: 'from-slate-700 to-slate-800' },
-  calendar:         { title: 'GestiÃ³n de Agenda',        description: 'Visualiza y administra citas del calendario',            icon: Calendar,      path: '/admin/calendar',         color: 'from-indigo-500 to-indigo-600' },
-  block_schedule:   { title: 'Bloqueo de Horarios',      description: 'Bloquea horarios no disponibles en el calendario',       icon: Ban,           path: '/admin/block-schedule',   color: 'from-red-500 to-red-600' },
-  appointment:      { title: 'Agendar Cita Manual',      description: 'Crea citas manualmente en el sistema',                   icon: Clock,         path: '/admin/appointment',      color: 'from-orange-500 to-orange-600' },
-  diagnosis:        { title: 'DiagnÃ³stico IA',           description: 'Herramienta de anÃ¡lisis dermatolÃ³gico asistido por IA',  icon: Brain,         path: '/admin/diagnosis',        color: 'from-teal-500 to-teal-600' },
-  protocols:        { title: 'Protocolos ClÃ­nicos',      description: 'Asistente IA para protocolos de aparatologÃ­a mÃ©dica',    icon: Zap,           path: '/admin/protocols',        color: 'from-yellow-500 to-yellow-600' },
-  chat_assistant:   { title: 'Asistente de Respuestas',  description: 'IA Gema para redactar respuestas a pacientes',           icon: Bot,           path: '/admin/chat-assistant',   color: 'from-pink-500 to-rose-500' },
-  clinical_records: { title: 'Fichas ClÃ­nicas',          description: 'GestiÃ³n de pacientes, antecedentes y tratamientos',      icon: ClipboardList, path: '/admin/clinical-records', color: 'from-pink-500 to-pink-600' },
-  finance:          { title: 'Finanzas',                 description: 'GestiÃ³n de ingresos y egresos',                          icon: DollarSign,    path: '/admin/finance',          color: 'from-amber-500 to-amber-600' },
-  inventory:        { title: 'Inventario',               description: 'Control de stock, lotes y vencimientos',                 icon: Package,       path: '/admin/inventory',        color: 'from-cyan-500 to-cyan-600' },
-  clinical_3d:      { title: 'VisualizaciÃ³n 3D',         description: 'Entorno de pruebas para visualizaciÃ³n 3D',               icon: Cuboid,        path: '/admin/clinical-3d',      color: 'from-violet-500 to-violet-600' },
-  blog:             { title: 'Blog Admin',               description: 'GestiÃ³n de artÃ­culos del blog',                          icon: Database,      path: '/blog-admin',             color: 'from-lime-500 to-lime-600' },
+// ── Mapa feature → tile ────────────────────────────────────────────────────────
+const MODULE_CONFIG: Record<string, {
+  title: string; description: string; icon: any; path: string;
+  iconColor: string; bgColor: string;
+}> = {
+  clinical_records: { title: 'Fichas Clínicas',        description: 'Pacientes, antecedentes y tratamientos',         icon: ClipboardList, path: '/admin/clinical-records', iconColor: 'text-[#deb887]',   bgColor: 'bg-[#deb887]/10' },
+  calendar:         { title: 'Gestión de Agenda',       description: 'Visualiza y administra citas del calendario',    icon: Calendar,      path: '/admin/calendar',         iconColor: 'text-indigo-500',  bgColor: 'bg-indigo-50'    },
+  appointment:      { title: 'Agendar Cita',            description: 'Crea citas manualmente en el sistema',           icon: Clock,         path: '/admin/appointment',      iconColor: 'text-orange-500',  bgColor: 'bg-orange-50'    },
+  block_schedule:   { title: 'Bloqueo de Horarios',     description: 'Bloquea horarios no disponibles',                icon: Ban,           path: '/admin/block-schedule',   iconColor: 'text-red-500',     bgColor: 'bg-red-50'       },
+  diagnosis:        { title: 'Diagnóstico IA',           description: 'Análisis dermatológico asistido por IA',         icon: Brain,         path: '/admin/diagnosis',        iconColor: 'text-teal-500',    bgColor: 'bg-teal-50'      },
+  protocols:        { title: 'Protocolos Clínicos',     description: 'Protocolos de aparatología médica con IA',       icon: Zap,           path: '/admin/protocols',        iconColor: 'text-yellow-500',  bgColor: 'bg-yellow-50'    },
+  chat_assistant:   { title: 'Asistente de Respuestas', description: 'IA Gema para redactar respuestas a pacientes',   icon: Bot,           path: '/admin/chat-assistant',   iconColor: 'text-pink-500',    bgColor: 'bg-pink-50'      },
+  finance:          { title: 'Finanzas',                description: 'Gestión de ingresos y egresos',                  icon: DollarSign,    path: '/admin/finance',          iconColor: 'text-emerald-500', bgColor: 'bg-emerald-50'   },
+  inventory:        { title: 'Inventario',              description: 'Control de stock, lotes y vencimientos',         icon: Package,       path: '/admin/inventory',        iconColor: 'text-cyan-500',    bgColor: 'bg-cyan-50'      },
+  clinical_3d:      { title: 'Visualización 3D',         description: 'Entorno de visualización clínica en 3D',         icon: Cuboid,        path: '/admin/clinical-3d',      iconColor: 'text-violet-500',  bgColor: 'bg-violet-50'    },
+  technical:        { title: 'Servicio Técnico',         description: 'Gestión de reparaciones e informes BioskinTech', icon: Wrench,        path: '/admin/technical',        iconColor: 'text-slate-500',   bgColor: 'bg-slate-50'     },
+  blog:             { title: 'Blog Admin',              description: 'Gestión de artículos del blog',                  icon: Database,      path: '/blog-admin',             iconColor: 'text-lime-500',    bgColor: 'bg-lime-50'      },
 };
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { isAuthenticated, user, features, hasFeature, logout, checkAuth } = useAuth();
+  const { isAuthenticated, user, hasFeature, logout, checkAuth } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
@@ -75,14 +78,14 @@ export default function AdminDashboard() {
       if (data.logs) setHealthLogs(prev => [...prev, ...data.logs.map((l: string) => `> ${l}`)]);
       if (data.success) {
         setStatus('success');
-        setHealthLogs(prev => [...prev, '> âœ… PRUEBA EXITOSA']);
+        setHealthLogs(prev => [...prev, '> ✅ PRUEBA EXITOSA']);
       } else {
         setStatus('error');
-        setHealthLogs(prev => [...prev, `> âŒ ERROR: ${data.message}`]);
+        setHealthLogs(prev => [...prev, `> ❌ ERROR: ${data.message}`]);
       }
     } catch (e: any) {
       setStatus('error');
-      setHealthLogs(prev => [...prev, `> âŒ Error de comunicaciÃ³n: ${e.message}`]);
+      setHealthLogs(prev => [...prev, `> ❌ Error de comunicación: ${e.message}`]);
     }
   };
 
@@ -109,7 +112,7 @@ export default function AdminDashboard() {
     try {
       const token    = localStorage.getItem('adminSessionToken');
       const selected = Object.entries(backupModules).filter(([, v]) => v).map(([k]) => k).join(',');
-      if (!selected) { alert('Selecciona al menos un mÃ³dulo'); return; }
+      if (!selected) { alert('Selecciona al menos un módulo'); return; }
       const res = await fetch(`/api/backup?modules=${selected}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
       const blob = await res.blob();
@@ -117,17 +120,16 @@ export default function AdminDashboard() {
       const a    = Object.assign(document.createElement('a'), { href: url, download: 'bioskin-backup.json' });
       document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); document.body.removeChild(a);
       setShowBackupModal(false);
-    } catch (e: any) { alert('âŒ Error: ' + e.message); }
+    } catch (e: any) { alert('❌ Error: ' + e.message); }
     finally { setDownloadingBackup(false); }
   };
 
   if (!isAuthenticated || !user || user.role === 'master_admin') return null;
 
-  // Tiles del menÃº â€” solo features habilitados para esta clÃ­nica
   const tiles = Object.entries(MODULE_CONFIG).filter(([feat]) => hasFeature(feat));
 
   const roleBadge: Record<string, string> = {
-    clinic_admin: 'Administrador de ClÃ­nica',
+    clinic_admin: 'Administrador de Clínica',
     clinic_user:  'Usuario',
   };
 
@@ -136,111 +138,169 @@ export default function AdminDashboard() {
     day:  new Date(d).toLocaleDateString('es-ES',  { weekday: 'long', day: 'numeric', month: 'long' }),
   });
   const urgency = (a: UpcomingAppointment) =>
-    a.isToday    ? { text: 'HOY',       color: 'bg-red-500 text-white' }    :
-    a.isTomorrow ? { text: 'MAÃ‘ANA',    color: 'bg-orange-500 text-white' } :
-    a.daysUntil <= 3 ? { text: `${a.daysUntil} dÃ­as`, color: 'bg-yellow-500 text-white' } :
-                  { text: `${a.daysUntil} dÃ­as`, color: 'bg-gray-500 text-white' };
+    a.isToday    ? { text: 'HOY',    color: 'bg-red-500 text-white' }       :
+    a.isTomorrow ? { text: 'MAÑANA', color: 'bg-orange-400 text-white' }    :
+    a.daysUntil <= 3 ? { text: `${a.daysUntil} días`, color: 'bg-yellow-400 text-white' } :
+                  { text: `${a.daysUntil} días`, color: 'bg-gray-200 text-gray-600' };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Header */}
-      <div className="bg-white shadow-lg">
-        <div className="container-custom py-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Panel Administrativo</h1>
-              <p className="text-gray-500 text-sm">{roleBadge[user.role] || 'Usuario'} â€” BIOSKIN</p>
-            </div>
+    <div className="min-h-screen bg-[#fafafa]">
+
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
+        <div className="container-custom py-3.5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+
+            {/* Logo */}
             <div className="flex items-center gap-3">
+              <div className="w-2 h-9 bg-[#deb887] rounded-full" />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 leading-tight"
+                    style={{ fontFamily: 'Playfair Display, serif' }}>
+                  BIOSKIN
+                </h1>
+                <p className="text-xs text-gray-400 leading-tight">
+                  {roleBadge[user.role] || 'Usuario'} · {user.full_name || user.username}
+                </p>
+              </div>
+            </div>
+
+            {/* Acciones */}
+            <div className="flex items-center gap-2">
+
               {/* Notificaciones */}
               <div className="relative notifications-panel">
-                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                  <Bell className="w-6 h-6" />
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 text-gray-400 hover:text-[#deb887] hover:bg-[#deb887]/10 rounded-xl transition-colors"
+                >
+                  <Bell className="w-5 h-5" />
                   {upcomingAppointments.length > 0 && (
-                    <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-bold flex items-center justify-center rounded-full border-2 border-white">{upcomingAppointments.length}</span>
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                      {upcomingAppointments.length > 9 ? '9+' : upcomingAppointments.length}
+                    </span>
                   )}
                 </button>
+
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-                    <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                      <h3 className="font-semibold text-gray-800 flex items-center gap-2"><Bell className="w-4 h-4 text-[#deb887]" />PrÃ³ximas Citas</h3>
-                      <button onClick={() => setShowNotifications(false)}><X className="w-4 h-4 text-gray-400" /></button>
+                  <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+                    <div className="h-0.5 bg-gradient-to-r from-[#deb887] via-[#e8c98a] to-[#deb887]" />
+                    <div className="px-4 py-3 border-b border-gray-50 flex justify-between items-center">
+                      <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+                        <Bell className="w-4 h-4 text-[#deb887]" /> Próximas Citas
+                      </h3>
+                      <button onClick={() => setShowNotifications(false)} className="text-gray-300 hover:text-gray-500">
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-72 overflow-y-auto">
                       {loadingNotifications ? (
-                        <div className="p-8 text-center text-gray-500"><div className="animate-spin w-6 h-6 border-2 border-[#deb887] border-t-transparent rounded-full mx-auto mb-2" />Cargando...</div>
+                        <div className="p-8 text-center text-gray-400">
+                          <div className="w-6 h-6 border-2 border-[#deb887] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                          <p className="text-sm">Cargando...</p>
+                        </div>
                       ) : upcomingAppointments.length > 0 ? (
-                        <div className="divide-y">{upcomingAppointments.map(apt => {
-                          const { time, day } = formatApt(apt.start); const u = urgency(apt);
-                          return (
-                            <div key={apt.id} className="p-4 hover:bg-gray-50">
-                              <div className="flex justify-between mb-1">
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${u.color}`}>{u.text}</span>
-                                <span className="text-xs text-gray-500">{time}</span>
+                        <div className="divide-y divide-gray-50">
+                          {upcomingAppointments.map(apt => {
+                            const { time, day } = formatApt(apt.start);
+                            const u = urgency(apt);
+                            return (
+                              <div key={apt.id} className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${u.color}`}>{u.text}</span>
+                                  <span className="text-xs text-gray-400 font-mono">{time}</span>
+                                </div>
+                                <p className="font-medium text-gray-900 text-sm leading-snug">{apt.summary}</p>
+                                <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                                  <Calendar className="w-3 h-3" />
+                                  <span className="capitalize">{day}</span>
+                                </div>
                               </div>
-                              <p className="font-medium text-gray-900">{apt.summary}</p>
-                              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1"><Calendar className="w-3 h-3" /><span className="capitalize">{day}</span></div>
-                            </div>
-                          );
-                        })}</div>
+                            );
+                          })}
+                        </div>
                       ) : (
-                        <div className="p-8 text-center text-gray-400"><AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-30" /><p>No hay citas prÃ³ximas</p></div>
+                        <div className="p-8 text-center text-gray-300">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                          <p className="text-sm">Sin citas próximas</p>
+                        </div>
                       )}
                     </div>
-                    <div className="p-3 bg-gray-50 border-t text-center">
-                      <button onClick={() => navigate('/admin/calendar')} className="text-sm text-[#deb887] font-medium hover:underline">Ver calendario completo</button>
+                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 text-center">
+                      <button
+                        onClick={() => navigate('/admin/calendar')}
+                        className="text-sm text-[#deb887] font-medium hover:text-[#c5a075] transition-colors"
+                      >
+                        Ver calendario completo →
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Usuario */}
-              <div className="flex items-center gap-2 text-gray-700">
-                <User className="w-5 h-5" />
-                <span className="font-medium text-sm">{user.full_name || user.username}</span>
-              </div>
-
-              {/* GestiÃ³n usuarios (clinic_admin) */}
               {user.role === 'clinic_admin' && (
-                <button onClick={() => navigate('/admin/users')} className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                  <Users className="w-4 h-4" />Usuarios
+                <button
+                  onClick={() => navigate('/admin/users')}
+                  className="flex items-center gap-1.5 px-3 py-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors text-sm font-medium"
+                >
+                  <Users className="w-4 h-4" /> Usuarios
                 </button>
               )}
 
-              <button onClick={() => { logout(); navigate('/admin/login'); }} className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm">
-                <LogOut className="w-4 h-4" />Salir
+              <button
+                onClick={() => { logout(); navigate('/admin/login'); }}
+                className="flex items-center gap-1.5 px-3 py-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors text-sm font-medium"
+              >
+                <LogOut className="w-4 h-4" /> Salir
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Grid de mÃ³dulos */}
-      <div className="container-custom py-10">
+      {/* ── Contenido ───────────────────────────────────────────────────── */}
+      <div className="container-custom py-8">
+
+        {/* Saludo */}
+        <div className="mb-8 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-[#deb887] flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Bienvenido, {user.full_name?.split(' ')[0] || user.username}
+            </h2>
+            <p className="text-sm text-gray-400">Selecciona un módulo para continuar</p>
+          </div>
+        </div>
+
         {tiles.length === 0 && (
-          <div className="text-center py-20 text-gray-400">
+          <div className="text-center py-24 text-gray-300">
             <Shield className="w-16 h-16 mx-auto mb-4 opacity-20" />
-            <p className="text-xl">No hay mÃ³dulos habilitados para tu cuenta.</p>
-            <p className="text-sm mt-2">Contacta al administrador de tu clÃ­nica.</p>
+            <p className="text-lg font-medium text-gray-500">Sin módulos habilitados</p>
+            <p className="text-sm mt-1">Contacta al administrador de tu clínica.</p>
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {tiles.map(([feat, item]) => {
             const Icon = item.icon;
             return (
-              <button key={feat} onClick={() => navigate(item.path)}
-                className="group relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 text-left">
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
-                <div className="relative p-8">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} mb-6`}>
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#deb887] transition-colors">{item.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
-                  <div className="mt-4 flex items-center text-[#deb887] font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span>Acceder</span>
-                    <svg className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                  </div>
+              <button
+                key={feat}
+                onClick={() => navigate(item.path)}
+                className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#deb887]/40 hover:-translate-y-0.5 transition-all duration-200 text-left p-5 flex flex-col"
+              >
+                <div className={`w-11 h-11 rounded-xl ${item.bgColor} flex items-center justify-center mb-4`}>
+                  <Icon className={`w-5 h-5 ${item.iconColor}`} />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-1 group-hover:text-[#deb887] transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-gray-400 text-xs leading-relaxed flex-1">{item.description}</p>
+                <div className="flex items-center gap-1 mt-3 text-[#deb887] text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span>Acceder</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </div>
               </button>
             );
@@ -248,81 +308,142 @@ export default function AdminDashboard() {
 
           {/* Estado del Sistema */}
           {hasFeature('backup') && (
-            <button onClick={() => setShowHealthModal(true)}
-              className="group relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 text-left">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-0 group-hover:opacity-10 transition-opacity" />
-              <div className="relative p-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mb-6"><Activity className="w-8 h-8 text-white" /></div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">Estado del Sistema</h3>
-                <p className="text-gray-500 text-sm">DiagnÃ³stico de API, Calendar y SMTP</p>
+            <button
+              onClick={() => setShowHealthModal(true)}
+              className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 hover:-translate-y-0.5 transition-all duration-200 text-left p-5 flex flex-col"
+            >
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+                <Activity className="w-5 h-5 text-emerald-500" />
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm mb-1 group-hover:text-emerald-600 transition-colors">
+                Estado del Sistema
+              </h3>
+              <p className="text-gray-400 text-xs leading-relaxed flex-1">
+                Diagnóstico de API, Calendar y SMTP
+              </p>
+              <div className="flex items-center gap-1 mt-3 text-emerald-500 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>Verificar</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </div>
             </button>
           )}
 
-          {/* Backup */}
+          {/* Base de Datos */}
           {hasFeature('backup') && (
-            <button onClick={() => setShowBackupModal(true)}
-              className="group relative bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 text-left">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-10 transition-opacity" />
-              <div className="relative p-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 mb-6"><Database className="w-8 h-8 text-white" /></div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">GestiÃ³n de Base de Datos</h3>
-                <p className="text-gray-500 text-sm">Descargar respaldo completo</p>
+            <button
+              onClick={() => setShowBackupModal(true)}
+              className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-200 text-left p-5 flex flex-col"
+            >
+              <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center mb-4">
+                <Database className="w-5 h-5 text-indigo-500" />
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm mb-1 group-hover:text-indigo-600 transition-colors">
+                Base de Datos
+              </h3>
+              <p className="text-gray-400 text-xs leading-relaxed flex-1">
+                Descargar respaldo completo de datos
+              </p>
+              <div className="flex items-center gap-1 mt-3 text-indigo-500 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>Descargar</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </div>
             </button>
           )}
         </div>
       </div>
 
-      {/* Modal Backup */}
+      {/* ── Modal Backup ─────────────────────────────────────────────────── */}
       {showBackupModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
-            <div className="p-5 border-b flex justify-between items-center">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2"><Database className="w-5 h-5 text-indigo-600" />GestiÃ³n de Respaldo</h3>
-              <button onClick={() => setShowBackupModal(false)}><X className="w-5 h-5 text-gray-400" /></button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
+            <div className="h-0.5 bg-gradient-to-r from-indigo-400 to-indigo-600" />
+            <div className="px-5 py-4 border-b border-gray-50 flex justify-between items-center">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+                <Database className="w-4 h-4 text-indigo-500" /> Gestión de Respaldo
+              </h3>
+              <button onClick={() => setShowBackupModal(false)} className="text-gray-300 hover:text-gray-500">
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="p-5 space-y-3">
-              {[['patients','Fichas ClÃ­nicas'],['finance','Finanzas'],['chats','Chats'],['inventory','Inventario']].map(([k,label]) => (
-                <label key={k} className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input type="checkbox" checked={(backupModules as any)[k]} onChange={e => setBackupModules(p => ({...p,[k]:e.target.checked}))} className="w-4 h-4 text-indigo-600" />
-                  <span className="ml-3 font-medium text-gray-900 text-sm">{label}</span>
+            <div className="p-5 space-y-2">
+              <p className="text-xs text-gray-400 mb-3">Selecciona los módulos a incluir en el respaldo:</p>
+              {[['patients','Fichas Clínicas'],['finance','Finanzas'],['chats','Chats'],['inventory','Inventario']].map(([k, label]) => (
+                <label key={k} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={(backupModules as any)[k]}
+                    onChange={e => setBackupModules(p => ({ ...p, [k]: e.target.checked }))}
+                    className="w-4 h-4 accent-[#deb887]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{label}</span>
                 </label>
               ))}
             </div>
-            <div className="p-5 border-t flex justify-end gap-3">
-              <button onClick={() => setShowBackupModal(false)} className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50 text-sm">Cancelar</button>
-              <button onClick={handleDownloadBackup} disabled={downloadingBackup} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm disabled:opacity-50">
-                {downloadingBackup ? 'Descargandoâ€¦' : 'Descargar'}
+            <div className="px-5 py-4 border-t border-gray-50 flex justify-end gap-2">
+              <button onClick={() => setShowBackupModal(false)} className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                Cancelar
+              </button>
+              <button
+                onClick={handleDownloadBackup}
+                disabled={downloadingBackup}
+                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium disabled:opacity-50 transition-colors"
+              >
+                {downloadingBackup ? 'Descargando...' : 'Descargar'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Health */}
+      {/* ── Modal Estado del Sistema ─────────────────────────────────────── */}
       {showHealthModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-            <div className="p-5 border-b flex justify-between items-center">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2"><Activity className="w-5 h-5 text-emerald-600" />Estado del Sistema</h3>
-              <button onClick={() => setShowHealthModal(false)}><X className="w-5 h-5 text-gray-400" /></button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="h-0.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
+            <div className="px-5 py-4 border-b border-gray-50 flex justify-between items-center">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
+                <Activity className="w-4 h-4 text-emerald-500" /> Estado del Sistema
+              </h3>
+              <button onClick={() => setShowHealthModal(false)} className="text-gray-300 hover:text-gray-500">
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="p-5 space-y-3">
-              {(['calendar','email'] as const).map(type => {
+            <div className="p-5 space-y-2">
+              {(['calendar', 'email'] as const).map(type => {
                 const status = type === 'calendar' ? calStatus : emailStatus;
+                const label  = type === 'calendar' ? 'Google Calendar' : 'Email SMTP';
                 return (
-                  <div key={type} className="flex items-center justify-between p-3 border rounded-lg">
-                    <span className="font-medium text-gray-900 capitalize text-sm">{type === 'calendar' ? 'Google Calendar' : 'Email SMTP'}</span>
+                  <div key={type} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
                     <div className="flex items-center gap-2">
-                      {status !== 'pending' && <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${status === 'success' ? 'bg-green-100 text-green-700' : status === 'error' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{status === 'loading' ? 'Probandoâ€¦' : status === 'success' ? 'âœ… OK' : 'âŒ Error'}</span>}
-                      <button onClick={() => runTest(type)} className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs">Probar</button>
+                      {status === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                      {status === 'error'   && <AlertCircle  className="w-4 h-4 text-red-400" />}
+                      {(status === 'pending' || status === 'loading') && (
+                        <div className={`w-4 h-4 rounded-full border-2 ${status === 'loading' ? 'border-[#deb887] border-t-transparent animate-spin' : 'border-gray-200'}`} />
+                      )}
+                      <span className="font-medium text-gray-800 text-sm">{label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {status !== 'pending' && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          status === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                          status === 'error'   ? 'bg-red-50 text-red-500' :
+                          'bg-yellow-50 text-yellow-600'
+                        }`}>
+                          {status === 'loading' ? 'Probando...' : status === 'success' ? 'OK' : 'Error'}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => runTest(type)}
+                        className="px-3 py-1 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        Probar
+                      </button>
                     </div>
                   </div>
                 );
               })}
               {healthLogs.length > 0 && (
-                <div className="bg-gray-900 rounded-lg p-3 font-mono text-xs text-green-400 max-h-40 overflow-y-auto">
+                <div className="bg-gray-950 rounded-xl p-3 font-mono text-xs text-green-400 max-h-40 overflow-y-auto mt-3">
                   {healthLogs.map((l, i) => <div key={i}>{l}</div>)}
                   <div ref={healthLogsEndRef} />
                 </div>

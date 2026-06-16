@@ -10,9 +10,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LogOut, Building2, Users, Shield, RefreshCw, ChevronDown, ChevronUp,
-  Toggle, Plus, Edit, Trash2, Eye, EyeOff, Key, X, Check, AlertCircle,
+  Plus, Edit, Trash2, Eye, EyeOff, Key, X, Check, AlertCircle,
   Activity, Calendar, Brain, Zap, Bot, ClipboardList, DollarSign, Package,
-  Cuboid, Wrench, Database, Ban, Clock
+  Cuboid, Wrench, Database, Ban, Clock, ChevronRight, Sparkles
 } from 'lucide-react';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -39,11 +39,29 @@ const FEATURE_META: Record<string, { label: string; icon: any; color: string }> 
 
 const ALL_FEATURES = Object.keys(FEATURE_META);
 
+// ── Module tiles para el tab Módulos ─────────────────────────────────────────
+const MASTER_MODULES = [
+  { feat: 'clinical_records', title: 'Fichas Clínicas',        description: 'Pacientes, antecedentes y tratamientos',         icon: ClipboardList, path: '/admin/clinical-records', iconColor: 'text-[#deb887]',   bgColor: 'bg-[#deb887]/10' },
+  { feat: 'calendar',         title: 'Gestión de Agenda',       description: 'Visualiza y administra citas del calendario',    icon: Calendar,      path: '/admin/calendar',         iconColor: 'text-indigo-500',  bgColor: 'bg-indigo-50'    },
+  { feat: 'appointment',      title: 'Agendar Cita',            description: 'Crea citas manualmente en el sistema',           icon: Clock,         path: '/admin/appointment',      iconColor: 'text-orange-500',  bgColor: 'bg-orange-50'    },
+  { feat: 'block_schedule',   title: 'Bloqueo de Horarios',     description: 'Bloquea horarios no disponibles',                icon: Ban,           path: '/admin/block-schedule',   iconColor: 'text-red-500',     bgColor: 'bg-red-50'       },
+  { feat: 'diagnosis',        title: 'Diagnóstico IA',           description: 'Análisis dermatológico asistido por IA',         icon: Brain,         path: '/admin/diagnosis',        iconColor: 'text-teal-500',    bgColor: 'bg-teal-50'      },
+  { feat: 'protocols',        title: 'Protocolos Clínicos',     description: 'Protocolos de aparatología médica con IA',       icon: Zap,           path: '/admin/protocols',        iconColor: 'text-yellow-500',  bgColor: 'bg-yellow-50'    },
+  { feat: 'chat_assistant',   title: 'Asistente de Respuestas', description: 'IA Gema para redactar respuestas a pacientes',   icon: Bot,           path: '/admin/chat-assistant',   iconColor: 'text-pink-500',    bgColor: 'bg-pink-50'      },
+  { feat: 'finance',          title: 'Finanzas',                description: 'Gestión de ingresos y egresos',                  icon: DollarSign,    path: '/admin/finance',          iconColor: 'text-emerald-500', bgColor: 'bg-emerald-50'   },
+  { feat: 'inventory',        title: 'Inventario',              description: 'Control de stock, lotes y vencimientos',         icon: Package,       path: '/admin/inventory',        iconColor: 'text-cyan-500',    bgColor: 'bg-cyan-50'      },
+  { feat: 'clinical_3d',      title: 'Visualización 3D',         description: 'Entorno de visualización clínica en 3D',         icon: Cuboid,        path: '/admin/clinical-3d',      iconColor: 'text-violet-500',  bgColor: 'bg-violet-50'    },
+  { feat: 'technical',        title: 'Servicio Técnico',         description: 'Gestión de reparaciones e informes BioskinTech', icon: Wrench,        path: '/admin/technical',        iconColor: 'text-slate-500',   bgColor: 'bg-slate-50'     },
+  { feat: 'backup',           title: 'Estado del Sistema',      description: 'Diagnóstico de API, Calendar y SMTP',            icon: Activity,      path: '/admin',                  iconColor: 'text-emerald-500', bgColor: 'bg-emerald-50'   },
+  { feat: 'backup',           title: 'Base de Datos',           description: 'Descargar respaldo completo de datos',           icon: Database,      path: '/admin',                  iconColor: 'text-blue-500',    bgColor: 'bg-blue-50'      },
+  { feat: 'blog',             title: 'Blog Admin',              description: 'Gestión de artículos del blog',                  icon: Database,      path: '/blog-admin',             iconColor: 'text-lime-500',    bgColor: 'bg-lime-50'      },
+];
+
 const ROLE_LABEL: Record<string, string> = { master_admin: 'Master Admin', clinic_admin: 'Admin Clínica', clinic_user: 'Usuario' };
 const ROLE_COLOR: Record<string, string> = { master_admin: 'bg-amber-100 text-amber-800', clinic_admin: 'bg-purple-100 text-purple-800', clinic_user: 'bg-green-100 text-green-700' };
 
 // ── Componentes pequeños ─────────────────────────────────────────────────────
-function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+function FeatureToggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <button
       type="button"
@@ -59,11 +77,12 @@ function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="h-0.5 bg-gradient-to-r from-indigo-400 to-purple-500" />
         <div className="p-5 border-b flex justify-between items-center">
           <h3 className="font-bold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-gray-300 hover:text-gray-500"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5 overflow-y-auto flex-1">{children}</div>
       </div>
@@ -97,7 +116,7 @@ function ClinicFeaturesPanel({ clinic, featMap, onToggle }: {
                   <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${meta.color}`} />
                   <span className="text-xs text-gray-700 truncate">{meta.label}</span>
                 </div>
-                <Toggle checked={enabled} onChange={v => onToggle(clinic.id, feat, v)} />
+                <FeatureToggle checked={enabled} onChange={v => onToggle(clinic.id, feat, v)} />
               </div>
             );
           })}
@@ -112,7 +131,8 @@ export default function AdminMasterDashboard() {
   const navigate = useNavigate();
   const { user, logout, checkAuth } = useAuth();
 
-  const [tab, setTab] = useState<'clinics' | 'users' | 'system'>('clinics');
+  const [tab, setTab] = useState<'clinics' | 'users' | 'modules' | 'system'>('clinics');
+  const [selectedModuleClinic, setSelectedModuleClinic] = useState<number | null>(null);
 
   // Datos
   const [clinics, setClinics]     = useState<Clinic[]>([]);
@@ -270,7 +290,10 @@ export default function AdminMasterDashboard() {
                 <Shield className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">Master Admin Panel</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold">Master Admin Panel</h1>
+                  <span className="bg-[#deb887] text-white px-2 py-0.5 rounded-lg text-xs font-bold tracking-wide">BIOSKIN</span>
+                </div>
                 <p className="text-white/70 text-sm">Control total del sistema · {user?.username}</p>
               </div>
             </div>
@@ -307,7 +330,12 @@ export default function AdminMasterDashboard() {
 
           {/* Tabs */}
           <div className="flex gap-1 mt-5 bg-white/10 rounded-xl p-1 w-fit">
-            {([['clinics','🏥 Clínicas'],['users','👥 Usuarios'],['system','⚙️ Sistema']] as const).map(([key, label]) => (
+            {([
+              ['clinics', '🏥 Clínicas'],
+              ['users',   '👥 Usuarios'],
+              ['modules', '📦 Módulos'],
+              ['system',  '⚙️ Sistema'],
+            ] as const).map(([key, label]) => (
               <button key={key} onClick={() => setTab(key)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === key ? 'bg-white text-indigo-700 shadow' : 'text-white/80 hover:text-white'}`}>
                 {label}
@@ -387,6 +415,9 @@ export default function AdminMasterDashboard() {
                         <button onClick={() => { setUserClinicFilter(String(clinic.id)); setTab('users'); }} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
                           <Users className="w-3.5 h-3.5" />Ver Usuarios
                         </button>
+                        <button onClick={() => { setSelectedModuleClinic(clinic.id); setTab('modules'); }} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-[#c5a075] bg-[#deb887]/10 hover:bg-[#deb887]/20 rounded-lg transition-colors">
+                          <Sparkles className="w-3.5 h-3.5" />Módulos
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -465,6 +496,79 @@ export default function AdminMasterDashboard() {
                   <div className="p-10 text-center text-gray-400"><Users className="w-10 h-10 mx-auto mb-2 opacity-20" /><p>No se encontraron usuarios</p></div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Tab: Módulos ───────────────────────────────────────────────── */}
+        {tab === 'modules' && (
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#deb887] flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Módulos del Sistema</h2>
+                  <p className="text-sm text-gray-400">Acceso directo a todos los módulos</p>
+                </div>
+              </div>
+              {clinics.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Contexto:</span>
+                  <select
+                    value={selectedModuleClinic ?? ''}
+                    onChange={e => setSelectedModuleClinic(e.target.value ? parseInt(e.target.value) : null)}
+                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#deb887]/40 focus:border-[#deb887] focus:outline-none"
+                  >
+                    <option value="">Global (master)</option>
+                    {clinics.map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {selectedModuleClinic && (
+              <div className="mb-4 p-3 bg-[#deb887]/10 border border-[#deb887]/20 rounded-xl flex items-center gap-2 text-sm text-[#c5a075]">
+                <Shield className="w-4 h-4 flex-shrink-0" />
+                <span>
+                  Clínica seleccionada: <strong>{clinics.find(c => c.id === selectedModuleClinic)?.name}</strong>
+                  {' '}— {ALL_FEATURES.filter(f => (featMap[selectedModuleClinic] || {})[f] !== false).length}/{ALL_FEATURES.length} módulos activos
+                </span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {MASTER_MODULES.map((item, idx) => {
+                const Icon = item.icon;
+                const isEnabled = !selectedModuleClinic || (featMap[selectedModuleClinic] || {})[item.feat] !== false;
+                return (
+                  <button
+                    key={`${item.feat}-${idx}`}
+                    onClick={() => navigate(item.path)}
+                    className={`group bg-white rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left p-5 flex flex-col ${
+                      isEnabled ? 'border-gray-100 hover:border-[#deb887]/40' : 'border-gray-100 opacity-40'
+                    }`}
+                  >
+                    <div className={`w-11 h-11 rounded-xl ${item.bgColor} flex items-center justify-center mb-4`}>
+                      <Icon className={`w-5 h-5 ${item.iconColor}`} />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-1 group-hover:text-[#deb887] transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-400 text-xs leading-relaxed flex-1">{item.description}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      {!isEnabled && selectedModuleClinic && (
+                        <span className="text-[10px] text-gray-300 font-medium">Módulo desactivado</span>
+                      )}
+                      <div className="flex items-center gap-1 text-[#deb887] text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                        <span>Acceder</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
